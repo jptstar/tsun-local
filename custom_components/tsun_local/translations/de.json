@@ -1,7 +1,7 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Gerät zu TSUN Local hinzufügen", "description": "Gib die lokalen Verbindungsdaten ein. Die benötigte Seriennummer (SN) steht auf dem Typenschild des Mikrowechselrichters. Wiederhole Integration hinzufügen für jedes weitere kompatible Gerät.", "data": {"host": "IP-Adresse", "port": "Port", "logger_sn": "SN des Mikrowechselrichters (Typenschild)"}},
+      "user": {"title": "Gerät zu TSUN Local hinzufügen", "description": "Gib die lokalen Verbindungsdaten ein. Das Protokoll und die verfügbaren PV-Eingänge werden automatisch erkannt. Die benötigte Seriennummer (SN) steht auf dem Typenschild des Mikrowechselrichters. Wiederhole Integration hinzufügen für jedes weitere kompatible Gerät.", "data": {"host": "IP-Adresse", "port": "Port", "logger_sn": "SN des Mikrowechselrichters (Typenschild)"}},
       "reconfigure": {"title": "Verbindung ändern", "description": "Ändere die IP-Adresse oder den TCP-Port dieses Geräts. Die SN des Mikrowechselrichters bleibt seine dauerhafte Kennung.", "data": {"host": "IP-Adresse", "port": "Port"}}
     },
     "error": {"cannot_connect": "Verbindung zum Wechselrichter nicht möglich", "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet"},

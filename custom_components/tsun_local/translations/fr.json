@@ -1,7 +1,7 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Ajouter un appareil à TSUN Local", "description": "Saisissez les paramètres de connexion locale. Le SN demandé est inscrit sur l’étiquette du micro-onduleur. Répétez Ajouter une intégration pour chaque appareil compatible supplémentaire.", "data": {"host": "Adresse IP", "port": "Port", "logger_sn": "SN du micro-onduleur (étiquette)"}},
+      "user": {"title": "Ajouter un appareil à TSUN Local", "description": "Saisissez les paramètres de connexion locale. Le protocole et les entrées PV disponibles seront détectés automatiquement. Le SN demandé est inscrit sur l’étiquette du micro-onduleur. Répétez Ajouter une intégration pour chaque appareil compatible supplémentaire.", "data": {"host": "Adresse IP", "port": "Port", "logger_sn": "SN du micro-onduleur (étiquette)"}},
       "reconfigure": {"title": "Modifier la connexion", "description": "Modifiez l’adresse IP ou le port TCP de cet appareil. Le SN du micro-onduleur reste son identité permanente.", "data": {"host": "Adresse IP", "port": "Port"}}
     },
     "error": {"cannot_connect": "Impossible de joindre l’appareil", "invalid_response": "La réponse de l’appareil est invalide"},
