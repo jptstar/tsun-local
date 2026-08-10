@@ -72,6 +72,6 @@ When the micro-inverter is no longer powered, the integration marks it offline w
 
 ## Sensors
 
-The integration creates one device with AC measurements, 5 measurements for each of the 6 PV inputs, the sum of the 6 DC powers, 4 diagnostic sensors, and one connectivity status.
+**TITAN:** the integration creates one device with AC measurements, 5 measurements for each of the 6 PV inputs, the sum of the 6 DC powers, 4 diagnostic sensors, and one connectivity status.
 
 The three protocol blocks are `01/0x0BB8–0x0BD0`, `03/0x0E10–0x0E2D`, and `04/0x0ED8–0x0EF5`.

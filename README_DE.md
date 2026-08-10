@@ -72,6 +72,6 @@ Wenn der Mikrowechselrichter nicht mehr mit Strom versorgt wird, markiert ihn di
 
 ## Sensoren
 
-Die Integration erstellt ein Gerät mit AC-Messwerten, 5 Messwerten für jeden der 6 PV-Eingänge, der Summe der 6 DC-Leistungen, 4 Diagnosesensoren und einem Verbindungsstatus.
+**TITAN:** Die Integration erstellt ein Gerät mit AC-Messwerten, 5 Messwerten für jeden der 6 PV-Eingänge, der Summe der 6 DC-Leistungen, 4 Diagnosesensoren und einem Verbindungsstatus.
 
 Die drei Protokollblöcke sind `01/0x0BB8–0x0BD0`, `03/0x0E10–0x0E2D` und `04/0x0ED8–0x0EF5`.
