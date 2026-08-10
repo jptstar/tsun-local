@@ -26,6 +26,7 @@ from .const import (
     CONF_PROTOCOL,
     CONF_SCAN_INTERVAL,
     DEFAULT_OFFLINE_SCAN_INTERVAL,
+    DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_OFFLINE_SCAN_INTERVAL,
@@ -49,7 +50,7 @@ async def _validate_input(data: dict[str, Any]) -> None:
 CONNECTION_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
-        vol.Required(CONF_PORT): vol.All(
+        vol.Required(CONF_PORT, default=DEFAULT_PORT): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=65535)
         ),
         vol.Required(CONF_LOGGER_SN): vol.All(
