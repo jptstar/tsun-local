@@ -33,10 +33,16 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 ### Micro-onduleurs TITAN
 
 - [**TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-2250w-3000w.html)
-  - **TSOL-MP3000** : compatible et validé sur matériel réel, avec 6 entrées PV ;
-  - **TSOL-MP2250** : en attente de retours utilisateurs pour validation ;
-  - **TSOL-MS3000** : non validé et non pris en charge actuellement.
-- [**TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-3680w-6000w.html) : modèles non validés et non pris en charge actuellement.
+  - ✅ **TSOL-MP3000** : compatible et validé sur matériel réel, avec 6 entrées PV ;
+  - ❌ **TSOL-MP2250** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
+  - ❌ **TSOL-MS3000** : non testé, compatibilité à confirmer à partir de retours utilisateurs.
+- [**TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-3680w-6000w.html)
+  - ❌ **TSOL-MP6000** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
+  - ❌ **TSOL-MP5000** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
+  - ❌ **TSOL-MP4600** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
+  - ❌ **TSOL-MP4000** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
+  - ❌ **TSOL-MP3750** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
+  - ❌ **TSOL-MP3680** : non testé, compatibilité à confirmer à partir de retours utilisateurs.
 
 ## Installation
 
