@@ -10,11 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-Implémentation indépendante du protocole local 1511 utilisé par certains micro-onduleurs TSUN. Elle interroge directement le logger sur le réseau local et ne dépend d’aucun service cloud.
-
-**TSUN Local est la base logicielle du projet.** Son domaine Home Assistant générique `tsun_local` est destiné à rester stable pendant l’ajout progressif de nouveaux modèles et protocoles locaux. La version 1.0.0 fournit une première implémentation validée pour le TSOL-MP3000 avec le protocole 1511.
-
-L’architecture sépare le coordinateur et les entités Home Assistant des adaptateurs placés dans `custom_components/tsun_local/protocols/`. Chaque adaptateur déclare ses propres mesures afin que Home Assistant ne crée que les entités prises en charge. Le module `protocol_1511.py` est le premier adaptateur ; les futurs protocoles TSUN pourront être ajoutés dans ce dossier sans renommer l’intégration.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN présents sur le réseau local, sans proxy et sans service cloud. La version actuelle prend en charge le **TSOL-MP3000**.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
@@ -34,7 +30,6 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 
 - **Home Assistant 2026.3.0 ou version ultérieure**.
 - **TSOL-MP3000** : compatible et validé sur matériel réel, avec 6 entrées PV.
-- **TSOL-MP2250** : prévu pour une validation ultérieure ; sa prise en charge ne sera annoncée qu’après confirmation sur matériel réel.
 
 ## Installation
 

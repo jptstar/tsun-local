@@ -10,11 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-Unabhängige Implementierung des lokalen 1511-Protokolls, das von ausgewählten TSUN-Mikrowechselrichtern verwendet wird. Sie kommuniziert im lokalen Netzwerk direkt mit dem Logger und benötigt keinen Cloud-Dienst.
-
-**TSUN Local ist die Softwarebasis des Projekts.** Die allgemeine Home-Assistant-Domain `tsun_local` soll stabil bleiben, während Unterstützung für weitere Modelle und lokale Protokolle ergänzt wird. Version 1.0.0 enthält die erste validierte Implementierung für den TSOL-MP3000 mit Protokoll 1511.
-
-Die Architektur trennt den Home-Assistant-Koordinator und die Entitäten von den Protokolladaptern in `custom_components/tsun_local/protocols/`. Jeder Adapter deklariert seine eigenen Messwerte, damit Home Assistant nur unterstützte Entitäten erstellt. `protocol_1511.py` ist der erste Adapter; zukünftige TSUN-Protokolle können in diesem Verzeichnis ergänzt werden, ohne die Integration umzubenennen.
+**TSUN Local** bindet TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Die aktuelle Version unterstützt den **TSOL-MP3000**.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -34,7 +30,6 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 
 - **Home Assistant 2026.3.0 oder neuer**.
 - **TSOL-MP3000**: kompatibel und auf echter Hardware mit 6 PV-Eingängen validiert.
-- **TSOL-MP2250**: für eine spätere Validierung vorgesehen; Unterstützung wird erst nach Bestätigung auf echter Hardware angekündigt.
 
 ## Installation
 
