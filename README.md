@@ -48,9 +48,17 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 
 ### Avec HACS
 
-1. Dans HACS, ouvrez **Intégrations**, puis **Dépôts personnalisés**.
+[![Ajouter TSUN Local à HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+
+Ou manuellement :
+
+1. Dans HACS, ouvrez le menu **⋮** en haut à droite, puis **Dépôts personnalisés**.
 2. Ajoutez `https://github.com/jptstar/tsun-local` avec le type **Integration**.
-3. Installez **TSUN Local**, puis redémarrez Home Assistant.
+3. Cliquez sur **Ajouter**, puis ouvrez **TSUN Local**.
+4. Cliquez sur **Télécharger** et choisissez la dernière version disponible.
+5. Redémarrez Home Assistant.
+
+Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélectionnez **Actualiser les informations**.
 
 ### Installation manuelle
 
