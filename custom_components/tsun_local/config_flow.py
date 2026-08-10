@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Config flow for TSUN Local devices using protocol 1511."""
+"""Config flow for TSUN Local."""
 
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ from homeassistant.helpers.selector import (
 from .const import (
     CONF_LOGGER_SN,
     CONF_OFFLINE_SCAN_INTERVAL,
+    CONF_PROTOCOL,
     CONF_SCAN_INTERVAL,
     DEFAULT_OFFLINE_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -32,11 +33,16 @@ from .const import (
     MIN_OFFLINE_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
-from .protocol import TsunClient
+from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 
 async def _validate_input(data: dict[str, Any]) -> None:
-    client = TsunClient(data[CONF_HOST], data[CONF_PORT], data[CONF_LOGGER_SN])
+    client = create_protocol_client(
+        data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
+        data[CONF_HOST],
+        data[CONF_PORT],
+        data[CONF_LOGGER_SN],
+    )
     await client.async_read_all()
 
 
@@ -110,8 +116,12 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except Exception:
                 errors["base"] = "invalid_response"
             else:
+                entry_data = {
+                    **user_input,
+                    CONF_PROTOCOL: DEFAULT_PROTOCOL,
+                }
                 return self.async_create_entry(
-                    title=f"TSUN Local ({unique_id})", data=user_input
+                    title=f"TSUN Local ({unique_id})", data=entry_data
                 )
 
         return self.async_show_form(

@@ -6,12 +6,42 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Iterable
-from dataclasses import dataclass
 import time
-from typing import Any
 
-from .const import BLOCKS
+from . import TsunReadResult
+
+PROTOCOL_NAME = "1511"
+MODEL = "TITAN"
+
+BLOCKS = (
+    (0xA1, 0x01, 0x0BB8, 0x0BD0),
+    (0xA3, 0x03, 0x0E10, 0x0E2D),
+    (0xA4, 0x04, 0x0ED8, 0x0EF5),
+)
+
+AC_MEASUREMENT_KEYS = frozenset(
+    {
+        "ac_voltage",
+        "ac_current",
+        "ac_frequency",
+        "ac_power",
+        "ac_energy_today",
+        "ac_energy_total",
+        "dc_power_total",
+    }
+)
+PV_MEASUREMENT_KEYS = frozenset(
+    f"pv{number}_{measurement}"
+    for number in range(1, 7)
+    for measurement in (
+        "voltage",
+        "current",
+        "power",
+        "energy_today",
+        "energy_total",
+    )
+)
+MEASUREMENT_KEYS = AC_MEASUREMENT_KEYS | PV_MEASUREMENT_KEYS
 
 
 class TsunProtocolError(Exception):
@@ -59,7 +89,9 @@ def parse_ap_frame(frame: bytes) -> bytes:
         raise TsunProtocolError("Invalid AP frame markers")
     expected_length = int.from_bytes(frame[1:3], "little") + 13
     if len(frame) != expected_length:
-        raise TsunProtocolError(f"Invalid AP frame length: {len(frame)} != {expected_length}")
+        raise TsunProtocolError(
+            f"Invalid AP frame length: {len(frame)} != {expected_length}"
+        )
     if checksum_ap(frame[1:-2]) != frame[-2]:
         raise TsunProtocolError("Invalid AP checksum")
     try:
@@ -124,17 +156,12 @@ def decode_measurements(registers: dict[int, int]) -> dict[str, float | int]:
     return data
 
 
-@dataclass(slots=True)
-class TsunReadResult:
-    """A complete device poll."""
+class Tsun1511Client:
+    """Async protocol 1511 client for one TSUN logger."""
 
-    measurements: dict[str, float | int]
-    duration_ms: int
-    blocks_ok: int
-
-
-class TsunClient:
-    """Async local client for one TSUN logger."""
+    model = MODEL
+    protocol_name = PROTOCOL_NAME
+    measurement_keys = MEASUREMENT_KEYS
 
     def __init__(self, host: str, port: int, logger_sn: int, timeout: float = 10) -> None:
         self.host = host

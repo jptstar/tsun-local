@@ -14,6 +14,8 @@ Implémentation indépendante du protocole local 1511 utilisé par certains micr
 
 **TSUN Local est la base logicielle du projet.** Son domaine Home Assistant générique `tsun_local` est destiné à rester stable pendant l’ajout progressif de nouveaux modèles et protocoles locaux. La version 1.0.0 fournit une première implémentation validée pour le TSOL-MP3000 avec le protocole 1511.
 
+L’architecture sépare le coordinateur et les entités Home Assistant des adaptateurs placés dans `custom_components/tsun_local/protocols/`. Chaque adaptateur déclare ses propres mesures afin que Home Assistant ne crée que les entités prises en charge. Le module `protocol_1511.py` est le premier adaptateur ; les futurs protocoles TSUN pourront être ajoutés dans ce dossier sans renommer l’intégration.
+
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
 ## Licence

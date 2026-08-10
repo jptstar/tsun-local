@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Data coordinator for TSUN Local devices using protocol 1511."""
+"""Protocol-independent data coordinator for TSUN Local."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
-from .protocol import TsunClient, TsunReadResult
+from .protocols import TsunProtocolClient, TsunReadResult
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
-        client: TsunClient,
+        client: TsunProtocolClient,
         interval: int,
         offline_interval: int,
     ) -> None:

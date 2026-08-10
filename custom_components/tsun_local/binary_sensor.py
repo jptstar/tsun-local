@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Binary sensors for TSUN Local devices using protocol 1511."""
+"""Binary sensors for TSUN Local."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import TsunConfigEntry
-from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER, MODEL
+from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 
 
@@ -46,7 +46,7 @@ class TsunConnectivitySensor(
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
-            model=MODEL,
+            model=coordinator.client.model,
             name=f"TSUN Local {logger_sn}",
             serial_number=logger_sn,
         )

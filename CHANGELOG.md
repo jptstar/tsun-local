@@ -8,6 +8,7 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 
 - première version publique du logiciel TSUN Local ;
 - domaine Home Assistant générique et stable `tsun_local` ;
+- interface commune pour des adaptateurs de protocoles extensibles ;
 - première implémentation indépendante du protocole local 1511 pour le TSOL-MP3000 ;
 - lectures AC et PV1 à PV6 ;
 - puissance DC totale calculée comme somme des six puissances PV ;

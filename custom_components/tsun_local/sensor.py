@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Sensors for TSUN Local devices using protocol 1511."""
+"""Sensors for TSUN Local."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import TsunConfigEntry
-from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER, MODEL
+from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 
 
@@ -181,11 +181,17 @@ async def async_setup_entry(
     entry: TsunConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up all sensors."""
+    """Set up the sensors supported by this device protocol."""
     coordinator = entry.runtime_data
+    descriptions = (
+        description
+        for description in SENSORS + PV_SENSORS
+        if description.entity_category == EntityCategory.DIAGNOSTIC
+        or description.key in coordinator.client.measurement_keys
+    )
     async_add_entities(
         TsunSensor(coordinator, entry, description)
-        for description in SENSORS + PV_SENSORS
+        for description in descriptions
     )
 
 
@@ -207,7 +213,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
-            model=MODEL,
+            model=coordinator.client.model,
             name=f"TSUN Local {logger_sn}",
             serial_number=logger_sn,
         )
