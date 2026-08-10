@@ -1,0 +1,22 @@
+{
+  "config": {
+    "step": {
+      "user": {"title": "Ajouter un appareil à TSUN Local", "description": "Saisissez les paramètres de connexion locale. Le SN demandé est inscrit sur l’étiquette du micro-onduleur. Répétez Ajouter une intégration pour chaque appareil compatible supplémentaire.", "data": {"host": "Adresse IP", "port": "Port", "logger_sn": "SN du micro-onduleur (étiquette)"}},
+      "reconfigure": {"title": "Modifier la connexion", "description": "Modifiez l’adresse IP ou le port TCP de cet appareil. Le SN du micro-onduleur reste son identité permanente.", "data": {"host": "Adresse IP", "port": "Port"}}
+    },
+    "error": {"cannot_connect": "Impossible de joindre l’appareil", "invalid_response": "La réponse de l’appareil est invalide"},
+    "abort": {"already_configured": "Ce micro-onduleur est déjà configuré"}
+  },
+  "options": {"step": {"init": {"title": "Paramètres d’interrogation", "description": "Réglez l’intervalle normal et l’intervalle ralenti utilisé lorsque cet appareil est hors ligne ou non alimenté la nuit.", "data": {"scan_interval": "Intervalle normal", "offline_scan_interval": "Intervalle hors ligne/nuit"}}}},
+  "entity": {"sensor": {
+    "ac_voltage": {"name": "Tension AC"}, "ac_current": {"name": "Courant AC"}, "ac_frequency": {"name": "Fréquence AC"}, "ac_power": {"name": "Puissance AC"},
+    "ac_energy_today": {"name": "Énergie AC du jour"}, "ac_energy_total": {"name": "Énergie AC totale"}, "dc_power_total": {"name": "Puissance DC totale"},
+    "communication_last_success": {"name": "Dernière communication réussie"}, "communication_duration": {"name": "Durée de communication"}, "communication_blocks": {"name": "Blocs reçus"}, "communication_failures": {"name": "Échecs de communication consécutifs"},
+    "pv1_voltage": {"name": "Tension PV1"}, "pv1_current": {"name": "Courant PV1"}, "pv1_power": {"name": "Puissance PV1"}, "pv1_energy_today": {"name": "Énergie PV1 du jour"}, "pv1_energy_total": {"name": "Énergie PV1 totale"},
+    "pv2_voltage": {"name": "Tension PV2"}, "pv2_current": {"name": "Courant PV2"}, "pv2_power": {"name": "Puissance PV2"}, "pv2_energy_today": {"name": "Énergie PV2 du jour"}, "pv2_energy_total": {"name": "Énergie PV2 totale"},
+    "pv3_voltage": {"name": "Tension PV3"}, "pv3_current": {"name": "Courant PV3"}, "pv3_power": {"name": "Puissance PV3"}, "pv3_energy_today": {"name": "Énergie PV3 du jour"}, "pv3_energy_total": {"name": "Énergie PV3 totale"},
+    "pv4_voltage": {"name": "Tension PV4"}, "pv4_current": {"name": "Courant PV4"}, "pv4_power": {"name": "Puissance PV4"}, "pv4_energy_today": {"name": "Énergie PV4 du jour"}, "pv4_energy_total": {"name": "Énergie PV4 totale"},
+    "pv5_voltage": {"name": "Tension PV5"}, "pv5_current": {"name": "Courant PV5"}, "pv5_power": {"name": "Puissance PV5"}, "pv5_energy_today": {"name": "Énergie PV5 du jour"}, "pv5_energy_total": {"name": "Énergie PV5 totale"},
+    "pv6_voltage": {"name": "Tension PV6"}, "pv6_current": {"name": "Courant PV6"}, "pv6_power": {"name": "Puissance PV6"}, "pv6_energy_today": {"name": "Énergie PV6 du jour"}, "pv6_energy_total": {"name": "Énergie PV6 totale"}
+  }, "binary_sensor": {"communication_online": {"name": "Communication"}}}
+}

@@ -1,0 +1,54 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Verify and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v6
+
+      - name: Verify version metadata
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          tag = os.environ["RELEASE_TAG"]
+          version = tag.removeprefix("v")
+          manifest_path = Path("custom_components/tsun_local/manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+          if manifest["version"] != version:
+              raise SystemExit(
+                  f"Tag {tag} does not match manifest version {manifest['version']}"
+              )
+
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          if f"## [{version}]" not in changelog:
+              raise SystemExit(f"CHANGELOG.md has no section for {version}")
+
+          print(f"Version {version} is consistent")
+          PY
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            echo "Release ${GITHUB_REF_NAME} already exists; nothing to do."
+            exit 0
+          fi
+
+          gh release create "${GITHUB_REF_NAME}" --verify-tag --generate-notes --title "Version ${GITHUB_REF_NAME#v}"

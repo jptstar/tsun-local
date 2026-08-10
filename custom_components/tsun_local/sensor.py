@@ -1,0 +1,227 @@
+# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Sensors for TSUN Local devices using protocol 1511."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
+from homeassistant.const import (
+    EntityCategory,
+    UnitOfElectricCurrent,
+    UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
+    UnitOfPower,
+    UnitOfTime,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from . import TsunConfigEntry
+from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER, MODEL
+from .coordinator import TsunCoordinator
+
+
+@dataclass(frozen=True, kw_only=True)
+class TsunSensorDescription(SensorEntityDescription):
+    """Describe a TSUN sensor."""
+
+
+def _measurement(
+    key: str,
+    translation_key: str,
+    device_class: SensorDeviceClass,
+    unit: str,
+    precision: int,
+    state_class: SensorStateClass = SensorStateClass.MEASUREMENT,
+) -> TsunSensorDescription:
+    return TsunSensorDescription(
+        key=key,
+        translation_key=translation_key,
+        device_class=device_class,
+        native_unit_of_measurement=unit,
+        state_class=state_class,
+        suggested_display_precision=precision,
+    )
+
+
+SENSORS: tuple[TsunSensorDescription, ...] = (
+    _measurement(
+        "ac_voltage",
+        "ac_voltage",
+        SensorDeviceClass.VOLTAGE,
+        UnitOfElectricPotential.VOLT,
+        1,
+    ),
+    _measurement(
+        "ac_current",
+        "ac_current",
+        SensorDeviceClass.CURRENT,
+        UnitOfElectricCurrent.AMPERE,
+        2,
+    ),
+    _measurement(
+        "ac_frequency",
+        "ac_frequency",
+        SensorDeviceClass.FREQUENCY,
+        UnitOfFrequency.HERTZ,
+        2,
+    ),
+    _measurement("ac_power", "ac_power", SensorDeviceClass.POWER, UnitOfPower.WATT, 1),
+    _measurement(
+        "ac_energy_today",
+        "ac_energy_today",
+        SensorDeviceClass.ENERGY,
+        UnitOfEnergy.KILO_WATT_HOUR,
+        2,
+        SensorStateClass.TOTAL_INCREASING,
+    ),
+    _measurement(
+        "ac_energy_total",
+        "ac_energy_total",
+        SensorDeviceClass.ENERGY,
+        UnitOfEnergy.KILO_WATT_HOUR,
+        2,
+        SensorStateClass.TOTAL_INCREASING,
+    ),
+    _measurement(
+        "dc_power_total",
+        "dc_power_total",
+        SensorDeviceClass.POWER,
+        UnitOfPower.WATT,
+        1,
+    ),
+    TsunSensorDescription(
+        key="communication_last_success",
+        translation_key="communication_last_success",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="communication_duration",
+        translation_key="communication_duration",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.MILLISECONDS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="communication_blocks",
+        translation_key="communication_blocks",
+        native_unit_of_measurement="blocks",
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="communication_failures",
+        translation_key="communication_failures",
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+)
+
+PV_SENSORS: tuple[TsunSensorDescription, ...] = tuple(
+    description
+    for number in range(1, 7)
+    for description in (
+        _measurement(
+            f"pv{number}_voltage",
+            f"pv{number}_voltage",
+            SensorDeviceClass.VOLTAGE,
+            UnitOfElectricPotential.VOLT,
+            1,
+        ),
+        _measurement(
+            f"pv{number}_current",
+            f"pv{number}_current",
+            SensorDeviceClass.CURRENT,
+            UnitOfElectricCurrent.AMPERE,
+            2,
+        ),
+        _measurement(
+            f"pv{number}_power",
+            f"pv{number}_power",
+            SensorDeviceClass.POWER,
+            UnitOfPower.WATT,
+            1,
+        ),
+        _measurement(
+            f"pv{number}_energy_today",
+            f"pv{number}_energy_today",
+            SensorDeviceClass.ENERGY,
+            UnitOfEnergy.KILO_WATT_HOUR,
+            2,
+            SensorStateClass.TOTAL_INCREASING,
+        ),
+        _measurement(
+            f"pv{number}_energy_total",
+            f"pv{number}_energy_total",
+            SensorDeviceClass.ENERGY,
+            UnitOfEnergy.KILO_WATT_HOUR,
+            2,
+            SensorStateClass.TOTAL_INCREASING,
+        ),
+    )
+)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: TsunConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Set up all sensors."""
+    coordinator = entry.runtime_data
+    async_add_entities(
+        TsunSensor(coordinator, entry, description)
+        for description in SENSORS + PV_SENSORS
+    )
+
+
+class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
+    """A sensor belonging to one locally connected TSUN device."""
+
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: TsunCoordinator,
+        entry: TsunConfigEntry,
+        description: TsunSensorDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self.entity_description = description
+        logger_sn = str(entry.data[CONF_LOGGER_SN])
+        self._attr_unique_id = f"{logger_sn}_{description.key}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, logger_sn)},
+            manufacturer=MANUFACTURER,
+            model=MODEL,
+            name=f"TSUN Local {logger_sn}",
+            serial_number=logger_sn,
+        )
+
+    @property
+    def native_value(self) -> Any:
+        """Return the latest decoded value."""
+        return self.coordinator.data.get(self.entity_description.key)
+
+    @property
+    def available(self) -> bool:
+        """Keep diagnostics available while hiding stale measurements offline."""
+        if self.entity_description.entity_category == EntityCategory.DIAGNOSTIC:
+            return super().available
+        return super().available and bool(
+            self.coordinator.data.get("communication_online", False)
+        )
