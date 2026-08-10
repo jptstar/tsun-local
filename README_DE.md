@@ -32,11 +32,11 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 
 ### TITAN-Mikrowechselrichter
 
-- [**TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-2250w-3000w.html)
+- **TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**
   - ✅ **TSOL-MP3000**: kompatibel und auf echter Hardware mit 6 PV-Eingängen validiert;
   - ❌ **TSOL-MP2250**: nicht getestet; die Kompatibilität muss durch Benutzerrückmeldungen bestätigt werden;
   - ❌ **TSOL-MS3000**: nicht getestet; die Kompatibilität muss durch Benutzerrückmeldungen bestätigt werden.
-- [**TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-3680w-6000w.html)
+- **TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**
   - ❌ **TSOL-MP6000**: nicht getestet; die Kompatibilität muss durch Benutzerrückmeldungen bestätigt werden;
   - ❌ **TSOL-MP5000**: nicht getestet; die Kompatibilität muss durch Benutzerrückmeldungen bestätigt werden;
   - ❌ **TSOL-MP4600**: nicht getestet; die Kompatibilität muss durch Benutzerrückmeldungen bestätigt werden;
