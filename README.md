@@ -86,5 +86,3 @@ Lorsque le micro-onduleur n’est plus alimenté, l’intégration le considère
 ## Capteurs
 
 **TITAN** : l’intégration crée un appareil unique avec les mesures AC, 5 mesures pour chacune des 6 entrées PV, la somme des 6 puissances DC, 4 capteurs de diagnostic et un état de connectivité.
-
-Les trois blocs lus sont `01/0x0BB8–0x0BD0`, `03/0x0E10–0x0E2D` et `04/0x0ED8–0x0EF5`.
