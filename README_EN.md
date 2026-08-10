@@ -29,8 +29,14 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 ## Compatibility
 
 - **Home Assistant 2026.3.0 or later**.
-- **TSOL-MP3000**: compatible and validated on real hardware, with 6 PV inputs.
-- **TSOL-MP2250**: awaiting user feedback for validation.
+
+### TITAN micro-inverters
+
+- [**TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-2250w-3000w.html)
+  - **TSOL-MP3000**: compatible and validated on real hardware, with 6 PV inputs;
+  - **TSOL-MP2250**: awaiting user feedback for validation;
+  - **TSOL-MS3000**: not validated and not currently supported.
+- [**TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**](https://fr.tsun-ess.com/titan-microinverter_4/titan-microinverter-3680w-6000w.html): models not validated and not currently supported.
 
 ## Installation
 
