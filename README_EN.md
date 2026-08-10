@@ -48,9 +48,17 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 
 ### With HACS
 
-1. In HACS, open **Integrations**, then **Custom repositories**.
+[![Add TSUN Local to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+
+Or add it manually:
+
+1. In HACS, open the **⋮** menu in the top-right corner, then select **Custom repositories**.
 2. Add `https://github.com/jptstar/tsun-local` with type **Integration**.
-3. Install **TSUN Local**, then restart Home Assistant.
+3. Select **Add**, then open **TSUN Local**.
+4. Select **Download** and choose the latest available version.
+5. Restart Home Assistant.
+
+If the latest version is not shown, open the repository menu and select **Update information**.
 
 ### Manual installation
 
