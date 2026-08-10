@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** bindet TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Die aktuelle Version unterstützt den **TSOL-MP3000**.
+**TSUN Local** bindet TSUN-TITAN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Die aktuelle Version unterstützt den **TSOL-MP3000**.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 

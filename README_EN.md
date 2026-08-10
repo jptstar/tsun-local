@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. The current version supports the **TSOL-MP3000**.
+**TSUN Local** integrates TSUN TITAN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. The current version supports the **TSOL-MP3000**.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 
