@@ -30,6 +30,7 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 
 - **Home Assistant 2026.3.0 ou version ultérieure**.
 - **TSOL-MP3000** : compatible et validé sur matériel réel, avec 6 entrées PV.
+- **TSOL-MP2250** : en attente de retours utilisateurs pour validation.
 
 ## Installation
 

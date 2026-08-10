@@ -30,6 +30,7 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 
 - **Home Assistant 2026.3.0 oder neuer**.
 - **TSOL-MP3000**: kompatibel und auf echter Hardware mit 6 PV-Eingängen validiert.
+- **TSOL-MP2250**: wartet auf Benutzerrückmeldungen zur Validierung.
 
 ## Installation
 
