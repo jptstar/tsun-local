@@ -14,8 +14,7 @@
         "description": "Wijzig het IP-adres of de TCP-poort. De gedetecteerde apparaatfamilie blijft automatisch behouden en de Monitor SN / Logger SN blijft de permanente identiteit.",
         "data": {
           "host": "IP-adres",
-          "port": "Poort",
-          "protocol": "Apparaatfamilie"
+          "port": "Poort"
         }
       },
       "manual": {
@@ -24,7 +23,6 @@
         "data": {
           "host": "IP-adres",
           "port": "Poort",
-          "protocol": "Apparaatfamilie",
           "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
         }
       },
@@ -34,7 +32,6 @@
         "data": {
           "host": "Gevonden adres",
           "port": "Poort",
-          "protocol": "Apparaatfamilie",
           "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Communicatie"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }
