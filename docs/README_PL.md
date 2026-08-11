@@ -10,7 +10,7 @@
 
 > **Projekt nieoficjalny** — Ta niezależna integracja społecznościowa nie jest opracowywana, zatwierdzana ani utrzymywana przez TSUN i nie jest w żaden sposób powiązana z TSUN. TSUN oraz nazwy jego produktów pozostają własnością odpowiednich podmiotów. Prośby o pomoc dotyczącą tej integracji należy kierować do jej autora, a nie do TSUN.
 
-**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.7 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.8 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -39,8 +39,8 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 ### Legenda
 
 - ✅ Zgodny i zweryfikowany na rzeczywistym sprzęcie
-- ❌ Adapter dostępny, oczekuje na weryfikację sprzętową
-- ⛔ Do przetestowania
+- 🧪 Gotowy do testów społeczności — adapter jest dostępny; opinie są mile widziane
+- 🔎 Poszukiwane dane sprzętowe — zgodność nie została jeszcze potwierdzona
 
 ### Mikrofalowniki
 
@@ -49,26 +49,26 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 | Konfiguracja | Modele | Status |
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Zweryfikowany |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Oczekują na weryfikację |
-| Liczba wejść do ustalenia | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Do przetestowania |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Poszukiwani testerzy |
+| Liczba wejść do ustalenia | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Poszukiwane dane sprzętowe |
 
 #### GEN3 / GEN3 PLUS — seria MX
 
 | Konfiguracja | Modele | Status |
 |---|---|---|
 | 1-in-1 | **MX500** | ✅ Zweryfikowany |
-| 1-in-1 | **MX450, MX400** | ❌ Oczekują na weryfikację |
-| 2-in-1 | **MX1000, MX900, MX800** | ❌ Oczekują na weryfikację |
-| 4-in-1 | **MX2250** | ❌ Oczekują na weryfikację |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Oczekują na weryfikację |
+| 1-in-1 | **MX450, MX400** | 🧪 Poszukiwani testerzy |
+| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Poszukiwani testerzy |
+| 4-in-1 | **MX2250** | 🧪 Poszukiwani testerzy |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Poszukiwane dane sprzętowe |
 
 #### GEN3 / GEN3 PLUS — seria MS
 
 | Konfiguracja | Modele | Status |
 |---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Oczekują na weryfikację |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Oczekują na weryfikację |
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Poszukiwani testerzy |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Poszukiwani testerzy |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Poszukiwani testerzy |
 
 Wykrywanie wejść PV jest dynamiczne do **6 wejść dla TITAN**. Dla GEN3 / GEN3 PLUS aktualna mapa obejmuje **1, 2 lub 4 wejścia PV**; PV5 i PV6 nie są jeszcze wykrywane.
 
@@ -76,8 +76,10 @@ Wykrywanie wejść PV jest dynamiczne do **6 wejść dla TITAN**. Dla GEN3 / GEN
 
 | Typ | Modele | Status |
 |---|---|---|
-| Akumulator GEN3 PLUS | **TSOL-DC1000** | ❌ Oczekuje na weryfikację |
-| Inteligentny licznik | **TSOL-MG3-MS, DDZY422-D2** | ❌ Oczekuje na weryfikację |
+| Akumulator GEN3 PLUS | **TSOL-DC1000** | 🔎 Poszukiwane dane sprzętowe |
+| Inteligentny licznik | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Poszukiwane dane sprzętowe |
+
+> **Masz jeden z tych modeli?** Modele oznaczone 🧪 są gotowe do testów społeczności. [Otwórz raport zgodności](https://github.com/jptstar/tsun-local/issues/new), podając dokładny model, wersję oprogramowania i wynik testu. Ukryj pełne numery seryjne oraz prywatne informacje sieciowe.
 
 ## Instalacja
 
