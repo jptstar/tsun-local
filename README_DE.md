@@ -1,6 +1,6 @@
 # TSUN Local — Lokale Home-Assistant-Integration
 
-[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -38,30 +38,40 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 
 ### Mikrowechselrichter
 
-| Familie | Modelle | Status |
+#### TITAN
+
+| Konfiguration | Modelle | Status |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validiert |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Validierung ausstehend |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Nicht unterstützt |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validiert |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protokoll und PV5/PV6 zu validieren |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validierung ausstehend |
+| 6-in-1 | **TSOL-MP3000** | ✅ Validiert |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Validierung ausstehend |
+| Eingänge noch zu bestimmen | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Nicht unterstützt |
 
-Der GEN3-/GEN3-PLUS-Adapter erkennt Geräte mit **1, 2 oder 4 PV-Eingängen** dynamisch.
+#### GEN3 / GEN3 PLUS — MX-Serie
 
-Die Modellnamen **MX3300, MX3000, MX2700, MX2500 und MX2400** erscheinen nicht ausdrücklich in den bereitgestellten Protokollkarten. Vor einer Unterstützung sind eine Aufzeichnung auf echter Hardware, die Bestätigung des Protokolls und die Ermittlung der PV5/PV6-Register erforderlich.
+| Konfiguration | Modelle | Status |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ Validiert |
+| 1-in-1 | **MX450, MX400** | ❌ Validierung ausstehend |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ Validierung ausstehend |
+| 4-in-1 | **MX2250** | ❌ Validierung ausstehend |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Validierung ausstehend |
+
+#### GEN3 / GEN3 PLUS — MS-Serie
+
+| Konfiguration | Modelle | Status |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validierung ausstehend |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validierung ausstehend |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validierung ausstehend |
+
+Die PV-Erkennung erfolgt für TITAN dynamisch bis zu **6 Eingängen**. Für GEN3 / GEN3 PLUS deckt die aktuelle Karte **1, 2 oder 4 PV-Eingänge** ab; PV5 und PV6 werden noch nicht erkannt.
 
 ### Andere Geräte
 
 | Typ | Modelle | Status |
 |---|---|---|
-| Speichersystem | **DC1000** | ⛔ Nicht unterstützt |
-| Smart Meter | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Nicht unterstützt |
+| GEN3-PLUS-Batterie | **TSOL-DC1000** | ❌ Validierung ausstehend |
+| Smart Meter | **TSOL-MG3-MS, DDZY422-D2** | ❌ Validierung ausstehend |
 
 ## Installation
 

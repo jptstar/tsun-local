@@ -1,6 +1,6 @@
 # TSUN Local — Home Assistant 本地集成
 
-[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -38,30 +38,40 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
 ### 微型逆变器
 
-| 系列 | 型号 | 状态 |
+#### TITAN
+
+| 配置 | 型号 | 状态 |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ 已验证 |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ 等待验证 |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ 不支持 |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ 已验证 |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ 等待验证 |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ 等待验证 |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ 等待验证 |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ 协议及 PV5/PV6 待验证 |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ 等待验证 |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ 等待验证 |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ 等待验证 |
+| 6-in-1 | **TSOL-MP3000** | ✅ 已验证 |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ 等待验证 |
+| 输入数量待确定 | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ 不支持 |
 
-GEN3 / GEN3 PLUS 适配器可动态检测具有 **1、2 或 4 路光伏输入**的设备。
+#### GEN3 / GEN3 PLUS — MX 系列
 
-所提供的协议映射中未明确出现 **MX3300、MX3000、MX2700、MX2500 和 MX2400** 型号名称。在加入支持之前，需要通过真实设备抓包确认协议并确定 PV5/PV6 寄存器。
+| 配置 | 型号 | 状态 |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ 已验证 |
+| 1-in-1 | **MX450, MX400** | ❌ 等待验证 |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ 等待验证 |
+| 4-in-1 | **MX2250** | ❌ 等待验证 |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ 等待验证 |
+
+#### GEN3 / GEN3 PLUS — MS 系列
+
+| 配置 | 型号 | 状态 |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ 等待验证 |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ 等待验证 |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ 等待验证 |
+
+TITAN 的光伏输入可动态检测至 **6 路**。对于 GEN3 / GEN3 PLUS，当前映射覆盖 **1、2 或 4 路光伏输入**；PV5 和 PV6 尚未被检测。
 
 ### 其他设备
 
 | 类型 | 型号 | 状态 |
 |---|---|---|
-| 储能系统 | **DC1000** | ⛔ 不支持 |
-| 智能电表 | **TSOL-MG3-MS, DDZY422-D2** | ⛔ 不支持 |
+| GEN3 PLUS 电池 | **TSOL-DC1000** | ❌ 等待验证 |
+| 智能电表 | **TSOL-MG3-MS, DDZY422-D2** | ❌ 等待验证 |
 
 ## 安装
 

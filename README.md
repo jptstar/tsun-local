@@ -1,126 +1,136 @@
-# TSUN Local — intégration locale Home Assistant
+# TSUN Local — Local Home Assistant integration
 
-[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Icône indépendante TSUN Local">
+  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Independent TSUN Local icon">
 </p>
 
-> **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
+> **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.4 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.4 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
 
-**Auteur : Jean-Philippe TESTART (jptstar)**
+**Author: Jean-Philippe TESTART (jptstar)**
 
-## Licence
+## License
 
 Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
-Ce projet est distribué sous la licence **GNU General Public License v3.0 ou ultérieure** (`GPL-3.0-or-later`). Les versions modifiées ou redistribuées doivent respecter les conditions de cette licence et conserver les mentions de copyright et de licence. Consultez le fichier [LICENSE](LICENSE).
+This project is distributed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). Modified or redistributed versions must comply with this license and retain the copyright and license notices. See [LICENSE](LICENSE).
 
-La licence couvre uniquement cette implémentation indépendante. Elle ne confère aucun droit sur les marques, logos, logiciels ou produits de TSUN. Ce projet reste non officiel et sans affiliation avec TSUN.
+The license covers only this independent implementation. It grants no rights to TSUN trademarks, logos, software, or products. This project remains unofficial and unaffiliated with TSUN.
 
 ## Versions
 
-Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utilise les GitHub Releases pour proposer les mises à jour. Consultez le [journal des modifications](CHANGELOG.md) pour connaître le détail de chaque version.
+Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offer updates. See the [changelog](CHANGELOG.md) for details.
 
-## Compatibilité
+## Compatibility
 
-**Home Assistant 2026.3.0 ou version ultérieure**
+**Home Assistant 2026.3.0 or later**
 
-### Légende
+### Legend
 
-- ✅ Compatible et validé sur matériel réel
-- ❌ Adaptateur disponible, validation matérielle en attente
-- ⛔ Non pris en charge actuellement
+- ✅ Compatible and validated on real hardware
+- ❌ Adapter available, hardware validation pending
+- ⛔ Currently unsupported
 
-### Micro-onduleurs
+### Micro-inverters
 
-| Famille | Modèles | Statut |
+#### TITAN
+
+| Configuration | Models | Status |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validé |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ À valider |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Non pris en charge |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validé |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ À valider |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ À valider |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ À valider |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocole et PV5/PV6 à valider |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ À valider |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ À valider |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ À valider |
+| 6-in-1 | **TSOL-MP3000** | ✅ Validated |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Pending validation |
+| Inputs to be determined | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Unsupported |
 
-L’adaptateur GEN3 / GEN3 PLUS détecte dynamiquement les appareils comportant **1, 2 ou 4 entrées PV**.
+#### GEN3 / GEN3 PLUS — MX series
 
-Les noms des modèles **MX3300, MX3000, MX2700, MX2500 et MX2400** n’apparaissent pas explicitement dans les cartes de protocole fournies. Une capture sur matériel réel est nécessaire pour confirmer le protocole et identifier les registres PV5/PV6 avant toute prise en charge.
-
-### Autres appareils
-
-| Type | Modèles | Statut |
+| Configuration | Models | Status |
 |---|---|---|
-| Système de stockage | **DC1000** | ⛔ Non pris en charge |
-| Compteurs intelligents | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Non pris en charge |
+| 1-in-1 | **MX500** | ✅ Validated |
+| 1-in-1 | **MX450, MX400** | ❌ Pending validation |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ Pending validation |
+| 4-in-1 | **MX2250** | ❌ Pending validation |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Pending validation |
+
+#### GEN3 / GEN3 PLUS — MS series
+
+| Configuration | Models | Status |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Pending validation |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Pending validation |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Pending validation |
+
+PV input discovery is dynamic up to **6 inputs for TITAN**. For GEN3 / GEN3 PLUS, the current map covers **1, 2, or 4 PV inputs**; PV5 and PV6 are not detected yet.
+
+### Other devices
+
+| Type | Models | Status |
+|---|---|---|
+| GEN3 PLUS battery | **TSOL-DC1000** | ❌ Pending validation |
+| Smart meter | **TSOL-MG3-MS, DDZY422-D2** | ❌ Pending validation |
 
 ## Installation
 
-### Avec HACS
+### With HACS
 
-[![Ajouter TSUN Local à HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+[![Add TSUN Local to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
 
-Ou manuellement :
+Or add it manually:
 
-1. Dans HACS, ouvrez le menu **⋮** en haut à droite, puis **Dépôts personnalisés**.
-2. Ajoutez `https://github.com/jptstar/tsun-local` avec le type **Integration**.
-3. Cliquez sur **Ajouter**, puis ouvrez **TSUN Local**.
-4. Cliquez sur **Télécharger** et choisissez la dernière version disponible.
-5. Redémarrez Home Assistant.
+1. In HACS, open the **⋮** menu in the top-right corner, then select **Custom repositories**.
+2. Add `https://github.com/jptstar/tsun-local` with type **Integration**.
+3. Select **Add**, then open **TSUN Local**.
+4. Select **Download** and choose the latest available version.
+5. Restart Home Assistant.
 
-Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélectionnez **Actualiser les informations**.
+If the latest version is not shown, open the repository menu and select **Update information**.
 
-### Installation manuelle
+### Manual installation
 
-1. Copiez le dossier `custom_components/tsun_local` dans `/config/custom_components/` sur Home Assistant.
-2. Redémarrez Home Assistant.
-3. Ouvrez **Paramètres → Appareils et services → Ajouter une intégration**.
-4. Recherchez **TSUN Local**.
-5. Renseignez l’adresse IP, le port et le **Monitor SN / Logger SN inscrit sur l’étiquette du micro-onduleur**.
+1. Copy `custom_components/tsun_local` into `/config/custom_components/`.
+2. Restart Home Assistant.
+3. Open **Settings → Devices & services → Add integration**.
+4. Search for **TSUN Local**.
+5. Enter the IP address, port, and the **Monitor SN / Logger SN printed on the micro-inverter label**.
 
-Lors de l’ajout, choisissez **Rechercher sur le réseau local** ou **Configuration manuelle**, puis sélectionnez **TITAN** pour le TSOL-MP3000 ou **GEN3 / GEN3 PLUS** pour le MX500. Renseignez le **Monitor SN / Logger SN** imprimé sur l’étiquette. La recherche examine uniquement le réseau IPv4 local sur le port 8899 et n’envoie aucune donnée aux adresses candidates.
+When adding a device, choose **Search the local network** or **Manual configuration**, then select **TITAN** for the TSOL-MP3000 or **GEN3 / GEN3 PLUS** for the MX500. Enter the **Monitor SN / Logger SN** printed on the label. Discovery scans only the local IPv4 network on port 8899 and sends no data to candidate addresses.
 
-## Plusieurs appareils
+## Multiple devices
 
-Plusieurs micro-onduleurs compatibles peuvent être ajoutés dans la même installation Home Assistant. Pour chaque appareil, relancez **Ajouter une intégration** et saisissez son adresse IP ainsi que son SN unique. Chaque entrée crée un appareil indépendant avec ses propres entités et son propre coordinateur de communication.
+Multiple compatible micro-inverters can be added to the same Home Assistant installation. Run **Add integration** for each device and enter its IP address and unique SN. Each entry creates an independent device with its own entities and communication coordinator.
 
-## Réglages depuis Home Assistant
+## Home Assistant settings
 
-Dans **Paramètres → Appareils et services → TSUN Local**, ouvrez le menu de l’appareil concerné :
+Under **Settings → Devices & services → TSUN Local**, open the menu for the relevant device:
 
-- **Configurer** règle son intervalle normal, de 10 secondes à 5 minutes (30 secondes par défaut), ainsi que son intervalle hors ligne/nuit, de 1 à 60 minutes (5 minutes par défaut) ;
-- **Reconfigurer** permet de modifier son adresse IP et son port TCP sans supprimer les entités ;
-- chaque appareil possède son propre intervalle, indépendant des autres.
+- **Configure** sets the normal interval from 10 seconds to 5 minutes (30 seconds by default) and the offline/night interval from 1 to 60 minutes (5 minutes by default);
+- **Reconfigure** changes the IP address and TCP port without deleting entities;
+- each device has independent polling intervals.
 
-## Fonctionnement local et isolation du cloud
+## Local operation and cloud isolation
 
-TSUN Local communique uniquement sur le réseau local et n’utilise aucun service cloud. L’intégration ne modifie toutefois pas les paramètres cloud du micrologiciel.
+TSUN Local communicates only over the local network and uses no cloud service. The integration does not change the firmware’s cloud settings.
 
-Pour empêcher le micro-onduleur de joindre Internet, créez une règle dans le routeur ou le pare-feu qui bloque son accès WAN tout en conservant son accès au réseau local et au DHCP. Home Assistant doit rester autorisé à joindre l’adresse IP du micro-onduleur sur le port TCP **8899**. Une fois l’intégration installée, HACS n’a besoin d’Internet que pour rechercher et télécharger les mises à jour.
+To prevent the micro-inverter from reaching the Internet, create a router or firewall rule that blocks its WAN access while retaining local-network and DHCP access. Home Assistant must remain allowed to reach the micro-inverter IP address on TCP port **8899**. Once installed, HACS only needs Internet access to check for and download updates.
 
-## Fonctionnement de nuit
+## Night operation
 
-Lorsque le micro-onduleur n’est plus alimenté, l’intégration le considère hors ligne sans répéter une erreur à chaque interrogation :
+When the micro-inverter is no longer powered, the integration marks it offline without repeating an error on every poll:
 
-- les mesures instantanées (tension, courant, puissance et fréquence) deviennent indisponibles afin de ne pas afficher de valeurs périmées ;
-- les compteurs d’énergie journaliers et totaux restent disponibles avec leur dernière valeur connue ;
-- le diagnostic **Communication** passe hors ligne ;
-- le compteur indique les échecs consécutifs et revient à zéro dès le réveil ;
-- l’heure de la dernière communication réussie reste disponible ;
-- les tentatives utilisent l’intervalle hors ligne/nuit configuré dans Home Assistant ;
-- dès la première réponse du matin, l’intervalle configuré est restauré.
+- instantaneous measurements (voltage, current, power, and frequency) become unavailable so stale values are not displayed;
+- daily and total energy counters remain available with their latest known value;
+- the **Communication** diagnostic reports offline;
+- the consecutive failure counter returns to zero when communication resumes;
+- the last successful communication time remains available;
+- retries use the configured offline/night interval;
+- the configured normal interval is restored after the first successful morning response.
 
-## Capteurs
+## Sensors
 
-L’intégration crée un appareil unique avec les mesures AC, 5 mesures par entrée PV détectée, la somme des puissances DC détectées, 4 capteurs de diagnostic et un état de connectivité.
+The integration creates one device with AC measurements, 5 measurements for every detected PV input, the sum of detected DC powers, 4 diagnostic sensors, and one connectivity status.
 
-Le nombre d’entrées PV est dynamique : PV1 est disponible dès la première lecture, puis PV2 à PV6 pour TITAN ou PV2 à PV4 pour GEN3/GEN3 PLUS sont ajoutées lorsqu’une mesure ou un compteur valide est observé. Une entrée découverte reste enregistrée dans Home Assistant.
+The PV-input count is dynamic: PV1 is available after the first read, then PV2 to PV6 for TITAN or PV2 to PV4 for GEN3/GEN3 PLUS are added when a valid measurement or energy counter is observed. A discovered input remains registered in Home Assistant.

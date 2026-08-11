@@ -1,6 +1,6 @@
 # TSUN Local — Lokalna integracja z Home Assistant
 
-[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -38,30 +38,40 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 
 ### Mikrofalowniki
 
-| Rodzina | Modele | Status |
+#### TITAN
+
+| Konfiguracja | Modele | Status |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Zweryfikowany |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Oczekuje na weryfikację |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Nieobsługiwane |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Zweryfikowany |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protokół i PV5/PV6 do weryfikacji |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Oczekują na weryfikację |
+| 6-in-1 | **TSOL-MP3000** | ✅ Zweryfikowany |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Oczekują na weryfikację |
+| Liczba wejść do ustalenia | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Brak obsługi |
 
-Adapter GEN3 / GEN3 PLUS dynamicznie wykrywa urządzenia z **1, 2 lub 4 wejściami PV**.
+#### GEN3 / GEN3 PLUS — seria MX
 
-Nazwy modeli **MX3300, MX3000, MX2700, MX2500 i MX2400** nie występują jawnie w dostarczonych mapach protokołów. Przed dodaniem obsługi potrzebny jest zapis z rzeczywistego urządzenia, aby potwierdzić protokół i określić rejestry PV5/PV6.
+| Konfiguracja | Modele | Status |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ Zweryfikowany |
+| 1-in-1 | **MX450, MX400** | ❌ Oczekują na weryfikację |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ Oczekują na weryfikację |
+| 4-in-1 | **MX2250** | ❌ Oczekują na weryfikację |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Oczekują na weryfikację |
+
+#### GEN3 / GEN3 PLUS — seria MS
+
+| Konfiguracja | Modele | Status |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Oczekują na weryfikację |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Oczekują na weryfikację |
+
+Wykrywanie wejść PV jest dynamiczne do **6 wejść dla TITAN**. Dla GEN3 / GEN3 PLUS aktualna mapa obejmuje **1, 2 lub 4 wejścia PV**; PV5 i PV6 nie są jeszcze wykrywane.
 
 ### Inne urządzenia
 
 | Typ | Modele | Status |
 |---|---|---|
-| System magazynowania energii | **DC1000** | ⛔ Nieobsługiwany |
-| Inteligentne liczniki | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Nieobsługiwane |
+| Akumulator GEN3 PLUS | **TSOL-DC1000** | ❌ Oczekuje na weryfikację |
+| Inteligentny licznik | **TSOL-MG3-MS, DDZY422-D2** | ❌ Oczekuje na weryfikację |
 
 ## Instalacja
 
