@@ -47,14 +47,14 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 | GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ 等待验证 |
 | GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ 等待验证 |
 | GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ 等待验证 |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ 不支持 |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ 协议及 PV5/PV6 待验证 |
 | GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ 等待验证 |
 | GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ 等待验证 |
 | GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ 等待验证 |
 
 GEN3 / GEN3 PLUS 适配器可动态检测具有 **1、2 或 4 路光伏输入**的设备。
 
-**MX3300、MX3000、MX2700、MX2500 和 MX2400** 型号具有 6 路光伏输入，目前不受支持：此适配器可用的寄存器映射仅到 PV4。
+所提供的协议映射中未明确出现 **MX3300、MX3000、MX2700、MX2500 和 MX2400** 型号名称。在加入支持之前，需要通过真实设备抓包确认协议并确定 PV5/PV6 寄存器。
 
 ### 其他设备
 
