@@ -22,14 +22,6 @@ TSUN Local 是一个 Home Assistant 集成，最初是我出于兴趣并为个�
 
 如果我收到有关特定型号的反馈和诊断信息，我愿意投入一些时间来改进兼容性并修复错误。不过，TSUN Local 仍然是我的个人爱好和业余项目，并非我的主要工作。因此，我有时可能需要较长时间才能回复或发布修复。
 
-## 许可证
-
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
-
-本项目依据 **GNU General Public License v3.0 或更高版本**（`GPL-3.0-or-later`）发布。修改或再分发的版本必须遵守此许可证，并保留版权和许可证声明。请参阅 [LICENSE](../LICENSE)。
-
-该许可证仅涵盖此独立实现，不授予任何 TSUN 商标、徽标、软件或产品的权利。本项目始终为非官方项目，与 TSUN 无任何关联。
-
 ## 版本
 
 发布版本遵循 `MAJOR.MINOR.PATCH` 格式。HACS 通过 GitHub Releases 提供更新。详细信息请参阅[更新日志](../CHANGELOG.md)。
@@ -144,3 +136,11 @@ TSUN Local 仅通过本地网络通信，不使用任何云服务。但此集成
 该集成创建一台设备，其中包含交流测量、每个已检测光伏输入的 5 项测量、已检测直流功率之和、4 个诊断传感器以及一个连接状态。
 
 光伏输入数量是动态的：首次读取后 PV1 可用；当检测到有效测量值或发电量计数器时，TITAN 的 PV2 至 PV6 或 GEN3/GEN3 PLUS 的 PV2 至 PV4 会被添加。已检测到的输入会持续保留在 Home Assistant 中。
+
+## 许可证
+
+Copyright © 2026 Jean-Philippe TESTART (jptstar).
+
+本项目依据 **GNU General Public License v3.0 或更高版本**（GPL-3.0-or-later）发布。修改或再分发的版本必须遵守此许可证，并保留版权和许可证声明。请参阅 [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE)。
+
+该许可证仅涵盖此独立实现，不授予任何 TSUN 商标、徽标、软件或产品的权利。本项目始终为非官方项目，与 TSUN 无任何关联。
