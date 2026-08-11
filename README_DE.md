@@ -84,7 +84,7 @@ Wenn die neueste Version nicht angezeigt wird, öffne das Repository-Menü und w
 2. Starte Home Assistant neu.
 3. Öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen**.
 4. Suche nach **TSUN Local**.
-5. Gib IP-Adresse, Port und die **SN auf dem Typenschild des Mikrowechselrichters** ein.
+5. Gib IP-Adresse, Port und die **Monitor SN / Logger SN auf dem Typenschild des Mikrowechselrichters** ein.
 
 Wähle beim Hinzufügen **Lokales Netzwerk durchsuchen** oder **Manuelle Konfiguration** und anschließend **TITAN** für den TSOL-MP3000 beziehungsweise **GEN3 / GEN3 PLUS** für den MX500. Gib die auf dem Typenschild angegebene **Monitor SN / Logger SN** ein. Die Suche prüft nur das lokale IPv4-Netz auf Port 8899 und sendet keine Daten an mögliche Geräteadressen.
 
