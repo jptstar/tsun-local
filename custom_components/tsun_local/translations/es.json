@@ -1,0 +1,174 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Añadir un dispositivo TSUN Local",
+        "description": "Introduce los datos de conexión local. El protocolo y las entradas FV disponibles se detectarán automáticamente. El número de serie (SN) solicitado figura en la etiqueta del microinversor. Repite Añadir integración para cada dispositivo compatible adicional.",
+        "data": {
+          "host": "Dirección IP",
+          "port": "Puerto",
+          "logger_sn": "SN del microinversor (etiqueta)"
+        }
+      },
+      "reconfigure": {
+        "title": "Modificar la conexión",
+        "description": "Modifica la dirección IP o el puerto TCP de este dispositivo. El número de serie del microinversor seguirá siendo su identificador permanente.",
+        "data": {
+          "host": "Dirección IP",
+          "port": "Puerto"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se puede conectar con el dispositivo",
+      "invalid_response": "El dispositivo ha devuelto una respuesta no válida"
+    },
+    "abort": {
+      "already_configured": "Este microinversor ya está configurado"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ajustes de sondeo",
+        "description": "Configura el intervalo de sondeo normal y el intervalo más lento utilizado cuando el dispositivo está desconectado o sin alimentación durante la noche.",
+        "data": {
+          "scan_interval": "Intervalo de sondeo normal",
+          "offline_scan_interval": "Intervalo de sondeo sin conexión/nocturno"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "Tensión CA"
+      },
+      "ac_current": {
+        "name": "Corriente CA"
+      },
+      "ac_frequency": {
+        "name": "Frecuencia de CA"
+      },
+      "ac_power": {
+        "name": "Potencia CA"
+      },
+      "ac_energy_today": {
+        "name": "Energía CA de hoy"
+      },
+      "ac_energy_total": {
+        "name": "Energía CA total"
+      },
+      "dc_power_total": {
+        "name": "Potencia CC total"
+      },
+      "communication_last_success": {
+        "name": "Última comunicación correcta"
+      },
+      "communication_duration": {
+        "name": "Duración de la comunicación"
+      },
+      "communication_blocks": {
+        "name": "Bloques recibidos"
+      },
+      "communication_failures": {
+        "name": "Fallos de comunicación consecutivos"
+      },
+      "pv1_voltage": {
+        "name": "Tensión PV1"
+      },
+      "pv1_current": {
+        "name": "Corriente PV1"
+      },
+      "pv1_power": {
+        "name": "Potencia PV1"
+      },
+      "pv1_energy_today": {
+        "name": "Energía PV1 de hoy"
+      },
+      "pv1_energy_total": {
+        "name": "Energía PV1 total"
+      },
+      "pv2_voltage": {
+        "name": "Tensión PV2"
+      },
+      "pv2_current": {
+        "name": "Corriente PV2"
+      },
+      "pv2_power": {
+        "name": "Potencia PV2"
+      },
+      "pv2_energy_today": {
+        "name": "Energía PV2 de hoy"
+      },
+      "pv2_energy_total": {
+        "name": "Energía PV2 total"
+      },
+      "pv3_voltage": {
+        "name": "Tensión PV3"
+      },
+      "pv3_current": {
+        "name": "Corriente PV3"
+      },
+      "pv3_power": {
+        "name": "Potencia PV3"
+      },
+      "pv3_energy_today": {
+        "name": "Energía PV3 de hoy"
+      },
+      "pv3_energy_total": {
+        "name": "Energía PV3 total"
+      },
+      "pv4_voltage": {
+        "name": "Tensión PV4"
+      },
+      "pv4_current": {
+        "name": "Corriente PV4"
+      },
+      "pv4_power": {
+        "name": "Potencia PV4"
+      },
+      "pv4_energy_today": {
+        "name": "Energía PV4 de hoy"
+      },
+      "pv4_energy_total": {
+        "name": "Energía PV4 total"
+      },
+      "pv5_voltage": {
+        "name": "Tensión PV5"
+      },
+      "pv5_current": {
+        "name": "Corriente PV5"
+      },
+      "pv5_power": {
+        "name": "Potencia PV5"
+      },
+      "pv5_energy_today": {
+        "name": "Energía PV5 de hoy"
+      },
+      "pv5_energy_total": {
+        "name": "Energía PV5 total"
+      },
+      "pv6_voltage": {
+        "name": "Tensión PV6"
+      },
+      "pv6_current": {
+        "name": "Corriente PV6"
+      },
+      "pv6_power": {
+        "name": "Potencia PV6"
+      },
+      "pv6_energy_today": {
+        "name": "Energía PV6 de hoy"
+      },
+      "pv6_energy_total": {
+        "name": "Energía PV6 total"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Comunicación"
+      }
+    }
+  }
+}
