@@ -22,14 +22,6 @@ TSUN Local to integracja Home Assistant, którą początkowo opracowałem dla pr
 
 Jeśli otrzymam opinie i informacje diagnostyczne dotyczące konkretnych modeli, chętnie poświęcę trochę czasu na poprawę kompatybilności i usuwanie błędów. TSUN Local pozostaje jednak hobby i zajęciem dodatkowym, a nie moją główną działalnością. Dlatego odpowiedzi lub poprawki mogą czasami wymagać trochę czasu.
 
-## Licencja
-
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
-
-Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (`GPL-3.0-or-later`). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](../LICENSE).
-
-Licencja obejmuje wyłącznie tę niezależną implementację. Nie przyznaje żadnych praw do znaków towarowych, logo, oprogramowania ani produktów TSUN. Projekt pozostaje nieoficjalny i niepowiązany z TSUN.
-
 ## Wersje
 
 Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Releases do udostępniania aktualizacji. Szczegóły znajdują się w [rejestrze zmian](../CHANGELOG.md).
@@ -144,3 +136,11 @@ Gdy mikrofalownik przestaje być zasilany, integracja oznacza go jako offline be
 Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 czujnikami diagnostycznymi i jednym stanem łączności.
 
 Liczba wejść PV jest dynamiczna: PV1 jest dostępne po pierwszym odczycie; PV2–PV6 dla TITAN lub PV2–PV4 dla GEN3/GEN3 PLUS są dodawane po wykryciu prawidłowego pomiaru lub licznika energii. Wykryte wejście pozostaje zarejestrowane w Home Assistant.
+
+## Licencja
+
+Copyright © 2026 Jean-Philippe TESTART (jptstar).
+
+Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (GPL-3.0-or-later). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
+
+Licencja obejmuje wyłącznie tę niezależną implementację. Nie przyznaje żadnych praw do znaków towarowych, logo, oprogramowania ani produktów TSUN. Projekt pozostaje nieoficjalny i niepowiązany z TSUN.
