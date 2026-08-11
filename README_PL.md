@@ -71,7 +71,7 @@ Wykrywanie wejść PV jest dynamiczne do **6 wejść dla TITAN**. Dla GEN3 / GEN
 | Typ | Modele | Status |
 |---|---|---|
 | Akumulator GEN3 PLUS | **TSOL-DC1000** | ❌ Oczekuje na weryfikację |
-| Inteligentne liczniki | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Nieobsługiwane |
+| Inteligentny licznik | **TSOL-MG3-MS, DDZY422-D2** | ❌ Oczekuje na weryfikację |
 
 ## Instalacja
 
