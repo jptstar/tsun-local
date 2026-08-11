@@ -47,14 +47,14 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 | GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Non supportato |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocollo e PV5/PV6 da convalidare |
 | GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ In attesa di convalida |
 
 L’adattatore GEN3 / GEN3 PLUS rileva dinamicamente i dispositivi con **1, 2 o 4 ingressi FV**.
 
-I modelli **MX3300, MX3000, MX2700, MX2500 e MX2400** dispongono di 6 ingressi PV e non sono attualmente supportati: la mappa dei registri disponibile per questo adattatore si ferma a PV4.
+I nomi dei modelli **MX3300, MX3000, MX2700, MX2500 e MX2400** non compaiono esplicitamente nelle mappe di protocollo fornite. Prima del supporto è necessaria una cattura su hardware reale per confermare il protocollo e identificare i registri PV5/PV6.
 
 ### Altri dispositivi
 
