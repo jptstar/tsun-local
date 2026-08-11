@@ -84,7 +84,7 @@ Als de nieuwste versie niet verschijnt, open dan het menu van de opslagplaats en
 2. Start Home Assistant opnieuw op.
 3. Open **Instellingen → Apparaten & diensten → Integratie toevoegen**.
 4. Zoek naar **TSUN Local**.
-5. Voer het IP-adres, de poort en het **SN op het etiket van de micro-omvormer** in.
+5. Voer het IP-adres, de poort en de **Monitor SN / Logger SN op het etiket van de micro-omvormer** in.
 
 Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie** en selecteer vervolgens **TITAN** voor de TSOL-MP3000 of **GEN3 / GEN3 PLUS** voor de MX500. Voer de **Monitor SN / Logger SN** van het etiket in. De zoekfunctie controleert alleen het lokale IPv4-netwerk op poort 8899 en verzendt geen gegevens naar kandidaatadressen.
 
