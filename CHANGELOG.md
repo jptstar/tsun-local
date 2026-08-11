@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.7] - 2026-08-11
+
+### Changed
+
+- device setup and network discovery no longer ask the user to choose **TITAN** or **GEN3 / GEN3 PLUS**;
+- the integration now tries the supported read-only local protocol adapters automatically after the Monitor SN / Logger SN is entered, then stores the protocol that responds correctly;
+- reconfiguration retains the detected protocol automatically;
+- setup descriptions and documentation were updated in all eight supported languages.
+
+### Added
+
+- a unit test verifying that automatic detection tries the next adapter after a failure and reuses the successful adapter for subsequent reads.
+
 ## [1.1.6] - 2026-08-11
 
 ### Fixed
@@ -108,6 +121,7 @@ All notable changes to this project are documented here. The project follows [Se
 - GitHub documentation in French, English, and German;
 - the GPL-3.0 license and copyright notice for Jean-Philippe TESTART (jptstar).
 
+[1.1.7]: https://github.com/jptstar/tsun-local/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/jptstar/tsun-local/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/jptstar/tsun-local/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/jptstar/tsun-local/compare/v1.1.3...v1.1.4
