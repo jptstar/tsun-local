@@ -1,4 +1,5 @@
 {
+  "title": "TSUN Local",
   "config": {
     "step": {
       "user": {"title": "Add a TSUN Local device", "description": "Enter the local connection details. The protocol and available PV inputs will be detected automatically. The requested SN is printed on the micro-inverter label. Repeat Add integration for every additional compatible device.", "data": {"host": "IP address", "port": "Port", "logger_sn": "Micro-inverter SN (device label)"}},

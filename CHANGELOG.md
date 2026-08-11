@@ -2,6 +2,22 @@
 
 Toutes les évolutions notables de ce projet sont documentées ici. Le projet suit le [versionnement sémantique](https://semver.org/lang/fr/).
 
+## [1.1.0] - 2026-08-11
+
+### Ajouté
+
+- détection automatique du protocole local lors de l’ajout d’un appareil ;
+- premier adaptateur GEN3 / GEN3 PLUS fondé sur la carte de registres 02B0 fournie ;
+- détection progressive du nombre d’entrées PV : jusqu’à 6 pour TITAN et jusqu’à 4 pour GEN3 / GEN3 PLUS ;
+- ajout dynamique dans Home Assistant des entités correspondant aux entrées PV détectées ;
+- tests unitaires des enveloppes AP, CRC, requêtes, réponses, compteurs 32 bits et décodeurs des deux protocoles.
+
+### Modifié
+
+- la puissance DC totale additionne uniquement les entrées PV détectées ;
+- les compteurs d’énergie restent disponibles hors ligne et la nuit, tandis que les mesures instantanées deviennent indisponibles ;
+- la documentation de compatibilité distingue les appareils validés, disponibles pour essai et non pris en charge.
+
 ## [1.0.1] - 2026-08-11
 
 ### Modifié
@@ -26,5 +42,6 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 - documentation GitHub en français, anglais et allemand ;
 - licence GPL-3.0 et copyright de Jean-Philippe TESTART (jptstar).
 
+[1.1.0]: https://github.com/jptstar/tsun-local/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/jptstar/tsun-local/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.0.0

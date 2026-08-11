@@ -23,7 +23,7 @@ from homeassistant.const import (
     UnitOfPower,
     UnitOfTime,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -183,15 +183,31 @@ async def async_setup_entry(
 ) -> None:
     """Set up the sensors supported by this device protocol."""
     coordinator = entry.runtime_data
-    descriptions = (
-        description
-        for description in SENSORS + PV_SENSORS
-        if description.entity_category == EntityCategory.DIAGNOSTIC
-        or description.key in coordinator.client.measurement_keys
-    )
-    async_add_entities(
-        TsunSensor(coordinator, entry, description)
-        for description in descriptions
+    added_keys: set[str] = set()
+
+    @callback
+    def async_add_discovered_entities() -> None:
+        """Add sensors when protocol or PV-input discovery exposes new keys."""
+        descriptions = [
+            description
+            for description in SENSORS + PV_SENSORS
+            if description.key not in added_keys
+            and (
+                description.entity_category == EntityCategory.DIAGNOSTIC
+                or description.key in coordinator.client.measurement_keys
+            )
+        ]
+        if not descriptions:
+            return
+        added_keys.update(description.key for description in descriptions)
+        async_add_entities(
+            TsunSensor(coordinator, entry, description)
+            for description in descriptions
+        )
+
+    async_add_discovered_entities()
+    entry.async_on_unload(
+        coordinator.async_add_listener(async_add_discovered_entities)
     )
 
 
@@ -225,8 +241,11 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Keep diagnostics available while hiding stale measurements offline."""
-        if self.entity_description.entity_category == EntityCategory.DIAGNOSTIC:
+        """Keep diagnostics and energy counters available while offline."""
+        if (
+            self.entity_description.entity_category == EntityCategory.DIAGNOSTIC
+            or self.entity_description.device_class == SensorDeviceClass.ENERGY
+        ):
             return super().available
         return super().available and bool(
             self.coordinator.data.get("communication_online", False)

@@ -8,7 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Protocol
 
-DEFAULT_PROTOCOL = "1511"
+DEFAULT_PROTOCOL = "auto"
+SUPPORTED_PROTOCOLS = ("1511", "02b0")
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,12 +24,97 @@ class TsunReadResult:
 class TsunProtocolClient(Protocol):
     """Interface implemented by every TSUN Local protocol adapter."""
 
-    model: str
-    protocol_name: str
-    measurement_keys: frozenset[str]
+    @property
+    def model(self) -> str:
+        """Return the detected model family."""
+        ...
+
+    @property
+    def protocol_name(self) -> str:
+        """Return the selected local protocol."""
+        ...
+
+    @property
+    def measurement_keys(self) -> frozenset[str]:
+        """Return measurement keys supported by the detected hardware."""
+        ...
+
+    @property
+    def pv_count(self) -> int:
+        """Return the highest PV input detected so far."""
+        ...
 
     async def async_read_all(self) -> TsunReadResult:
         """Read and decode one complete device update."""
+        ...
+
+
+def _create_specific_client(
+    protocol_name: str,
+    host: str,
+    port: int,
+    logger_sn: int,
+) -> TsunProtocolClient:
+    """Create one concrete local-protocol adapter."""
+    if protocol_name == "1511":
+        from .protocol_1511 import Tsun1511Client
+
+        return Tsun1511Client(host, port, logger_sn)
+    if protocol_name == "02b0":
+        from .protocol_02b0 import Tsun02b0Client
+
+        return Tsun02b0Client(host, port, logger_sn)
+    raise ValueError(f"Unsupported TSUN protocol: {protocol_name}")
+
+
+class TsunAutoClient:
+    """Detect a supported local protocol, then retain the selected adapter."""
+
+    def __init__(self, host: str, port: int, logger_sn: int) -> None:
+        self.host = host
+        self.port = port
+        self.logger_sn = logger_sn
+        self._client: TsunProtocolClient | None = None
+
+    @property
+    def model(self) -> str:
+        """Return the detected model family."""
+        return self._client.model if self._client is not None else "Automatic detection"
+
+    @property
+    def protocol_name(self) -> str:
+        """Return the detected protocol or auto before the first successful read."""
+        return self._client.protocol_name if self._client is not None else DEFAULT_PROTOCOL
+
+    @property
+    def measurement_keys(self) -> frozenset[str]:
+        """Return keys supported by the detected adapter."""
+        return self._client.measurement_keys if self._client is not None else frozenset()
+
+    @property
+    def pv_count(self) -> int:
+        """Return the PV count reported by the detected adapter."""
+        return self._client.pv_count if self._client is not None else 0
+
+    async def async_read_all(self) -> TsunReadResult:
+        """Detect the protocol once, then delegate subsequent polls."""
+        if self._client is not None:
+            return await self._client.async_read_all()
+
+        last_error: Exception | None = None
+        for protocol_name in SUPPORTED_PROTOCOLS:
+            candidate = _create_specific_client(
+                protocol_name, self.host, self.port, self.logger_sn
+            )
+            try:
+                result = await candidate.async_read_all()
+            except Exception as err:  # Detection intentionally tries the next adapter.
+                last_error = err
+                continue
+            self._client = candidate
+            return result
+
+        raise RuntimeError("No supported TSUN local protocol detected") from last_error
 
 
 def create_protocol_client(
@@ -37,9 +123,7 @@ def create_protocol_client(
     port: int,
     logger_sn: int,
 ) -> TsunProtocolClient:
-    """Create the adapter registered for a local TSUN protocol."""
-    if protocol_name == "1511":
-        from .protocol_1511 import Tsun1511Client
-
-        return Tsun1511Client(host, port, logger_sn)
-    raise ValueError(f"Unsupported TSUN protocol: {protocol_name}")
+    """Create an automatic or explicit local-protocol adapter."""
+    if protocol_name == DEFAULT_PROTOCOL:
+        return TsunAutoClient(host, port, logger_sn)
+    return _create_specific_client(protocol_name, host, port, logger_sn)

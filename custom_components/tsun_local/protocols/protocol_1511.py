@@ -9,6 +9,7 @@ import asyncio
 import time
 
 from . import TsunReadResult
+from .ap import TsunProtocolError, build_ap_frame, parse_ap_frame, read_ap_frame
 
 PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
@@ -30,22 +31,13 @@ AC_MEASUREMENT_KEYS = frozenset(
         "dc_power_total",
     }
 )
-PV_MEASUREMENT_KEYS = frozenset(
-    f"pv{number}_{measurement}"
-    for number in range(1, 7)
-    for measurement in (
-        "voltage",
-        "current",
-        "power",
-        "energy_today",
-        "energy_total",
-    )
+PV_MEASUREMENT_NAMES = (
+    "voltage",
+    "current",
+    "power",
+    "energy_today",
+    "energy_total",
 )
-MEASUREMENT_KEYS = AC_MEASUREMENT_KEYS | PV_MEASUREMENT_KEYS
-
-
-class TsunProtocolError(Exception):
-    """Raised when a TSUN frame is invalid."""
 
 
 def crc16_1511(data: bytes) -> bytes:
@@ -58,47 +50,12 @@ def crc16_1511(data: bytes) -> bytes:
     return crc.to_bytes(2, "big")
 
 
-def checksum_ap(data: bytes) -> int:
-    """Return the AP additive checksum."""
-    return sum(data) & 0xFF
-
-
 def build_1511_request(address_tag: int, function: int, start: int, end: int) -> bytes:
     """Build one validated 1511 register read request."""
     count = end - start + 1
     body = bytes((address_tag, function, 0x00)) + start.to_bytes(2, "big")
     body += b"\x00\x02" + count.to_bytes(2, "big")
     return body + crc16_1511(body)
-
-
-def build_ap_frame(logger_sn: int, payload: bytes) -> bytes:
-    """Wrap a 1511 request in an AP frame."""
-    data = b"\x02\x00\x00" + bytes(12) + payload
-    scope = (
-        len(data).to_bytes(2, "little")
-        + b"\x10\x45\x00\x00"
-        + logger_sn.to_bytes(4, "little")
-        + data
-    )
-    return b"\xA5" + scope + bytes((checksum_ap(scope), 0x15))
-
-
-def parse_ap_frame(frame: bytes) -> bytes:
-    """Validate an AP response and return its embedded 1511 frame."""
-    if len(frame) < 16 or frame[0] != 0xA5 or frame[-1] != 0x15:
-        raise TsunProtocolError("Invalid AP frame markers")
-    expected_length = int.from_bytes(frame[1:3], "little") + 13
-    if len(frame) != expected_length:
-        raise TsunProtocolError(
-            f"Invalid AP frame length: {len(frame)} != {expected_length}"
-        )
-    if checksum_ap(frame[1:-2]) != frame[-2]:
-        raise TsunProtocolError("Invalid AP checksum")
-    try:
-        inner_start = frame.index(0x7E, 12, -2)
-    except ValueError as err:
-        raise TsunProtocolError("1511 payload not found") from err
-    return frame[inner_start:-2]
 
 
 def parse_1511_response(
@@ -131,7 +88,30 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
     return (registers[high_address] << 16) | registers[high_address + 1]
 
 
-def decode_measurements(registers: dict[int, int]) -> dict[str, float | int]:
+def _measurement_keys(pv_count: int) -> frozenset[str]:
+    """Return keys exposed for the detected number of PV inputs."""
+    return AC_MEASUREMENT_KEYS | frozenset(
+        f"pv{number}_{measurement}"
+        for number in range(1, pv_count + 1)
+        for measurement in PV_MEASUREMENT_NAMES
+    )
+
+
+def detect_pv_count(registers: dict[int, int]) -> int:
+    """Detect the highest populated PV input while always retaining PV1."""
+    pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
+    pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
+    detected = 1
+    for number, (base, total_pair) in enumerate(zip(pv_bases, pv_total_pairs), 1):
+        addresses = (base, base + 1, base + 2, base + 4, total_pair, total_pair + 1)
+        if any(0 < registers.get(address, 0) < 0xFFFF for address in addresses):
+            detected = number
+    return detected
+
+
+def decode_measurements(
+    registers: dict[int, int], pv_count: int = 6
+) -> dict[str, float | int]:
     """Decode the validated AC and PV register map."""
     data: dict[str, float | int] = {
         "ac_voltage": registers[0x0BC4] * 0.1,
@@ -143,7 +123,9 @@ def decode_measurements(registers: dict[int, int]) -> dict[str, float | int]:
     }
     pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
-    for number, (base, total_pair) in enumerate(zip(pv_bases, pv_total_pairs), 1):
+    for number, (base, total_pair) in enumerate(
+        zip(pv_bases[:pv_count], pv_total_pairs[:pv_count]), 1
+    ):
         prefix = f"pv{number}"
         data[f"{prefix}_voltage"] = registers[base] * 0.1
         data[f"{prefix}_current"] = registers[base + 1] * 0.01
@@ -151,7 +133,7 @@ def decode_measurements(registers: dict[int, int]) -> dict[str, float | int]:
         data[f"{prefix}_energy_today"] = registers[base + 4] * 0.01
         data[f"{prefix}_energy_total"] = _u32_type5(registers, total_pair) * 0.01
     data["dc_power_total"] = round(
-        sum(float(data[f"pv{number}_power"]) for number in range(1, 7)), 1
+        sum(float(data[f"pv{number}_power"]) for number in range(1, pv_count + 1)), 1
     )
     return data
 
@@ -161,20 +143,23 @@ class Tsun1511Client:
 
     model = MODEL
     protocol_name = PROTOCOL_NAME
-    measurement_keys = MEASUREMENT_KEYS
 
     def __init__(self, host: str, port: int, logger_sn: int, timeout: float = 10) -> None:
         self.host = host
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
+        self._pv_count = 1
 
-    async def _read_frame(self, reader: asyncio.StreamReader) -> bytes:
-        header = await reader.readexactly(3)
-        if header[0] != 0xA5:
-            raise TsunProtocolError("Invalid AP start marker")
-        remaining = int.from_bytes(header[1:3], "little") + 10
-        return header + await reader.readexactly(remaining)
+    @property
+    def pv_count(self) -> int:
+        """Return the highest PV input detected so far."""
+        return self._pv_count
+
+    @property
+    def measurement_keys(self) -> frozenset[str]:
+        """Return measurement keys supported by the detected hardware."""
+        return _measurement_keys(self._pv_count)
 
     async def _read_block(self, block: tuple[int, int, int, int]) -> dict[int, int]:
         address_tag, function, start, end = block
@@ -187,7 +172,7 @@ class Tsun1511Client:
                 reader, writer = await asyncio.open_connection(self.host, self.port)
                 writer.write(request)
                 await writer.drain()
-                response = await self._read_frame(reader)
+                response = await read_ap_frame(reader)
             return parse_1511_response(
                 parse_ap_frame(response), address_tag, function, start, end
             )
@@ -202,8 +187,9 @@ class Tsun1511Client:
         registers: dict[int, int] = {}
         for block in BLOCKS:
             registers.update(await self._read_block(block))
+        self._pv_count = max(self._pv_count, detect_pv_count(registers))
         return TsunReadResult(
-            measurements=decode_measurements(registers),
+            measurements=decode_measurements(registers, self._pv_count),
             duration_ms=round((time.monotonic() - started) * 1000),
             blocks_ok=len(BLOCKS),
         )

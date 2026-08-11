@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN TITAN présents sur le réseau local, sans proxy et sans service cloud. La version actuelle prend en charge le **TSOL-MP3000**.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.0 prend en charge le **TSOL-MP3000** validé et ajoute une première prise en charge des familles **GEN3**, **GEN3 PLUS** et d’autres modèles **TITAN** en attente de validation sur matériel réel.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
@@ -33,16 +33,23 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 ### Micro-onduleurs TITAN
 
 - **TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**
-  - ✅ **TSOL-MP3000** : compatible et validé sur matériel réel, avec 6 entrées PV ;
-  - ❌ **TSOL-MP2250** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
-  - ❌ **TSOL-MS3000** : non testé, compatibilité à confirmer à partir de retours utilisateurs.
+  - ✅ **TSOL-MP3000** : compatible et validé sur matériel réel ;
+  - ❌ **TSOL-MP2250** : adaptateur disponible, non validé sur matériel réel ;
+  - ❌ **TSOL-MS3000** : adaptateur disponible, non validé sur matériel réel.
 - **TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**
-  - ❌ **TSOL-MP6000** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
-  - ❌ **TSOL-MP5000** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
-  - ❌ **TSOL-MP4600** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
-  - ❌ **TSOL-MP4000** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
-  - ❌ **TSOL-MP3750** : non testé, compatibilité à confirmer à partir de retours utilisateurs ;
-  - ❌ **TSOL-MP3680** : non testé, compatibilité à confirmer à partir de retours utilisateurs.
+  - ❌ non validés et non pris en charge actuellement faute de carte complète des entrées PV.
+
+### Micro-onduleurs GEN3 et GEN3 PLUS
+
+L’adaptateur local est disponible pour les appareils à 1, 2 ou 4 entrées PV. Tous les modèles ci-dessous restent marqués ❌ jusqu’à validation par une capture ou un retour utilisateur sur matériel réel :
+
+- ❌ **MS300, MS350, MS400, MS400-D** ;
+- ❌ **MS600, MS700, MS800, MS600-D, MS800-D** ;
+- ❌ **MS1600, MS1800, MS2000, MS2000-D** ;
+- ❌ **MS3000** ;
+- ❌ **MX450, MX1000**.
+
+Le **MX3000** n’est pas déclaré compatible : la carte disponible s’arrête à PV4 alors que ce modèle peut comporter davantage d’entrées. Le stockage **DC1000** et les compteurs **TSOL-MG3-MS / DDZY422-D2** ne sont pas pris en charge par cet adaptateur de micro-onduleur.
 
 ## Installation
 
@@ -68,6 +75,8 @@ Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélecti
 4. Recherchez **TSUN Local**.
 5. Renseignez l’adresse IP, le port et le **SN inscrit sur l’étiquette du micro-onduleur**.
 
+Le protocole local est détecté automatiquement lors de l’ajout de l’appareil.
+
 ## Plusieurs appareils
 
 Plusieurs micro-onduleurs compatibles peuvent être ajoutés dans la même installation Home Assistant. Pour chaque appareil, relancez **Ajouter une intégration** et saisissez son adresse IP ainsi que son SN unique. Chaque entrée crée un appareil indépendant avec ses propres entités et son propre coordinateur de communication.
@@ -84,7 +93,8 @@ Dans **Paramètres → Appareils et services → TSUN Local**, ouvrez le menu de
 
 Lorsque le micro-onduleur n’est plus alimenté, l’intégration le considère hors ligne sans répéter une erreur à chaque interrogation :
 
-- les mesures AC/PV deviennent indisponibles afin de ne pas afficher de valeurs périmées ;
+- les mesures instantanées (tension, courant, puissance et fréquence) deviennent indisponibles afin de ne pas afficher de valeurs périmées ;
+- les compteurs d’énergie journaliers et totaux restent disponibles avec leur dernière valeur connue ;
 - le diagnostic **Communication** passe hors ligne ;
 - le compteur indique les échecs consécutifs et revient à zéro dès le réveil ;
 - l’heure de la dernière communication réussie reste disponible ;
@@ -93,4 +103,6 @@ Lorsque le micro-onduleur n’est plus alimenté, l’intégration le considère
 
 ## Capteurs
 
-**TITAN** : l’intégration crée un appareil unique avec les mesures AC, 5 mesures pour chacune des 6 entrées PV, la somme des 6 puissances DC, 4 capteurs de diagnostic et un état de connectivité.
+L’intégration crée un appareil unique avec les mesures AC, 5 mesures par entrée PV détectée, la somme des puissances DC détectées, 4 capteurs de diagnostic et un état de connectivité.
+
+Le nombre d’entrées PV est dynamique : PV1 est disponible dès la première lecture, puis PV2 à PV6 pour TITAN ou PV2 à PV4 pour GEN3/GEN3 PLUS sont ajoutées lorsqu’une mesure ou un compteur valide est observé. Une entrée découverte reste enregistrée dans Home Assistant.

@@ -37,7 +37,7 @@ from .const import (
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 
-async def _validate_input(data: dict[str, Any]) -> None:
+async def _validate_input(data: dict[str, Any]) -> str:
     client = create_protocol_client(
         data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
         data[CONF_HOST],
@@ -45,6 +45,7 @@ async def _validate_input(data: dict[str, Any]) -> None:
         data[CONF_LOGGER_SN],
     )
     await client.async_read_all()
+    return client.protocol_name
 
 
 CONNECTION_SCHEMA = vol.Schema(
@@ -111,7 +112,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(unique_id)
             self._abort_if_unique_id_configured()
             try:
-                await _validate_input(user_input)
+                detected_protocol = await _validate_input(user_input)
             except (TimeoutError, asyncio.TimeoutError):
                 errors["base"] = "cannot_connect"
             except Exception:
@@ -119,7 +120,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 entry_data = {
                     **user_input,
-                    CONF_PROTOCOL: DEFAULT_PROTOCOL,
+                    CONF_PROTOCOL: detected_protocol,
                 }
                 return self.async_create_entry(
                     title=f"TSUN Local ({unique_id})", data=entry_data

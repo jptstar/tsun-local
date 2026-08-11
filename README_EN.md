@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates TSUN TITAN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. The current version supports the **TSOL-MP3000**.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.0 supports the validated **TSOL-MP3000** and adds initial support for **GEN3**, **GEN3 PLUS**, and other **TITAN** models pending validation on real hardware.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 
@@ -33,16 +33,23 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 ### TITAN micro-inverters
 
 - **TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**
-  - ✅ **TSOL-MP3000**: compatible and validated on real hardware, with 6 PV inputs;
-  - ❌ **TSOL-MP2250**: untested; compatibility must be confirmed through user feedback;
-  - ❌ **TSOL-MS3000**: untested; compatibility must be confirmed through user feedback.
+  - ✅ **TSOL-MP3000**: compatible and validated on real hardware;
+  - ❌ **TSOL-MP2250**: adapter available, not validated on real hardware;
+  - ❌ **TSOL-MS3000**: adapter available, not validated on real hardware.
 - **TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**
-  - ❌ **TSOL-MP6000**: untested; compatibility must be confirmed through user feedback;
-  - ❌ **TSOL-MP5000**: untested; compatibility must be confirmed through user feedback;
-  - ❌ **TSOL-MP4600**: untested; compatibility must be confirmed through user feedback;
-  - ❌ **TSOL-MP4000**: untested; compatibility must be confirmed through user feedback;
-  - ❌ **TSOL-MP3750**: untested; compatibility must be confirmed through user feedback;
-  - ❌ **TSOL-MP3680**: untested; compatibility must be confirmed through user feedback.
+  - ❌ not validated and currently unsupported because a complete PV-input map is unavailable.
+
+### GEN3 and GEN3 PLUS micro-inverters
+
+The local adapter is available for devices with 1, 2, or 4 PV inputs. Every model below remains marked ❌ until it is validated with a capture or user feedback from real hardware:
+
+- ❌ **MS300, MS350, MS400, MS400-D**;
+- ❌ **MS600, MS700, MS800, MS600-D, MS800-D**;
+- ❌ **MS1600, MS1800, MS2000, MS2000-D**;
+- ❌ **MS3000**;
+- ❌ **MX450, MX1000**.
+
+The **MX3000** is not declared compatible: the available map ends at PV4 while this model can have more inputs. The **DC1000** storage system and **TSOL-MG3-MS / DDZY422-D2** smart meters are not supported by this micro-inverter adapter.
 
 ## Installation
 
@@ -68,6 +75,8 @@ If the latest version is not shown, open the repository menu and select **Update
 4. Search for **TSUN Local**.
 5. Enter the IP address, port, and the **SN printed on the micro-inverter label**.
 
+The local protocol is detected automatically when the device is added.
+
 ## Multiple devices
 
 Multiple compatible micro-inverters can be added to the same Home Assistant installation. Run **Add integration** for each device and enter its IP address and unique SN. Each entry creates an independent device with its own entities and communication coordinator.
@@ -84,7 +93,8 @@ Under **Settings → Devices & services → TSUN Local**, open the menu for the 
 
 When the micro-inverter is no longer powered, the integration marks it offline without repeating an error on every poll:
 
-- AC/PV measurements become unavailable so stale values are not displayed;
+- instantaneous measurements (voltage, current, power, and frequency) become unavailable so stale values are not displayed;
+- daily and total energy counters remain available with their latest known value;
 - the **Communication** diagnostic reports offline;
 - the consecutive failure counter returns to zero when communication resumes;
 - the last successful communication time remains available;
@@ -93,4 +103,6 @@ When the micro-inverter is no longer powered, the integration marks it offline w
 
 ## Sensors
 
-**TITAN:** the integration creates one device with AC measurements, 5 measurements for each of the 6 PV inputs, the sum of the 6 DC powers, 4 diagnostic sensors, and one connectivity status.
+The integration creates one device with AC measurements, 5 measurements for every detected PV input, the sum of detected DC powers, 4 diagnostic sensors, and one connectivity status.
+
+The PV-input count is dynamic: PV1 is available after the first read, then PV2 to PV6 for TITAN or PV2 to PV4 for GEN3/GEN3 PLUS are added when a valid measurement or energy counter is observed. A discovered input remains registered in Home Assistant.
