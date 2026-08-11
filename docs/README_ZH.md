@@ -10,7 +10,9 @@
 
 > **非官方项目** — 此独立社区集成并非由 TSUN 开发、认可或维护，也与 TSUN 没有任何关联。TSUN 及其产品名称归各自权利人所有。有关此集成的支持请求应提交给作者，而不是 TSUN。
 
-**TSUN Local** 可通过本地网络将兼容的 TSUN 微型逆变器直接接入 Home Assistant，无需代理服务器或云服务。版本 1.1.8 支持已在真实设备上验证的 **TSOL-MP3000** 和 **MX500**，并为其他等待验证的 **TITAN**、**GEN3** 和 **GEN3 PLUS** 型号提供支持。
+**TSUN Local** 可将兼容的 TSUN 微型逆变器直接接入 Home Assistant，**通过本地网络，无需代理服务器或云服务**。
+
+版本 1.1.8 支持已在真实设备上验证的 **TSOL-MP3000** 和 **MX500**，并为其他等待验证的 **TITAN**、**GEN3** 和 **GEN3 PLUS** 型号提供支持。
 
 **作者：Jean-Philippe TESTART（jptstar）**
 
