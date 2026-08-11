@@ -1,19 +1,19 @@
-# Versionnement et publication
+# Versioning and releases
 
-Le projet utilise le versionnement sémantique `MAJEURE.MINEURE.CORRECTIF` :
+The project uses semantic versioning `MAJOR.MINOR.PATCH`:
 
-- **MAJEURE** : changement incompatible, notamment un nouveau domaine Home Assistant ;
-- **MINEURE** : nouvelle fonctionnalité compatible ;
-- **CORRECTIF** : correction compatible sans nouvelle fonctionnalité majeure.
+- **MAJOR**: an incompatible change, including a new Home Assistant domain;
+- **MINOR**: a new backward-compatible feature;
+- **PATCH**: a backward-compatible fix without a major new feature.
 
-Les tags Git sont préfixés par `v`, par exemple `v1.0.1`. La valeur sans préfixe doit être identique au champ `version` de `custom_components/tsun_local/manifest.json`.
+Git tags are prefixed with `v`, for example `v1.0.1`. The value without the prefix must exactly match the `version` field in `custom_components/tsun_local/manifest.json`.
 
-## Publier une version
+## Publishing a version
 
-1. Modifier la version dans `manifest.json`.
-2. Ajouter la version et sa date dans `CHANGELOG.md`.
-3. Faire valider et fusionner la pull request dans `main`.
-4. Créer et pousser le tag correspondant :
+1. Update the version in `manifest.json`.
+2. Add the version and its date to `CHANGELOG.md`.
+3. Have the pull request reviewed and merged into `main`.
+4. Create and push the corresponding tag:
 
    ```bash
    git switch main
@@ -22,6 +22,6 @@ Les tags Git sont préfixés par `v`, par exemple `v1.0.1`. La valeur sans préf
    git push origin v1.1.3
    ```
 
-5. Le workflow `release.yml` vérifie automatiquement la concordance du tag, du manifeste et du journal, puis crée la GitHub Release utilisée par HACS.
+5. The `release.yml` workflow automatically verifies that the tag, manifest, and changelog match, then creates the GitHub Release used by HACS.
 
-Ne jamais déplacer ou réutiliser un tag déjà publié. Toute correction ultérieure reçoit un nouveau numéro de version.
+Never move or reuse an already published tag. Any subsequent fix must receive a new version number.
