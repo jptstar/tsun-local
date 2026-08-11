@@ -1,0 +1,174 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "添加 TSUN Local 设备",
+        "description": "请输入本地连接信息。系统会自动检测通信协议和可用的光伏输入。所需的序列号（SN）印在微型逆变器的铭牌上。每添加一台兼容设备，请重新执行“添加集成”。",
+        "data": {
+          "host": "IP 地址",
+          "port": "端口",
+          "logger_sn": "微型逆变器 SN（铭牌）"
+        }
+      },
+      "reconfigure": {
+        "title": "修改连接",
+        "description": "修改此设备的 IP 地址或 TCP 端口。微型逆变器的 SN 将继续作为其永久标识。",
+        "data": {
+          "host": "IP 地址",
+          "port": "端口"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接到设备",
+      "invalid_response": "设备返回了无效响应"
+    },
+    "abort": {
+      "already_configured": "此微型逆变器已配置"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "轮询设置",
+        "description": "设置正常轮询间隔，以及设备离线或夜间断电时使用的较慢轮询间隔。",
+        "data": {
+          "scan_interval": "正常轮询间隔",
+          "offline_scan_interval": "离线/夜间轮询间隔"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "交流电压"
+      },
+      "ac_current": {
+        "name": "交流电流"
+      },
+      "ac_frequency": {
+        "name": "交流频率"
+      },
+      "ac_power": {
+        "name": "交流功率"
+      },
+      "ac_energy_today": {
+        "name": "今日交流电量"
+      },
+      "ac_energy_total": {
+        "name": "交流总电量"
+      },
+      "dc_power_total": {
+        "name": "直流总功率"
+      },
+      "communication_last_success": {
+        "name": "上次成功通信"
+      },
+      "communication_duration": {
+        "name": "通信耗时"
+      },
+      "communication_blocks": {
+        "name": "已接收数据块"
+      },
+      "communication_failures": {
+        "name": "连续通信失败次数"
+      },
+      "pv1_voltage": {
+        "name": "PV1 电压"
+      },
+      "pv1_current": {
+        "name": "PV1 电流"
+      },
+      "pv1_power": {
+        "name": "PV1 功率"
+      },
+      "pv1_energy_today": {
+        "name": "PV1 今日电量"
+      },
+      "pv1_energy_total": {
+        "name": "PV1 总电量"
+      },
+      "pv2_voltage": {
+        "name": "PV2 电压"
+      },
+      "pv2_current": {
+        "name": "PV2 电流"
+      },
+      "pv2_power": {
+        "name": "PV2 功率"
+      },
+      "pv2_energy_today": {
+        "name": "PV2 今日电量"
+      },
+      "pv2_energy_total": {
+        "name": "PV2 总电量"
+      },
+      "pv3_voltage": {
+        "name": "PV3 电压"
+      },
+      "pv3_current": {
+        "name": "PV3 电流"
+      },
+      "pv3_power": {
+        "name": "PV3 功率"
+      },
+      "pv3_energy_today": {
+        "name": "PV3 今日电量"
+      },
+      "pv3_energy_total": {
+        "name": "PV3 总电量"
+      },
+      "pv4_voltage": {
+        "name": "PV4 电压"
+      },
+      "pv4_current": {
+        "name": "PV4 电流"
+      },
+      "pv4_power": {
+        "name": "PV4 功率"
+      },
+      "pv4_energy_today": {
+        "name": "PV4 今日电量"
+      },
+      "pv4_energy_total": {
+        "name": "PV4 总电量"
+      },
+      "pv5_voltage": {
+        "name": "PV5 电压"
+      },
+      "pv5_current": {
+        "name": "PV5 电流"
+      },
+      "pv5_power": {
+        "name": "PV5 功率"
+      },
+      "pv5_energy_today": {
+        "name": "PV5 今日电量"
+      },
+      "pv5_energy_total": {
+        "name": "PV5 总电量"
+      },
+      "pv6_voltage": {
+        "name": "PV6 电压"
+      },
+      "pv6_current": {
+        "name": "PV6 电流"
+      },
+      "pv6_power": {
+        "name": "PV6 功率"
+      },
+      "pv6_energy_today": {
+        "name": "PV6 今日电量"
+      },
+      "pv6_energy_total": {
+        "name": "PV6 总电量"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "通信"
+      }
+    }
+  }
+}
