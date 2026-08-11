@@ -22,14 +22,6 @@ TSUN Local is a Home Assistant integration that I originally developed for fun a
 
 If I receive feedback and diagnostic information for specific models, I am willing to spend some time improving compatibility and fixing bugs. However, TSUN Local remains a personal hobby and a secondary activity, not my main occupation. Replies and fixes may therefore sometimes take time.
 
-## License
-
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
-
-This project is distributed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). Modified or redistributed versions must comply with this license and retain the copyright and license notices. See [LICENSE](LICENSE).
-
-The license covers only this independent implementation. It grants no rights to TSUN trademarks, logos, software, or products. This project remains unofficial and unaffiliated with TSUN.
-
 ## Versions
 
 Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offer updates. See the [changelog](CHANGELOG.md) for details.
@@ -144,3 +136,11 @@ When the micro-inverter is no longer powered, the integration marks it offline w
 The integration creates one device with AC measurements, 5 measurements for every detected PV input, the sum of detected DC powers, 4 diagnostic sensors, and one connectivity status.
 
 The PV-input count is dynamic: PV1 is available after the first read, then PV2 to PV6 for TITAN or PV2 to PV4 for GEN3/GEN3 PLUS are added when a valid measurement or energy counter is observed. A discovered input remains registered in Home Assistant.
+
+## License
+
+Copyright © 2026 Jean-Philippe TESTART (jptstar).
+
+This project is distributed under the **GNU General Public License v3.0 or later** (GPL-3.0-or-later). Modified or redistributed versions must comply with this license and retain the copyright and license notices. See [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
+
+The license covers only this independent implementation. It grants no rights to TSUN trademarks, logos, software, or products. This project remains unofficial and unaffiliated with TSUN.
