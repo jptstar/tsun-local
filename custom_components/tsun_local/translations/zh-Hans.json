@@ -14,8 +14,7 @@
         "description": "更改 IP 地址或 TCP 端口。系统会自动保留已检测到的设备系列，Monitor SN / Logger SN 仍作为设备的永久标识。",
         "data": {
           "host": "IP 地址",
-          "port": "端口",
-          "protocol": "设备系列"
+          "port": "端口"
         }
       },
       "manual": {
@@ -24,7 +23,6 @@
         "data": {
           "host": "IP 地址",
           "port": "端口",
-          "protocol": "设备系列",
           "logger_sn": "Monitor SN / Logger SN（铭牌）"
         }
       },
@@ -34,7 +32,6 @@
         "data": {
           "host": "已发现的地址",
           "port": "端口",
-          "protocol": "设备系列",
           "logger_sn": "Monitor SN / Logger SN（铭牌）"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "通信"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }
