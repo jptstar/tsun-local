@@ -6,7 +6,7 @@
 from datetime import timedelta
 
 DOMAIN = "tsun_local"
-PLATFORMS = ["binary_sensor", "sensor"]
+PLATFORMS = ["binary_sensor", "button", "sensor"]
 
 CONF_LOGGER_SN = "logger_sn"
 CONF_DISCOVERY_NETWORK = "discovery_network"

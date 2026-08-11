@@ -6,18 +6,44 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 
 from . import TsunReadResult
-from .ap import TsunProtocolError, build_ap_frame, parse_ap_frame, read_ap_frame
+from .ap import (
+    ProtocolTrace,
+    TsunProtocolError,
+    build_ap_frame,
+    parse_ap_frame,
+    read_ap_frame,
+)
 
 PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
+PV_COUNT = 6
+
+_LOGGER = logging.getLogger(__name__)
 
 BLOCKS = (
     (0xA1, 0x01, 0x0BB8, 0x0BD0),
     (0xA3, 0x03, 0x0E10, 0x0E2D),
     (0xA4, 0x04, 0x0ED8, 0x0EF5),
+)
+
+ALARM_BLOCKS = (
+    (0xA2, 0x02, 0x0CE4, 0x0CE7),
+)
+
+GLOBAL_ALARM_REGISTERS = (0x0BBB, 0x0BBC, 0x0BBD, 0x0BBE)
+SECONDARY_ALARM_REGISTERS = (0x0CE4, 0x0CE5, 0x0CE6, 0x0CE7)
+PV_ALARM_REGISTERS = (0x0E16, 0x0E1D, 0x0E24, 0x0EDE, 0x0EE5, 0x0EEC)
+
+ALARM_MEASUREMENT_KEYS = frozenset(
+    {
+        "alarm_active",
+        *(f"alarm_global_{index}_raw" for index in range(4)),
+        *(f"alarm_secondary_{index}_raw" for index in range(4)),
+    }
 )
 
 AC_MEASUREMENT_KEYS = frozenset(
@@ -90,10 +116,12 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
-    return AC_MEASUREMENT_KEYS | frozenset(
+    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(
         f"pv{number}_{measurement}"
         for number in range(1, pv_count + 1)
         for measurement in PV_MEASUREMENT_NAMES
+    ) | frozenset(
+        f"pv{number}_alarm_raw" for number in range(1, pv_count + 1)
     )
 
 
@@ -138,18 +166,60 @@ def decode_measurements(
     return data
 
 
+def decode_alarms(
+    registers: dict[int, int], pv_count: int
+) -> dict[str, float | int]:
+    """Expose validated 1511 alarm words without guessing their bit mapping."""
+    data: dict[str, float | int] = {}
+    active_values: list[int] = []
+
+    for index, address in enumerate(GLOBAL_ALARM_REGISTERS):
+        if address in registers:
+            value = registers[address]
+            data[f"alarm_global_{index}_raw"] = value
+            active_values.append(value)
+
+    secondary_complete = all(
+        address in registers for address in SECONDARY_ALARM_REGISTERS
+    )
+    for index, address in enumerate(SECONDARY_ALARM_REGISTERS):
+        if address in registers:
+            value = registers[address]
+            data[f"alarm_secondary_{index}_raw"] = value
+            active_values.append(value)
+
+    for number, address in enumerate(PV_ALARM_REGISTERS[:pv_count], 1):
+        if address in registers:
+            value = registers[address]
+            data[f"pv{number}_alarm_raw"] = value
+            active_values.append(value)
+
+    # A complete status requires the separate secondary-alarm block. If that
+    # optional read fails, raw words from the normal telemetry blocks remain
+    # useful, but Home Assistant must not report an assumed alarm-free state.
+    if secondary_complete:
+        data["alarm_active"] = int(any(active_values))
+    return data
+
+
 class Tsun1511Client:
     """Async protocol 1511 client for one TSUN logger."""
 
     model = MODEL
     protocol_name = PROTOCOL_NAME
 
-    def __init__(self, host: str, port: int, logger_sn: int, timeout: float = 10) -> None:
+    def __init__(
+        self, host: str, port: int, logger_sn: int, timeout: float = 10
+    ) -> None:
         self.host = host
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
-        self._pv_count = 1
+        # The validated TITAN register map always defines PV1 through PV6.
+        # Expose all six inputs even when their live values are zero or the
+        # inverter is first loaded while unpowered at night.
+        self._pv_count = PV_COUNT
+        self._trace = ProtocolTrace(PROTOCOL_NAME)
 
     @property
     def pv_count(self) -> int:
@@ -161,35 +231,114 @@ class Tsun1511Client:
         """Return measurement keys supported by the detected hardware."""
         return _measurement_keys(self._pv_count)
 
+    @property
+    def diagnostic_trace(self) -> tuple[dict[str, object], ...]:
+        """Return recent protocol transactions without connection identifiers."""
+        return self._trace.events
+
     async def _read_block(self, block: tuple[int, int, int, int]) -> dict[int, int]:
         address_tag, function, start, end = block
-        request = build_ap_frame(
-            self.logger_sn, build_1511_request(address_tag, function, start, end)
-        )
+        payload = build_1511_request(address_tag, function, start, end)
+        request = build_ap_frame(self.logger_sn, payload)
         writer: asyncio.StreamWriter | None = None
+        stage = "connection"
+        response: bytes | None = None
+        protocol_response: bytes | None = None
         try:
             async with asyncio.timeout(self.timeout):
+                _LOGGER.debug(
+                    "1511 diagnostic: opening connection for registers 0x%04X-0x%04X",
+                    start,
+                    end,
+                )
                 reader, writer = await asyncio.open_connection(self.host, self.port)
+                stage = "send"
+                _LOGGER.debug(
+                    "1511 diagnostic request for registers 0x%04X-0x%04X: %s",
+                    start,
+                    end,
+                    payload.hex(" ").upper(),
+                )
                 writer.write(request)
                 await writer.drain()
+                stage = "receive"
                 response = await read_ap_frame(reader)
-            return parse_1511_response(
-                parse_ap_frame(response), address_tag, function, start, end
+            stage = "validation"
+            protocol_response = parse_ap_frame(response)
+            _LOGGER.debug(
+                "1511 diagnostic response for registers 0x%04X-0x%04X: %s",
+                start,
+                end,
+                protocol_response.hex(" ").upper(),
             )
+            registers = parse_1511_response(
+                protocol_response, address_tag, function, start, end
+            )
+            self._trace.record(
+                address_tag=address_tag,
+                function=function,
+                start=start,
+                end=end,
+                stage="complete",
+                request_payload=payload,
+                response_payload=protocol_response,
+                response_bytes=len(response),
+            )
+            return registers
+        except Exception as err:
+            self._trace.record(
+                address_tag=address_tag,
+                function=function,
+                start=start,
+                end=end,
+                stage=stage,
+                request_payload=payload,
+                response_payload=protocol_response,
+                response_bytes=len(response) if response is not None else None,
+                error=err,
+            )
+            detail = (
+                str(err)
+                if isinstance(err, TsunProtocolError)
+                else type(err).__name__
+            )
+            _LOGGER.debug(
+                "1511 diagnostic failure during %s for registers "
+                "0x%04X-0x%04X: %s",
+                stage,
+                start,
+                end,
+                detail,
+            )
+            raise
         finally:
             if writer is not None:
                 writer.close()
                 await writer.wait_closed()
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read the three validated blocks sequentially."""
+        """Read telemetry and the additional alarm block sequentially."""
         started = time.monotonic()
         registers: dict[int, int] = {}
         for block in BLOCKS:
             registers.update(await self._read_block(block))
-        self._pv_count = max(self._pv_count, detect_pv_count(registers))
+        blocks_ok = len(BLOCKS)
+        for block in ALARM_BLOCKS:
+            try:
+                registers.update(await self._read_block(block))
+            except Exception as err:
+                _LOGGER.debug(
+                    "1511 alarm block 0x%04X-0x%04X is unavailable: %s",
+                    block[2],
+                    block[3],
+                    type(err).__name__,
+                )
+            else:
+                blocks_ok += 1
+        measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_alarms(registers, self._pv_count))
         return TsunReadResult(
-            measurements=decode_measurements(registers, self._pv_count),
+            measurements=measurements,
             duration_ms=round((time.monotonic() - started) * 1000),
-            blocks_ok=len(BLOCKS),
+            blocks_ok=blocks_ok,
         )

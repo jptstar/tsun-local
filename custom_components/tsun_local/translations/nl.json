@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Verbinding wijzigen",
-        "description": "Wijzig het IP-adres of de TCP-poort. De gedetecteerde apparaatfamilie blijft automatisch behouden en de Monitor SN / Logger SN blijft de permanente identiteit.",
+        "description": "Wijzig het IP-adres of de TCP-poort. De Monitor SN / Logger SN blijft de permanente identiteit.",
         "data": {
           "host": "IP-adres",
           "port": "Poort"
@@ -19,7 +19,7 @@
       },
       "manual": {
         "title": "Handmatige configuratie",
-        "description": "Voer de verbindingsgegevens in. De apparaatfamilie wordt automatisch gedetecteerd. De Monitor SN / Logger SN staat op het apparaatetiket.",
+        "description": "Voer de verbindingsgegevens in. Het lokale protocol wordt automatisch gedetecteerd en de Monitor SN / Logger SN staat op het apparaatlabel.",
         "data": {
           "host": "IP-adres",
           "port": "Poort",
@@ -28,7 +28,7 @@
       },
       "discover": {
         "title": "Gevonden apparaten",
-        "description": "Selecteer een adres dat op de gekozen TCP-poort is gevonden en voer de Monitor SN / Logger SN in. De apparaatfamilie wordt automatisch gedetecteerd.",
+        "description": "Selecteer een adres dat op de ingestelde TCP-poort is gevonden en voer de Monitor SN / Logger SN in. Het lokale protocol wordt automatisch gedetecteerd.",
         "data": {
           "host": "Gevonden adres",
           "port": "Poort",
@@ -52,6 +52,7 @@
     },
     "abort": {
       "already_configured": "Deze micro-omvormer is al geconfigureerd",
+      "all_devices_configured": "Alle gevonden micro-omvormers zijn al geconfigureerd",
       "no_devices_found": "Er is geen apparaat gevonden dat lokale verbindingen op poort 8899 accepteert"
     }
   },
@@ -69,6 +70,10 @@
   },
   "entity": {
     "sensor": {
+      "alarm_global_0_raw": {"name": "Globaal alarm (ruwe waarde) 0"}, "alarm_global_1_raw": {"name": "Globaal alarm (ruwe waarde) 1"}, "alarm_global_2_raw": {"name": "Globaal alarm (ruwe waarde) 2"}, "alarm_global_3_raw": {"name": "Globaal alarm (ruwe waarde) 3"},
+      "alarm_secondary_0_raw": {"name": "Secundair alarm (ruwe waarde) 0"}, "alarm_secondary_1_raw": {"name": "Secundair alarm (ruwe waarde) 1"}, "alarm_secondary_2_raw": {"name": "Secundair alarm (ruwe waarde) 2"}, "alarm_secondary_3_raw": {"name": "Secundair alarm (ruwe waarde) 3"},
+      "alarm_code_1_raw": {"name": "Alarmcode (ruwe waarde) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (ruwe waarde) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (ruwe waarde) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (ruwe waarde) 4"},
+      "pv1_alarm_raw": {"name": "PV1-alarm (ruwe waarde)"}, "pv2_alarm_raw": {"name": "PV2-alarm (ruwe waarde)"}, "pv3_alarm_raw": {"name": "PV3-alarm (ruwe waarde)"}, "pv4_alarm_raw": {"name": "PV4-alarm (ruwe waarde)"}, "pv5_alarm_raw": {"name": "PV5-alarm (ruwe waarde)"}, "pv6_alarm_raw": {"name": "PV6-alarm (ruwe waarde)"},
       "ac_voltage": {
         "name": "AC-spanning"
       },
@@ -196,6 +201,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Communicatie"
+      },
+      "inverter_alarm": {
+        "name": "Omvormeralarm"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Gegevens vernieuwen"
       }
     }
   }

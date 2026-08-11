@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "修改连接",
-        "description": "更改 IP 地址或 TCP 端口。系统会自动保留已检测到的设备系列，Monitor SN / Logger SN 仍作为设备的永久标识。",
+        "description": "修改 IP 地址或 TCP 端口。Monitor SN / Logger SN 仍作为设备的永久标识。",
         "data": {
           "host": "IP 地址",
           "port": "端口"
@@ -19,7 +19,7 @@
       },
       "manual": {
         "title": "手动配置",
-        "description": "输入连接信息。系统会自动检测设备系列。Monitor SN / Logger SN 印在设备标签上。",
+        "description": "请输入连接信息。本地协议会自动检测，Monitor SN / Logger SN 印在设备铭牌上。",
         "data": {
           "host": "IP 地址",
           "port": "端口",
@@ -28,7 +28,7 @@
       },
       "discover": {
         "title": "已发现的设备",
-        "description": "选择在指定 TCP 端口上找到的地址，并输入 Monitor SN / Logger SN。系统会自动检测设备系列。",
+        "description": "请选择在已配置 TCP 端口上发现的地址，并输入 Monitor SN / Logger SN。本地协议会自动检测。",
         "data": {
           "host": "已发现的地址",
           "port": "端口",
@@ -52,6 +52,7 @@
     },
     "abort": {
       "already_configured": "此微型逆变器已配置",
+      "all_devices_configured": "所有检测到的微型逆变器均已配置",
       "no_devices_found": "未找到在端口 8899 上接受本地连接的设备"
     }
   },
@@ -69,6 +70,10 @@
   },
   "entity": {
     "sensor": {
+      "alarm_global_0_raw": {"name": "全局报警原始值 0"}, "alarm_global_1_raw": {"name": "全局报警原始值 1"}, "alarm_global_2_raw": {"name": "全局报警原始值 2"}, "alarm_global_3_raw": {"name": "全局报警原始值 3"},
+      "alarm_secondary_0_raw": {"name": "次级报警原始值 0"}, "alarm_secondary_1_raw": {"name": "次级报警原始值 1"}, "alarm_secondary_2_raw": {"name": "次级报警原始值 2"}, "alarm_secondary_3_raw": {"name": "次级报警原始值 3"},
+      "alarm_code_1_raw": {"name": "报警代码原始值 1"}, "alarm_code_2_raw": {"name": "报警代码原始值 2"}, "alarm_code_3_raw": {"name": "报警代码原始值 3"}, "alarm_code_4_raw": {"name": "报警代码原始值 4"},
+      "pv1_alarm_raw": {"name": "PV1 报警原始值"}, "pv2_alarm_raw": {"name": "PV2 报警原始值"}, "pv3_alarm_raw": {"name": "PV3 报警原始值"}, "pv4_alarm_raw": {"name": "PV4 报警原始值"}, "pv5_alarm_raw": {"name": "PV5 报警原始值"}, "pv6_alarm_raw": {"name": "PV6 报警原始值"},
       "ac_voltage": {
         "name": "交流电压"
       },
@@ -196,6 +201,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "通信"
+      },
+      "inverter_alarm": {
+        "name": "逆变器报警"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "刷新数据"
       }
     }
   }

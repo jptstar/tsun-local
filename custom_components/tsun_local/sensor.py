@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -37,6 +37,9 @@ from .coordinator import TsunCoordinator
 class TsunSensorDescription(SensorEntityDescription):
     """Describe a TSUN sensor."""
 
+    suggested_object_id: str | None = None
+    register_address: str | None = None
+
 
 def _measurement(
     key: str,
@@ -48,12 +51,36 @@ def _measurement(
 ) -> TsunSensorDescription:
     return TsunSensorDescription(
         key=key,
+        suggested_object_id=key,
         translation_key=translation_key,
         device_class=device_class,
         native_unit_of_measurement=unit,
         state_class=state_class,
         suggested_display_precision=precision,
     )
+
+
+def _raw_alarm(
+    key: str, translation_key: str, register_address: str
+) -> TsunSensorDescription:
+    """Describe one read-only raw alarm register."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        register_address=register_address,
+    )
+
+
+COMMUNICATION_SENSOR_KEYS = frozenset(
+    {
+        "communication_last_success",
+        "communication_duration",
+        "communication_blocks",
+        "communication_failures",
+    }
+)
 
 
 SENSORS: tuple[TsunSensorDescription, ...] = (
@@ -104,12 +131,14 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
     ),
     TsunSensorDescription(
         key="communication_last_success",
+        suggested_object_id="communication_last_success",
         translation_key="communication_last_success",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(
         key="communication_duration",
+        suggested_object_id="communication_duration",
         translation_key="communication_duration",
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.MILLISECONDS,
@@ -118,6 +147,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
     ),
     TsunSensorDescription(
         key="communication_blocks",
+        suggested_object_id="communication_blocks",
         translation_key="communication_blocks",
         native_unit_of_measurement="blocks",
         state_class=SensorStateClass.MEASUREMENT,
@@ -125,11 +155,38 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
     ),
     TsunSensorDescription(
         key="communication_failures",
+        suggested_object_id="communication_failures",
         translation_key="communication_failures",
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    *(
+        _raw_alarm(
+            f"alarm_global_{index}_raw",
+            f"alarm_global_{index}_raw",
+            f"0x{0x0BBB + index:04X}",
+        )
+        for index in range(4)
+    ),
+    *(
+        _raw_alarm(
+            f"alarm_secondary_{index}_raw",
+            f"alarm_secondary_{index}_raw",
+            f"0x{0x0CE4 + index:04X}",
+        )
+        for index in range(4)
+    ),
+    *(
+        _raw_alarm(
+            f"alarm_code_{index}_raw",
+            f"alarm_code_{index}_raw",
+            f"0x{0x3002 + index:04X}",
+        )
+        for index in range(1, 5)
+    ),
 )
+
+PV_ALARM_REGISTERS = (0x0E16, 0x0E1D, 0x0E24, 0x0EDE, 0x0EE5, 0x0EEC)
 
 PV_SENSORS: tuple[TsunSensorDescription, ...] = tuple(
     description
@@ -172,6 +229,11 @@ PV_SENSORS: tuple[TsunSensorDescription, ...] = tuple(
             2,
             SensorStateClass.TOTAL_INCREASING,
         ),
+        _raw_alarm(
+            f"pv{number}_alarm_raw",
+            f"pv{number}_alarm_raw",
+            f"0x{PV_ALARM_REGISTERS[number - 1]:04X}",
+        ),
     )
 )
 
@@ -193,7 +255,7 @@ async def async_setup_entry(
             for description in SENSORS + PV_SENSORS
             if description.key not in added_keys
             and (
-                description.entity_category == EntityCategory.DIAGNOSTIC
+                description.key in COMMUNICATION_SENSOR_KEYS
                 or description.key in coordinator.client.measurement_keys
             )
         ]
@@ -235,15 +297,40 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         )
 
     @property
+    @override
+    def suggested_object_id(self) -> str | None:
+        """Return a stable English identifier independent of the UI language."""
+        return self.entity_description.suggested_object_id
+
+    @property
     def native_value(self) -> Any:
         """Return the latest decoded value."""
         return self.coordinator.data.get(self.entity_description.key)
 
     @property
+    def extra_state_attributes(self) -> dict[str, str] | None:
+        """Expose the source address and hexadecimal value for raw alarms."""
+        address = self.entity_description.register_address
+        value = self.native_value
+        if address is None or not isinstance(value, int):
+            return None
+        return {
+            "register_address": address,
+            "raw_value_hex": f"0x{value:04X}",
+        }
+
+    @property
     def available(self) -> bool:
         """Keep diagnostics and energy counters available while offline."""
+        key = self.entity_description.key
+        if self.entity_description.register_address is not None:
+            return (
+                super().available
+                and bool(self.coordinator.data.get("communication_online", False))
+                and key in self.coordinator.data
+            )
         if (
-            self.entity_description.entity_category == EntityCategory.DIAGNOSTIC
+            key in COMMUNICATION_SENSOR_KEYS
             or self.entity_description.device_class == SensorDeviceClass.ENERGY
         ):
             return super().available

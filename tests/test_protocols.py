@@ -30,20 +30,28 @@ sys.modules[SPEC.name] = PROTOCOLS
 SPEC.loader.exec_module(PROTOCOLS)
 
 from tsun_local_protocol_tests.ap import (  # noqa: E402
+    ProtocolTrace,
     TsunProtocolError,
     checksum_ap,
     format_ap_frame_for_log,
     parse_ap_frame,
 )
 from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402
+    Tsun02b0Client,
     build_modbus_request,
     crc16_modbus,
+    decode_alarms as decode_02b0_alarms,
     decode_measurements as decode_02b0,
     detect_pv_count as detect_02b0_pv_count,
     parse_modbus_response,
 )
 from tsun_local_protocol_tests.protocol_1511 import (  # noqa: E402
+    ALARM_BLOCKS as BLOCKS_1511_ALARM,
+    BLOCKS as BLOCKS_1511,
+    Tsun1511Client,
     build_1511_request,
+    crc16_1511,
+    decode_alarms as decode_1511_alarms,
     detect_pv_count as detect_1511_pv_count,
 )
 
@@ -89,6 +97,25 @@ class ApFrameTests(unittest.TestCase):
         with self.assertRaises(TsunProtocolError):
             parse_ap_frame(bytes(frame))
 
+    def test_protocol_trace_is_bounded_and_excludes_connection_data(self) -> None:
+        trace = ProtocolTrace("test", max_events=2)
+        for start in range(3):
+            trace.record(
+                function=3,
+                start=start,
+                end=start,
+                stage="connection",
+                request_payload=b"\x01\x03",
+                error=OSError("connection to 192.0.2.10 failed"),
+            )
+
+        self.assertEqual(len(trace.events), 2)
+        latest = trace.events[-1]
+        self.assertEqual(latest["request_payload"], "01 03")
+        self.assertEqual(latest["error"], {"type": "OSError"})
+        self.assertNotIn("host", latest)
+        self.assertNotIn("logger_sn", latest)
+
 
 class Protocol02b0Tests(unittest.TestCase):
     """Verify standard Modbus framing and 02B0 register decoding."""
@@ -102,6 +129,18 @@ class Protocol02b0Tests(unittest.TestCase):
             build_modbus_request(0x03, 0x301F, 0x302A),
             bytes.fromhex("01 03 30 1F 00 0C 7B 09"),
         )
+
+    def test_builds_official_alarm_request(self) -> None:
+        self.assertEqual(
+            build_modbus_request(0x03, 0x3003, 0x3006),
+            bytes.fromhex("01 03 30 03 00 04 BB 09"),
+        )
+
+    def test_exposes_only_02b0_alarm_entities(self) -> None:
+        keys = Tsun02b0Client("192.0.2.10", 8899, 123456).measurement_keys
+        self.assertIn("alarm_code_1_raw", keys)
+        self.assertIn("alarm_active", keys)
+        self.assertNotIn("alarm_global_0_raw", keys)
 
     def test_parses_big_endian_registers(self) -> None:
         body = bytes.fromhex("01 03 04 12 34 AB CD")
@@ -152,6 +191,27 @@ class Protocol02b0Tests(unittest.TestCase):
         registers[0x3029] = 0xFFFF
         self.assertEqual(detect_02b0_pv_count(registers), 1)
 
+    def test_exposes_raw_alarm_codes_and_active_state(self) -> None:
+        registers = {
+            0x3003: 0,
+            0x3004: 7,
+            0x3005: 0,
+            0x3006: 14,
+        }
+        self.assertEqual(
+            decode_02b0_alarms(registers),
+            {
+                "alarm_code_1_raw": 0,
+                "alarm_code_2_raw": 7,
+                "alarm_code_3_raw": 0,
+                "alarm_code_4_raw": 14,
+                "alarm_active": 1,
+            },
+        )
+
+    def test_alarm_state_requires_complete_alarm_block(self) -> None:
+        self.assertEqual(decode_02b0_alarms({0x3003: 1}), {})
+
 
 class Protocol1511Tests(unittest.TestCase):
     """Protect the validated 1511 request and dynamic PV discovery."""
@@ -162,10 +222,122 @@ class Protocol1511Tests(unittest.TestCase):
             bytes.fromhex("A1 01 00 0B B8 00 02 00 19 C1 FF"),
         )
 
+    def test_builds_validated_secondary_alarm_request(self) -> None:
+        self.assertEqual(
+            build_1511_request(0xA2, 0x02, 0x0CE4, 0x0CE7),
+            bytes.fromhex("A2 02 00 0C E4 00 02 00 04 97 BA"),
+        )
+
+    def test_exposes_only_1511_alarm_entities(self) -> None:
+        client = Tsun1511Client("192.0.2.10", 8899, 123456)
+        keys = client.measurement_keys
+        self.assertEqual(client.pv_count, 6)
+        self.assertIn("pv6_power", keys)
+        self.assertIn("alarm_global_0_raw", keys)
+        self.assertIn("alarm_secondary_0_raw", keys)
+        self.assertIn("pv1_alarm_raw", keys)
+        self.assertIn("alarm_active", keys)
+        self.assertNotIn("alarm_code_1_raw", keys)
+
     def test_detects_highest_populated_pv_input(self) -> None:
         self.assertEqual(detect_1511_pv_count({}), 1)
         self.assertEqual(detect_1511_pv_count({0x0EF2: 1}), 5)
         self.assertEqual(detect_1511_pv_count({0x0EF4: 0xFFFF}), 1)
+
+    def test_exposes_raw_alarm_words_and_active_state(self) -> None:
+        registers = {
+            0x0BBB: 0,
+            0x0BBC: 2,
+            0x0BBD: 0,
+            0x0BBE: 0,
+            0x0CE4: 0,
+            0x0CE5: 0,
+            0x0CE6: 0,
+            0x0CE7: 0,
+            0x0E16: 4,
+            0x0E1D: 0,
+        }
+        self.assertEqual(
+            decode_1511_alarms(registers, 2),
+            {
+                "alarm_global_0_raw": 0,
+                "alarm_global_1_raw": 2,
+                "alarm_global_2_raw": 0,
+                "alarm_global_3_raw": 0,
+                "alarm_secondary_0_raw": 0,
+                "alarm_secondary_1_raw": 0,
+                "alarm_secondary_2_raw": 0,
+                "alarm_secondary_3_raw": 0,
+                "pv1_alarm_raw": 4,
+                "pv2_alarm_raw": 0,
+                "alarm_active": 1,
+            },
+        )
+
+    def test_1511_alarm_state_requires_secondary_block(self) -> None:
+        alarms = decode_1511_alarms(
+            {0x0BBB: 0, 0x0BBC: 0, 0x0BBD: 0, 0x0BBE: 0, 0x0E16: 0},
+            1,
+        )
+        self.assertNotIn("alarm_active", alarms)
+
+
+class Protocol1511ClientTests(unittest.IsolatedAsyncioTestCase):
+    """Verify one full TITAN transport cycle exposes every PV input."""
+
+    async def test_reads_all_titan_blocks_and_exposes_six_pv_inputs(self) -> None:
+        def build_reply(block: tuple[int, int, int, int]) -> bytes:
+            address_tag, function, start, end = block
+            values = bytes((end - start + 1) * 2)
+            body = (
+                bytes((address_tag, function | 0x80, 0x01))
+                + start.to_bytes(2, "big")
+                + len(values).to_bytes(2, "big")
+                + values
+            )
+            return _build_ap_reply(b"\x7E" + body + crc16_1511(body))
+
+        responses = iter(
+            build_reply(block) for block in (*BLOCKS_1511, *BLOCKS_1511_ALARM)
+        )
+
+        class FakeReader:
+            def __init__(self, response: bytes) -> None:
+                self.response = response
+                self.offset = 0
+
+            async def readexactly(self, size: int) -> bytes:
+                result = self.response[self.offset : self.offset + size]
+                self.offset += size
+                return result
+
+        class FakeWriter:
+            def write(self, _request: bytes) -> None:
+                pass
+
+            async def drain(self) -> None:
+                pass
+
+            def close(self) -> None:
+                pass
+
+            async def wait_closed(self) -> None:
+                pass
+
+        async def open_connection(_host: str, _port: int):
+            return FakeReader(next(responses)), FakeWriter()
+
+        protocol_module = sys.modules["tsun_local_protocol_tests.protocol_1511"]
+        with patch.object(
+            protocol_module.asyncio, "open_connection", new=open_connection
+        ):
+            client = Tsun1511Client("192.0.2.10", 8899, 123456)
+            result = await client.async_read_all()
+
+        self.assertEqual(result.blocks_ok, 4)
+        self.assertEqual(client.pv_count, 6)
+        self.assertIn("pv6_power", result.measurements)
+        self.assertIn("pv6_energy_total", result.measurements)
 
 
 class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
@@ -183,6 +355,15 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
                 self.protocol_name = protocol_name
                 self.succeeds = succeeds
                 self.reads = 0
+
+            @property
+            def diagnostic_trace(self):
+                return (
+                    {
+                        "protocol": self.protocol_name,
+                        "stage": "complete" if self.succeeds else "validation",
+                    },
+                )
 
             async def async_read_all(self):
                 self.reads += 1
@@ -212,6 +393,7 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(attempts, ["1511", "02b0"])
         self.assertEqual(client.protocol_name, "02b0")
         self.assertEqual(working_client.reads, 2)
+        self.assertEqual(client.diagnostic_trace[0]["protocol"], "1511")
 
 
 class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
@@ -238,6 +420,31 @@ class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertEqual(hosts, ["127.0.0.1"])
+
+    async def test_returns_every_open_host_in_address_order(self) -> None:
+        class FakeWriter:
+            def close(self) -> None:
+                pass
+
+            async def wait_closed(self) -> None:
+                pass
+
+        async def open_connection(host: str, _port: int) -> tuple[object, FakeWriter]:
+            if host in {"192.0.2.2", "192.0.2.10"}:
+                return object(), FakeWriter()
+            raise ConnectionRefusedError
+
+        with patch.object(DISCOVERY.asyncio, "open_connection", new=open_connection):
+            hosts = await DISCOVERY.async_scan_hosts(
+                [
+                    IPv4Address("192.0.2.10"),
+                    IPv4Address("192.0.2.1"),
+                    IPv4Address("192.0.2.2"),
+                ],
+                8899,
+            )
+
+        self.assertEqual(hosts, ["192.0.2.2", "192.0.2.10"])
 
     def test_bounds_large_adapter_network_to_24(self) -> None:
         network = DISCOVERY.bounded_ipv4_network("192.0.2.42", 16)

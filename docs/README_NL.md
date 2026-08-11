@@ -12,7 +12,7 @@
 
 **TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks in Home Assistant **via het lokale netwerk, zonder proxy of cloudservice**.
 
-Versie 1.1.8 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+Versie 1.2.0 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
 
 **Auteur: Jean-Philippe TESTART (jptstar)**
 
@@ -144,3 +144,4 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Dit project wordt verspreid onder de **GNU General Public License v3.0 of later** (GPL-3.0-or-later). Gewijzigde of opnieuw verspreide versies moeten aan deze licentie voldoen en de auteursrecht- en licentievermeldingen behouden. Zie [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 De licentie dekt uitsluitend deze onafhankelijke implementatie. Zij verleent geen rechten op handelsmerken, logo’s, software of producten van TSUN. Dit project blijft onofficieel en niet verbonden aan TSUN.
+

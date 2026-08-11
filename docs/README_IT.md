@@ -12,7 +12,7 @@
 
 **TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili **attraverso la rete locale, senza proxy né servizi cloud**.
 
-La versione 1.1.8 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
+La versione 1.2.0 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
@@ -144,3 +144,4 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Questo progetto è distribuito con licenza **GNU General Public License v3.0 o successiva** (GPL-3.0-or-later). Le versioni modificate o ridistribuite devono rispettare questa licenza e conservare le note di copyright e di licenza. Vedere [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 La licenza copre esclusivamente questa implementazione indipendente. Non concede alcun diritto sui marchi, loghi, software o prodotti TSUN. Questo progetto resta non ufficiale e non affiliato a TSUN.
+

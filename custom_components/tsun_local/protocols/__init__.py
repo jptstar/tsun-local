@@ -5,9 +5,10 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 import logging
-from typing import Protocol
+from typing import Any, Protocol
 
 DEFAULT_PROTOCOL = "auto"
 SUPPORTED_PROTOCOLS = ("1511", "02b0")
@@ -47,6 +48,11 @@ class TsunProtocolClient(Protocol):
         """Return the highest PV input detected so far."""
         ...
 
+    @property
+    def diagnostic_trace(self) -> tuple[dict[str, Any], ...]:
+        """Return recent privacy-safe protocol transactions."""
+        ...
+
     async def async_read_all(self) -> TsunReadResult:
         """Read and decode one complete device update."""
         ...
@@ -78,6 +84,7 @@ class TsunAutoClient:
         self.port = port
         self.logger_sn = logger_sn
         self._client: TsunProtocolClient | None = None
+        self._failed_trace: deque[dict[str, Any]] = deque(maxlen=24)
 
     @property
     def model(self) -> str:
@@ -87,17 +94,33 @@ class TsunAutoClient:
     @property
     def protocol_name(self) -> str:
         """Return the detected protocol or auto before the first successful read."""
-        return self._client.protocol_name if self._client is not None else DEFAULT_PROTOCOL
+        return (
+            self._client.protocol_name
+            if self._client is not None
+            else DEFAULT_PROTOCOL
+        )
 
     @property
     def measurement_keys(self) -> frozenset[str]:
         """Return keys supported by the detected adapter."""
-        return self._client.measurement_keys if self._client is not None else frozenset()
+        return (
+            self._client.measurement_keys
+            if self._client is not None
+            else frozenset()
+        )
 
     @property
     def pv_count(self) -> int:
         """Return the PV count reported by the detected adapter."""
         return self._client.pv_count if self._client is not None else 0
+
+    @property
+    def diagnostic_trace(self) -> tuple[dict[str, Any], ...]:
+        """Return failed detection attempts and the selected adapter trace."""
+        events = list(self._failed_trace)
+        if self._client is not None:
+            events.extend(self._client.diagnostic_trace)
+        return tuple(events[-24:])
 
     async def async_read_all(self) -> TsunReadResult:
         """Detect the protocol once, then delegate subsequent polls."""
@@ -114,6 +137,7 @@ class TsunAutoClient:
                 result = await candidate.async_read_all()
             except Exception as err:  # Detection intentionally tries the next adapter.
                 last_error = err
+                self._failed_trace.extend(candidate.diagnostic_trace)
                 _LOGGER.debug(
                     "Automatic protocol detection: %s failed with %s",
                     protocol_name,

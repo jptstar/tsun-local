@@ -62,6 +62,23 @@ async def _run(host: str, port: int, monitor_sn: int, timeout: float) -> int:
     print(f"Blocs lus : {result.blocks_ok}")
     print(f"Durée : {result.duration_ms} ms")
     print(f"Entrées PV détectées : {client.pv_count}")
+    raw_alarms = {
+        key: int(value)
+        for key, value in result.measurements.items()
+        if key.startswith("alarm_code_") and key.endswith("_raw")
+    }
+    if raw_alarms:
+        values = ", ".join(
+            f"{key}=0x{value:04X} ({value})"
+            for key, value in sorted(raw_alarms.items())
+        )
+        print(f"Alarmes brutes : {values}")
+        print(
+            "Alarme active : "
+            + ("oui" if result.measurements.get("alarm_active") else "non")
+        )
+    else:
+        print("Alarmes brutes : bloc indisponible")
     return 0
 
 

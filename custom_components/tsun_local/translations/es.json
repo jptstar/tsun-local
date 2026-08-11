@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Modificar la conexión",
-        "description": "Cambie la dirección IP o el puerto TCP. La familia detectada se conserva automáticamente y el Monitor SN / Logger SN sigue siendo la identidad permanente del dispositivo.",
+        "description": "Modifica la dirección IP o el puerto TCP. El Monitor SN / Logger SN seguirá siendo su identificador permanente.",
         "data": {
           "host": "Dirección IP",
           "port": "Puerto"
@@ -19,7 +19,7 @@
       },
       "manual": {
         "title": "Configuración manual",
-        "description": "Introduzca los datos de conexión. La familia del dispositivo se detecta automáticamente. El Monitor SN / Logger SN está impreso en la etiqueta del dispositivo.",
+        "description": "Introduce los datos de conexión. El protocolo local se detecta automáticamente y el Monitor SN / Logger SN figura en la etiqueta del dispositivo.",
         "data": {
           "host": "Dirección IP",
           "port": "Puerto",
@@ -28,7 +28,7 @@
       },
       "discover": {
         "title": "Dispositivos encontrados",
-        "description": "Seleccione una dirección encontrada en el puerto TCP elegido e introduzca su Monitor SN / Logger SN. La familia del dispositivo se detecta automáticamente.",
+        "description": "Selecciona una dirección encontrada en el puerto TCP configurado e introduce el Monitor SN / Logger SN. El protocolo local se detecta automáticamente.",
         "data": {
           "host": "Dirección detectada",
           "port": "Puerto",
@@ -52,6 +52,7 @@
     },
     "abort": {
       "already_configured": "Este microinversor ya está configurado",
+      "all_devices_configured": "Todos los microinversores detectados ya están configurados",
       "no_devices_found": "No se encontró ningún dispositivo que acepte conexiones locales en el puerto 8899"
     }
   },
@@ -69,6 +70,10 @@
   },
   "entity": {
     "sensor": {
+      "alarm_global_0_raw": {"name": "Alarma global (valor bruto) 0"}, "alarm_global_1_raw": {"name": "Alarma global (valor bruto) 1"}, "alarm_global_2_raw": {"name": "Alarma global (valor bruto) 2"}, "alarm_global_3_raw": {"name": "Alarma global (valor bruto) 3"},
+      "alarm_secondary_0_raw": {"name": "Alarma secundaria (valor bruto) 0"}, "alarm_secondary_1_raw": {"name": "Alarma secundaria (valor bruto) 1"}, "alarm_secondary_2_raw": {"name": "Alarma secundaria (valor bruto) 2"}, "alarm_secondary_3_raw": {"name": "Alarma secundaria (valor bruto) 3"},
+      "alarm_code_1_raw": {"name": "Código de alarma (valor bruto) 1"}, "alarm_code_2_raw": {"name": "Código de alarma (valor bruto) 2"}, "alarm_code_3_raw": {"name": "Código de alarma (valor bruto) 3"}, "alarm_code_4_raw": {"name": "Código de alarma (valor bruto) 4"},
+      "pv1_alarm_raw": {"name": "Alarma PV1 (valor bruto)"}, "pv2_alarm_raw": {"name": "Alarma PV2 (valor bruto)"}, "pv3_alarm_raw": {"name": "Alarma PV3 (valor bruto)"}, "pv4_alarm_raw": {"name": "Alarma PV4 (valor bruto)"}, "pv5_alarm_raw": {"name": "Alarma PV5 (valor bruto)"}, "pv6_alarm_raw": {"name": "Alarma PV6 (valor bruto)"},
       "ac_voltage": {
         "name": "Tensión CA"
       },
@@ -196,6 +201,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Comunicación"
+      },
+      "inverter_alarm": {
+        "name": "Alarma del inversor"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Actualizar datos"
       }
     }
   }
