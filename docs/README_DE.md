@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.7 unterstützt die auf echter Hardware validierten Modelle **TSOL-MP3000** und **MX500** sowie weitere **TITAN**-, **GEN3**- und **GEN3 PLUS**-Modelle, deren Validierung noch aussteht.
+**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.8 unterstützt die auf echter Hardware validierten Modelle **TSOL-MP3000** und **MX500** sowie weitere **TITAN**-, **GEN3**- und **GEN3 PLUS**-Modelle, deren Validierung noch aussteht.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -39,8 +39,8 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 ### Legende
 
 - ✅ Kompatibel und auf echter Hardware validiert
-- ❌ Adapter verfügbar, Hardwarevalidierung ausstehend
-- ⛔ Zu testen
+- 🧪 Bereit für Community-Tests — Adapter verfügbar; Rückmeldungen sind willkommen
+- 🔎 Hardware-Daten gesucht — Kompatibilität noch nicht bestätigt
 
 ### Mikrowechselrichter
 
@@ -49,26 +49,26 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 | Konfiguration | Modelle | Status |
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Validiert |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Validierung ausstehend |
-| Eingänge noch zu bestimmen | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Zu testen |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Tester gesucht |
+| Eingänge noch zu bestimmen | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Hardware-Daten gesucht |
 
 #### GEN3 / GEN3 PLUS — MX-Serie
 
 | Konfiguration | Modelle | Status |
 |---|---|---|
 | 1-in-1 | **MX500** | ✅ Validiert |
-| 1-in-1 | **MX450, MX400** | ❌ Validierung ausstehend |
-| 2-in-1 | **MX1000, MX900, MX800** | ❌ Validierung ausstehend |
-| 4-in-1 | **MX2250** | ❌ Validierung ausstehend |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Validierung ausstehend |
+| 1-in-1 | **MX450, MX400** | 🧪 Tester gesucht |
+| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Tester gesucht |
+| 4-in-1 | **MX2250** | 🧪 Tester gesucht |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Hardware-Daten gesucht |
 
 #### GEN3 / GEN3 PLUS — MS-Serie
 
 | Konfiguration | Modelle | Status |
 |---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validierung ausstehend |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validierung ausstehend |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validierung ausstehend |
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Tester gesucht |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Tester gesucht |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Tester gesucht |
 
 Die PV-Erkennung erfolgt für TITAN dynamisch bis zu **6 Eingängen**. Für GEN3 / GEN3 PLUS deckt die aktuelle Karte **1, 2 oder 4 PV-Eingänge** ab; PV5 und PV6 werden noch nicht erkannt.
 
@@ -76,8 +76,10 @@ Die PV-Erkennung erfolgt für TITAN dynamisch bis zu **6 Eingängen**. Für GEN3
 
 | Typ | Modelle | Status |
 |---|---|---|
-| GEN3-PLUS-Batterie | **TSOL-DC1000** | ❌ Validierung ausstehend |
-| Smart Meter | **TSOL-MG3-MS, DDZY422-D2** | ❌ Validierung ausstehend |
+| GEN3-PLUS-Batterie | **TSOL-DC1000** | 🔎 Hardware-Daten gesucht |
+| Smart Meter | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Hardware-Daten gesucht |
+
+> **Besitzen Sie eines dieser Modelle?** Mit 🧪 gekennzeichnete Modelle sind bereit für Community-Tests. Bitte [eröffnen Sie einen Kompatibilitätsbericht](https://github.com/jptstar/tsun-local/issues/new) mit genauem Modell, Firmware-Version und Testergebnis. Vollständige Seriennummern und private Netzwerkdaten bitte unkenntlich machen.
 
 ## Installation
 
