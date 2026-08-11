@@ -10,7 +10,7 @@
 
 > **Progetto non ufficiale** — Questa integrazione indipendente della comunità non è sviluppata, approvata o mantenuta da TSUN e non è affiliata a TSUN in alcun modo. TSUN e i nomi dei suoi prodotti restano di proprietà dei rispettivi titolari. Le richieste di assistenza relative a questa integrazione devono essere rivolte all’autore, non a TSUN.
 
-**TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili presenti sulla rete locale, senza proxy né servizi cloud. La versione 1.1.7 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
+**TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili presenti sulla rete locale, senza proxy né servizi cloud. La versione 1.1.8 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
@@ -39,8 +39,8 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 ### Legenda
 
 - ✅ Compatibile e convalidato su hardware reale
-- ❌ Adattatore disponibile, convalida hardware in attesa
-- ⛔ Da testare
+- 🧪 Pronto per i test della community — adattatore disponibile; feedback benvenuti
+- 🔎 Dati hardware richiesti — compatibilità ancora da confermare
 
 ### Microinverter
 
@@ -49,26 +49,26 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 | Configurazione | Modelli | Stato |
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Convalidato |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ In attesa di convalida |
-| Ingressi da determinare | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Da testare |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Cercasi tester |
+| Ingressi da determinare | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Cercasi dati hardware |
 
 #### GEN3 / GEN3 PLUS — serie MX
 
 | Configurazione | Modelli | Stato |
 |---|---|---|
 | 1-in-1 | **MX500** | ✅ Convalidato |
-| 1-in-1 | **MX450, MX400** | ❌ In attesa di convalida |
-| 2-in-1 | **MX1000, MX900, MX800** | ❌ In attesa di convalida |
-| 4-in-1 | **MX2250** | ❌ In attesa di convalida |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ In attesa di convalida |
+| 1-in-1 | **MX450, MX400** | 🧪 Cercasi tester |
+| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Cercasi tester |
+| 4-in-1 | **MX2250** | 🧪 Cercasi tester |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Cercasi dati hardware |
 
 #### GEN3 / GEN3 PLUS — serie MS
 
 | Configurazione | Modelli | Stato |
 |---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ In attesa di convalida |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ In attesa di convalida |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ In attesa di convalida |
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Cercasi tester |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Cercasi tester |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Cercasi tester |
 
 Il rilevamento PV è dinamico fino a **6 ingressi per TITAN**. Per GEN3 / GEN3 PLUS, la mappa attuale copre **1, 2 o 4 ingressi PV**; PV5 e PV6 non vengono ancora rilevati.
 
@@ -76,8 +76,10 @@ Il rilevamento PV è dinamico fino a **6 ingressi per TITAN**. Per GEN3 / GEN3 P
 
 | Tipo | Modelli | Stato |
 |---|---|---|
-| Batteria GEN3 PLUS | **TSOL-DC1000** | ❌ In attesa di convalida |
-| Contatore intelligente | **TSOL-MG3-MS, DDZY422-D2** | ❌ In attesa di convalida |
+| Batteria GEN3 PLUS | **TSOL-DC1000** | 🔎 Cercasi dati hardware |
+| Contatore intelligente | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Cercasi dati hardware |
+
+> **Possiedi uno di questi modelli?** I modelli contrassegnati con 🧪 sono pronti per i test della community. [Apri una segnalazione di compatibilità](https://github.com/jptstar/tsun-local/issues/new) indicando modello esatto, versione firmware e risultato del test. Oscura i numeri di serie completi e le informazioni private della rete.
 
 ## Installazione
 
