@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.6 unterstützt die auf echter Hardware validierten Modelle **TSOL-MP3000** und **MX500** sowie weitere **TITAN**-, **GEN3**- und **GEN3 PLUS**-Modelle, deren Validierung noch aussteht.
+**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.7 unterstützt die auf echter Hardware validierten Modelle **TSOL-MP3000** und **MX500** sowie weitere **TITAN**-, **GEN3**- und **GEN3 PLUS**-Modelle, deren Validierung noch aussteht.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ Wenn die neueste Version nicht angezeigt wird, öffne das Repository-Menü und w
 4. Suche nach **TSUN Local**.
 5. Gib IP-Adresse, Port und die **Monitor SN / Logger SN auf dem Typenschild des Mikrowechselrichters** ein.
 
-Wähle beim Hinzufügen **Lokales Netzwerk durchsuchen** oder **Manuelle Konfiguration** und anschließend **TITAN** für den TSOL-MP3000 beziehungsweise **GEN3 / GEN3 PLUS** für den MX500. Gib die auf dem Typenschild angegebene **Monitor SN / Logger SN** ein. Die Suche prüft alle von Home Assistant bereitgestellten aktiven IPv4-Netze am ausgewählten Port und sendet keine Anwendungsdaten an mögliche Geräteadressen. Wenn kein Gerät gefunden wird, kann im Formular ein geroutetes LAN- oder VLAN-Subnetz in CIDR-Schreibweise eingegeben werden.
+Wähle beim Hinzufügen **Lokales Netzwerk durchsuchen** oder **Manuelle Konfiguration** und gib anschließend die auf dem Typenschild angegebene **Monitor SN / Logger SN** ein. Die Integration erkennt das unterstützte lokale Protokoll automatisch; eine Auswahl der Gerätefamilie ist nicht erforderlich. Die Suche prüft alle von Home Assistant bereitgestellten aktiven IPv4-Netze am ausgewählten Port und sendet keine Anwendungsdaten an mögliche Geräteadressen. Wenn kein Gerät gefunden wird, kann im Formular ein geroutetes LAN- oder VLAN-Subnetz in CIDR-Schreibweise eingegeben werden.
 
 ## Mehrere Geräte
 

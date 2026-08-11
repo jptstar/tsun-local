@@ -11,30 +11,27 @@
       },
       "reconfigure": {
         "title": "修改连接",
-        "description": "修改 IP 地址、TCP 端口或设备系列。Monitor SN / Logger SN 仍作为设备的永久标识。",
+        "description": "更改 IP 地址或 TCP 端口。系统会自动保留已检测到的设备系列，Monitor SN / Logger SN 仍作为设备的永久标识。",
         "data": {
           "host": "IP 地址",
-          "port": "端口",
-          "protocol": "设备系列"
+          "port": "端口"
         }
       },
       "manual": {
         "title": "手动配置",
-        "description": "请输入连接信息并选择设备系列。Monitor SN / Logger SN 印在设备铭牌上。",
+        "description": "输入连接信息。系统会自动检测设备系列。Monitor SN / Logger SN 印在设备标签上。",
         "data": {
           "host": "IP 地址",
           "port": "端口",
-          "protocol": "设备系列",
           "logger_sn": "Monitor SN / Logger SN（铭牌）"
         }
       },
       "discover": {
         "title": "已发现的设备",
-        "description": "请选择在 TCP 端口 8899 上发现的地址、设备系列，并输入 Monitor SN / Logger SN。",
+        "description": "选择在指定 TCP 端口上找到的地址，并输入 Monitor SN / Logger SN。系统会自动检测设备系列。",
         "data": {
           "host": "已发现的地址",
           "port": "端口",
-          "protocol": "设备系列",
           "logger_sn": "Monitor SN / Logger SN（铭牌）"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "通信"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }

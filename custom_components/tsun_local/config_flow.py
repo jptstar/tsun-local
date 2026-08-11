@@ -50,8 +50,6 @@ from .discovery import (
 )
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
-CONFIGURABLE_PROTOCOLS = ("1511", "02b0")
-
 
 async def _validate_input(data: dict[str, Any]) -> str:
     client = create_protocol_client(
@@ -62,17 +60,6 @@ async def _validate_input(data: dict[str, Any]) -> str:
     )
     await client.async_read_all()
     return client.protocol_name
-
-
-def _protocol_selector() -> SelectSelector:
-    """Return the translated device-family selector."""
-    return SelectSelector(
-        SelectSelectorConfig(
-            options=list(CONFIGURABLE_PROTOCOLS),
-            mode=SelectSelectorMode.DROPDOWN,
-            translation_key="protocol",
-        )
-    )
 
 
 def _connection_schema(
@@ -97,7 +84,6 @@ def _connection_schema(
             vol.Required(CONF_PORT, default=port): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=65535)
             ),
-            vol.Required(CONF_PROTOCOL): _protocol_selector(),
             vol.Required(CONF_LOGGER_SN): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=0xFFFFFFFF)
             ),
@@ -131,7 +117,6 @@ RECONFIGURE_SCHEMA = vol.Schema(
         vol.Required(CONF_PORT): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=65535)
         ),
-        vol.Required(CONF_PROTOCOL): _protocol_selector(),
     }
 )
 

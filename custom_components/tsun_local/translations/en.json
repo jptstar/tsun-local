@@ -1,26 +1,202 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Add a TSUN Local device", "description": "Choose automatic network search or manual configuration.", "menu_options": {"discover": "Search the local network", "manual": "Enter connection details manually"}},
-      "manual": {"title": "Manual configuration", "description": "Enter the connection details and select the device family. The Monitor SN / Logger SN is printed on the device label.", "data": {"host": "IP address", "port": "Port", "protocol": "Device family", "logger_sn": "Monitor SN / Logger SN (device label)"}},
-      "discover": {"title": "Devices found", "description": "Select an address found on TCP port 8899, choose the device family and enter its Monitor SN / Logger SN.", "data": {"host": "Discovered address", "port": "Port", "protocol": "Device family", "logger_sn": "Monitor SN / Logger SN (device label)"}},
-      "discover_network": {"title": "Network to scan", "description": "No device was found on the networks detected by Home Assistant. Enter the micro-inverter IPv4 subnet in CIDR notation (for example 192.168.1.0/24). The scan is limited to 254 addresses.", "data": {"discovery_network": "IPv4 subnet", "port": "Port"}},
-      "reconfigure": {"title": "Update connection", "description": "Change the IP address, TCP port or device family. The Monitor SN / Logger SN remains its permanent identity.", "data": {"host": "IP address", "port": "Port", "protocol": "Device family"}}
+      "user": {
+        "title": "Add a TSUN Local device",
+        "description": "Choose automatic network search or manual configuration.",
+        "menu_options": {
+          "discover": "Search the local network",
+          "manual": "Enter connection details manually"
+        }
+      },
+      "manual": {
+        "title": "Manual configuration",
+        "description": "Enter the connection details. The device family is detected automatically. The Monitor SN / Logger SN is printed on the device label.",
+        "data": {
+          "host": "IP address",
+          "port": "Port",
+          "logger_sn": "Monitor SN / Logger SN (device label)"
+        }
+      },
+      "discover": {
+        "title": "Devices found",
+        "description": "Select an address found on the chosen TCP port and enter its Monitor SN / Logger SN. The device family is detected automatically.",
+        "data": {
+          "host": "Discovered address",
+          "port": "Port",
+          "logger_sn": "Monitor SN / Logger SN (device label)"
+        }
+      },
+      "discover_network": {
+        "title": "Network to scan",
+        "description": "No device was found on the networks detected by Home Assistant. Enter the micro-inverter IPv4 subnet in CIDR notation (for example 192.168.1.0/24). The scan is limited to 254 addresses.",
+        "data": {
+          "discovery_network": "IPv4 subnet",
+          "port": "Port"
+        }
+      },
+      "reconfigure": {
+        "title": "Update connection",
+        "description": "Change the IP address or TCP port. The detected device family is retained automatically, and the Monitor SN / Logger SN remains its permanent identity.",
+        "data": {
+          "host": "IP address",
+          "port": "Port"
+        }
+      }
     },
-    "error": {"cannot_connect": "Unable to connect to the device", "invalid_network": "Enter a valid IPv4 subnet between /24 and /32", "invalid_response": "The device returned an invalid response", "no_devices_found": "No device accepting local connections was found on this subnet and port"},
-    "abort": {"already_configured": "This micro-inverter is already configured", "no_devices_found": "No device accepting local connections on port 8899 was found"}
+    "error": {
+      "cannot_connect": "Unable to connect to the device",
+      "invalid_network": "Enter a valid IPv4 subnet between /24 and /32",
+      "invalid_response": "The device returned an invalid response",
+      "no_devices_found": "No device accepting local connections was found on this subnet and port"
+    },
+    "abort": {
+      "already_configured": "This micro-inverter is already configured",
+      "no_devices_found": "No device accepting local connections on port 8899 was found"
+    }
   },
-  "selector": {"protocol": {"options": {"1511": "TITAN", "02b0": "GEN3 / GEN3 PLUS"}}},
-  "options": {"step": {"init": {"title": "Polling settings", "description": "Set the normal polling interval and the slower interval used when this device is offline or unpowered at night.", "data": {"scan_interval": "Normal polling interval", "offline_scan_interval": "Offline/night polling interval"}}}},
-  "entity": {"sensor": {
-    "ac_voltage": {"name": "AC voltage"}, "ac_current": {"name": "AC current"}, "ac_frequency": {"name": "AC frequency"}, "ac_power": {"name": "AC power"},
-    "ac_energy_today": {"name": "AC energy today"}, "ac_energy_total": {"name": "Total AC energy"}, "dc_power_total": {"name": "Total DC power"},
-    "communication_last_success": {"name": "Last successful communication"}, "communication_duration": {"name": "Communication duration"}, "communication_blocks": {"name": "Blocks received"}, "communication_failures": {"name": "Consecutive communication failures"},
-    "pv1_voltage": {"name": "PV1 voltage"}, "pv1_current": {"name": "PV1 current"}, "pv1_power": {"name": "PV1 power"}, "pv1_energy_today": {"name": "PV1 energy today"}, "pv1_energy_total": {"name": "Total PV1 energy"},
-    "pv2_voltage": {"name": "PV2 voltage"}, "pv2_current": {"name": "PV2 current"}, "pv2_power": {"name": "PV2 power"}, "pv2_energy_today": {"name": "PV2 energy today"}, "pv2_energy_total": {"name": "Total PV2 energy"},
-    "pv3_voltage": {"name": "PV3 voltage"}, "pv3_current": {"name": "PV3 current"}, "pv3_power": {"name": "PV3 power"}, "pv3_energy_today": {"name": "PV3 energy today"}, "pv3_energy_total": {"name": "Total PV3 energy"},
-    "pv4_voltage": {"name": "PV4 voltage"}, "pv4_current": {"name": "PV4 current"}, "pv4_power": {"name": "PV4 power"}, "pv4_energy_today": {"name": "PV4 energy today"}, "pv4_energy_total": {"name": "Total PV4 energy"},
-    "pv5_voltage": {"name": "PV5 voltage"}, "pv5_current": {"name": "PV5 current"}, "pv5_power": {"name": "PV5 power"}, "pv5_energy_today": {"name": "PV5 energy today"}, "pv5_energy_total": {"name": "Total PV5 energy"},
-    "pv6_voltage": {"name": "PV6 voltage"}, "pv6_current": {"name": "PV6 current"}, "pv6_power": {"name": "PV6 power"}, "pv6_energy_today": {"name": "PV6 energy today"}, "pv6_energy_total": {"name": "Total PV6 energy"}
-  }, "binary_sensor": {"communication_online": {"name": "Communication"}}}
+  "options": {
+    "step": {
+      "init": {
+        "title": "Polling settings",
+        "description": "Set the normal polling interval and the slower interval used when this device is offline or unpowered at night.",
+        "data": {
+          "scan_interval": "Normal polling interval",
+          "offline_scan_interval": "Offline/night polling interval"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "AC voltage"
+      },
+      "ac_current": {
+        "name": "AC current"
+      },
+      "ac_frequency": {
+        "name": "AC frequency"
+      },
+      "ac_power": {
+        "name": "AC power"
+      },
+      "ac_energy_today": {
+        "name": "AC energy today"
+      },
+      "ac_energy_total": {
+        "name": "Total AC energy"
+      },
+      "dc_power_total": {
+        "name": "Total DC power"
+      },
+      "communication_last_success": {
+        "name": "Last successful communication"
+      },
+      "communication_duration": {
+        "name": "Communication duration"
+      },
+      "communication_blocks": {
+        "name": "Blocks received"
+      },
+      "communication_failures": {
+        "name": "Consecutive communication failures"
+      },
+      "pv1_voltage": {
+        "name": "PV1 voltage"
+      },
+      "pv1_current": {
+        "name": "PV1 current"
+      },
+      "pv1_power": {
+        "name": "PV1 power"
+      },
+      "pv1_energy_today": {
+        "name": "PV1 energy today"
+      },
+      "pv1_energy_total": {
+        "name": "Total PV1 energy"
+      },
+      "pv2_voltage": {
+        "name": "PV2 voltage"
+      },
+      "pv2_current": {
+        "name": "PV2 current"
+      },
+      "pv2_power": {
+        "name": "PV2 power"
+      },
+      "pv2_energy_today": {
+        "name": "PV2 energy today"
+      },
+      "pv2_energy_total": {
+        "name": "Total PV2 energy"
+      },
+      "pv3_voltage": {
+        "name": "PV3 voltage"
+      },
+      "pv3_current": {
+        "name": "PV3 current"
+      },
+      "pv3_power": {
+        "name": "PV3 power"
+      },
+      "pv3_energy_today": {
+        "name": "PV3 energy today"
+      },
+      "pv3_energy_total": {
+        "name": "Total PV3 energy"
+      },
+      "pv4_voltage": {
+        "name": "PV4 voltage"
+      },
+      "pv4_current": {
+        "name": "PV4 current"
+      },
+      "pv4_power": {
+        "name": "PV4 power"
+      },
+      "pv4_energy_today": {
+        "name": "PV4 energy today"
+      },
+      "pv4_energy_total": {
+        "name": "Total PV4 energy"
+      },
+      "pv5_voltage": {
+        "name": "PV5 voltage"
+      },
+      "pv5_current": {
+        "name": "PV5 current"
+      },
+      "pv5_power": {
+        "name": "PV5 power"
+      },
+      "pv5_energy_today": {
+        "name": "PV5 energy today"
+      },
+      "pv5_energy_total": {
+        "name": "Total PV5 energy"
+      },
+      "pv6_voltage": {
+        "name": "PV6 voltage"
+      },
+      "pv6_current": {
+        "name": "PV6 current"
+      },
+      "pv6_power": {
+        "name": "PV6 power"
+      },
+      "pv6_energy_today": {
+        "name": "PV6 energy today"
+      },
+      "pv6_energy_total": {
+        "name": "Total PV6 energy"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Communication"
+      }
+    }
+  }
 }

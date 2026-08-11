@@ -11,30 +11,27 @@
       },
       "reconfigure": {
         "title": "Modificar la conexión",
-        "description": "Modifica la dirección IP, el puerto TCP o la familia del dispositivo. El Monitor SN / Logger SN seguirá siendo su identificador permanente.",
+        "description": "Cambie la dirección IP o el puerto TCP. La familia detectada se conserva automáticamente y el Monitor SN / Logger SN sigue siendo la identidad permanente del dispositivo.",
         "data": {
           "host": "Dirección IP",
-          "port": "Puerto",
-          "protocol": "Familia del dispositivo"
+          "port": "Puerto"
         }
       },
       "manual": {
         "title": "Configuración manual",
-        "description": "Introduce los datos de conexión y elige la familia del dispositivo. El Monitor SN / Logger SN figura en la etiqueta del dispositivo.",
+        "description": "Introduzca los datos de conexión. La familia del dispositivo se detecta automáticamente. El Monitor SN / Logger SN está impreso en la etiqueta del dispositivo.",
         "data": {
           "host": "Dirección IP",
           "port": "Puerto",
-          "protocol": "Familia del dispositivo",
           "logger_sn": "Monitor SN / Logger SN (etiqueta)"
         }
       },
       "discover": {
         "title": "Dispositivos encontrados",
-        "description": "Selecciona una dirección encontrada en el puerto TCP 8899, elige la familia del dispositivo e introduce el Monitor SN / Logger SN.",
+        "description": "Seleccione una dirección encontrada en el puerto TCP elegido e introduzca su Monitor SN / Logger SN. La familia del dispositivo se detecta automáticamente.",
         "data": {
           "host": "Dirección detectada",
           "port": "Puerto",
-          "protocol": "Familia del dispositivo",
           "logger_sn": "Monitor SN / Logger SN (etiqueta)"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Comunicación"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }

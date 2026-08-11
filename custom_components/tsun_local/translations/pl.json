@@ -11,30 +11,27 @@
       },
       "reconfigure": {
         "title": "Zmień połączenie",
-        "description": "Zmień adres IP, port TCP lub rodzinę urządzenia. Monitor SN / Logger SN pozostaje jego stałym identyfikatorem.",
+        "description": "Zmień adres IP lub port TCP. Wykryta rodzina urządzenia jest zachowywana automatycznie, a numer Monitor SN / Logger SN pozostaje jego trwałym identyfikatorem.",
         "data": {
           "host": "Adres IP",
-          "port": "Port",
-          "protocol": "Rodzina urządzenia"
+          "port": "Port"
         }
       },
       "manual": {
         "title": "Konfiguracja ręczna",
-        "description": "Wprowadź dane połączenia i wybierz rodzinę urządzenia. Monitor SN / Logger SN znajduje się na etykiecie urządzenia.",
+        "description": "Wprowadź dane połączenia. Rodzina urządzenia jest wykrywana automatycznie. Numer Monitor SN / Logger SN znajduje się na etykiecie urządzenia.",
         "data": {
           "host": "Adres IP",
           "port": "Port",
-          "protocol": "Rodzina urządzenia",
           "logger_sn": "Monitor SN / Logger SN (etykieta)"
         }
       },
       "discover": {
         "title": "Znalezione urządzenia",
-        "description": "Wybierz adres znaleziony na porcie TCP 8899, rodzinę urządzenia i wprowadź Monitor SN / Logger SN.",
+        "description": "Wybierz adres znaleziony na wybranym porcie TCP i wprowadź numer Monitor SN / Logger SN. Rodzina urządzenia jest wykrywana automatycznie.",
         "data": {
           "host": "Wykryty adres",
           "port": "Port",
-          "protocol": "Rodzina urządzenia",
           "logger_sn": "Monitor SN / Logger SN (etykieta)"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Komunikacja"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }

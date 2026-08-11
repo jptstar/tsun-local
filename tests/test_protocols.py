@@ -168,6 +168,52 @@ class Protocol1511Tests(unittest.TestCase):
         self.assertEqual(detect_1511_pv_count({0x0EF4: 0xFFFF}), 1)
 
 
+class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
+    """Verify automatic protocol selection and retention."""
+
+    async def test_selects_working_protocol_and_reuses_it(self) -> None:
+        attempts: list[str] = []
+
+        class FakeClient:
+            model = "Test"
+            pv_count = 1
+            measurement_keys = frozenset({"ac_power"})
+
+            def __init__(self, protocol_name: str, succeeds: bool) -> None:
+                self.protocol_name = protocol_name
+                self.succeeds = succeeds
+                self.reads = 0
+
+            async def async_read_all(self):
+                self.reads += 1
+                if not self.succeeds:
+                    raise RuntimeError("wrong protocol")
+                return PROTOCOLS.TsunReadResult(
+                    measurements={"ac_power": 1},
+                    duration_ms=1,
+                    blocks_ok=1,
+                )
+
+        working_client = FakeClient("02b0", True)
+
+        def create_client(protocol_name: str, *_args):
+            attempts.append(protocol_name)
+            if protocol_name == "1511":
+                return FakeClient("1511", False)
+            return working_client
+
+        with patch.object(
+            PROTOCOLS, "_create_specific_client", new=create_client
+        ):
+            client = PROTOCOLS.TsunAutoClient("192.0.2.10", 8899, 123456)
+            await client.async_read_all()
+            await client.async_read_all()
+
+        self.assertEqual(attempts, ["1511", "02b0"])
+        self.assertEqual(client.protocol_name, "02b0")
+        self.assertEqual(working_client.reads, 2)
+
+
 class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
     """Verify the bounded TCP discovery helper."""
 
