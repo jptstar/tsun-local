@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Zmień połączenie",
-        "description": "Zmień adres IP lub port TCP. Wykryta rodzina urządzenia jest zachowywana automatycznie, a numer Monitor SN / Logger SN pozostaje jego trwałym identyfikatorem.",
+        "description": "Zmień adres IP lub port TCP. Monitor SN / Logger SN pozostaje jego stałym identyfikatorem.",
         "data": {
           "host": "Adres IP",
           "port": "Port"
@@ -19,7 +19,7 @@
       },
       "manual": {
         "title": "Konfiguracja ręczna",
-        "description": "Wprowadź dane połączenia. Rodzina urządzenia jest wykrywana automatycznie. Numer Monitor SN / Logger SN znajduje się na etykiecie urządzenia.",
+        "description": "Wprowadź dane połączenia. Protokół lokalny jest wykrywany automatycznie, a Monitor SN / Logger SN znajduje się na etykiecie urządzenia.",
         "data": {
           "host": "Adres IP",
           "port": "Port",
@@ -28,7 +28,7 @@
       },
       "discover": {
         "title": "Znalezione urządzenia",
-        "description": "Wybierz adres znaleziony na wybranym porcie TCP i wprowadź numer Monitor SN / Logger SN. Rodzina urządzenia jest wykrywana automatycznie.",
+        "description": "Wybierz adres znaleziony na skonfigurowanym porcie TCP i wprowadź Monitor SN / Logger SN. Protokół lokalny jest wykrywany automatycznie.",
         "data": {
           "host": "Wykryty adres",
           "port": "Port",
@@ -52,6 +52,7 @@
     },
     "abort": {
       "already_configured": "Ten mikrofalownik jest już skonfigurowany",
+      "all_devices_configured": "Wszystkie wykryte mikrofalowniki są już skonfigurowane",
       "no_devices_found": "Nie znaleziono urządzenia przyjmującego połączenia lokalne na porcie 8899"
     }
   },
@@ -69,6 +70,10 @@
   },
   "entity": {
     "sensor": {
+      "alarm_global_0_raw": {"name": "Alarm globalny (wartość surowa) 0"}, "alarm_global_1_raw": {"name": "Alarm globalny (wartość surowa) 1"}, "alarm_global_2_raw": {"name": "Alarm globalny (wartość surowa) 2"}, "alarm_global_3_raw": {"name": "Alarm globalny (wartość surowa) 3"},
+      "alarm_secondary_0_raw": {"name": "Alarm dodatkowy (wartość surowa) 0"}, "alarm_secondary_1_raw": {"name": "Alarm dodatkowy (wartość surowa) 1"}, "alarm_secondary_2_raw": {"name": "Alarm dodatkowy (wartość surowa) 2"}, "alarm_secondary_3_raw": {"name": "Alarm dodatkowy (wartość surowa) 3"},
+      "alarm_code_1_raw": {"name": "Kod alarmu (wartość surowa) 1"}, "alarm_code_2_raw": {"name": "Kod alarmu (wartość surowa) 2"}, "alarm_code_3_raw": {"name": "Kod alarmu (wartość surowa) 3"}, "alarm_code_4_raw": {"name": "Kod alarmu (wartość surowa) 4"},
+      "pv1_alarm_raw": {"name": "Alarm PV1 (wartość surowa)"}, "pv2_alarm_raw": {"name": "Alarm PV2 (wartość surowa)"}, "pv3_alarm_raw": {"name": "Alarm PV3 (wartość surowa)"}, "pv4_alarm_raw": {"name": "Alarm PV4 (wartość surowa)"}, "pv5_alarm_raw": {"name": "Alarm PV5 (wartość surowa)"}, "pv6_alarm_raw": {"name": "Alarm PV6 (wartość surowa)"},
       "ac_voltage": {
         "name": "Napięcie AC"
       },
@@ -196,6 +201,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Komunikacja"
+      },
+      "inverter_alarm": {
+        "name": "Alarm falownika"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Odśwież dane"
       }
     }
   }

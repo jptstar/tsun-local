@@ -43,6 +43,7 @@ from .const import (
     MIN_OFFLINE_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
+from .coordinator import get_poll_lock
 from .discovery import (
     async_scan_networks,
     bounded_ipv4_network,
@@ -51,14 +52,15 @@ from .discovery import (
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 
-async def _validate_input(data: dict[str, Any]) -> str:
+async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
     client = create_protocol_client(
         data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
         data[CONF_HOST],
         data[CONF_PORT],
         data[CONF_LOGGER_SN],
     )
-    await client.async_read_all()
+    async with get_poll_lock(hass):
+        await client.async_read_all()
     return client.protocol_name
 
 
@@ -183,12 +185,21 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._discovery_port = DEFAULT_PORT
         self._suggested_network: str | None = None
 
+    def _unconfigured_hosts(self, hosts: list[str]) -> list[str]:
+        """Return discovered hosts not already assigned to a config entry."""
+        configured_hosts = {
+            str(entry.data[CONF_HOST])
+            for entry in self.hass.config_entries.async_entries(DOMAIN)
+            if CONF_HOST in entry.data
+        }
+        return [host for host in hosts if host not in configured_hosts]
+
     async def _async_create_device(
         self, user_input: dict[str, Any]
     ) -> FlowResult | str:
         """Validate a device and return an entry or a translated error key."""
         try:
-            detected_protocol = await _validate_input(user_input)
+            detected_protocol = await _validate_input(self.hass, user_input)
         except (TimeoutError, asyncio.TimeoutError, ConnectionError, OSError):
             return "cannot_connect"
         except Exception:
@@ -233,18 +244,22 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Search every local /24 exposed by Home Assistant on demand."""
         if self._discovered_hosts is None:
+            discovered_hosts: list[str] = []
             try:
                 discovery_networks = await _async_get_discovery_networks(
                     self.hass
                 )
                 if discovery_networks:
                     self._suggested_network = str(discovery_networks[0])
-                self._discovered_hosts = await async_scan_networks(
+                discovered_hosts = await async_scan_networks(
                     discovery_networks, self._discovery_port
                 )
+                self._discovered_hosts = self._unconfigured_hosts(discovered_hosts)
             except (HomeAssistantError, OSError, RuntimeError, ValueError):
                 self._discovered_hosts = []
             if not self._discovered_hosts:
+                if discovered_hosts:
+                    return self.async_abort(reason="all_devices_configured")
                 return await self.async_step_discover_network()
 
         errors: dict[str, str] = {}
@@ -274,9 +289,10 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 self._discovery_port = user_input[CONF_PORT]
                 self._suggested_network = str(discovery_network)
-                self._discovered_hosts = await async_scan_networks(
+                discovered_hosts = await async_scan_networks(
                     [discovery_network], self._discovery_port
                 )
+                self._discovered_hosts = self._unconfigured_hosts(discovered_hosts)
             except ValueError:
                 errors["base"] = "invalid_network"
             except (OSError, RuntimeError):
@@ -284,6 +300,8 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             else:
                 if self._discovered_hosts:
                     return await self.async_step_discover()
+                if discovered_hosts:
+                    return self.async_abort(reason="all_devices_configured")
                 errors["base"] = "no_devices_found"
 
         return self.async_show_form(
@@ -304,7 +322,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             updated_data = {**entry.data, **user_input}
             try:
-                await _validate_input(updated_data)
+                await _validate_input(self.hass, updated_data)
             except (TimeoutError, asyncio.TimeoutError):
                 errors["base"] = "cannot_connect"
             except Exception:

@@ -11,9 +11,9 @@ import time
 
 from . import TsunReadResult
 from .ap import (
+    ProtocolTrace,
     TsunProtocolError,
     build_ap_frame,
-    format_ap_frame_for_log,
     parse_ap_frame,
     read_ap_frame,
 )
@@ -26,6 +26,15 @@ MODEL = "GEN3 / GEN3 PLUS"
 BLOCKS = (
     (0x03, 0x3009, 0x301E),
     (0x03, 0x301F, 0x302A),
+)
+
+ALARM_BLOCKS = (
+    (0x03, 0x3003, 0x3006),
+)
+
+ALARM_REGISTERS = (0x3003, 0x3004, 0x3005, 0x3006)
+ALARM_MEASUREMENT_KEYS = frozenset(
+    {"alarm_active", *(f"alarm_code_{index}_raw" for index in range(1, 5))}
 )
 
 AC_MEASUREMENT_KEYS = frozenset(
@@ -115,7 +124,7 @@ def detect_pv_count(registers: dict[int, int]) -> int:
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
-    return AC_MEASUREMENT_KEYS | frozenset(
+    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(
         f"pv{number}_{measurement}"
         for number in range(1, pv_count + 1)
         for measurement in PV_MEASUREMENT_NAMES
@@ -150,18 +159,35 @@ def decode_measurements(
     return data
 
 
+def decode_alarms(registers: dict[int, int]) -> dict[str, float | int]:
+    """Expose 02B0 ERR1-ERR4 values without assuming a fault-code table."""
+    if not all(address in registers for address in ALARM_REGISTERS):
+        return {}
+
+    data: dict[str, float | int] = {}
+    for index, address in enumerate(ALARM_REGISTERS, 1):
+        data[f"alarm_code_{index}_raw"] = registers[address]
+    data["alarm_active"] = int(
+        any(registers[address] for address in ALARM_REGISTERS)
+    )
+    return data
+
+
 class Tsun02b0Client:
     """Async protocol 02B0 client for one TSUN logger."""
 
     model = MODEL
     protocol_name = PROTOCOL_NAME
 
-    def __init__(self, host: str, port: int, logger_sn: int, timeout: float = 10) -> None:
+    def __init__(
+        self, host: str, port: int, logger_sn: int, timeout: float = 10
+    ) -> None:
         self.host = host
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
         self._pv_count = 1
+        self._trace = ProtocolTrace(PROTOCOL_NAME)
 
     @property
     def pv_count(self) -> int:
@@ -173,13 +199,19 @@ class Tsun02b0Client:
         """Return measurement keys supported by the detected hardware."""
         return _measurement_keys(self._pv_count)
 
+    @property
+    def diagnostic_trace(self) -> tuple[dict[str, object], ...]:
+        """Return recent protocol transactions without connection identifiers."""
+        return self._trace.events
+
     async def _read_block(self, block: tuple[int, int, int]) -> dict[int, int]:
         function, start, end = block
-        request = build_ap_frame(
-            self.logger_sn, build_modbus_request(function, start, end)
-        )
+        payload = build_modbus_request(function, start, end)
+        request = build_ap_frame(self.logger_sn, payload)
         writer: asyncio.StreamWriter | None = None
         stage = "connection"
+        response: bytes | None = None
+        protocol_response: bytes | None = None
         try:
             async with asyncio.timeout(self.timeout):
                 _LOGGER.debug(
@@ -190,26 +222,47 @@ class Tsun02b0Client:
                 reader, writer = await asyncio.open_connection(self.host, self.port)
                 stage = "send"
                 _LOGGER.debug(
-                    "02B0 diagnostic TX for registers 0x%04X-0x%04X: %s",
+                    "02B0 diagnostic request for registers 0x%04X-0x%04X: %s",
                     start,
                     end,
-                    format_ap_frame_for_log(request),
+                    payload.hex(" ").upper(),
                 )
                 writer.write(request)
                 await writer.drain()
                 stage = "receive"
                 response = await read_ap_frame(reader)
-                _LOGGER.debug(
-                    "02B0 diagnostic RX for registers 0x%04X-0x%04X: %s",
-                    start,
-                    end,
-                    format_ap_frame_for_log(response),
-                )
             stage = "validation"
-            return parse_modbus_response(
-                parse_ap_frame(response), function, start, end
+            protocol_response = parse_ap_frame(response)
+            _LOGGER.debug(
+                "02B0 diagnostic response for registers 0x%04X-0x%04X: %s",
+                start,
+                end,
+                protocol_response.hex(" ").upper(),
             )
+            registers = parse_modbus_response(
+                protocol_response, function, start, end
+            )
+            self._trace.record(
+                function=function,
+                start=start,
+                end=end,
+                stage="complete",
+                request_payload=payload,
+                response_payload=protocol_response,
+                response_bytes=len(response),
+            )
+            return registers
         except Exception as err:
+            self._trace.record(
+                function=function,
+                start=start,
+                end=end,
+                stage=stage,
+                request_payload=payload,
+                response_payload=protocol_response,
+                response_bytes=len(response) if response is not None else None,
+                error=err,
+            )
             detail = (
                 str(err)
                 if isinstance(err, TsunProtocolError)
@@ -230,14 +283,29 @@ class Tsun02b0Client:
                 await writer.wait_closed()
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read and decode the two official 02B0 measurement blocks."""
+        """Read telemetry and the additional 02B0 alarm block."""
         started = time.monotonic()
         registers: dict[int, int] = {}
         for block in BLOCKS:
             registers.update(await self._read_block(block))
+        blocks_ok = len(BLOCKS)
+        for block in ALARM_BLOCKS:
+            try:
+                registers.update(await self._read_block(block))
+            except Exception as err:
+                _LOGGER.debug(
+                    "02B0 alarm block 0x%04X-0x%04X is unavailable: %s",
+                    block[1],
+                    block[2],
+                    type(err).__name__,
+                )
+            else:
+                blocks_ok += 1
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
+        measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_alarms(registers))
         return TsunReadResult(
-            measurements=decode_measurements(registers, self._pv_count),
+            measurements=measurements,
             duration_ms=round((time.monotonic() - started) * 1000),
-            blocks_ok=len(BLOCKS),
+            blocks_ok=blocks_ok,
         )

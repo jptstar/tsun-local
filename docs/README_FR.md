@@ -2,7 +2,7 @@
 
 [English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
-[![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
+[![Version GitHub](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Icône indépendante TSUN Local">
@@ -10,70 +10,53 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles **présents sur le réseau local, sans proxy et sans service cloud**.
+**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.2.0** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
 
-La version 1.1.8 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
+## À propos du projet
 
-**Auteur : Jean-Philippe TESTART (jptstar)**
+J’ai initialement développé cette intégration pour le plaisir et pour ma propre installation Home Assistant. Comme de nombreux utilisateurs rencontrent des difficultés pour accéder localement à leur micro-onduleur TSUN, je la mets à disposition afin que tout le monde puisse en profiter.
 
-## Nature du projet et assistance
+Les retours matériels, résultats de diagnostic et signalements de bugs précis sont les bienvenus. Je peux investir un peu de temps pour améliorer la compatibilité lorsque les informations fournies sont exploitables, mais cela reste un loisir et non mon activité principale. Il est donc possible que je mette parfois du temps à répondre ou à apporter une correction.
 
-TSUN Local est une intégration Home Assistant que j’ai initialement développée par plaisir et pour mon usage personnel. Comme de nombreux utilisateurs rencontrent des difficultés pour établir une connexion locale avec les micro-onduleurs TITAN, je la mets à disposition afin que le plus grand nombre puisse en profiter.
+## Fonctions principales
 
-Si je reçois des retours et des informations de diagnostic concernant certains modèles, je veux bien consacrer un peu de temps à améliorer leur compatibilité et à corriger les bugs. TSUN Local reste toutefois un hobby et une activité secondaire, et non mon activité principale. Il se peut donc que mes réponses ou corrections prennent parfois du temps.
-
-## Versions
-
-Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utilise les GitHub Releases pour proposer les mises à jour. Consultez le [journal des modifications](../CHANGELOG.md) pour connaître le détail de chaque version.
+- interrogation entièrement locale en TCP, sans proxy ni dépendance au cloud ;
+- sélection automatique du protocole local actuellement pris en charge ;
+- détection automatique des entrées PV disponibles dans les cartes de registres validées ;
+- tension, courant, fréquence, puissance, énergie journalière et énergie totale AC ;
+- tension, courant, puissance, énergie journalière et énergie totale pour chaque entrée PV détectée ;
+- puissance DC totale calculée à partir des puissances PV détectées ;
+- alarmes brutes du micro-onduleur et état global d’alarme ;
+- diagnostics de communication et intervalles normal/hors ligne distincts ;
+- un bouton par appareil pour actualiser immédiatement les données ;
+- plusieurs micro-onduleurs dans la même installation Home Assistant ;
+- entités Home Assistant traduites en français, anglais, allemand, espagnol, italien, néerlandais, polonais et chinois simplifié.
 
 ## Compatibilité
 
-**Home Assistant 2026.3.0 ou version ultérieure**
+- **Home Assistant 2026.3.0 ou version ultérieure**.
 
-### Légende
+**Légende :** ✅ validé sur matériel réel · 🧪 adaptateur prêt pour les tests communautaires · 🔎 informations de registres ou captures matérielles supplémentaires nécessaires · ⏸️ hors périmètre pour le moment.
 
-- ✅ Compatible et validé sur matériel réel
-- 🧪 Prêt pour les tests de la communauté — adaptateur disponible, vos retours sont les bienvenus
-- 🔎 Données matérielles recherchées — compatibilité encore à confirmer
+### Micro-onduleurs TITAN
 
-### Micro-onduleurs
+| Entrées PV | Modèles | État | Remarques |
+|---:|---|:---:|---|
+| 6 | **TSOL-MP3000** | ✅ | Validé sur matériel réel |
+| 6 | TSOL-MP2250, TSOL-MS3000 | 🧪 | Adaptateur 1511 prêt à tester |
+| 6 | MP3680, MP3750, MP4000, MP4600, MP5000, MP6000 | 🔎 | Matériel à six entrées ; protocole local et carte des registres à confirmer par une capture matérielle |
 
-#### TITAN
+### Micro-onduleurs GEN3 et GEN3 PLUS
 
-| Configuration | Modèles | Statut |
-|---|---|---|
-| 6-in-1 | **TSOL-MP3000** | ✅ Validé |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Testeurs recherchés |
-| Entrées à déterminer | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Données matérielles recherchées |
+| Entrées PV | Modèles | État | Remarques |
+|---:|---|:---:|---|
+| 1 | **TSOL-MX500** | ✅ | Validé sur matériel réel |
+| 1 | MX400, MX450, MS300, MS350, MS400, MS400-D | 🧪 | Adaptateur 02B0 prêt à tester |
+| 2 | MX800, MX900, MX1000, MS600, MS700, MS800, MS600-D, MS700-D, MS800-D | 🧪 | Adaptateur 02B0 prêt à tester |
+| 4 | MX2250, MS1600, MS1800, MS2000, MS2000-D | 🧪 | Adaptateur 02B0 prêt à tester |
+| 6 | MS3000, MX2400, MX2500, MX2700, MX3000/MX3000D, MX3300 | 🔎 | La carte 02B0 disponible s’arrête actuellement à PV4 |
 
-#### GEN3 / GEN3 PLUS — série MX
-
-| Configuration | Modèles | Statut |
-|---|---|---|
-| 1-in-1 | **MX500** | ✅ Validé |
-| 1-in-1 | **MX450, MX400** | 🧪 Testeurs recherchés |
-| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Testeurs recherchés |
-| 4-in-1 | **MX2250** | 🧪 Testeurs recherchés |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Données matérielles recherchées |
-
-#### GEN3 / GEN3 PLUS — série MS
-
-| Configuration | Modèles | Statut |
-|---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Testeurs recherchés |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Testeurs recherchés |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Testeurs recherchés |
-
-La détection est dynamique jusqu’à **6 entrées PV pour TITAN**. Pour GEN3 / GEN3 PLUS, la carte actuelle couvre les configurations à **1, 2 ou 4 entrées PV** ; les entrées PV5 et PV6 ne sont pas encore détectées.
-
-### Autres appareils
-
-| Type | Modèles | Statut |
-|---|---|---|
-| Batterie GEN3 PLUS | **TSOL-DC1000** | 🔎 Données matérielles recherchées |
-| Compteur intelligent | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Données matérielles recherchées |
-
-> **Vous possédez l’un de ces modèles ?** Les modèles marqués 🧪 sont prêts à être testés par la communauté. [Ouvrez un rapport de compatibilité](https://github.com/jptstar/tsun-local/issues/new) en indiquant le modèle exact, la version du micrologiciel et le résultat du test. Masquez les numéros de série complets et les informations privées du réseau.
+⏸️ Les systèmes de stockage et batteries, dont le DC1000, ainsi que les compteurs comme les TSOL-MG3-MS ou DDZY422-D2, sont volontairement laissés de côté pour le moment. Leur communication locale nécessite une implémentation séparée et validée.
 
 ## Installation
 
@@ -83,64 +66,140 @@ La détection est dynamique jusqu’à **6 entrées PV pour TITAN**. Pour GEN3 /
 
 Ou manuellement :
 
-1. Dans HACS, ouvrez le menu **⋮** en haut à droite, puis **Dépôts personnalisés**.
+1. Dans HACS, ouvrez le menu **⋮**, puis **Dépôts personnalisés**.
 2. Ajoutez `https://github.com/jptstar/tsun-local` avec le type **Integration**.
-3. Cliquez sur **Ajouter**, puis ouvrez **TSUN Local**.
-4. Cliquez sur **Télécharger** et choisissez la dernière version disponible.
-5. Redémarrez Home Assistant.
+3. Ouvrez **TSUN Local**, cliquez sur **Télécharger** et choisissez la dernière version.
+4. Redémarrez Home Assistant.
 
-Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélectionnez **Actualiser les informations**.
+Si une nouvelle version n’apparaît pas, ouvrez le menu du dépôt puis sélectionnez **Actualiser les informations**.
 
 ### Installation manuelle
 
-1. Copiez le dossier `custom_components/tsun_local` dans `/config/custom_components/` sur Home Assistant.
+1. Copiez `custom_components/tsun_local` dans `/config/custom_components/`.
 2. Redémarrez Home Assistant.
 3. Ouvrez **Paramètres → Appareils et services → Ajouter une intégration**.
 4. Recherchez **TSUN Local**.
-5. Renseignez l’adresse IP, le port et le **Monitor SN / Logger SN inscrit sur l’étiquette du micro-onduleur**.
 
-Lors de l’ajout, choisissez **Rechercher sur le réseau local** ou **Configuration manuelle**, puis renseignez le **Monitor SN / Logger SN** imprimé sur l’étiquette. L’intégration détecte automatiquement le protocole local pris en charge ; aucun choix de famille n’est nécessaire. La recherche examine tous les réseaux IPv4 actifs exposés par Home Assistant sur le port sélectionné et n’envoie aucune donnée applicative aux adresses candidates. Si aucun appareil n’est trouvé, le formulaire permet de saisir un sous-réseau LAN ou VLAN routé au format CIDR.
+## Ajouter un appareil
 
-## Plusieurs appareils
+Vous pouvez rechercher l’appareil sur le réseau local ou saisir manuellement les paramètres de connexion. Les informations nécessaires sont :
 
-Plusieurs micro-onduleurs compatibles peuvent être ajoutés dans la même installation Home Assistant. Pour chaque appareil, relancez **Ajouter une intégration** et saisissez son adresse IP ainsi que son SN unique. Chaque entrée crée un appareil indépendant avec ses propres entités et son propre coordinateur de communication.
+- l’adresse IP du micro-onduleur/logger ;
+- le port TCP `8899` proposé par défaut et toujours modifiable ;
+- le **Monitor SN / Logger SN numérique inscrit sur l’étiquette du micro-onduleur**.
 
-## Réglages depuis Home Assistant
+Le protocole local est détecté automatiquement dès que l’appareil répond. Le numéro de série alphanumérique du micro-onduleur n’est pas utilisé dans l’enveloppe de communication AP.
 
-Dans **Paramètres → Appareils et services → TSUN Local**, ouvrez le menu de l’appareil concerné :
+La recherche réseau examine les sous-réseaux IPv4 visibles depuis Home Assistant sur le port TCP choisi. Un VLAN, un réseau routé, un conteneur ou l’isolation des clients Wi-Fi peuvent empêcher cette recherche ; la configuration manuelle reste alors disponible.
 
-- **Configurer** règle son intervalle normal, de 10 secondes à 5 minutes (30 secondes par défaut), ainsi que son intervalle hors ligne/nuit, de 1 à 60 minutes (5 minutes par défaut) ;
-- **Reconfigurer** permet de modifier son adresse IP et son port TCP sans supprimer les entités ;
-- chaque appareil possède son propre intervalle, indépendant des autres.
+Pour ajouter plusieurs micro-onduleurs, relancez **Ajouter une intégration** pour chaque appareil, car chacun nécessite son propre Monitor SN. Une nouvelle recherche réseau masque les adresses déjà configurées et propose les appareils restants. Chaque entrée possède son appareil, ses entités, son adresse IP, son logger SN et ses propres intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
 
-## Fonctionnement local et isolation du cloud
+## Réglages d’interrogation
 
-TSUN Local communique uniquement sur le réseau local et n’utilise aucun service cloud. L’intégration ne modifie toutefois pas les paramètres cloud du micrologiciel.
+Dans **Paramètres → Appareils et services → TSUN Local**, ouvrez **Configurer** pour l’appareil concerné :
 
-Pour empêcher le micro-onduleur de joindre Internet, créez une règle dans le routeur ou le pare-feu qui bloque son accès WAN tout en conservant son accès au réseau local et au DHCP. Home Assistant doit rester autorisé à joindre l’adresse IP du micro-onduleur sur le port TCP **8899**. Une fois l’intégration installée, HACS n’a besoin d’Internet que pour rechercher et télécharger les mises à jour.
+- intervalle normal : de 10 secondes à 5 minutes, 30 secondes par défaut ;
+- intervalle hors ligne/nuit : de 1 à 60 minutes, 5 minutes par défaut.
 
-## Fonctionnement de nuit
+Utilisez **Reconfigurer** pour modifier l’adresse IP ou le port TCP sans supprimer les entités existantes.
 
-Lorsque le micro-onduleur n’est plus alimenté, l’intégration le considère hors ligne sans répéter une erreur à chaque interrogation :
+Le bouton **Actualiser les données** lance immédiatement une lecture complète du micro-onduleur concerné sans modifier les deux intervalles. Si un autre appareil TSUN est en cours de lecture, l’actualisation manuelle attend la fin de cette interrogation.
 
-- les mesures instantanées (tension, courant, puissance et fréquence) deviennent indisponibles afin de ne pas afficher de valeurs périmées ;
-- les compteurs d’énergie journaliers et totaux restent disponibles avec leur dernière valeur connue ;
-- le diagnostic **Communication** passe hors ligne ;
-- le compteur indique les échecs consécutifs et revient à zéro dès le réveil ;
-- l’heure de la dernière communication réussie reste disponible ;
-- les tentatives utilisent l’intervalle hors ligne/nuit configuré dans Home Assistant ;
-- dès la première réponse du matin, l’intervalle configuré est restauré.
+## Entités
 
-## Capteurs
+L’intégration crée un appareil Home Assistant pour chaque micro-onduleur configuré. Les identifiants techniques des entités restent en anglais tandis que leurs noms affichés sont traduits.
 
-L’intégration crée un appareil unique avec les mesures AC, 5 mesures par entrée PV détectée, la somme des puissances DC détectées, 4 capteurs de diagnostic et un état de connectivité.
+Les nouveaux identifiants utilisent des clés anglaises stables comme `ac_power`, `pv1_current` et `pv1_energy_total`. Un identifiant déjà enregistré par Home Assistant avec une ancienne version n’est volontairement pas renommé automatiquement, car cela pourrait casser des tableaux de bord ou des automatisations ; il peut être modifié manuellement dans les paramètres de l’entité.
 
-Le nombre d’entrées PV est dynamique : PV1 est disponible dès la première lecture, puis PV2 à PV6 pour TITAN ou PV2 à PV4 pour GEN3/GEN3 PLUS sont ajoutées lorsqu’une mesure ou un compteur valide est observé. Une entrée découverte reste enregistrée dans Home Assistant.
+Les données disponibles comprennent :
+
+- les mesures instantanées et compteurs d’énergie AC ;
+- cinq mesures pour chaque entrée PV détectée ;
+- la puissance DC totale calculée ;
+- quatre diagnostics de communication et un état de connectivité ;
+- un état global d’alarme et les registres bruts propres au protocole.
+- un bouton manuel **Actualiser les données**.
+
+La détection des entrées PV est progressive. TITAN peut exposer PV1 à PV6 avec la carte 1511 actuelle. GEN3/GEN3 PLUS peut exposer PV1 à PV4 avec la carte 02B0 actuelle. Une fois découverte, une entrée reste enregistrée dans Home Assistant.
+
+### Alarmes du micro-onduleur
+
+Les alarmes internes sont distinctes des échecs de communication :
+
+- TITAN/1511 expose quatre mots globaux, quatre mots secondaires et un mot brut pour chaque entrée PV détectée ;
+- GEN3/GEN3 PLUS/02B0 expose les quatre registres bruts ERR1 à ERR4 ;
+- chaque diagnostic brut indique sa valeur décimale, sa valeur hexadécimale et l’adresse du registre ;
+- toute valeur brute non nulle active le capteur binaire global **Alarme de l’onduleur** ;
+- si le bloc complet ne peut pas être lu, l’état global devient indisponible au lieu d’indiquer à tort qu’aucune alarme n’est active.
+
+Les manuels publiés décrivent des catégories de défaut, mais aucun document public trouvé à ce jour ne définit une correspondance registre/bit fiable pour toutes les familles prises en charge. TSUN Local conserve donc les valeurs inconnues sous forme brute plutôt que d’afficher une description non vérifiée.
+
+Les catégories documentées comprennent notamment les tensions ou courants PV anormaux, l’absence ou l’anomalie de tension/fréquence du réseau, la surchauffe, les défauts de terre ou d’isolement et les défauts internes du micro-onduleur. Elles restent uniquement informatives tant que leur relation avec chaque registre brut n’est pas confirmée.
+
+## Fonctionnement de nuit et hors ligne
+
+Lorsque le micro-onduleur alimenté par les panneaux ne répond plus la nuit :
+
+- les tensions, courants, puissances et fréquences instantanés deviennent indisponibles ;
+- l’état et les registres bruts d’alarme deviennent indisponibles ;
+- les compteurs d’énergie journaliers et totaux conservent leur dernière valeur ;
+- la communication passe hors ligne et le compteur d’échecs augmente ;
+- l’intervalle hors ligne/nuit plus lent est utilisé ;
+- l’intervalle normal revient après la première réponse réussie.
+
+## Fonctionnement local et accès au cloud
+
+TSUN Local ne contacte lui-même aucun service cloud TSUN. Une fois installé, il lit directement la télémétrie de l’appareil sur le réseau local.
+
+L’intégration ne désactive pas la communication internet ou cloud propre au micro-onduleur. Pour une isolation internet complète, il faut la configurer sur le routeur ou le pare-feu tout en conservant l’accès local de Home Assistant à l’adresse IP et au port TCP de l’appareil.
+
+## Tests communautaires et diagnostics
+
+Les modèles marqués 🧪 sont réellement prêts à être essayés. Un test réussi comme un échec est utile : seules les remontées sur du matériel réel permettent de confirmer les différences entre modèles ou versions de micrologiciel.
+
+Si l’intégration est déjà configurée :
+
+1. Ouvrez **Paramètres → Appareils et services → TSUN Local**.
+2. Activez les journaux de débogage depuis le menu de l’intégration, reproduisez le problème une fois, puis désactivez-les.
+3. Téléchargez les diagnostics depuis la même page d’intégration ou depuis la page de l’appareil.
+4. Ouvrez un [rapport de compatibilité](https://github.com/jptstar/tsun-local/issues/new/choose) en indiquant le modèle exact, la version du micrologiciel, la version de TSUN Local et en joignant le fichier téléchargé.
+
+Si la configuration ne peut pas aboutir, lancez la capture autonome depuis une copie de ce dépôt :
+
+```bash
+python3 tools/diagnose_device.py --host ADRESSE_IP
+```
+
+Le Monitor SN est demandé de manière interactive et ne reste pas dans l’historique de la commande. Le fichier `tsun_local_diagnostic.json` généré contient les mesures décodées et une courte trace circulaire des requêtes et réponses internes au protocole. Il ne contient **ni l’adresse IP, ni le Monitor SN, ni l’enveloppe AP**. Vérifiez-le avant de le partager, car les valeurs de production et d’énergie restent visibles.
+
+Les réponses capturées peuvent être relues localement sans disposer du micro-onduleur :
+
+```bash
+python3 tools/replay_diagnostic.py tsun_local_diagnostic.json
+```
+
+Les cartes de registres disponibles constituent une base sérieuse, mais elles ne garantissent pas un comportement identique sur chaque modèle ou micrologiciel non testé. Cette capture relisible permet d’apporter des corrections ciblées sans accéder à distance au réseau d’un autre utilisateur.
+
+## Évolutions possibles
+
+Les idées suivantes ne sont volontairement pas encore activées et nécessitent une validation avant implémentation :
+
+- les seuils de protection réseau sous forme de diagnostics en lecture seule ;
+- le coefficient de sortie 02B0 sous forme de pourcentage en lecture seule ;
+- des notifications ou réparations Home Assistant pour les alarmes persistantes ;
+- les descriptions traduites des défauts lorsque la correspondance des registres et bits aura été confirmée ;
+- d’autres adaptateurs locaux pour les systèmes de stockage, compteurs et futurs produits TSUN.
+
+Aucune commande d’écriture ou de contrôle ne sera ajoutée sans protections explicites et validation sur matériel réel.
+
+## Auteur
+
+Jean-Philippe TESTART (`jptstar`)
 
 ## Licence
 
 Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
-Ce projet est distribué sous la licence **GNU General Public License v3.0 ou ultérieure** (GPL-3.0-or-later). Les versions modifiées ou redistribuées doivent respecter les conditions de cette licence et conserver les mentions de copyright et de licence. Consultez le fichier [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
+Ce projet est distribué sous la licence **GNU General Public License v3.0 ou ultérieure** (`GPL-3.0-or-later`). Les versions modifiées ou redistribuées doivent respecter cette licence et conserver les mentions de copyright et de licence. Consultez [LICENSE](LICENSE).
 
 La licence couvre uniquement cette implémentation indépendante. Elle ne confère aucun droit sur les marques, logos, logiciels ou produits de TSUN. Ce projet reste non officiel et sans affiliation avec TSUN.

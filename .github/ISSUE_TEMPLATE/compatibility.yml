@@ -1,0 +1,83 @@
+name: Community hardware test
+description: Share a successful test or help add support for another TSUN micro-inverter
+title: "[Compatibility] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing TSUN Local on real hardware. Successful tests and failures are both useful.
+
+        TSUN Local diagnostics omit the device IP address, Monitor SN, and AP envelope. They still contain production and energy readings, so please review the file before attaching it.
+
+  - type: input
+    id: model
+    attributes:
+      label: Exact micro-inverter model
+      placeholder: TSOL-...
+    validations:
+      required: true
+
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      description: Enter “unknown” if it is not displayed in your app.
+    validations:
+      required: true
+
+  - type: input
+    id: pv_inputs
+    attributes:
+      label: Number of PV inputs
+      placeholder: "1, 2, 4 or 6"
+    validations:
+      required: true
+
+  - type: input
+    id: integration_version
+    attributes:
+      label: TSUN Local version
+      placeholder: 1.2.0
+    validations:
+      required: true
+
+  - type: input
+    id: home_assistant_version
+    attributes:
+      label: Home Assistant version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Test result
+      options:
+        - Setup completed and values are correct
+        - Setup completed but values are missing or incorrect
+        - Device answered but setup failed
+        - Device did not answer
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened?
+      description: Describe what you expected and what Home Assistant displayed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostic
+    attributes:
+      label: Diagnostic file
+      description: Drag the Home Assistant diagnostic or tsun_local_diagnostic.json file here. You may also add the relevant debug-log excerpt.
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I reviewed attachments and removed any information I do not want to publish.
+          required: true

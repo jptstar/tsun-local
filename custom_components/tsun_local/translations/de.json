@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Verbindung ändern",
-        "description": "Ändere die IP-Adresse oder den TCP-Port. Die erkannte Gerätefamilie wird automatisch beibehalten und die Monitor SN / Logger SN bleibt die dauerhafte Identität des Geräts.",
+        "description": "Ändere die IP-Adresse oder den TCP-Port. Die Monitor SN / Logger SN bleibt die dauerhafte Kennung.",
         "data": {
           "host": "IP-Adresse",
           "port": "Port"
@@ -19,7 +19,7 @@
       },
       "manual": {
         "title": "Manuelle Konfiguration",
-        "description": "Gib die Verbindungsdaten ein. Die Gerätefamilie wird automatisch erkannt. Die Monitor SN / Logger SN steht auf dem Typenschild des Geräts.",
+        "description": "Gib die Verbindungsdaten ein. Das lokale Protokoll wird automatisch erkannt und die Monitor SN / Logger SN steht auf dem Typenschild.",
         "data": {
           "host": "IP-Adresse",
           "port": "Port",
@@ -28,7 +28,7 @@
       },
       "discover": {
         "title": "Gefundene Geräte",
-        "description": "Wähle eine am ausgewählten TCP-Port gefundene Adresse aus und gib die Monitor SN / Logger SN ein. Die Gerätefamilie wird automatisch erkannt.",
+        "description": "Wähle eine am konfigurierten TCP-Port gefundene Adresse und gib die Monitor SN / Logger SN ein. Das lokale Protokoll wird automatisch erkannt.",
         "data": {
           "host": "Gefundene Adresse",
           "port": "Port",
@@ -52,6 +52,7 @@
     },
     "abort": {
       "already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert",
+      "all_devices_configured": "Alle erkannten Mikrowechselrichter sind bereits konfiguriert",
       "no_devices_found": "Es wurde kein Gerät gefunden, das lokale Verbindungen auf Port 8899 annimmt"
     }
   },
@@ -69,6 +70,10 @@
   },
   "entity": {
     "sensor": {
+      "alarm_global_0_raw": {"name": "Globalalarm (Rohwert) 0"}, "alarm_global_1_raw": {"name": "Globalalarm (Rohwert) 1"}, "alarm_global_2_raw": {"name": "Globalalarm (Rohwert) 2"}, "alarm_global_3_raw": {"name": "Globalalarm (Rohwert) 3"},
+      "alarm_secondary_0_raw": {"name": "Sekundäralarm (Rohwert) 0"}, "alarm_secondary_1_raw": {"name": "Sekundäralarm (Rohwert) 1"}, "alarm_secondary_2_raw": {"name": "Sekundäralarm (Rohwert) 2"}, "alarm_secondary_3_raw": {"name": "Sekundäralarm (Rohwert) 3"},
+      "alarm_code_1_raw": {"name": "Alarmcode (Rohwert) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (Rohwert) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (Rohwert) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (Rohwert) 4"},
+      "pv1_alarm_raw": {"name": "PV1-Alarm (Rohwert)"}, "pv2_alarm_raw": {"name": "PV2-Alarm (Rohwert)"}, "pv3_alarm_raw": {"name": "PV3-Alarm (Rohwert)"}, "pv4_alarm_raw": {"name": "PV4-Alarm (Rohwert)"}, "pv5_alarm_raw": {"name": "PV5-Alarm (Rohwert)"}, "pv6_alarm_raw": {"name": "PV6-Alarm (Rohwert)"},
       "ac_voltage": {
         "name": "AC-Spannung"
       },
@@ -196,6 +201,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Kommunikation"
+      },
+      "inverter_alarm": {
+        "name": "Wechselrichteralarm"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Daten aktualisieren"
       }
     }
   }

@@ -11,6 +11,21 @@ permissions:
   contents: read
 
 jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
   hacs:
     name: HACS
     runs-on: ubuntu-latest

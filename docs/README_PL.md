@@ -12,7 +12,7 @@
 
 **TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant **przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej**.
 
-Wersja 1.1.8 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+Wersja 1.2.0 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -144,3 +144,4 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (GPL-3.0-or-later). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 Licencja obejmuje wyłącznie tę niezależną implementację. Nie przyznaje żadnych praw do znaków towarowych, logo, oprogramowania ani produktów TSUN. Projekt pozostaje nieoficjalny i niepowiązany z TSUN.
+
