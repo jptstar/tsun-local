@@ -60,10 +60,12 @@
     "step": {
       "init": {
         "title": "Abfrageeinstellungen",
-        "description": "Lege das normale Abfrageintervall und das langsamere Intervall fest, das verwendet wird, wenn dieses Gerät offline oder nachts ohne Strom ist.",
+        "description": "Lege das normale Intervall, das Wiederholungsintervall nach einem Fehler, das Offline-/Nachtintervall und die Anzahl aufeinanderfolgender Fehler bis offline fest.",
         "data": {
           "scan_interval": "Normales Abfrageintervall",
-          "offline_scan_interval": "Abfrageintervall offline/nachts"
+          "error_scan_interval": "Wiederholungsintervall nach Fehler",
+          "offline_scan_interval": "Abfrageintervall offline/nachts",
+          "failure_threshold": "Fehler bis offline"
         }
       }
     }
@@ -200,7 +202,7 @@
     },
     "binary_sensor": {
       "communication_online": {
-        "name": "Kommunikation"
+        "name": "Mikrowechselrichter online"
       },
       "inverter_alarm": {
         "name": "Wechselrichteralarm"

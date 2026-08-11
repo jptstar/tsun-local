@@ -12,7 +12,7 @@
 
 **TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant **przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej**.
 
-Wersja 1.2.0 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+Wersja 1.2.1 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -103,13 +103,13 @@ Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręcz
 
 ## Wiele urządzeń
 
-Do tej samej instalacji Home Assistant można dodać wiele zgodnych mikrofalowników. Dla każdego urządzenia uruchom **Dodaj integrację** i podaj jego adres IP oraz unikalny numer SN. Każda konfiguracja tworzy niezależne urządzenie z własnymi encjami i koordynatorem komunikacji.
+Po dodaniu urządzenia znalezionego przez wyszukiwanie sieciowe Home Assistant automatycznie otwiera nowe wyszukiwanie następnego mikrofalownika. Używa tych samych sieci i portu TCP, ukrywa właśnie skonfigurowany adres i kończy działanie, gdy nie pozostało żadne nieskonfigurowane urządzenie. Każdy mikrofalownik nadal wymaga własnego numeru Monitor SN i tworzy niezależny wpis z własnymi encjami i interwałami.
 
 ## Ustawienia w Home Assistant
 
 W **Ustawienia → Urządzenia i usługi → TSUN Local** otwórz menu odpowiedniego urządzenia:
 
-- **Konfiguruj** ustawia normalny interwał od 10 sekund do 5 minut (domyślnie 30 sekund) oraz interwał offline/nocny od 1 do 60 minut (domyślnie 5 minut);
+- **Konfiguruj** ustawia normalny interwał od 10 sekund do 5 minut (domyślnie 20 sekund), ponowienie po błędzie od 10 sekund do 5 minut (domyślnie 20 sekund), interwał offline/nocny od 1 do 60 minut (domyślnie 5 minut) oraz próg od 1 do 20 kolejnych błędów (domyślnie 3);
 - **Skonfiguruj ponownie** zmienia adres IP i port TCP bez usuwania encji;
 - każde urządzenie ma niezależne interwały odpytywania.
 
@@ -123,9 +123,11 @@ Aby uniemożliwić mikrofalownikowi dostęp do Internetu, utwórz w routerze lub
 
 Gdy mikrofalownik przestaje być zasilany, integracja oznacza go jako offline bez powtarzania błędu przy każdym odpytywaniu:
 
+Do osiągnięcia konfigurowalnego progu ostatnie wartości pozostają dostępne, a ponowienia używają interwału po błędzie. Po osiągnięciu progu (domyślnie 3 błędy) urządzenie przechodzi offline i używa interwału offline/noc. Pierwsza udana odpowiedź zeruje licznik i przywraca normalny interwał.
+
 - pomiary chwilowe (napięcie, prąd, moc i częstotliwość) stają się niedostępne, aby nie wyświetlać nieaktualnych wartości;
 - dzienne i całkowite liczniki energii pozostają dostępne z ostatnią znaną wartością;
-- diagnostyka **Komunikacja** zgłasza stan offline;
+- czujnik binarny **Mikrofalownik online** zgłasza stan offline;
 - licznik kolejnych błędów komunikacji wraca do zera po wznowieniu komunikacji;
 - czas ostatniej udanej komunikacji pozostaje dostępny;
 - kolejne próby korzystają ze skonfigurowanego interwału offline/nocnego;
@@ -133,7 +135,7 @@ Gdy mikrofalownik przestaje być zasilany, integracja oznacza go jako offline be
 
 ## Czujniki
 
-Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 czujnikami diagnostycznymi i jednym stanem łączności.
+Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 czujnikami diagnostycznymi i binarnym czujnikiem łączności **Mikrofalownik online**.
 
 Liczba wejść PV jest dynamiczna: PV1 jest dostępne po pierwszym odczycie; PV2–PV6 dla TITAN lub PV2–PV4 dla GEN3/GEN3 PLUS są dodawane po wykryciu prawidłowego pomiaru lub licznika energii. Wykryte wejście pozostaje zarejestrowane w Home Assistant.
 
@@ -144,4 +146,3 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (GPL-3.0-or-later). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 Licencja obejmuje wyłącznie tę niezależną implementację. Nie przyznaje żadnych praw do znaków towarowych, logo, oprogramowania ani produktów TSUN. Projekt pozostaje nieoficjalny i niepowiązany z TSUN.
-

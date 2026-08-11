@@ -10,7 +10,7 @@
     "error": {"cannot_connect": "Impossible de joindre l’appareil", "invalid_network": "Saisissez un sous-réseau IPv4 valide entre /24 et /32", "invalid_response": "La réponse de l’appareil est invalide", "no_devices_found": "Aucun appareil acceptant les connexions locales n’a été trouvé sur ce sous-réseau et ce port"},
     "abort": {"already_configured": "Ce micro-onduleur est déjà configuré", "all_devices_configured": "Tous les micro-onduleurs détectés sont déjà configurés", "no_devices_found": "Aucun appareil acceptant les connexions locales sur le port 8899 n’a été trouvé"}
   },
-  "options": {"step": {"init": {"title": "Paramètres d’interrogation", "description": "Réglez l’intervalle normal et l’intervalle ralenti utilisé lorsque cet appareil est hors ligne ou non alimenté la nuit.", "data": {"scan_interval": "Intervalle normal", "offline_scan_interval": "Intervalle hors ligne/nuit"}}}},
+  "options": {"step": {"init": {"title": "Paramètres d’interrogation", "description": "Réglez l’intervalle normal, la nouvelle tentative après une erreur, l’intervalle hors ligne/nuit et le nombre d’échecs consécutifs avant le passage hors ligne.", "data": {"scan_interval": "Intervalle normal", "error_scan_interval": "Intervalle après une erreur", "offline_scan_interval": "Intervalle hors ligne/nuit", "failure_threshold": "Échecs avant passage hors ligne"}}}},
   "entity": {"sensor": {
     "alarm_global_0_raw": {"name": "Alarme globale brute 0"}, "alarm_global_1_raw": {"name": "Alarme globale brute 1"}, "alarm_global_2_raw": {"name": "Alarme globale brute 2"}, "alarm_global_3_raw": {"name": "Alarme globale brute 3"},
     "alarm_secondary_0_raw": {"name": "Alarme secondaire brute 0"}, "alarm_secondary_1_raw": {"name": "Alarme secondaire brute 1"}, "alarm_secondary_2_raw": {"name": "Alarme secondaire brute 2"}, "alarm_secondary_3_raw": {"name": "Alarme secondaire brute 3"},
@@ -25,5 +25,5 @@
     "pv4_voltage": {"name": "Tension PV4"}, "pv4_current": {"name": "Courant PV4"}, "pv4_power": {"name": "Puissance PV4"}, "pv4_energy_today": {"name": "Énergie PV4 du jour"}, "pv4_energy_total": {"name": "Énergie PV4 totale"},
     "pv5_voltage": {"name": "Tension PV5"}, "pv5_current": {"name": "Courant PV5"}, "pv5_power": {"name": "Puissance PV5"}, "pv5_energy_today": {"name": "Énergie PV5 du jour"}, "pv5_energy_total": {"name": "Énergie PV5 totale"},
     "pv6_voltage": {"name": "Tension PV6"}, "pv6_current": {"name": "Courant PV6"}, "pv6_power": {"name": "Puissance PV6"}, "pv6_energy_today": {"name": "Énergie PV6 du jour"}, "pv6_energy_total": {"name": "Énergie PV6 totale"}
-  }, "binary_sensor": {"communication_online": {"name": "Communication"}, "inverter_alarm": {"name": "Alarme de l’onduleur"}}, "button": {"refresh_data": {"name": "Actualiser les données"}}}
+  }, "binary_sensor": {"communication_online": {"name": "Micro-onduleur en ligne"}, "inverter_alarm": {"name": "Alarme de l’onduleur"}}, "button": {"refresh_data": {"name": "Actualiser les données"}}}
 }

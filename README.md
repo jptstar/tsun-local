@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.2.0** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
+**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.2.1** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
 
 ## About this project
 
@@ -27,7 +27,7 @@ Hardware feedback, diagnostic results, and focused bug reports are welcome. I ca
 - voltage, current, power, daily energy, and total energy for every detected PV input;
 - total DC power calculated from the detected PV powers;
 - raw inverter alarms and a global alarm status;
-- communication diagnostics and separate normal/offline polling intervals;
+- communication diagnostics with separate normal, error-retry, and offline/night polling intervals;
 - a per-device button for an immediate manual data refresh;
 - multiple micro-inverters in the same Home Assistant installation;
 - translated Home Assistant entities in English, French, German, Spanish, Italian, Dutch, Polish, and Simplified Chinese.
@@ -92,18 +92,20 @@ The local protocol is detected automatically after the device answers. The alpha
 
 Network search scans the IPv4 subnets visible to Home Assistant for the selected TCP port. VLANs, routed networks, container networking, or client isolation can prevent automatic discovery; manual configuration remains available in those cases.
 
-To add several micro-inverters, run **Add integration** once for each device because every device requires its own Monitor SN. A new network search hides addresses that are already configured and proposes the remaining devices. Every entry has its own device, entities, IP address, logger SN, and polling settings. Complete device polls share a lock and run one after another, preventing overlapping requests to local loggers.
+When a device is added from network search, Home Assistant automatically opens a fresh search for the next micro-inverter. The new search uses the same networks and TCP port, hides the address just configured, and stops when no unconfigured device remains. Each device still requires its own Monitor SN and creates an independent entry with its own entities and polling settings. Complete device polls share a lock and run one after another, preventing overlapping requests to local loggers.
 
 ## Polling settings
 
 Under **Settings → Devices & services → TSUN Local**, open **Configure** for the relevant device:
 
-- normal polling interval: 10 seconds to 5 minutes, 30 seconds by default;
-- offline/night polling interval: 1 to 60 minutes, 5 minutes by default.
+- normal polling interval: 10 seconds to 5 minutes, 20 seconds by default;
+- retry interval after a communication error: 10 seconds to 5 minutes, 20 seconds by default;
+- offline/night polling interval: 1 to 60 minutes, 5 minutes by default;
+- consecutive failures before the device goes offline: 1 to 20, 3 by default.
 
 Use **Reconfigure** to change the IP address or TCP port without deleting the existing entities.
 
-The **Refresh data** button runs one immediate complete poll of its micro-inverter without changing either interval. If another TSUN device is being read, the manual refresh waits for that poll to finish.
+The **Refresh data** button runs one immediate complete poll of its micro-inverter without changing the configured intervals. If another TSUN device is being read, the manual refresh waits for that poll to finish.
 
 ## Entities
 
@@ -116,7 +118,7 @@ Available data includes:
 - AC instantaneous measurements and energy counters;
 - five measurements for every detected PV input;
 - calculated total DC power;
-- four communication diagnostics and a connectivity status;
+- four communication diagnostics and a **Micro-inverter online** connectivity binary sensor;
 - a global inverter alarm status and protocol-specific raw alarm registers.
 - a manual **Refresh data** button.
 
@@ -140,10 +142,12 @@ The documented categories include abnormal PV voltage or current, missing or abn
 
 When a solar-powered micro-inverter stops answering at night:
 
+Until the configurable failure threshold is reached, the latest values remain available and retries use the error interval. When the threshold is reached (3 failures by default), the device goes offline and uses the offline/night interval. The first successful response immediately resets the counter to zero and restores normal polling.
+
 - instantaneous voltage, current, power, and frequency become unavailable;
 - alarm status and raw alarm registers become unavailable;
 - daily and total energy counters retain their last known value;
-- communication changes to offline and the failure counter increases;
+- **Micro-inverter online** turns off and the failure counter increases;
 - the slower offline/night interval is used;
 - normal polling resumes after the first successful response.
 

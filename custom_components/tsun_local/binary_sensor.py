@@ -40,7 +40,7 @@ async def async_setup_entry(
 class TsunConnectivitySensor(
     CoordinatorEntity[TsunCoordinator], BinarySensorEntity
 ):
-    """Report whether the local logger is reachable."""
+    """Report whether the local micro-inverter is online."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_entity_category = EntityCategory.DIAGNOSTIC

@@ -60,10 +60,12 @@
     "step": {
       "init": {
         "title": "Impostazioni di polling",
-        "description": "Imposta l'intervallo di polling normale e l'intervallo più lento utilizzato quando il dispositivo è offline o non alimentato durante la notte.",
+        "description": "Imposta l'intervallo normale, il nuovo tentativo dopo un errore, l'intervallo offline/notturno e il numero di errori consecutivi prima dello stato offline.",
         "data": {
           "scan_interval": "Intervallo di polling normale",
-          "offline_scan_interval": "Intervallo di polling offline/notturno"
+          "error_scan_interval": "Intervallo di nuovo tentativo dopo errore",
+          "offline_scan_interval": "Intervallo di polling offline/notturno",
+          "failure_threshold": "Errori prima dello stato offline"
         }
       }
     }
@@ -200,7 +202,7 @@
     },
     "binary_sensor": {
       "communication_online": {
-        "name": "Comunicazione"
+        "name": "Microinverter online"
       },
       "inverter_alarm": {
         "name": "Allarme inverter"

@@ -30,16 +30,24 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_DISCOVERY_NETWORK,
+    CONF_ERROR_SCAN_INTERVAL,
+    CONF_FAILURE_THRESHOLD,
     CONF_LOGGER_SN,
     CONF_OFFLINE_SCAN_INTERVAL,
     CONF_PROTOCOL,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ERROR_SCAN_INTERVAL,
+    DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_OFFLINE_SCAN_INTERVAL,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MAX_ERROR_SCAN_INTERVAL,
+    MAX_FAILURE_THRESHOLD,
     MAX_OFFLINE_SCAN_INTERVAL,
     MAX_SCAN_INTERVAL,
+    MIN_ERROR_SCAN_INTERVAL,
+    MIN_FAILURE_THRESHOLD,
     MIN_OFFLINE_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
@@ -50,6 +58,12 @@ from .discovery import (
     parse_discovery_network,
 )
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
+
+
+_CONTEXT_CONTINUE_DISCOVERY = "tsun_continue_discovery"
+_CONTEXT_DISCOVERY_NETWORKS = "tsun_discovery_networks"
+_CONTEXT_DISCOVERY_PORT = "tsun_discovery_port"
+_CONTEXT_EXCLUDED_HOSTS = "tsun_excluded_hosts"
 
 
 async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
@@ -136,6 +150,17 @@ OPTIONS_SCHEMA = vol.Schema(
             )
         ),
         vol.Required(
+            CONF_ERROR_SCAN_INTERVAL, default=DEFAULT_ERROR_SCAN_INTERVAL
+        ): NumberSelector(
+            NumberSelectorConfig(
+                min=MIN_ERROR_SCAN_INTERVAL,
+                max=MAX_ERROR_SCAN_INTERVAL,
+                step=1,
+                mode=NumberSelectorMode.BOX,
+                unit_of_measurement="s",
+            )
+        ),
+        vol.Required(
             CONF_OFFLINE_SCAN_INTERVAL, default=DEFAULT_OFFLINE_SCAN_INTERVAL
         ): NumberSelector(
             NumberSelectorConfig(
@@ -144,6 +169,16 @@ OPTIONS_SCHEMA = vol.Schema(
                 step=60,
                 mode=NumberSelectorMode.BOX,
                 unit_of_measurement="s",
+            )
+        ),
+        vol.Required(
+            CONF_FAILURE_THRESHOLD, default=DEFAULT_FAILURE_THRESHOLD
+        ): NumberSelector(
+            NumberSelectorConfig(
+                min=MIN_FAILURE_THRESHOLD,
+                max=MAX_FAILURE_THRESHOLD,
+                step=1,
+                mode=NumberSelectorMode.BOX,
             )
         ),
     }
@@ -182,7 +217,9 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the configuration flow."""
         self._discovered_hosts: list[str] | None = None
+        self._discovery_networks: list[IPv4Network] | None = None
         self._discovery_port = DEFAULT_PORT
+        self._excluded_hosts: set[str] = set()
         self._suggested_network: str | None = None
 
     def _unconfigured_hosts(self, hosts: list[str]) -> list[str]:
@@ -192,10 +229,35 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             for entry in self.hass.config_entries.async_entries(DOMAIN)
             if CONF_HOST in entry.data
         }
-        return [host for host in hosts if host not in configured_hosts]
+        excluded_hosts = configured_hosts | self._excluded_hosts
+        return [host for host in hosts if host not in excluded_hosts]
+
+    async def _async_prepare_next_discovery(
+        self, current_host: str
+    ) -> tuple[config_entries.FlowType, str] | None:
+        """Start a fresh scan to continue adding remaining devices."""
+        excluded_hosts = self._excluded_hosts | {current_host}
+        next_result = await self.hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={
+                "source": config_entries.SOURCE_USER,
+                _CONTEXT_CONTINUE_DISCOVERY: True,
+                _CONTEXT_DISCOVERY_NETWORKS: [
+                    str(network) for network in self._discovery_networks or []
+                ],
+                _CONTEXT_DISCOVERY_PORT: self._discovery_port,
+                _CONTEXT_EXCLUDED_HOSTS: sorted(excluded_hosts),
+            },
+        )
+        if flow_id := next_result.get("flow_id"):
+            return (config_entries.FlowType.CONFIG_FLOW, flow_id)
+        return None
 
     async def _async_create_device(
-        self, user_input: dict[str, Any]
+        self,
+        user_input: dict[str, Any],
+        *,
+        continue_discovery: bool = False,
     ) -> FlowResult | str:
         """Validate a device and return an entry or a translated error key."""
         try:
@@ -212,14 +274,39 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             **user_input,
             CONF_PROTOCOL: detected_protocol,
         }
+        next_flow = None
+        if continue_discovery:
+            self._discovery_port = user_input[CONF_PORT]
+            next_flow = await self._async_prepare_next_discovery(
+                str(user_input[CONF_HOST])
+            )
         return self.async_create_entry(
-            title=f"TSUN Local ({unique_id})", data=entry_data
+            title=f"TSUN Local ({unique_id})",
+            data=entry_data,
+            next_flow=next_flow,
         )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Offer manual setup or a user-initiated local network search."""
+        if self.context.get(_CONTEXT_CONTINUE_DISCOVERY):
+            self._discovery_port = int(
+                self.context.get(_CONTEXT_DISCOVERY_PORT, DEFAULT_PORT)
+            )
+            self._excluded_hosts.update(
+                str(host)
+                for host in self.context.get(_CONTEXT_EXCLUDED_HOSTS, [])
+            )
+            serialized_networks = self.context.get(
+                _CONTEXT_DISCOVERY_NETWORKS, []
+            )
+            if serialized_networks:
+                self._discovery_networks = [
+                    parse_discovery_network(str(discovered_network))
+                    for discovered_network in serialized_networks
+                ]
+            return await self.async_step_discover()
         return self.async_show_menu(
             step_id="user", menu_options=["discover", "manual"]
         )
@@ -246,9 +333,12 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if self._discovered_hosts is None:
             discovered_hosts: list[str] = []
             try:
-                discovery_networks = await _async_get_discovery_networks(
-                    self.hass
-                )
+                discovery_networks = self._discovery_networks
+                if discovery_networks is None:
+                    discovery_networks = await _async_get_discovery_networks(
+                        self.hass
+                    )
+                    self._discovery_networks = discovery_networks
                 if discovery_networks:
                     self._suggested_network = str(discovery_networks[0])
                 discovered_hosts = await async_scan_networks(
@@ -264,7 +354,9 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         errors: dict[str, str] = {}
         if user_input is not None:
-            result = await self._async_create_device(user_input)
+            result = await self._async_create_device(
+                user_input, continue_discovery=True
+            )
             if not isinstance(result, str):
                 return result
             errors["base"] = result
@@ -289,6 +381,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 self._discovery_port = user_input[CONF_PORT]
                 self._suggested_network = str(discovery_network)
+                self._discovery_networks = [discovery_network]
                 discovered_hosts = await async_scan_networks(
                     [discovery_network], self._discovery_port
                 )
@@ -370,9 +463,17 @@ class TsunOptionsFlow(config_entries.OptionsFlowWithReload):
                     CONF_SCAN_INTERVAL: self.config_entry.options.get(
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     ),
+                    CONF_ERROR_SCAN_INTERVAL: self.config_entry.options.get(
+                        CONF_ERROR_SCAN_INTERVAL,
+                        DEFAULT_ERROR_SCAN_INTERVAL,
+                    ),
                     CONF_OFFLINE_SCAN_INTERVAL: self.config_entry.options.get(
                         CONF_OFFLINE_SCAN_INTERVAL,
                         DEFAULT_OFFLINE_SCAN_INTERVAL,
+                    ),
+                    CONF_FAILURE_THRESHOLD: self.config_entry.options.get(
+                        CONF_FAILURE_THRESHOLD,
+                        DEFAULT_FAILURE_THRESHOLD,
                     ),
                 },
             ),

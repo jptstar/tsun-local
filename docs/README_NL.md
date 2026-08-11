@@ -12,7 +12,7 @@
 
 **TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks in Home Assistant **via het lokale netwerk, zonder proxy of cloudservice**.
 
-Versie 1.2.0 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+Versie 1.2.1 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
 
 **Auteur: Jean-Philippe TESTART (jptstar)**
 
@@ -103,13 +103,13 @@ Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configurati
 
 ## Meerdere apparaten
 
-Meerdere compatibele micro-omvormers kunnen aan dezelfde Home Assistant-installatie worden toegevoegd. Voer voor elk apparaat **Integratie toevoegen** uit en geef het IP-adres en unieke SN op. Elke configuratie maakt een onafhankelijk apparaat met eigen entiteiten en een eigen communicatiecoördinator.
+Nadat een via de netwerkzoekfunctie gevonden apparaat is toegevoegd, opent Home Assistant automatisch een nieuwe zoekopdracht voor de volgende micro-omvormer. Dezelfde netwerken en TCP-poort worden hergebruikt, het zojuist ingestelde adres wordt verborgen en de reeks stopt wanneer geen ongeconfigureerd apparaat overblijft. Elke micro-omvormer vereist nog steeds een eigen Monitor SN en krijgt een onafhankelijke configuratie met eigen entiteiten en intervallen.
 
 ## Instellingen in Home Assistant
 
 Open onder **Instellingen → Apparaten & diensten → TSUN Local** het menu van het betreffende apparaat:
 
-- **Configureren** stelt het normale interval in van 10 seconden tot 5 minuten (standaard 30 seconden) en het offline-/nachtinterval van 1 tot 60 minuten (standaard 5 minuten);
+- **Configureren** stelt het normale interval in van 10 seconden tot 5 minuten (standaard 20 seconden), de herhaling na een fout van 10 seconden tot 5 minuten (standaard 20 seconden), het offline-/nachtinterval van 1 tot 60 minuten (standaard 5 minuten) en de drempel van 1 tot 20 opeenvolgende fouten (standaard 3);
 - **Opnieuw configureren** wijzigt het IP-adres en de TCP-poort zonder entiteiten te verwijderen;
 - elk apparaat heeft onafhankelijke pollingintervallen.
 
@@ -123,9 +123,11 @@ Om te voorkomen dat de micro-omvormer internet bereikt, maakt u in de router of 
 
 Wanneer de micro-omvormer niet meer wordt gevoed, markeert de integratie hem als offline zonder bij elke polling opnieuw een fout te melden:
 
+Tot de instelbare foutdrempel is bereikt, blijven de laatste waarden beschikbaar en gebruiken herhalingen het foutinterval. Bij het bereiken van de drempel (standaard 3 fouten) gaat het apparaat offline en gebruikt het offline-/nachtinterval. De eerste geslaagde reactie zet de teller op nul en herstelt het normale interval.
+
 - actuele metingen (spanning, stroom, vermogen en frequentie) worden niet beschikbaar zodat geen verouderde waarden worden getoond;
 - dagelijkse en totale energietellers blijven beschikbaar met hun laatst bekende waarde;
-- de diagnose **Communicatie** meldt offline;
+- de binaire sensor **Micro-omvormer online** meldt offline;
 - de teller voor opeenvolgende communicatiefouten keert terug naar nul wanneer de communicatie wordt hervat;
 - het tijdstip van de laatste geslaagde communicatie blijft beschikbaar;
 - nieuwe pogingen gebruiken het ingestelde offline-/nachtinterval;
@@ -133,7 +135,7 @@ Wanneer de micro-omvormer niet meer wordt gevoed, markeert de integratie hem als
 
 ## Sensoren
 
-De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 diagnosesensoren en één verbindingsstatus.
+De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 diagnosesensoren en de binaire verbindingssensor **Micro-omvormer online**.
 
 Het aantal PV-ingangen is dynamisch: PV1 is na de eerste uitlezing beschikbaar; PV2 tot PV6 voor TITAN of PV2 tot PV4 voor GEN3/GEN3 PLUS worden toegevoegd zodra een geldige meting of energieteller wordt waargenomen. Een eenmaal gedetecteerde ingang blijft in Home Assistant geregistreerd.
 
@@ -144,4 +146,3 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Dit project wordt verspreid onder de **GNU General Public License v3.0 of later** (GPL-3.0-or-later). Gewijzigde of opnieuw verspreide versies moeten aan deze licentie voldoen en de auteursrecht- en licentievermeldingen behouden. Zie [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 De licentie dekt uitsluitend deze onafhankelijke implementatie. Zij verleent geen rechten op handelsmerken, logo’s, software of producten van TSUN. Dit project blijft onofficieel en niet verbonden aan TSUN.
-

@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.2.0** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
+**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.2.1** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
 
 ## À propos du projet
 
@@ -27,7 +27,7 @@ Les retours matériels, résultats de diagnostic et signalements de bugs précis
 - tension, courant, puissance, énergie journalière et énergie totale pour chaque entrée PV détectée ;
 - puissance DC totale calculée à partir des puissances PV détectées ;
 - alarmes brutes du micro-onduleur et état global d’alarme ;
-- diagnostics de communication et intervalles normal/hors ligne distincts ;
+- diagnostics de communication avec des intervalles distincts en fonctionnement normal, après erreur et hors ligne/nuit ;
 - un bouton par appareil pour actualiser immédiatement les données ;
 - plusieurs micro-onduleurs dans la même installation Home Assistant ;
 - entités Home Assistant traduites en français, anglais, allemand, espagnol, italien, néerlandais, polonais et chinois simplifié.
@@ -92,18 +92,20 @@ Le protocole local est détecté automatiquement dès que l’appareil répond. 
 
 La recherche réseau examine les sous-réseaux IPv4 visibles depuis Home Assistant sur le port TCP choisi. Un VLAN, un réseau routé, un conteneur ou l’isolation des clients Wi-Fi peuvent empêcher cette recherche ; la configuration manuelle reste alors disponible.
 
-Pour ajouter plusieurs micro-onduleurs, relancez **Ajouter une intégration** pour chaque appareil, car chacun nécessite son propre Monitor SN. Une nouvelle recherche réseau masque les adresses déjà configurées et propose les appareils restants. Chaque entrée possède son appareil, ses entités, son adresse IP, son logger SN et ses propres intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
+Après l’ajout d’un appareil trouvé sur le réseau, Home Assistant ouvre automatiquement une nouvelle recherche pour le micro-onduleur suivant. Elle réutilise les mêmes réseaux et le même port TCP, masque l’adresse qui vient d’être configurée et s’arrête lorsqu’il ne reste aucun appareil. Chaque micro-onduleur nécessite toujours son propre Monitor SN et crée une entrée indépendante avec ses entités et ses intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
 
 ## Réglages d’interrogation
 
 Dans **Paramètres → Appareils et services → TSUN Local**, ouvrez **Configurer** pour l’appareil concerné :
 
-- intervalle normal : de 10 secondes à 5 minutes, 30 secondes par défaut ;
-- intervalle hors ligne/nuit : de 1 à 60 minutes, 5 minutes par défaut.
+- intervalle normal : de 10 secondes à 5 minutes, 20 secondes par défaut ;
+- intervalle de nouvelle tentative après une erreur : de 10 secondes à 5 minutes, 20 secondes par défaut ;
+- intervalle hors ligne/nuit : de 1 à 60 minutes, 5 minutes par défaut ;
+- échecs consécutifs avant le passage hors ligne : de 1 à 20, 3 par défaut.
 
 Utilisez **Reconfigurer** pour modifier l’adresse IP ou le port TCP sans supprimer les entités existantes.
 
-Le bouton **Actualiser les données** lance immédiatement une lecture complète du micro-onduleur concerné sans modifier les deux intervalles. Si un autre appareil TSUN est en cours de lecture, l’actualisation manuelle attend la fin de cette interrogation.
+Le bouton **Actualiser les données** lance immédiatement une lecture complète du micro-onduleur concerné sans modifier les intervalles configurés. Si un autre appareil TSUN est en cours de lecture, l’actualisation manuelle attend la fin de cette interrogation.
 
 ## Entités
 
@@ -116,7 +118,7 @@ Les données disponibles comprennent :
 - les mesures instantanées et compteurs d’énergie AC ;
 - cinq mesures pour chaque entrée PV détectée ;
 - la puissance DC totale calculée ;
-- quatre diagnostics de communication et un état de connectivité ;
+- quatre diagnostics de communication et un capteur binaire de connectivité **Micro-onduleur en ligne** ;
 - un état global d’alarme et les registres bruts propres au protocole.
 - un bouton manuel **Actualiser les données**.
 
@@ -140,10 +142,12 @@ Les catégories documentées comprennent notamment les tensions ou courants PV a
 
 Lorsque le micro-onduleur alimenté par les panneaux ne répond plus la nuit :
 
+Tant que le seuil configurable n’est pas atteint, les dernières valeurs restent disponibles et les nouvelles tentatives utilisent l’intervalle après erreur. Lorsque le seuil est atteint (3 échecs par défaut), l’appareil passe hors ligne et utilise l’intervalle hors ligne/nuit. La première réponse réussie remet immédiatement le compteur à zéro et rétablit l’intervalle normal.
+
 - les tensions, courants, puissances et fréquences instantanés deviennent indisponibles ;
 - l’état et les registres bruts d’alarme deviennent indisponibles ;
 - les compteurs d’énergie journaliers et totaux conservent leur dernière valeur ;
-- la communication passe hors ligne et le compteur d’échecs augmente ;
+- **Micro-onduleur en ligne** se désactive et le compteur d’échecs augmente ;
 - l’intervalle hors ligne/nuit plus lent est utilisé ;
 - l’intervalle normal revient après la première réponse réussie.
 

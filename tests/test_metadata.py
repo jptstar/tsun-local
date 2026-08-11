@@ -50,6 +50,31 @@ class MetadataTests(unittest.TestCase):
             )
             self.assertEqual(set(translated), {"sensor", "binary_sensor", "button"})
 
+    def test_connectivity_binary_sensor_has_an_explicit_localized_name(self) -> None:
+        expected_names = {
+            "de.json": "Mikrowechselrichter online",
+            "en.json": "Micro-inverter online",
+            "es.json": "Microinversor en línea",
+            "fr.json": "Micro-onduleur en ligne",
+            "it.json": "Microinverter online",
+            "nl.json": "Micro-omvormer online",
+            "pl.json": "Mikrofalownik online",
+            "zh-Hans.json": "微型逆变器在线",
+        }
+        strings = _load_json(INTEGRATION / "strings.json")
+        self.assertEqual(
+            strings["entity"]["binary_sensor"]["communication_online"]["name"],
+            "Micro-inverter online",
+        )
+        for filename, expected_name in expected_names.items():
+            translated = _load_json(INTEGRATION / "translations" / filename)
+            self.assertEqual(
+                translated["entity"]["binary_sensor"]["communication_online"][
+                    "name"
+                ],
+                expected_name,
+            )
+
     def test_documentation_language_layout(self) -> None:
         self.assertTrue((ROOT / "README.md").is_file())
         self.assertFalse((ROOT / "README_EN.md").exists())

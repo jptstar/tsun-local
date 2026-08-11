@@ -12,7 +12,7 @@
 
 **TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili **attraverso la rete locale, senza proxy né servizi cloud**.
 
-La versione 1.2.0 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
+La versione 1.2.1 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
@@ -103,13 +103,13 @@ Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione ma
 
 ## Più dispositivi
 
-È possibile aggiungere più microinverter compatibili alla stessa installazione di Home Assistant. Eseguire **Aggiungi integrazione** per ogni dispositivo e inserire il relativo indirizzo IP e SN univoco. Ogni configurazione crea un dispositivo indipendente con le proprie entità e il proprio coordinatore di comunicazione.
+Dopo l’aggiunta di un dispositivo trovato tramite la ricerca di rete, Home Assistant apre automaticamente una nuova ricerca per il microinverter successivo. Riutilizza le stesse reti e la stessa porta TCP, nasconde l’indirizzo appena configurato e termina quando non rimangono dispositivi da configurare. Ogni microinverter richiede comunque il proprio Monitor SN e crea una voce indipendente con entità e intervalli propri.
 
 ## Impostazioni in Home Assistant
 
 In **Impostazioni → Dispositivi e servizi → TSUN Local**, aprire il menu del dispositivo interessato:
 
-- **Configura** imposta l’intervallo normale da 10 secondi a 5 minuti (30 secondi per impostazione predefinita) e l’intervallo offline/notturno da 1 a 60 minuti (5 minuti per impostazione predefinita);
+- **Configura** imposta l’intervallo normale da 10 secondi a 5 minuti (20 secondi predefiniti), il nuovo tentativo dopo un errore da 10 secondi a 5 minuti (20 secondi predefiniti), l’intervallo offline/notturno da 1 a 60 minuti (5 minuti predefiniti) e la soglia da 1 a 20 errori consecutivi (3 predefiniti);
 - **Riconfigura** modifica l’indirizzo IP e la porta TCP senza eliminare le entità;
 - ogni dispositivo dispone di intervalli di polling indipendenti.
 
@@ -123,9 +123,11 @@ Per impedire al microinverter di accedere a Internet, creare nel router o nel fi
 
 Quando il microinverter non è più alimentato, l’integrazione lo contrassegna come offline senza ripetere un errore a ogni interrogazione:
 
+Fino al raggiungimento della soglia configurabile, gli ultimi valori restano disponibili e i nuovi tentativi usano l’intervallo dopo errore. Al raggiungimento della soglia (3 errori predefiniti), il dispositivo passa offline e usa l’intervallo offline/notturno. La prima risposta riuscita azzera il contatore e ripristina l’intervallo normale.
+
 - le misure istantanee (tensione, corrente, potenza e frequenza) diventano non disponibili per evitare valori obsoleti;
 - i contatori di energia giornaliera e totale restano disponibili con l’ultimo valore noto;
-- la diagnostica **Comunicazione** indica lo stato offline;
+- il sensore binario **Microinverter online** indica lo stato offline;
 - il contatore degli errori di comunicazione consecutivi torna a zero quando la comunicazione riprende;
 - l’ora dell’ultima comunicazione riuscita resta disponibile;
 - i nuovi tentativi utilizzano l’intervallo offline/notturno configurato;
@@ -133,7 +135,7 @@ Quando il microinverter non è più alimentato, l’integrazione lo contrassegna
 
 ## Sensori
 
-L’integrazione crea un unico dispositivo con misure AC, 5 misure per ogni ingresso FV rilevato, la somma delle potenze DC rilevate, 4 sensori diagnostici e uno stato di connettività.
+L’integrazione crea un unico dispositivo con misure AC, 5 misure per ogni ingresso FV rilevato, la somma delle potenze DC rilevate, 4 sensori diagnostici e il sensore binario di connettività **Microinverter online**.
 
 Il numero di ingressi FV è dinamico: PV1 è disponibile dopo la prima lettura; da PV2 a PV6 per TITAN o da PV2 a PV4 per GEN3/GEN3 PLUS vengono aggiunti quando viene rilevata una misura o un contatore di energia valido. Un ingresso rilevato resta registrato in Home Assistant.
 
@@ -144,4 +146,3 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Questo progetto è distribuito con licenza **GNU General Public License v3.0 o successiva** (GPL-3.0-or-later). Le versioni modificate o ridistribuite devono rispettare questa licenza e conservare le note di copyright e di licenza. Vedere [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 La licenza copre esclusivamente questa implementazione indipendente. Non concede alcun diritto sui marchi, loghi, software o prodotti TSUN. Questo progetto resta non ufficiale e non affiliato a TSUN.
-
