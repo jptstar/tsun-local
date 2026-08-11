@@ -84,7 +84,7 @@ Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélecti
 2. Redémarrez Home Assistant.
 3. Ouvrez **Paramètres → Appareils et services → Ajouter une intégration**.
 4. Recherchez **TSUN Local**.
-5. Renseignez l’adresse IP, le port et le **SN inscrit sur l’étiquette du micro-onduleur**.
+5. Renseignez l’adresse IP, le port et le **Monitor SN / Logger SN inscrit sur l’étiquette du micro-onduleur**.
 
 Lors de l’ajout, choisissez **Rechercher sur le réseau local** ou **Configuration manuelle**, puis sélectionnez **TITAN** pour le TSOL-MP3000 ou **GEN3 / GEN3 PLUS** pour le MX500. Renseignez le **Monitor SN / Logger SN** imprimé sur l’étiquette. La recherche examine uniquement le réseau IPv4 local sur le port 8899 et n’envoie aucune donnée aux adresses candidates.
 
