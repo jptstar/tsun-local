@@ -6,10 +6,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import logging
 from typing import Protocol
 
 DEFAULT_PROTOCOL = "auto"
 SUPPORTED_PROTOCOLS = ("1511", "02b0")
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,12 +109,21 @@ class TsunAutoClient:
             candidate = _create_specific_client(
                 protocol_name, self.host, self.port, self.logger_sn
             )
+            _LOGGER.debug("Automatic protocol detection: trying %s", protocol_name)
             try:
                 result = await candidate.async_read_all()
             except Exception as err:  # Detection intentionally tries the next adapter.
                 last_error = err
+                _LOGGER.debug(
+                    "Automatic protocol detection: %s failed with %s",
+                    protocol_name,
+                    type(err).__name__,
+                )
                 continue
             self._client = candidate
+            _LOGGER.debug(
+                "Automatic protocol detection: selected %s", protocol_name
+            )
             return result
 
         raise RuntimeError("No supported TSUN local protocol detected") from last_error
