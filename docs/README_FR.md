@@ -22,14 +22,6 @@ TSUN Local est une intégration Home Assistant que j’ai initialement développ
 
 Si je reçois des retours et des informations de diagnostic concernant certains modèles, je veux bien consacrer un peu de temps à améliorer leur compatibilité et à corriger les bugs. TSUN Local reste toutefois un hobby et une activité secondaire, et non mon activité principale. Il se peut donc que mes réponses ou corrections prennent parfois du temps.
 
-## Licence
-
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
-
-Ce projet est distribué sous la licence **GNU General Public License v3.0 ou ultérieure** (`GPL-3.0-or-later`). Les versions modifiées ou redistribuées doivent respecter les conditions de cette licence et conserver les mentions de copyright et de licence. Consultez le fichier [LICENSE](../LICENSE).
-
-La licence couvre uniquement cette implémentation indépendante. Elle ne confère aucun droit sur les marques, logos, logiciels ou produits de TSUN. Ce projet reste non officiel et sans affiliation avec TSUN.
-
 ## Versions
 
 Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utilise les GitHub Releases pour proposer les mises à jour. Consultez le [journal des modifications](../CHANGELOG.md) pour connaître le détail de chaque version.
@@ -144,3 +136,11 @@ Lorsque le micro-onduleur n’est plus alimenté, l’intégration le considère
 L’intégration crée un appareil unique avec les mesures AC, 5 mesures par entrée PV détectée, la somme des puissances DC détectées, 4 capteurs de diagnostic et un état de connectivité.
 
 Le nombre d’entrées PV est dynamique : PV1 est disponible dès la première lecture, puis PV2 à PV6 pour TITAN ou PV2 à PV4 pour GEN3/GEN3 PLUS sont ajoutées lorsqu’une mesure ou un compteur valide est observé. Une entrée découverte reste enregistrée dans Home Assistant.
+
+## Licence
+
+Copyright © 2026 Jean-Philippe TESTART (jptstar).
+
+Ce projet est distribué sous la licence **GNU General Public License v3.0 ou ultérieure** (GPL-3.0-or-later). Les versions modifiées ou redistribuées doivent respecter les conditions de cette licence et conserver les mentions de copyright et de licence. Consultez le fichier [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
+
+La licence couvre uniquement cette implémentation indépendante. Elle ne confère aucun droit sur les marques, logos, logiciels ou produits de TSUN. Ce projet reste non officiel et sans affiliation avec TSUN.
