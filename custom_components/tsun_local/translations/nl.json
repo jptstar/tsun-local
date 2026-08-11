@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Verbinding wijzigen",
-        "description": "Wijzig het IP-adres, de TCP-poort of de apparaatfamilie. De Monitor SN / Logger SN blijft de permanente identiteit.",
+        "description": "Wijzig het IP-adres of de TCP-poort. De gedetecteerde apparaatfamilie blijft automatisch behouden en de Monitor SN / Logger SN blijft de permanente identiteit.",
         "data": {
           "host": "IP-adres",
           "port": "Poort",
@@ -20,7 +20,7 @@
       },
       "manual": {
         "title": "Handmatige configuratie",
-        "description": "Voer de verbindingsgegevens in en kies de apparaatfamilie. De Monitor SN / Logger SN staat op het apparaatlabel.",
+        "description": "Voer de verbindingsgegevens in. De apparaatfamilie wordt automatisch gedetecteerd. De Monitor SN / Logger SN staat op het apparaatetiket.",
         "data": {
           "host": "IP-adres",
           "port": "Poort",
@@ -30,7 +30,7 @@
       },
       "discover": {
         "title": "Gevonden apparaten",
-        "description": "Selecteer een adres dat op TCP-poort 8899 is gevonden, kies de apparaatfamilie en voer de Monitor SN / Logger SN in.",
+        "description": "Selecteer een adres dat op de gekozen TCP-poort is gevonden en voer de Monitor SN / Logger SN in. De apparaatfamilie wordt automatisch gedetecteerd.",
         "data": {
           "host": "Gevonden adres",
           "port": "Poort",
