@@ -38,23 +38,33 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 
 ### Micro-inverters
 
-| Family | Models | Status |
+#### TITAN
+
+| Configuration | Models | Status |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validated |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Pending validation |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Unsupported |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validated |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocol and PV5/PV6 map to validate |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Pending validation |
+| 6-in-1 | **TSOL-MP3000** | ✅ Validated |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Pending validation |
+| Inputs to be determined | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Unsupported |
 
-The GEN3 / GEN3 PLUS adapter dynamically detects devices with **1, 2, or 4 PV inputs**.
+#### GEN3 / GEN3 PLUS — MX series
 
-The **MX3300, MX3000, MX2700, MX2500, and MX2400** model names do not appear explicitly in the supplied protocol maps. A real-device capture is required to confirm the protocol and identify the PV5/PV6 registers before support can be added.
+| Configuration | Models | Status |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ Validated |
+| 1-in-1 | **MX450, MX400** | ❌ Pending validation |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ Pending validation |
+| 4-in-1 | **MX2250** | ❌ Pending validation |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Pending validation |
+
+#### GEN3 / GEN3 PLUS — MS series
+
+| Configuration | Models | Status |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Pending validation |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Pending validation |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Pending validation |
+
+PV input discovery is dynamic up to **6 inputs for TITAN**. For GEN3 / GEN3 PLUS, the current map covers **1, 2, or 4 PV inputs**; PV5 and PV6 are not detected yet.
 
 ### Other devices
 
