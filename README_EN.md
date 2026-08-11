@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.3 supports the validated **TSOL-MP3000** and adds initial support for **GEN3**, **GEN3 PLUS**, and other **TITAN** models pending validation on real hardware.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.4 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,8 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 | GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS | **MS3000** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ Pending validation |
+| GEN3 / GEN3 PLUS | **MX500** | ✅ Validated |
+| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS | **MX3000** | ⛔ Unsupported |
 
 The GEN3 / GEN3 PLUS adapter dynamically detects devices with **1, 2, or 4 PV inputs**.
@@ -85,7 +86,7 @@ If the latest version is not shown, open the repository menu and select **Update
 4. Search for **TSUN Local**.
 5. Enter the IP address, port, and the **SN printed on the micro-inverter label**.
 
-The local protocol is detected automatically when the device is added.
+When adding a device, choose **Search the local network** or **Manual configuration**, then select **TITAN** for the TSOL-MP3000 or **GEN3 / GEN3 PLUS** for the MX500. Enter the **Monitor SN / Logger SN** printed on the label. Discovery scans only the local IPv4 network on port 8899 and sends no data to candidate addresses.
 
 ## Multiple devices
 
@@ -98,6 +99,12 @@ Under **Settings → Devices & services → TSUN Local**, open the menu for the 
 - **Configure** sets the normal interval from 10 seconds to 5 minutes (30 seconds by default) and the offline/night interval from 1 to 60 minutes (5 minutes by default);
 - **Reconfigure** changes the IP address and TCP port without deleting entities;
 - each device has independent polling intervals.
+
+## Local operation and cloud isolation
+
+TSUN Local communicates only over the local network and uses no cloud service. The integration does not change the firmware’s cloud settings.
+
+To prevent the micro-inverter from reaching the Internet, create a router or firewall rule that blocks its WAN access while retaining local-network and DHCP access. Home Assistant must remain allowed to reach the micro-inverter IP address on TCP port **8899**. Once installed, HACS only needs Internet access to check for and download updates.
 
 ## Night operation
 
