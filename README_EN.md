@@ -71,7 +71,7 @@ PV input discovery is dynamic up to **6 inputs for TITAN**. For GEN3 / GEN3 PLUS
 | Type | Models | Status |
 |---|---|---|
 | GEN3 PLUS battery | **TSOL-DC1000** | ❌ Pending validation |
-| Smart meters | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Unsupported |
+| Smart meter | **TSOL-MG3-MS, DDZY422-D2** | ❌ Pending validation |
 
 ## Installation
 
