@@ -71,7 +71,7 @@ De PV-detectie is voor TITAN dynamisch tot **6 ingangen**. Voor GEN3 / GEN3 PLUS
 | Type | Modellen | Status |
 |---|---|---|
 | GEN3 PLUS-batterij | **TSOL-DC1000** | ❌ Validatie in afwachting |
-| Slimme meters | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Niet ondersteund |
+| Slimme meter | **TSOL-MG3-MS, DDZY422-D2** | ❌ Validatie in afwachting |
 
 ## Installatie
 
