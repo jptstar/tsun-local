@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.6 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.7 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ If the latest version is not shown, open the repository menu and select **Update
 4. Search for **TSUN Local**.
 5. Enter the IP address, port, and the **Monitor SN / Logger SN printed on the micro-inverter label**.
 
-When adding a device, choose **Search the local network** or **Manual configuration**, then select **TITAN** for the TSOL-MP3000 or **GEN3 / GEN3 PLUS** for the MX500. Enter the **Monitor SN / Logger SN** printed on the label. Discovery scans every active IPv4 network exposed by Home Assistant on the selected port and sends no application data to candidate addresses. If no device is found, the form lets you enter a routed LAN or VLAN subnet in CIDR notation.
+When adding a device, choose **Search the local network** or **Manual configuration**, then enter the **Monitor SN / Logger SN** printed on the label. The integration detects the supported local protocol automatically; no device-family selection is required. Discovery scans every active IPv4 network exposed by Home Assistant on the selected port and sends no application data to candidate addresses. If no device is found, the form lets you enter a routed LAN or VLAN subnet in CIDR notation.
 
 ## Multiple devices
 
