@@ -10,7 +10,7 @@
 
 > **Projekt nieoficjalny** — Ta niezależna integracja społecznościowa nie jest opracowywana, zatwierdzana ani utrzymywana przez TSUN i nie jest w żaden sposób powiązana z TSUN. TSUN oraz nazwy jego produktów pozostają własnością odpowiednich podmiotów. Prośby o pomoc dotyczącą tej integracji należy kierować do jej autora, a nie do TSUN.
 
-**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.6 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.7 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ Jeśli najnowsza wersja nie jest widoczna, otwórz menu repozytorium i wybierz *
 4. Wyszukaj **TSUN Local**.
 5. Wprowadź adres IP, port oraz **Monitor SN / Logger SN wydrukowany na etykiecie mikrofalownika**.
 
-Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**, a następnie **TITAN** dla TSOL-MP3000 albo **GEN3 / GEN3 PLUS** dla MX500. Wprowadź **Monitor SN / Logger SN** z etykiety. Wyszukiwanie sprawdza wszystkie aktywne sieci IPv4 udostępnione przez Home Assistant na wybranym porcie i nie wysyła danych aplikacji do adresów kandydatów. Jeśli nie zostanie znalezione żadne urządzenie, formularz umożliwia podanie routowanej podsieci LAN lub VLAN w notacji CIDR.
+Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**, a następnie wprowadź **Monitor SN / Logger SN** z etykiety. Integracja automatycznie wykrywa obsługiwany protokół lokalny; wybór rodziny urządzenia nie jest wymagany. Wyszukiwanie sprawdza wszystkie aktywne sieci IPv4 udostępnione przez Home Assistant na wybranym porcie i nie wysyła danych aplikacji do adresów kandydatów. Jeśli nie zostanie znalezione żadne urządzenie, formularz umożliwia podanie routowanej podsieci LAN lub VLAN w notacji CIDR.
 
 ## Wiele urządzeń
 
