@@ -1,0 +1,174 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aggiungi un dispositivo TSUN Local",
+        "description": "Inserisci i dati della connessione locale. Il protocollo e gli ingressi PV disponibili verranno rilevati automaticamente. Il numero di serie (SN) richiesto è riportato sull'etichetta del microinverter. Ripeti Aggiungi integrazione per ogni dispositivo compatibile aggiuntivo.",
+        "data": {
+          "host": "Indirizzo IP",
+          "port": "Porta",
+          "logger_sn": "SN del microinverter (etichetta)"
+        }
+      },
+      "reconfigure": {
+        "title": "Modifica connessione",
+        "description": "Modifica l'indirizzo IP o la porta TCP di questo dispositivo. Il numero di serie del microinverter rimane il suo identificativo permanente.",
+        "data": {
+          "host": "Indirizzo IP",
+          "port": "Porta"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile connettersi al dispositivo",
+      "invalid_response": "Il dispositivo ha restituito una risposta non valida"
+    },
+    "abort": {
+      "already_configured": "Questo microinverter è già configurato"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Impostazioni di polling",
+        "description": "Imposta l'intervallo di polling normale e l'intervallo più lento utilizzato quando il dispositivo è offline o non alimentato durante la notte.",
+        "data": {
+          "scan_interval": "Intervallo di polling normale",
+          "offline_scan_interval": "Intervallo di polling offline/notturno"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "Tensione AC"
+      },
+      "ac_current": {
+        "name": "Corrente AC"
+      },
+      "ac_frequency": {
+        "name": "Frequenza AC"
+      },
+      "ac_power": {
+        "name": "Potenza AC"
+      },
+      "ac_energy_today": {
+        "name": "Energia AC di oggi"
+      },
+      "ac_energy_total": {
+        "name": "Energia AC totale"
+      },
+      "dc_power_total": {
+        "name": "Potenza DC totale"
+      },
+      "communication_last_success": {
+        "name": "Ultima comunicazione riuscita"
+      },
+      "communication_duration": {
+        "name": "Durata della comunicazione"
+      },
+      "communication_blocks": {
+        "name": "Blocchi ricevuti"
+      },
+      "communication_failures": {
+        "name": "Errori di comunicazione consecutivi"
+      },
+      "pv1_voltage": {
+        "name": "Tensione PV1"
+      },
+      "pv1_current": {
+        "name": "Corrente PV1"
+      },
+      "pv1_power": {
+        "name": "Potenza PV1"
+      },
+      "pv1_energy_today": {
+        "name": "Energia PV1 di oggi"
+      },
+      "pv1_energy_total": {
+        "name": "Energia PV1 totale"
+      },
+      "pv2_voltage": {
+        "name": "Tensione PV2"
+      },
+      "pv2_current": {
+        "name": "Corrente PV2"
+      },
+      "pv2_power": {
+        "name": "Potenza PV2"
+      },
+      "pv2_energy_today": {
+        "name": "Energia PV2 di oggi"
+      },
+      "pv2_energy_total": {
+        "name": "Energia PV2 totale"
+      },
+      "pv3_voltage": {
+        "name": "Tensione PV3"
+      },
+      "pv3_current": {
+        "name": "Corrente PV3"
+      },
+      "pv3_power": {
+        "name": "Potenza PV3"
+      },
+      "pv3_energy_today": {
+        "name": "Energia PV3 di oggi"
+      },
+      "pv3_energy_total": {
+        "name": "Energia PV3 totale"
+      },
+      "pv4_voltage": {
+        "name": "Tensione PV4"
+      },
+      "pv4_current": {
+        "name": "Corrente PV4"
+      },
+      "pv4_power": {
+        "name": "Potenza PV4"
+      },
+      "pv4_energy_today": {
+        "name": "Energia PV4 di oggi"
+      },
+      "pv4_energy_total": {
+        "name": "Energia PV4 totale"
+      },
+      "pv5_voltage": {
+        "name": "Tensione PV5"
+      },
+      "pv5_current": {
+        "name": "Corrente PV5"
+      },
+      "pv5_power": {
+        "name": "Potenza PV5"
+      },
+      "pv5_energy_today": {
+        "name": "Energia PV5 di oggi"
+      },
+      "pv5_energy_total": {
+        "name": "Energia PV5 totale"
+      },
+      "pv6_voltage": {
+        "name": "Tensione PV6"
+      },
+      "pv6_current": {
+        "name": "Corrente PV6"
+      },
+      "pv6_power": {
+        "name": "Potenza PV6"
+      },
+      "pv6_energy_today": {
+        "name": "Energia PV6 di oggi"
+      },
+      "pv6_energy_total": {
+        "name": "Energia PV6 totale"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Comunicazione"
+      }
+    }
+  }
+}
