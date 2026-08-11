@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.8] - 2026-08-11
+
+### Changed
+
+- replaced the negative compatibility markers with clearer, more welcoming community-testing statuses in all eight documentation languages;
+- models with an available adapter now show that testers are wanted, while models needing protocol or hardware data are identified separately.
+
 ## [1.1.7] - 2026-08-11
 
 ### Changed
@@ -121,6 +128,7 @@ All notable changes to this project are documented here. The project follows [Se
 - GitHub documentation in French, English, and German;
 - the GPL-3.0 license and copyright notice for Jean-Philippe TESTART (jptstar).
 
+[1.1.8]: https://github.com/jptstar/tsun-local/compare/v1.1.7...v1.1.8
 [1.1.7]: https://github.com/jptstar/tsun-local/compare/v1.1.6...v1.1.7
 [1.1.6]: https://github.com/jptstar/tsun-local/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/jptstar/tsun-local/compare/v1.1.4...v1.1.5

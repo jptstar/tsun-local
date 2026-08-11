@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.7 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.8 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
@@ -39,8 +39,8 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 ### Légende
 
 - ✅ Compatible et validé sur matériel réel
-- ❌ Adaptateur disponible, validation matérielle en attente
-- ⛔ À tester
+- 🧪 Prêt pour les tests de la communauté — adaptateur disponible, vos retours sont les bienvenus
+- 🔎 Données matérielles recherchées — compatibilité encore à confirmer
 
 ### Micro-onduleurs
 
@@ -49,26 +49,26 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 | Configuration | Modèles | Statut |
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Validé |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ À valider |
-| Entrées à déterminer | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ À tester |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Testeurs recherchés |
+| Entrées à déterminer | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Données matérielles recherchées |
 
 #### GEN3 / GEN3 PLUS — série MX
 
 | Configuration | Modèles | Statut |
 |---|---|---|
 | 1-in-1 | **MX500** | ✅ Validé |
-| 1-in-1 | **MX450, MX400** | ❌ À valider |
-| 2-in-1 | **MX1000, MX900, MX800** | ❌ À valider |
-| 4-in-1 | **MX2250** | ❌ À valider |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ À valider |
+| 1-in-1 | **MX450, MX400** | 🧪 Testeurs recherchés |
+| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Testeurs recherchés |
+| 4-in-1 | **MX2250** | 🧪 Testeurs recherchés |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Données matérielles recherchées |
 
 #### GEN3 / GEN3 PLUS — série MS
 
 | Configuration | Modèles | Statut |
 |---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ À valider |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ À valider |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ À valider |
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Testeurs recherchés |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Testeurs recherchés |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Testeurs recherchés |
 
 La détection est dynamique jusqu’à **6 entrées PV pour TITAN**. Pour GEN3 / GEN3 PLUS, la carte actuelle couvre les configurations à **1, 2 ou 4 entrées PV** ; les entrées PV5 et PV6 ne sont pas encore détectées.
 
@@ -76,8 +76,10 @@ La détection est dynamique jusqu’à **6 entrées PV pour TITAN**. Pour GEN3 /
 
 | Type | Modèles | Statut |
 |---|---|---|
-| Batterie GEN3 PLUS | **TSOL-DC1000** | ❌ À valider |
-| Compteur intelligent | **TSOL-MG3-MS, DDZY422-D2** | ❌ À valider |
+| Batterie GEN3 PLUS | **TSOL-DC1000** | 🔎 Données matérielles recherchées |
+| Compteur intelligent | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Données matérielles recherchées |
+
+> **Vous possédez l’un de ces modèles ?** Les modèles marqués 🧪 sont prêts à être testés par la communauté. [Ouvrez un rapport de compatibilité](https://github.com/jptstar/tsun-local/issues/new) en indiquant le modèle exact, la version du micrologiciel et le résultat du test. Masquez les numéros de série complets et les informations privées du réseau.
 
 ## Installation
 

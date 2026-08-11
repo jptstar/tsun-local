@@ -10,7 +10,7 @@
 
 > **Proyecto no oficial** — Esta integración comunitaria independiente no está desarrollada, aprobada ni mantenida por TSUN y no está afiliada a TSUN de ninguna manera. TSUN y los nombres de sus productos siguen siendo propiedad de sus respectivos titulares. Las solicitudes de asistencia relacionadas con esta integración deben dirigirse a su autor, no a TSUN.
 
-**TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles presentes en la red local, sin proxy ni servicio en la nube. La versión 1.1.7 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
+**TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles presentes en la red local, sin proxy ni servicio en la nube. La versión 1.1.8 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -39,8 +39,8 @@ Las versiones publicadas siguen el formato `MAJOR.MINOR.PATCH`. HACS utiliza las
 ### Leyenda
 
 - ✅ Compatible y validado en hardware real
-- ❌ Adaptador disponible, validación de hardware pendiente
-- ⛔ Por probar
+- 🧪 Listo para pruebas de la comunidad — adaptador disponible; agradecemos los comentarios
+- 🔎 Se necesitan datos del hardware — compatibilidad pendiente de confirmación
 
 ### Microinversores
 
@@ -49,26 +49,26 @@ Las versiones publicadas siguen el formato `MAJOR.MINOR.PATCH`. HACS utiliza las
 | Configuración | Modelos | Estado |
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Validado |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Validación pendiente |
-| Entradas por determinar | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Por probar |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Se buscan probadores |
+| Entradas por determinar | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Se buscan datos del hardware |
 
 #### GEN3 / GEN3 PLUS — serie MX
 
 | Configuración | Modelos | Estado |
 |---|---|---|
 | 1-in-1 | **MX500** | ✅ Validado |
-| 1-in-1 | **MX450, MX400** | ❌ Validación pendiente |
-| 2-in-1 | **MX1000, MX900, MX800** | ❌ Validación pendiente |
-| 4-in-1 | **MX2250** | ❌ Validación pendiente |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Validación pendiente |
+| 1-in-1 | **MX450, MX400** | 🧪 Se buscan probadores |
+| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Se buscan probadores |
+| 4-in-1 | **MX2250** | 🧪 Se buscan probadores |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Se buscan datos del hardware |
 
 #### GEN3 / GEN3 PLUS — serie MS
 
 | Configuración | Modelos | Estado |
 |---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validación pendiente |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validación pendiente |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validación pendiente |
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Se buscan probadores |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Se buscan probadores |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Se buscan probadores |
 
 La detección FV es dinámica hasta **6 entradas para TITAN**. Para GEN3 / GEN3 PLUS, el mapa actual cubre **1, 2 o 4 entradas FV**; PV5 y PV6 todavía no se detectan.
 
@@ -76,8 +76,10 @@ La detección FV es dinámica hasta **6 entradas para TITAN**. Para GEN3 / GEN3 
 
 | Tipo | Modelos | Estado |
 |---|---|---|
-| Batería GEN3 PLUS | **TSOL-DC1000** | ❌ Validación pendiente |
-| Contador inteligente | **TSOL-MG3-MS, DDZY422-D2** | ❌ Validación pendiente |
+| Batería GEN3 PLUS | **TSOL-DC1000** | 🔎 Se buscan datos del hardware |
+| Contador inteligente | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Se buscan datos del hardware |
+
+> **¿Tiene uno de estos modelos?** Los modelos marcados con 🧪 están listos para pruebas de la comunidad. [Abra un informe de compatibilidad](https://github.com/jptstar/tsun-local/issues/new) indicando el modelo exacto, la versión del firmware y el resultado de la prueba. Oculte los números de serie completos y los datos privados de la red.
 
 ## Instalación
 
