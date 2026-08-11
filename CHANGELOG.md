@@ -1,100 +1,100 @@
-# Journal des modifications
+# Changelog
 
-Toutes les évolutions notables de ce projet sont documentées ici. Le projet suit le [versionnement sémantique](https://semver.org/lang/fr/).
+All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.1.5] - 2026-08-11
 
-### Modifié
+### Changed
 
-- présentation du projet précisant que TSUN Local est une intégration personnelle développée comme hobby et partagée avec la communauté ;
-- attentes d’assistance clarifiées : les retours et diagnostics peuvent aider à améliorer certains modèles, mais les réponses et corrections peuvent demander du temps ;
-- documentation anglaise conservée à la racine pour GitHub et HACS, avec les sept traductions regroupées dans le dossier `docs/` ;
-- statut ⛔ renommé « À tester » dans toutes les langues.
+- clarified that TSUN Local is a personal integration developed as a hobby and shared with the community;
+- clarified support expectations: feedback and diagnostics can help improve support for specific models, but replies and fixes may take time;
+- kept the English documentation at the repository root for GitHub and HACS, with the seven translations grouped in the `docs/` directory;
+- renamed the ⛔ status to “To be tested” in every language.
 
 ## [1.1.4] - 2026-08-11
 
-### Ajouté
+### Added
 
-- recherche à la demande des appareils candidats sur le réseau IPv4 local, sans envoi de données pendant la détection ;
-- choix explicite de la famille **TITAN** ou **GEN3 / GEN3 PLUS** lors de l’ajout et de la reconfiguration ;
-- diagnostics détaillés du protocole 02B0 avec masquage du Monitor SN / Logger SN ;
-- outil de diagnostic indépendant pour faciliter les validations sur matériel réel.
+- on-demand discovery of candidate devices on the local IPv4 network, without sending data during detection;
+- explicit selection of the **TITAN** or **GEN3 / GEN3 PLUS** family during setup and reconfiguration;
+- detailed 02B0 protocol diagnostics with Monitor SN / Logger SN masking;
+- a standalone diagnostic tool to facilitate validation on real hardware.
 
-### Modifié
+### Changed
 
-- **MX500** déclaré compatible et validé sur matériel réel avec une entrée PV ;
-- matrice de compatibilité MX et MS restructurée selon les variantes à 1, 2, 4 ou 6 entrées PV ;
-- **TSOL-DC1000** ajouté comme batterie GEN3 PLUS en attente de validation ;
-- **TSOL-MG3-MS** et **DDZY422-D2** classés comme compteurs intelligents en attente de validation, sans protocole attribué ;
-- documentation anglaise utilisée comme README principal et documentation française déplacée vers `README_FR.md` ;
-- libellés de configuration précisant que le **Monitor SN / Logger SN** se trouve sur l’étiquette de l’appareil ;
-- documentation du fonctionnement entièrement local et de l’isolation facultative du cloud au niveau du routeur ou du pare-feu.
+- declared **MX500** compatible and validated on real hardware with one PV input;
+- restructured the MX and MS compatibility matrix according to models with 1, 2, 4, or 6 PV inputs;
+- added **TSOL-DC1000** as a GEN3 PLUS battery pending validation;
+- classified **TSOL-MG3-MS** and **DDZY422-D2** as smart meters pending validation, without assigning a protocol;
+- made the English documentation the main README and moved the French documentation to `README_FR.md`;
+- clarified in configuration labels that the **Monitor SN / Logger SN** is printed on the device label;
+- documented fully local operation and optional cloud isolation at the router or firewall level.
 
-### Corrigé
+### Fixed
 
-- la configuration d’un appareil GEN3 / GEN3 PLUS utilise directement son adaptateur et ne tente plus d’abord une autre famille de protocole.
+- GEN3 / GEN3 PLUS device setup now uses its adapter directly instead of trying another protocol family first.
 
 ## [1.1.3] - 2026-08-11
 
-### Ajouté
+### Added
 
-- documentation complète en néerlandais, italien, espagnol, polonais et chinois simplifié.
+- complete documentation in Dutch, Italian, Spanish, Polish, and Simplified Chinese.
 
-### Modifié
+### Changed
 
-- ajout d’un sélecteur commun des huit langues dans tous les README.
+- added a shared eight-language selector to every README.
 
 ## [1.1.2] - 2026-08-11
 
-### Ajouté
+### Added
 
-- traductions Home Assistant en néerlandais (`nl`), italien (`it`), espagnol (`es`), polonais (`pl`) et chinois simplifié (`zh-Hans`).
+- Home Assistant translations in Dutch (`nl`), Italian (`it`), Spanish (`es`), Polish (`pl`), and Simplified Chinese (`zh-Hans`).
 
 ## [1.1.1] - 2026-08-11
 
-### Modifié
+### Changed
 
-- ajout du **MX500** à la liste des micro-onduleurs GEN3 / GEN3 PLUS disponibles pour essai et en attente de validation sur matériel réel.
+- added **MX500** to the list of GEN3 / GEN3 PLUS micro-inverters available for testing and awaiting validation on real hardware.
 
 ## [1.1.0] - 2026-08-11
 
-### Ajouté
+### Added
 
-- détection automatique du protocole local lors de l’ajout d’un appareil ;
-- premier adaptateur GEN3 / GEN3 PLUS fondé sur la carte de registres 02B0 fournie ;
-- détection progressive du nombre d’entrées PV : jusqu’à 6 pour TITAN et jusqu’à 4 pour GEN3 / GEN3 PLUS ;
-- ajout dynamique dans Home Assistant des entités correspondant aux entrées PV détectées ;
-- tests unitaires des enveloppes AP, CRC, requêtes, réponses, compteurs 32 bits et décodeurs des deux protocoles.
+- automatic local protocol detection when adding a device;
+- the first GEN3 / GEN3 PLUS adapter based on the provided 02B0 register map;
+- progressive PV-input discovery: up to 6 inputs for TITAN and up to 4 inputs for GEN3 / GEN3 PLUS;
+- dynamic creation in Home Assistant of entities corresponding to detected PV inputs;
+- unit tests for AP envelopes, CRC, requests, responses, 32-bit counters, and both protocol decoders.
 
-### Modifié
+### Changed
 
-- la puissance DC totale additionne uniquement les entrées PV détectées ;
-- les compteurs d’énergie restent disponibles hors ligne et la nuit, tandis que les mesures instantanées deviennent indisponibles ;
-- la documentation de compatibilité distingue les appareils validés, disponibles pour essai et non pris en charge.
+- total DC power now sums only detected PV inputs;
+- energy counters remain available while offline and at night, while instantaneous measurements become unavailable;
+- compatibility documentation now distinguishes validated devices, devices available for testing, and unsupported devices.
 
 ## [1.0.1] - 2026-08-11
 
-### Modifié
+### Changed
 
-- le port local par défaut `8899` est maintenant prérempli dans le formulaire Home Assistant et reste modifiable par l’utilisateur.
+- the default local port `8899` is now pre-filled in the Home Assistant form and remains user-configurable.
 
 ## [1.0.0] - 2026-08-10
 
-### Ajouté
+### Added
 
-- première version publique du logiciel TSUN Local ;
-- domaine Home Assistant générique et stable `tsun_local` ;
-- interface commune pour des adaptateurs de protocoles extensibles ;
-- première implémentation indépendante du protocole local 1511 pour le TSOL-MP3000 ;
-- lectures AC et PV1 à PV6 ;
-- puissance DC totale calculée comme somme des six puissances PV ;
-- diagnostics de communication et gestion automatique du fonctionnement nocturne ;
-- intervalles normal et hors ligne/nuit configurables pour chaque appareil ;
-- prise en charge de plusieurs micro-onduleurs ;
-- configuration et reconfiguration depuis Home Assistant ;
-- traductions Home Assistant en français, anglais et allemand ;
-- documentation GitHub en français, anglais et allemand ;
-- licence GPL-3.0 et copyright de Jean-Philippe TESTART (jptstar).
+- first public release of TSUN Local;
+- the generic and stable Home Assistant domain `tsun_local`;
+- a shared interface for extensible protocol adapters;
+- the first independent implementation of the local 1511 protocol for the TSOL-MP3000;
+- AC and PV1–PV6 readings;
+- total DC power calculated as the sum of the six PV powers;
+- communication diagnostics and automatic night-time operation handling;
+- configurable normal and offline/night polling intervals for each device;
+- support for multiple micro-inverters;
+- configuration and reconfiguration from Home Assistant;
+- Home Assistant translations in French, English, and German;
+- GitHub documentation in French, English, and German;
+- the GPL-3.0 license and copyright notice for Jean-Philippe TESTART (jptstar).
 
 [1.1.5]: https://github.com/jptstar/tsun-local/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/jptstar/tsun-local/compare/v1.1.3...v1.1.4
