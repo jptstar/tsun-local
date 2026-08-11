@@ -2,6 +2,15 @@
 
 Toutes les évolutions notables de ce projet sont documentées ici. Le projet suit le [versionnement sémantique](https://semver.org/lang/fr/).
 
+## [1.1.5] - 2026-08-11
+
+### Modifié
+
+- présentation du projet précisant que TSUN Local est une intégration personnelle développée comme hobby et partagée avec la communauté ;
+- attentes d’assistance clarifiées : les retours et diagnostics peuvent aider à améliorer certains modèles, mais les réponses et corrections peuvent demander du temps ;
+- documentation anglaise conservée à la racine pour GitHub et HACS, avec les sept traductions regroupées dans le dossier `docs/` ;
+- statut ⛔ renommé « À tester » dans toutes les langues.
+
 ## [1.1.4] - 2026-08-11
 
 ### Ajouté
@@ -87,6 +96,7 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 - documentation GitHub en français, anglais et allemand ;
 - licence GPL-3.0 et copyright de Jean-Philippe TESTART (jptstar).
 
+[1.1.5]: https://github.com/jptstar/tsun-local/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/jptstar/tsun-local/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/jptstar/tsun-local/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/jptstar/tsun-local/compare/v1.1.1...v1.1.2

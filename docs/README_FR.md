@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.4 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.5 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
