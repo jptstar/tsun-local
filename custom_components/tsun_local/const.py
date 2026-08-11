@@ -9,6 +9,7 @@ DOMAIN = "tsun_local"
 PLATFORMS = ["binary_sensor", "sensor"]
 
 CONF_LOGGER_SN = "logger_sn"
+CONF_DISCOVERY_NETWORK = "discovery_network"
 CONF_PROTOCOL = "protocol"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_OFFLINE_SCAN_INTERVAL = "offline_scan_interval"
