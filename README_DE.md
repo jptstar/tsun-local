@@ -70,7 +70,7 @@ Die PV-Erkennung erfolgt für TITAN dynamisch bis zu **6 Eingängen**. Für GEN3
 
 | Typ | Modelle | Status |
 |---|---|---|
-| Speichersystem | **DC1000** | ⛔ Nicht unterstützt |
+| GEN3-PLUS-Batterie | **TSOL-DC1000** | ❌ Validierung ausstehend |
 | Smart Meter | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Nicht unterstützt |
 
 ## Installation
