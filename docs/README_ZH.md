@@ -10,7 +10,7 @@
 
 > **非官方项目** — 此独立社区集成并非由 TSUN 开发、认可或维护，也与 TSUN 没有任何关联。TSUN 及其产品名称归各自权利人所有。有关此集成的支持请求应提交给作者，而不是 TSUN。
 
-**TSUN Local** 可通过本地网络将兼容的 TSUN 微型逆变器直接接入 Home Assistant，无需代理服务器或云服务。版本 1.1.6 支持已在真实设备上验证的 **TSOL-MP3000** 和 **MX500**，并为其他等待验证的 **TITAN**、**GEN3** 和 **GEN3 PLUS** 型号提供支持。
+**TSUN Local** 可通过本地网络将兼容的 TSUN 微型逆变器直接接入 Home Assistant，无需代理服务器或云服务。版本 1.1.7 支持已在真实设备上验证的 **TSOL-MP3000** 和 **MX500**，并为其他等待验证的 **TITAN**、**GEN3** 和 **GEN3 PLUS** 型号提供支持。
 
 **作者：Jean-Philippe TESTART（jptstar）**
 
@@ -103,7 +103,7 @@ TITAN 的光伏输入可动态检测至 **6 路**。对于 GEN3 / GEN3 PLUS，�
 4. 搜索 **TSUN Local**。
 5. 输入 IP 地址、端口以及**微型逆变器铭牌上的 Monitor SN / Logger SN**。
 
-添加设备时，请选择“**搜索本地网络**”或“**手动配置**”，然后为 TSOL-MP3000 选择 **TITAN**，或为 MX500 选择 **GEN3 / GEN3 PLUS**。请输入设备标签上的 **Monitor SN / Logger SN**。搜索会检查 Home Assistant 提供的所有活动 IPv4 网络上的所选端口，不会向候选地址发送应用层数据。如果未找到设备，表单允许以 CIDR 格式输入可路由的 LAN 或 VLAN 子网。
+添加设备时，请选择“**搜索本地网络**”或“**手动配置**”，然后输入设备标签上的 **Monitor SN / Logger SN**。集成会自动检测受支持的本地协议，无需选择设备系列。搜索会检查 Home Assistant 提供的所有活动 IPv4 网络上的所选端口，不会向候选地址发送应用层数据。如果未找到设备，表单允许以 CIDR 格式输入可路由的 LAN 或 VLAN 子网。
 
 ## 多台设备
 
