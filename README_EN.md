@@ -1,6 +1,6 @@
 # TSUN Local — Local Home Assistant integration
 
-[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md)
+[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.2 supports the validated **TSOL-MP3000** and adds initial support for **GEN3**, **GEN3 PLUS**, and other **TITAN** models pending validation on real hardware.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.3 supports the validated **TSOL-MP3000** and adds initial support for **GEN3**, **GEN3 PLUS**, and other **TITAN** models pending validation on real hardware.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 

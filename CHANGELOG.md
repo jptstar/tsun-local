@@ -2,6 +2,16 @@
 
 Toutes les évolutions notables de ce projet sont documentées ici. Le projet suit le [versionnement sémantique](https://semver.org/lang/fr/).
 
+## [1.1.3] - 2026-08-11
+
+### Ajouté
+
+- documentation complète en néerlandais, italien, espagnol, polonais et chinois simplifié.
+
+### Modifié
+
+- ajout d’un sélecteur commun des huit langues dans tous les README.
+
 ## [1.1.2] - 2026-08-11
 
 ### Ajouté
@@ -54,6 +64,7 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 - documentation GitHub en français, anglais et allemand ;
 - licence GPL-3.0 et copyright de Jean-Philippe TESTART (jptstar).
 
+[1.1.3]: https://github.com/jptstar/tsun-local/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/jptstar/tsun-local/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/jptstar/tsun-local/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jptstar/tsun-local/compare/v1.0.1...v1.1.0
