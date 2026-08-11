@@ -1,6 +1,6 @@
 # TSUN Local — Local Home Assistant integration
 
-[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](README.md) | [Français](docs/README_FR.md) | [Deutsch](docs/README_DE.md) | [Nederlands](docs/README_NL.md) | [Italiano](docs/README_IT.md) | [Español](docs/README_ES.md) | [Polski](docs/README_PL.md) | [简体中文](docs/README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -13,6 +13,12 @@
 **TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.4 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
 
 **Author: Jean-Philippe TESTART (jptstar)**
+
+## Project scope and support
+
+TSUN Local is a Home Assistant integration that I originally developed for fun and for my own personal use. Because many users have difficulty establishing a local connection to TITAN micro-inverters, I am making it available so that as many people as possible can benefit from it.
+
+If I receive feedback and diagnostic information for specific models, I am willing to spend some time improving compatibility and fixing bugs. However, TSUN Local remains a personal hobby and a secondary activity, not my main occupation. Replies and fixes may therefore sometimes take time.
 
 ## License
 
@@ -34,7 +40,7 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 
 - ✅ Compatible and validated on real hardware
 - ❌ Adapter available, hardware validation pending
-- ⛔ Currently unsupported
+- ⛔ To be tested
 
 ### Micro-inverters
 
@@ -44,7 +50,7 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Validated |
 | 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Pending validation |
-| Inputs to be determined | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Unsupported |
+| Inputs to be determined | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ To be tested |
 
 #### GEN3 / GEN3 PLUS — MX series
 

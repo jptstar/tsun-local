@@ -1,6 +1,6 @@
 # TSUN Local — Integrazione locale per Home Assistant
 
-[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -14,17 +14,23 @@
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
+## Natura del progetto e supporto
+
+TSUN Local è un'integrazione Home Assistant che ho sviluppato inizialmente per passione e per uso personale. Poiché molti utenti hanno difficoltà a stabilire una connessione locale con i microinverter TITAN, la rendo disponibile affinché il maggior numero possibile di persone possa beneficiarne.
+
+Se ricevo feedback e informazioni diagnostiche su modelli specifici, sono disposto a dedicare un po' di tempo a migliorare la compatibilità e correggere i bug. TSUN Local rimane tuttavia un hobby e un'attività secondaria, non la mia attività principale. Le risposte o le correzioni potrebbero quindi talvolta richiedere un po' di tempo.
+
 ## Licenza
 
 Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
-Questo progetto è distribuito con licenza **GNU General Public License v3.0 o successiva** (`GPL-3.0-or-later`). Le versioni modificate o ridistribuite devono rispettare questa licenza e conservare le note di copyright e di licenza. Vedere [LICENSE](LICENSE).
+Questo progetto è distribuito con licenza **GNU General Public License v3.0 o successiva** (`GPL-3.0-or-later`). Le versioni modificate o ridistribuite devono rispettare questa licenza e conservare le note di copyright e di licenza. Vedere [LICENSE](../LICENSE).
 
 La licenza copre esclusivamente questa implementazione indipendente. Non concede alcun diritto sui marchi, loghi, software o prodotti TSUN. Questo progetto resta non ufficiale e non affiliato a TSUN.
 
 ## Versioni
 
-Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le GitHub Releases per proporre gli aggiornamenti. Consultare il [registro delle modifiche](CHANGELOG.md) per i dettagli.
+Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le GitHub Releases per proporre gli aggiornamenti. Consultare il [registro delle modifiche](../CHANGELOG.md) per i dettagli.
 
 ## Compatibilità
 
@@ -34,7 +40,7 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 
 - ✅ Compatibile e convalidato su hardware reale
 - ❌ Adattatore disponibile, convalida hardware in attesa
-- ⛔ Attualmente non supportato
+- ⛔ Da testare
 
 ### Microinverter
 
@@ -44,7 +50,7 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Convalidato |
 | 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ In attesa di convalida |
-| Ingressi da determinare | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Non supportato |
+| Ingressi da determinare | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Da testare |
 
 #### GEN3 / GEN3 PLUS — serie MX
 

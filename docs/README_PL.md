@@ -1,6 +1,6 @@
 # TSUN Local — Lokalna integracja z Home Assistant
 
-[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -14,17 +14,23 @@
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
+## Charakter projektu i wsparcie
+
+TSUN Local to integracja Home Assistant, którą początkowo opracowałem dla przyjemności i na własny użytek. Ponieważ wielu użytkowników ma trudności z nawiązaniem lokalnego połączenia z mikrofalownikami TITAN, udostępniam ją, aby mogło z niej skorzystać jak najwięcej osób.
+
+Jeśli otrzymam opinie i informacje diagnostyczne dotyczące konkretnych modeli, chętnie poświęcę trochę czasu na poprawę kompatybilności i usuwanie błędów. TSUN Local pozostaje jednak hobby i zajęciem dodatkowym, a nie moją główną działalnością. Dlatego odpowiedzi lub poprawki mogą czasami wymagać trochę czasu.
+
 ## Licencja
 
 Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
-Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (`GPL-3.0-or-later`). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](LICENSE).
+Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (`GPL-3.0-or-later`). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](../LICENSE).
 
 Licencja obejmuje wyłącznie tę niezależną implementację. Nie przyznaje żadnych praw do znaków towarowych, logo, oprogramowania ani produktów TSUN. Projekt pozostaje nieoficjalny i niepowiązany z TSUN.
 
 ## Wersje
 
-Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Releases do udostępniania aktualizacji. Szczegóły znajdują się w [rejestrze zmian](CHANGELOG.md).
+Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Releases do udostępniania aktualizacji. Szczegóły znajdują się w [rejestrze zmian](../CHANGELOG.md).
 
 ## Zgodność
 
@@ -34,7 +40,7 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 
 - ✅ Zgodny i zweryfikowany na rzeczywistym sprzęcie
 - ❌ Adapter dostępny, oczekuje na weryfikację sprzętową
-- ⛔ Obecnie nieobsługiwany
+- ⛔ Do przetestowania
 
 ### Mikrofalowniki
 
@@ -44,7 +50,7 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Zweryfikowany |
 | 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Oczekują na weryfikację |
-| Liczba wejść do ustalenia | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Brak obsługi |
+| Liczba wejść do ustalenia | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Do przetestowania |
 
 #### GEN3 / GEN3 PLUS — seria MX
 

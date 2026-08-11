@@ -1,6 +1,6 @@
 # TSUN Local — Home Assistant 本地集成
 
-[English](README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -14,17 +14,23 @@
 
 **作者：Jean-Philippe TESTART（jptstar）**
 
+## 项目性质与支持
+
+TSUN Local 是一个 Home Assistant 集成，最初是我出于兴趣并为个人使用而开发的。由于许多用户难以与 TITAN 微型逆变器建立本地连接，我将此集成公开提供，希望尽可能多的人能够从中受益。
+
+如果我收到有关特定型号的反馈和诊断信息，我愿意投入一些时间来改进兼容性并修复错误。不过，TSUN Local 仍然是我的个人爱好和业余项目，并非我的主要工作。因此，我有时可能需要较长时间才能回复或发布修复。
+
 ## 许可证
 
 Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
-本项目依据 **GNU General Public License v3.0 或更高版本**（`GPL-3.0-or-later`）发布。修改或再分发的版本必须遵守此许可证，并保留版权和许可证声明。请参阅 [LICENSE](LICENSE)。
+本项目依据 **GNU General Public License v3.0 或更高版本**（`GPL-3.0-or-later`）发布。修改或再分发的版本必须遵守此许可证，并保留版权和许可证声明。请参阅 [LICENSE](../LICENSE)。
 
 该许可证仅涵盖此独立实现，不授予任何 TSUN 商标、徽标、软件或产品的权利。本项目始终为非官方项目，与 TSUN 无任何关联。
 
 ## 版本
 
-发布版本遵循 `MAJOR.MINOR.PATCH` 格式。HACS 通过 GitHub Releases 提供更新。详细信息请参阅[更新日志](CHANGELOG.md)。
+发布版本遵循 `MAJOR.MINOR.PATCH` 格式。HACS 通过 GitHub Releases 提供更新。详细信息请参阅[更新日志](../CHANGELOG.md)。
 
 ## 兼容性
 
@@ -34,7 +40,7 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 
 - ✅ 兼容并已在真实硬件上验证
 - ❌ 适配器已提供，等待硬件验证
-- ⛔ 当前不支持
+- ⛔ 待测试
 
 ### 微型逆变器
 
@@ -44,7 +50,7 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ 已验证 |
 | 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ 等待验证 |
-| 输入数量待确定 | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ 不支持 |
+| 输入数量待确定 | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ 待测试 |
 
 #### GEN3 / GEN3 PLUS — MX 系列
 
