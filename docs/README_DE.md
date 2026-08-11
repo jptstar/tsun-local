@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.2.0** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
+**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.2.1** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
 
 ## Über dieses Projekt
 
@@ -27,7 +27,7 @@ Hardware-Rückmeldungen, Diagnoseergebnisse und präzise Fehlerberichte sind wil
 - Spannung, Strom, Leistung sowie Tages- und Gesamtenergie je erkanntem PV-Eingang;
 - berechnete DC-Gesamtleistung aus den erkannten PV-Leistungen;
 - rohe Wechselrichteralarme und globaler Alarmstatus;
-- Kommunikationsdiagnosen und getrennte normale/Offline-Abfrageintervalle;
+- Kommunikationsdiagnosen mit getrennten Intervallen für Normalbetrieb, Fehlerwiederholung und Offline/Nacht;
 - eine Schaltfläche je Gerät zum sofortigen manuellen Aktualisieren der Daten;
 - mehrere Mikrowechselrichter in einer Home-Assistant-Installation;
 - übersetzte Home-Assistant-Entitäten auf Deutsch, Englisch, Französisch, Spanisch, Italienisch, Niederländisch, Polnisch und vereinfachtem Chinesisch.
@@ -92,18 +92,20 @@ Das lokale Protokoll wird automatisch erkannt, sobald das Gerät antwortet. Die 
 
 Die Netzwerksuche prüft die für Home Assistant sichtbaren IPv4-Subnetze am gewählten TCP-Port. VLANs, geroutete Netzwerke, Container-Netzwerke oder WLAN-Client-Isolation können die automatische Suche verhindern; die manuelle Konfiguration bleibt verfügbar.
 
-Mehrere Mikrowechselrichter werden jeweils über **Integration hinzufügen** eingerichtet, da jedes Gerät seine eigene Monitor SN benötigt. Eine neue Netzwerksuche blendet bereits eingerichtete Adressen aus und zeigt die übrigen Geräte an. Jeder Eintrag besitzt ein eigenes Gerät, eigene Entitäten und eigene Abfrageintervalle. Vollständige Geräteabfragen verwenden eine gemeinsame Sperre und laufen nacheinander, damit lokale Logger nicht gleichzeitig angesprochen werden.
+Nach dem Hinzufügen eines über die Netzwerksuche gefundenen Geräts öffnet Home Assistant automatisch eine neue Suche für den nächsten Mikrowechselrichter. Sie verwendet dieselben Netzwerke und denselben TCP-Port, blendet die gerade eingerichtete Adresse aus und endet, wenn kein weiteres Gerät übrig ist. Jeder Mikrowechselrichter benötigt weiterhin seine eigene Monitor SN und erhält einen unabhängigen Eintrag mit eigenen Entitäten und Abfrageintervallen. Vollständige Geräteabfragen verwenden eine gemeinsame Sperre und laufen nacheinander.
 
 ## Abfrageeinstellungen
 
 Öffne unter **Einstellungen → Geräte & Dienste → TSUN Local** die Option **Konfigurieren** des betreffenden Geräts:
 
-- normales Intervall: 10 Sekunden bis 5 Minuten, standardmäßig 30 Sekunden;
-- Offline-/Nachtintervall: 1 bis 60 Minuten, standardmäßig 5 Minuten.
+- normales Intervall: 10 Sekunden bis 5 Minuten, standardmäßig 20 Sekunden;
+- Wiederholungsintervall nach einem Kommunikationsfehler: 10 Sekunden bis 5 Minuten, standardmäßig 20 Sekunden;
+- Offline-/Nachtintervall: 1 bis 60 Minuten, standardmäßig 5 Minuten;
+- aufeinanderfolgende Fehler bis offline: 1 bis 20, standardmäßig 3.
 
 Mit **Neu konfigurieren** können IP-Adresse und TCP-Port geändert werden, ohne die vorhandenen Entitäten zu löschen.
 
-Die Schaltfläche **Daten aktualisieren** startet sofort eine vollständige Abfrage des betreffenden Mikrowechselrichters, ohne die beiden Intervalle zu ändern. Wird gerade ein anderes TSUN-Gerät gelesen, wartet die manuelle Aktualisierung bis zum Ende dieser Abfrage.
+Die Schaltfläche **Daten aktualisieren** startet sofort eine vollständige Abfrage des betreffenden Mikrowechselrichters, ohne die konfigurierten Intervalle zu ändern. Wird gerade ein anderes TSUN-Gerät gelesen, wartet die manuelle Aktualisierung bis zum Ende dieser Abfrage.
 
 ## Entitäten
 
@@ -116,7 +118,7 @@ Verfügbar sind:
 - AC-Momentanwerte und Energiezähler;
 - fünf Messwerte je erkanntem PV-Eingang;
 - berechnete DC-Gesamtleistung;
-- vier Kommunikationsdiagnosen und ein Verbindungsstatus;
+- vier Kommunikationsdiagnosen und ein binärer Verbindungssensor **Mikrowechselrichter online**;
 - ein globaler Wechselrichteralarm und protokollspezifische rohe Alarmregister.
 - eine manuelle Schaltfläche **Daten aktualisieren**.
 
@@ -140,10 +142,12 @@ Zu den dokumentierten Kategorien gehören ungewöhnliche PV-Spannungen oder -Str
 
 Wenn der solarbetriebene Mikrowechselrichter nachts nicht mehr antwortet:
 
+Bis zum konfigurierbaren Fehlerschwellenwert bleiben die letzten Werte verfügbar und Wiederholungen verwenden das Fehlerintervall. Beim Erreichen des Schwellenwerts (standardmäßig 3 Fehler) geht das Gerät offline und verwendet das Offline-/Nachtintervall. Die erste erfolgreiche Antwort setzt den Zähler sofort auf null zurück und stellt das normale Intervall wieder her.
+
 - Momentanwerte für Spannung, Strom, Leistung und Frequenz werden nicht verfügbar;
 - Alarmstatus und rohe Alarmregister werden nicht verfügbar;
 - Tages- und Gesamtenergiezähler behalten den letzten bekannten Wert;
-- die Kommunikation meldet offline und der Fehlerzähler steigt;
+- **Mikrowechselrichter online** wird ausgeschaltet und der Fehlerzähler steigt;
 - das langsamere Offline-/Nachtintervall wird verwendet;
 - nach der ersten erfolgreichen Antwort wird das normale Intervall wiederhergestellt.
 

@@ -60,10 +60,12 @@
     "step": {
       "init": {
         "title": "Ustawienia odpytywania",
-        "description": "Ustaw normalny interwał odpytywania oraz wolniejszy interwał używany, gdy urządzenie jest offline lub nie jest zasilane w nocy.",
+        "description": "Ustaw normalny interwał, ponowienie po błędzie, interwał offline/noc oraz liczbę kolejnych błędów przed przejściem offline.",
         "data": {
           "scan_interval": "Normalny interwał odpytywania",
-          "offline_scan_interval": "Interwał odpytywania offline/noc"
+          "error_scan_interval": "Interwał ponowienia po błędzie",
+          "offline_scan_interval": "Interwał odpytywania offline/noc",
+          "failure_threshold": "Błędy przed przejściem offline"
         }
       }
     }
@@ -200,7 +202,7 @@
     },
     "binary_sensor": {
       "communication_online": {
-        "name": "Komunikacja"
+        "name": "Mikrofalownik online"
       },
       "inverter_alarm": {
         "name": "Alarm falownika"

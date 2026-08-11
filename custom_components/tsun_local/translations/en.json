@@ -10,7 +10,7 @@
     "error": {"cannot_connect": "Unable to connect to the device", "invalid_network": "Enter a valid IPv4 subnet between /24 and /32", "invalid_response": "The device returned an invalid response", "no_devices_found": "No device accepting local connections was found on this subnet and port"},
     "abort": {"already_configured": "This micro-inverter is already configured", "all_devices_configured": "All detected micro-inverters are already configured", "no_devices_found": "No device accepting local connections on port 8899 was found"}
   },
-  "options": {"step": {"init": {"title": "Polling settings", "description": "Set the normal polling interval and the slower interval used when this device is offline or unpowered at night.", "data": {"scan_interval": "Normal polling interval", "offline_scan_interval": "Offline/night polling interval"}}}},
+  "options": {"step": {"init": {"title": "Polling settings", "description": "Set normal polling, retry after a communication error, offline/night polling, and the number of consecutive failures required before the device goes offline.", "data": {"scan_interval": "Normal polling interval", "error_scan_interval": "Retry interval after error", "offline_scan_interval": "Offline/night polling interval", "failure_threshold": "Failures before offline"}}}},
   "entity": {"sensor": {
     "alarm_global_0_raw": {"name": "Raw global alarm 0"}, "alarm_global_1_raw": {"name": "Raw global alarm 1"}, "alarm_global_2_raw": {"name": "Raw global alarm 2"}, "alarm_global_3_raw": {"name": "Raw global alarm 3"},
     "alarm_secondary_0_raw": {"name": "Raw secondary alarm 0"}, "alarm_secondary_1_raw": {"name": "Raw secondary alarm 1"}, "alarm_secondary_2_raw": {"name": "Raw secondary alarm 2"}, "alarm_secondary_3_raw": {"name": "Raw secondary alarm 3"},
@@ -25,5 +25,5 @@
     "pv4_voltage": {"name": "PV4 voltage"}, "pv4_current": {"name": "PV4 current"}, "pv4_power": {"name": "PV4 power"}, "pv4_energy_today": {"name": "PV4 energy today"}, "pv4_energy_total": {"name": "Total PV4 energy"},
     "pv5_voltage": {"name": "PV5 voltage"}, "pv5_current": {"name": "PV5 current"}, "pv5_power": {"name": "PV5 power"}, "pv5_energy_today": {"name": "PV5 energy today"}, "pv5_energy_total": {"name": "Total PV5 energy"},
     "pv6_voltage": {"name": "PV6 voltage"}, "pv6_current": {"name": "PV6 current"}, "pv6_power": {"name": "PV6 power"}, "pv6_energy_today": {"name": "PV6 energy today"}, "pv6_energy_total": {"name": "Total PV6 energy"}
-  }, "binary_sensor": {"communication_online": {"name": "Communication"}, "inverter_alarm": {"name": "Inverter alarm"}}, "button": {"refresh_data": {"name": "Refresh data"}}}
+  }, "binary_sensor": {"communication_online": {"name": "Micro-inverter online"}, "inverter_alarm": {"name": "Inverter alarm"}}, "button": {"refresh_data": {"name": "Refresh data"}}}
 }

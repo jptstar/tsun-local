@@ -12,7 +12,7 @@
 
 **TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles **a través de la red local, sin proxy ni servicio en la nube**.
 
-La versión 1.2.0 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
+La versión 1.2.1 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -103,13 +103,13 @@ Al añadir un dispositivo, elija **Buscar en la red local** o **Configuración m
 
 ## Varios dispositivos
 
-Se pueden añadir varios microinversores compatibles a la misma instalación de Home Assistant. Ejecute **Añadir integración** para cada dispositivo e introduzca su dirección IP y su SN único. Cada configuración crea un dispositivo independiente con sus propias entidades y su propio coordinador de comunicación.
+Después de añadir un dispositivo encontrado mediante la búsqueda de red, Home Assistant abre automáticamente una nueva búsqueda para el siguiente microinversor. Reutiliza las mismas redes y el mismo puerto TCP, oculta la dirección recién configurada y se detiene cuando no queda ningún dispositivo sin configurar. Cada microinversor sigue necesitando su propio Monitor SN y crea una entrada independiente con sus propias entidades e intervalos.
 
 ## Ajustes en Home Assistant
 
 En **Ajustes → Dispositivos y servicios → TSUN Local**, abra el menú del dispositivo correspondiente:
 
-- **Configurar** establece el intervalo normal entre 10 segundos y 5 minutos (30 segundos de forma predeterminada) y el intervalo sin conexión/nocturno entre 1 y 60 minutos (5 minutos de forma predeterminada);
+- **Configurar** establece el intervalo normal entre 10 segundos y 5 minutos (20 segundos de forma predeterminada), el reintento tras un error entre 10 segundos y 5 minutos (20 segundos de forma predeterminada), el intervalo sin conexión/nocturno entre 1 y 60 minutos (5 minutos de forma predeterminada) y el umbral entre 1 y 20 fallos consecutivos (3 de forma predeterminada);
 - **Reconfigurar** permite cambiar la dirección IP y el puerto TCP sin eliminar entidades;
 - cada dispositivo tiene intervalos de sondeo independientes.
 
@@ -123,9 +123,11 @@ Para impedir que el microinversor acceda a Internet, cree una regla en el router
 
 Cuando el microinversor deja de recibir alimentación, la integración lo marca como desconectado sin repetir un error en cada sondeo:
 
+Hasta alcanzar el umbral configurable, los últimos valores siguen disponibles y los reintentos usan el intervalo tras error. Al alcanzar el umbral (3 fallos de forma predeterminada), el dispositivo pasa a desconectado y usa el intervalo sin conexión/nocturno. La primera respuesta correcta pone el contador a cero y restablece el intervalo normal.
+
 - las mediciones instantáneas (tensión, corriente, potencia y frecuencia) dejan de estar disponibles para evitar mostrar valores obsoletos;
 - los contadores de energía diaria y total permanecen disponibles con su último valor conocido;
-- el diagnóstico **Comunicación** indica que el dispositivo está desconectado;
+- el sensor binario **Microinversor en línea** indica que el dispositivo está desconectado;
 - el contador de errores de comunicación consecutivos vuelve a cero cuando se reanuda la comunicación;
 - la hora de la última comunicación correcta permanece disponible;
 - los nuevos intentos utilizan el intervalo sin conexión/nocturno configurado;
@@ -133,7 +135,7 @@ Cuando el microinversor deja de recibir alimentación, la integración lo marca 
 
 ## Sensores
 
-La integración crea un único dispositivo con mediciones de CA, 5 mediciones por cada entrada FV detectada, la suma de las potencias de CC detectadas, 4 sensores de diagnóstico y un estado de conectividad.
+La integración crea un único dispositivo con mediciones de CA, 5 mediciones por cada entrada FV detectada, la suma de las potencias de CC detectadas, 4 sensores de diagnóstico y el sensor binario de conectividad **Microinversor en línea**.
 
 El número de entradas FV es dinámico: PV1 está disponible después de la primera lectura; de PV2 a PV6 para TITAN o de PV2 a PV4 para GEN3/GEN3 PLUS se añaden cuando se observa una medición o un contador de energía válido. Una entrada detectada permanece registrada en Home Assistant.
 
@@ -144,4 +146,3 @@ Copyright © 2026 Jean-Philippe TESTART (jptstar).
 Este proyecto se distribuye bajo la **GNU General Public License v3.0 o posterior** (GPL-3.0-or-later). Las versiones modificadas o redistribuidas deben cumplir esta licencia y conservar los avisos de copyright y licencia. Consulte [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
 
 La licencia cubre únicamente esta implementación independiente. No concede ningún derecho sobre las marcas, logotipos, programas o productos de TSUN. Este proyecto sigue siendo no oficial y no está afiliado a TSUN.
-

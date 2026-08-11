@@ -60,10 +60,12 @@
     "step": {
       "init": {
         "title": "轮询设置",
-        "description": "设置正常轮询间隔，以及设备离线或夜间断电时使用的较慢轮询间隔。",
+        "description": "设置正常轮询、通信错误后重试、离线/夜间轮询间隔，以及设备转为离线前允许的连续失败次数。",
         "data": {
           "scan_interval": "正常轮询间隔",
-          "offline_scan_interval": "离线/夜间轮询间隔"
+          "error_scan_interval": "错误后重试间隔",
+          "offline_scan_interval": "离线/夜间轮询间隔",
+          "failure_threshold": "转为离线前的失败次数"
         }
       }
     }
@@ -200,7 +202,7 @@
     },
     "binary_sensor": {
       "communication_online": {
-        "name": "通信"
+        "name": "微型逆变器在线"
       },
       "inverter_alarm": {
         "name": "逆变器报警"

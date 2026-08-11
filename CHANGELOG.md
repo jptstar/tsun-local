@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] - 2026-08-11
+
+### Changed
+
+- the connectivity binary sensor is now clearly named **Micro-inverter online** while retaining its stable technical identifier `communication_online`;
+- per-device polling now has separate normal, error-retry, and offline/night intervals, defaulting to 20, 20, and 300 seconds;
+- the number of consecutive communication failures before offline status is configurable from 1 to 20 and defaults to 3;
+
+### Fixed
+
+- adding a device from network search now automatically starts a fresh search for the next micro-inverter;
+- the chained search reuses the same networks and TCP port, excludes the device being saved, and stops when no unconfigured device remains;
+- each discovered micro-inverter still creates its own independent Home Assistant config entry and requires its own Monitor SN / Logger SN;
+- temporary communication failures retain the latest values until the configured threshold is reached, and a successful response immediately resets the counter.
+
 ## [1.2.0] - 2026-08-11
 
 ### Added
@@ -71,6 +86,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.2.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.1
 [1.2.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.0
 [1.1.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.1.4
 [1.0.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.0.0

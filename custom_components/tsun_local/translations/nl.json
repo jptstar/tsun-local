@@ -60,10 +60,12 @@
     "step": {
       "init": {
         "title": "Pollinginstellingen",
-        "description": "Stel het normale pollinginterval in en het langere interval dat wordt gebruikt wanneer dit apparaat offline is of 's nachts geen voeding heeft.",
+        "description": "Stel het normale interval, de herhaling na een fout, het offline-/nachtinterval en het aantal opeenvolgende fouten vóór offline in.",
         "data": {
           "scan_interval": "Normaal pollinginterval",
-          "offline_scan_interval": "Pollinginterval offline/'s nachts"
+          "error_scan_interval": "Herhalingsinterval na fout",
+          "offline_scan_interval": "Pollinginterval offline/'s nachts",
+          "failure_threshold": "Fouten vóór offline"
         }
       }
     }
@@ -200,7 +202,7 @@
     },
     "binary_sensor": {
       "communication_online": {
-        "name": "Communicatie"
+        "name": "Micro-omvormer online"
       },
       "inverter_alarm": {
         "name": "Omvormeralarm"

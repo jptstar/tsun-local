@@ -40,7 +40,9 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         entry: ConfigEntry,
         client: TsunProtocolClient,
         interval: int,
+        error_interval: int,
         offline_interval: int,
+        failure_threshold: int,
         poll_lock: asyncio.Lock,
     ) -> None:
         super().__init__(
@@ -53,7 +55,9 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         self._poll_lock = poll_lock
         self._normal_update_interval = timedelta(seconds=interval)
+        self._error_update_interval = timedelta(seconds=error_interval)
         self._offline_update_interval = timedelta(seconds=offline_interval)
+        self._failure_threshold = failure_threshold
         self._last_success: datetime | None = None
         self._consecutive_failures = 0
         self._online: bool | None = None
@@ -70,8 +74,12 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 else None
             ),
             "consecutive_failures": self._consecutive_failures,
+            "failure_threshold": self._failure_threshold,
             "normal_polling_seconds": int(
                 self._normal_update_interval.total_seconds()
+            ),
+            "error_polling_seconds": int(
+                self._error_update_interval.total_seconds()
             ),
             "offline_polling_seconds": int(
                 self._offline_update_interval.total_seconds()
@@ -96,19 +104,35 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if trace:
                 self._last_error["protocol"] = str(trace[-1].get("protocol", "unknown"))
                 self._last_error["stage"] = str(trace[-1].get("stage", "unknown"))
-            if self._online is not False:
-                _LOGGER.warning(
-                    "TSUN device is unavailable (%s); polling reduced to every "
-                    "%s seconds",
+            threshold_reached = (
+                self._consecutive_failures >= self._failure_threshold
+            )
+            if threshold_reached:
+                if self._online is not False:
+                    _LOGGER.warning(
+                        "TSUN device is unavailable after %s consecutive "
+                        "communication failures (%s); polling reduced to every "
+                        "%s seconds",
+                        self._consecutive_failures,
+                        type(err).__name__,
+                        int(self._offline_update_interval.total_seconds()),
+                    )
+                self._online = False
+                self.update_interval = self._offline_update_interval
+            else:
+                _LOGGER.debug(
+                    "TSUN communication attempt failed (%s/%s, %s); keeping "
+                    "the device available and retrying in %s seconds",
+                    self._consecutive_failures,
+                    self._failure_threshold,
                     type(err).__name__,
-                    int(self._offline_update_interval.total_seconds()),
+                    int(self._error_update_interval.total_seconds()),
                 )
-            self._online = False
-            self.update_interval = self._offline_update_interval
+                self.update_interval = self._error_update_interval
             previous_data = dict(self.data or {})
             previous_data.update(
                 {
-                    "communication_online": False,
+                    "communication_online": self._online is True,
                     "communication_duration": 0,
                     "communication_blocks": 0,
                     "communication_failures": self._consecutive_failures,

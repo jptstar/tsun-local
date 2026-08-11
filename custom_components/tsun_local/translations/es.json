@@ -60,10 +60,12 @@
     "step": {
       "init": {
         "title": "Ajustes de sondeo",
-        "description": "Configura el intervalo de sondeo normal y el intervalo más lento utilizado cuando el dispositivo está desconectado o sin alimentación durante la noche.",
+        "description": "Configura el intervalo normal, el reintento tras un error, el intervalo sin conexión/nocturno y el número de fallos consecutivos antes de pasar a desconectado.",
         "data": {
           "scan_interval": "Intervalo de sondeo normal",
-          "offline_scan_interval": "Intervalo de sondeo sin conexión/nocturno"
+          "error_scan_interval": "Intervalo de reintento tras error",
+          "offline_scan_interval": "Intervalo de sondeo sin conexión/nocturno",
+          "failure_threshold": "Fallos antes de desconectarse"
         }
       }
     }
@@ -200,7 +202,7 @@
     },
     "binary_sensor": {
       "communication_online": {
-        "name": "Comunicación"
+        "name": "Microinversor en línea"
       },
       "inverter_alarm": {
         "name": "Alarma del inversor"
