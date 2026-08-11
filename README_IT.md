@@ -38,23 +38,33 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 
 ### Microinverter
 
-| Famiglia | Modelli | Stato |
+#### TITAN
+
+| Configurazione | Modelli | Stato |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Convalidato |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ In attesa di convalida |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Non supportato |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Convalidato |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocollo e PV5/PV6 da convalidare |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ In attesa di convalida |
+| 6-in-1 | **TSOL-MP3000** | ✅ Convalidato |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ In attesa di convalida |
+| Ingressi da determinare | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Non supportato |
 
-L’adattatore GEN3 / GEN3 PLUS rileva dinamicamente i dispositivi con **1, 2 o 4 ingressi FV**.
+#### GEN3 / GEN3 PLUS — serie MX
 
-I nomi dei modelli **MX3300, MX3000, MX2700, MX2500 e MX2400** non compaiono esplicitamente nelle mappe di protocollo fornite. Prima del supporto è necessaria una cattura su hardware reale per confermare il protocollo e identificare i registri PV5/PV6.
+| Configurazione | Modelli | Stato |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ Convalidato |
+| 1-in-1 | **MX450, MX400** | ❌ In attesa di convalida |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ In attesa di convalida |
+| 4-in-1 | **MX2250** | ❌ In attesa di convalida |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ In attesa di convalida |
+
+#### GEN3 / GEN3 PLUS — serie MS
+
+| Configurazione | Modelli | Stato |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ In attesa di convalida |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ In attesa di convalida |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ In attesa di convalida |
+
+Il rilevamento PV è dinamico fino a **6 ingressi per TITAN**. Per GEN3 / GEN3 PLUS, la mappa attuale copre **1, 2 o 4 ingressi PV**; PV5 e PV6 non vengono ancora rilevati.
 
 ### Altri dispositivi
 
