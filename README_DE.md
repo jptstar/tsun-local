@@ -43,17 +43,18 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 | TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validiert |
 | TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Validierung ausstehend |
 | TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Nicht unterstützt |
-| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS | **MS3000** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS | **MX500** | ✅ Validiert |
-| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS | **MX3000** | ⛔ Nicht unterstützt |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validiert |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Nicht unterstützt |
+| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validierung ausstehend |
 
 Der GEN3-/GEN3-PLUS-Adapter erkennt Geräte mit **1, 2 oder 4 PV-Eingängen** dynamisch.
 
-Der **MX3000** wird nicht unterstützt, da die verfügbare Karte bei PV4 endet, während dieses Modell zusätzliche Eingänge haben kann.
+Die Modelle **MX3300, MX3000, MX2700, MX2500 und MX2400** besitzen 6 PV-Eingänge und werden derzeit nicht unterstützt: Die für diesen Adapter verfügbare Registerkarte endet bei PV4.
 
 ### Andere Geräte
 
