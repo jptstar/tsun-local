@@ -1,0 +1,174 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dodaj urządzenie TSUN Local",
+        "description": "Wprowadź lokalne dane połączenia. Protokół i dostępne wejścia PV zostaną wykryte automatycznie. Wymagany numer seryjny (SN) znajduje się na etykiecie mikrofalownika. Powtórz opcję Dodaj integrację dla każdego dodatkowego zgodnego urządzenia.",
+        "data": {
+          "host": "Adres IP",
+          "port": "Port",
+          "logger_sn": "SN mikrofalownika (etykieta)"
+        }
+      },
+      "reconfigure": {
+        "title": "Zmień połączenie",
+        "description": "Zmień adres IP lub port TCP tego urządzenia. Numer seryjny mikrofalownika pozostaje jego stałym identyfikatorem.",
+        "data": {
+          "host": "Adres IP",
+          "port": "Port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć się z urządzeniem",
+      "invalid_response": "Urządzenie zwróciło nieprawidłową odpowiedź"
+    },
+    "abort": {
+      "already_configured": "Ten mikrofalownik jest już skonfigurowany"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ustawienia odpytywania",
+        "description": "Ustaw normalny interwał odpytywania oraz wolniejszy interwał używany, gdy urządzenie jest offline lub nie jest zasilane w nocy.",
+        "data": {
+          "scan_interval": "Normalny interwał odpytywania",
+          "offline_scan_interval": "Interwał odpytywania offline/noc"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "Napięcie AC"
+      },
+      "ac_current": {
+        "name": "Prąd AC"
+      },
+      "ac_frequency": {
+        "name": "Częstotliwość AC"
+      },
+      "ac_power": {
+        "name": "Moc AC"
+      },
+      "ac_energy_today": {
+        "name": "Dzisiejsza energia AC"
+      },
+      "ac_energy_total": {
+        "name": "Całkowita energia AC"
+      },
+      "dc_power_total": {
+        "name": "Całkowita moc DC"
+      },
+      "communication_last_success": {
+        "name": "Ostatnia udana komunikacja"
+      },
+      "communication_duration": {
+        "name": "Czas komunikacji"
+      },
+      "communication_blocks": {
+        "name": "Odebrane bloki"
+      },
+      "communication_failures": {
+        "name": "Kolejne błędy komunikacji"
+      },
+      "pv1_voltage": {
+        "name": "Napięcie PV1"
+      },
+      "pv1_current": {
+        "name": "Prąd PV1"
+      },
+      "pv1_power": {
+        "name": "Moc PV1"
+      },
+      "pv1_energy_today": {
+        "name": "Dzisiejsza energia PV1"
+      },
+      "pv1_energy_total": {
+        "name": "Całkowita energia PV1"
+      },
+      "pv2_voltage": {
+        "name": "Napięcie PV2"
+      },
+      "pv2_current": {
+        "name": "Prąd PV2"
+      },
+      "pv2_power": {
+        "name": "Moc PV2"
+      },
+      "pv2_energy_today": {
+        "name": "Dzisiejsza energia PV2"
+      },
+      "pv2_energy_total": {
+        "name": "Całkowita energia PV2"
+      },
+      "pv3_voltage": {
+        "name": "Napięcie PV3"
+      },
+      "pv3_current": {
+        "name": "Prąd PV3"
+      },
+      "pv3_power": {
+        "name": "Moc PV3"
+      },
+      "pv3_energy_today": {
+        "name": "Dzisiejsza energia PV3"
+      },
+      "pv3_energy_total": {
+        "name": "Całkowita energia PV3"
+      },
+      "pv4_voltage": {
+        "name": "Napięcie PV4"
+      },
+      "pv4_current": {
+        "name": "Prąd PV4"
+      },
+      "pv4_power": {
+        "name": "Moc PV4"
+      },
+      "pv4_energy_today": {
+        "name": "Dzisiejsza energia PV4"
+      },
+      "pv4_energy_total": {
+        "name": "Całkowita energia PV4"
+      },
+      "pv5_voltage": {
+        "name": "Napięcie PV5"
+      },
+      "pv5_current": {
+        "name": "Prąd PV5"
+      },
+      "pv5_power": {
+        "name": "Moc PV5"
+      },
+      "pv5_energy_today": {
+        "name": "Dzisiejsza energia PV5"
+      },
+      "pv5_energy_total": {
+        "name": "Całkowita energia PV5"
+      },
+      "pv6_voltage": {
+        "name": "Napięcie PV6"
+      },
+      "pv6_current": {
+        "name": "Prąd PV6"
+      },
+      "pv6_power": {
+        "name": "Moc PV6"
+      },
+      "pv6_energy_today": {
+        "name": "Dzisiejsza energia PV6"
+      },
+      "pv6_energy_total": {
+        "name": "Całkowita energia PV6"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Komunikacja"
+      }
+    }
+  }
+}
