@@ -10,7 +10,9 @@
 
 > **Projekt nieoficjalny** — Ta niezależna integracja społecznościowa nie jest opracowywana, zatwierdzana ani utrzymywana przez TSUN i nie jest w żaden sposób powiązana z TSUN. TSUN oraz nazwy jego produktów pozostają własnością odpowiednich podmiotów. Prośby o pomoc dotyczącą tej integracji należy kierować do jej autora, a nie do TSUN.
 
-**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.8 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant **przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej**.
+
+Wersja 1.1.8 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
