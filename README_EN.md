@@ -84,7 +84,7 @@ If the latest version is not shown, open the repository menu and select **Update
 2. Restart Home Assistant.
 3. Open **Settings → Devices & services → Add integration**.
 4. Search for **TSUN Local**.
-5. Enter the IP address, port, and the **SN printed on the micro-inverter label**.
+5. Enter the IP address, port, and the **Monitor SN / Logger SN printed on the micro-inverter label**.
 
 When adding a device, choose **Search the local network** or **Manual configuration**, then select **TITAN** for the TSOL-MP3000 or **GEN3 / GEN3 PLUS** for the MX500. Enter the **Monitor SN / Logger SN** printed on the label. Discovery scans only the local IPv4 network on port 8899 and sends no data to candidate addresses.
 
