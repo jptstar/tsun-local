@@ -2,6 +2,25 @@
 
 Toutes les évolutions notables de ce projet sont documentées ici. Le projet suit le [versionnement sémantique](https://semver.org/lang/fr/).
 
+## [1.1.4] - 2026-08-11
+
+### Ajouté
+
+- recherche à la demande des appareils candidats sur le réseau IPv4 local, sans envoi de données pendant la détection ;
+- choix explicite de la famille **TITAN** ou **GEN3 / GEN3 PLUS** lors de l’ajout et de la reconfiguration ;
+- diagnostics détaillés du protocole 02B0 avec masquage du Monitor SN / Logger SN ;
+- outil de diagnostic indépendant pour faciliter les validations sur matériel réel.
+
+### Modifié
+
+- **MX500** déclaré compatible et validé sur matériel réel avec une entrée PV ;
+- libellés de configuration précisant que le **Monitor SN / Logger SN** se trouve sur l’étiquette de l’appareil ;
+- documentation du fonctionnement entièrement local et de l’isolation facultative du cloud au niveau du routeur ou du pare-feu.
+
+### Corrigé
+
+- la configuration d’un appareil GEN3 / GEN3 PLUS utilise directement son adaptateur et ne tente plus d’abord une autre famille de protocole.
+
 ## [1.1.3] - 2026-08-11
 
 ### Ajouté
@@ -64,6 +83,7 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 - documentation GitHub en français, anglais et allemand ;
 - licence GPL-3.0 et copyright de Jean-Philippe TESTART (jptstar).
 
+[1.1.4]: https://github.com/jptstar/tsun-local/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/jptstar/tsun-local/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/jptstar/tsun-local/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/jptstar/tsun-local/compare/v1.1.0...v1.1.1

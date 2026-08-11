@@ -10,7 +10,7 @@
 
 > **Progetto non ufficiale** — Questa integrazione indipendente della comunità non è sviluppata, approvata o mantenuta da TSUN e non è affiliata a TSUN in alcun modo. TSUN e i nomi dei suoi prodotti restano di proprietà dei rispettivi titolari. Le richieste di assistenza relative a questa integrazione devono essere rivolte all’autore, non a TSUN.
 
-**TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili presenti sulla rete locale, senza proxy né servizi cloud. La versione 1.1.3 supporta il **TSOL-MP3000** convalidato e offre un primo supporto per le famiglie **GEN3**, **GEN3 PLUS** e altri modelli **TITAN** in attesa di convalida su hardware reale.
+**TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili presenti sulla rete locale, senza proxy né servizi cloud. La versione 1.1.4 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,8 @@ Le versioni pubblicate seguono il formato `MAJOR.MINOR.PATCH`. HACS utilizza le 
 | GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS | **MS3000** | ❌ In attesa di convalida |
-| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ In attesa di convalida |
+| GEN3 / GEN3 PLUS | **MX500** | ✅ Convalidato |
+| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ In attesa di convalida |
 | GEN3 / GEN3 PLUS | **MX3000** | ⛔ Non supportato |
 
 L’adattatore GEN3 / GEN3 PLUS rileva dinamicamente i dispositivi con **1, 2 o 4 ingressi FV**.
@@ -83,9 +84,9 @@ Se l’ultima versione non appare, aprire il menu del repository e selezionare *
 2. Riavviare Home Assistant.
 3. Aprire **Impostazioni → Dispositivi e servizi → Aggiungi integrazione**.
 4. Cercare **TSUN Local**.
-5. Inserire l’indirizzo IP, la porta e il **numero di serie (SN) riportato sull’etichetta del microinverter**.
+5. Inserire l’indirizzo IP, la porta e il **Monitor SN / Logger SN riportato sull’etichetta del microinverter**.
 
-Il protocollo locale viene rilevato automaticamente quando si aggiunge il dispositivo.
+Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione manuale**, quindi selezionare **TITAN** per TSOL-MP3000 oppure **GEN3 / GEN3 PLUS** per MX500. Inserire il **Monitor SN / Logger SN** riportato sull’etichetta. La ricerca controlla soltanto la rete IPv4 locale sulla porta 8899 e non invia dati agli indirizzi candidati.
 
 ## Più dispositivi
 
@@ -98,6 +99,12 @@ In **Impostazioni → Dispositivi e servizi → TSUN Local**, aprire il menu del
 - **Configura** imposta l’intervallo normale da 10 secondi a 5 minuti (30 secondi per impostazione predefinita) e l’intervallo offline/notturno da 1 a 60 minuti (5 minuti per impostazione predefinita);
 - **Riconfigura** modifica l’indirizzo IP e la porta TCP senza eliminare le entità;
 - ogni dispositivo dispone di intervalli di polling indipendenti.
+
+## Funzionamento locale e isolamento dal cloud
+
+TSUN Local comunica esclusivamente sulla rete locale e non utilizza servizi cloud. L’integrazione non modifica le impostazioni cloud del firmware.
+
+Per impedire al microinverter di accedere a Internet, creare nel router o nel firewall una regola che blocchi l’accesso WAN mantenendo l’accesso alla rete locale e al DHCP. Home Assistant deve poter continuare a raggiungere l’indirizzo IP del microinverter sulla porta TCP **8899**. Dopo l’installazione, HACS richiede Internet solo per controllare e scaricare gli aggiornamenti.
 
 ## Funzionamento notturno
 

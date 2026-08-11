@@ -3,19 +3,39 @@
     "step": {
       "user": {
         "title": "Dodaj urządzenie TSUN Local",
-        "description": "Wprowadź lokalne dane połączenia. Protokół i dostępne wejścia PV zostaną wykryte automatycznie. Wymagany numer seryjny (SN) znajduje się na etykiecie mikrofalownika. Powtórz opcję Dodaj integrację dla każdego dodatkowego zgodnego urządzenia.",
-        "data": {
-          "host": "Adres IP",
-          "port": "Port",
-          "logger_sn": "SN mikrofalownika (etykieta)"
+        "description": "Wybierz automatyczne wyszukiwanie w sieci lub konfigurację ręczną.",
+        "menu_options": {
+          "discover": "Przeszukaj sieć lokalną",
+          "manual": "Wprowadź dane połączenia ręcznie"
         }
       },
       "reconfigure": {
         "title": "Zmień połączenie",
-        "description": "Zmień adres IP lub port TCP tego urządzenia. Numer seryjny mikrofalownika pozostaje jego stałym identyfikatorem.",
+        "description": "Zmień adres IP, port TCP lub rodzinę urządzenia. Monitor SN / Logger SN pozostaje jego stałym identyfikatorem.",
         "data": {
           "host": "Adres IP",
-          "port": "Port"
+          "port": "Port",
+          "protocol": "Rodzina urządzenia"
+        }
+      },
+      "manual": {
+        "title": "Konfiguracja ręczna",
+        "description": "Wprowadź dane połączenia i wybierz rodzinę urządzenia. Monitor SN / Logger SN znajduje się na etykiecie urządzenia.",
+        "data": {
+          "host": "Adres IP",
+          "port": "Port",
+          "protocol": "Rodzina urządzenia",
+          "logger_sn": "Monitor SN / Logger SN (etykieta)"
+        }
+      },
+      "discover": {
+        "title": "Znalezione urządzenia",
+        "description": "Wybierz adres znaleziony na porcie TCP 8899, rodzinę urządzenia i wprowadź Monitor SN / Logger SN.",
+        "data": {
+          "host": "Wykryty adres",
+          "port": "Port",
+          "protocol": "Rodzina urządzenia",
+          "logger_sn": "Monitor SN / Logger SN (etykieta)"
         }
       }
     },
@@ -24,7 +44,8 @@
       "invalid_response": "Urządzenie zwróciło nieprawidłową odpowiedź"
     },
     "abort": {
-      "already_configured": "Ten mikrofalownik jest już skonfigurowany"
+      "already_configured": "Ten mikrofalownik jest już skonfigurowany",
+      "no_devices_found": "Nie znaleziono urządzenia przyjmującego połączenia lokalne na porcie 8899"
     }
   },
   "options": {
@@ -168,6 +189,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Komunikacja"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "1511": "TITAN",
+        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }

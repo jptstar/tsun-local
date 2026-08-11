@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.3 unterstützt den validierten **TSOL-MP3000** und ergänzt eine erste Unterstützung für **GEN3**, **GEN3 PLUS** und weitere **TITAN**-Modelle, deren Validierung auf echter Hardware noch aussteht.
+**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.4 unterstützt die auf echter Hardware validierten Modelle **TSOL-MP3000** und **MX500** sowie weitere **TITAN**-, **GEN3**- und **GEN3 PLUS**-Modelle, deren Validierung noch aussteht.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,8 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 | GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Validierung ausstehend |
 | GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Validierung ausstehend |
 | GEN3 / GEN3 PLUS | **MS3000** | ❌ Validierung ausstehend |
-| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS | **MX500** | ✅ Validiert |
+| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ Validierung ausstehend |
 | GEN3 / GEN3 PLUS | **MX3000** | ⛔ Nicht unterstützt |
 
 Der GEN3-/GEN3-PLUS-Adapter erkennt Geräte mit **1, 2 oder 4 PV-Eingängen** dynamisch.
@@ -83,9 +84,9 @@ Wenn die neueste Version nicht angezeigt wird, öffne das Repository-Menü und w
 2. Starte Home Assistant neu.
 3. Öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen**.
 4. Suche nach **TSUN Local**.
-5. Gib IP-Adresse, Port und die **SN auf dem Typenschild des Mikrowechselrichters** ein.
+5. Gib IP-Adresse, Port und die **Monitor SN / Logger SN auf dem Typenschild des Mikrowechselrichters** ein.
 
-Das lokale Protokoll wird beim Hinzufügen des Geräts automatisch erkannt.
+Wähle beim Hinzufügen **Lokales Netzwerk durchsuchen** oder **Manuelle Konfiguration** und anschließend **TITAN** für den TSOL-MP3000 beziehungsweise **GEN3 / GEN3 PLUS** für den MX500. Gib die auf dem Typenschild angegebene **Monitor SN / Logger SN** ein. Die Suche prüft nur das lokale IPv4-Netz auf Port 8899 und sendet keine Daten an mögliche Geräteadressen.
 
 ## Mehrere Geräte
 
@@ -98,6 +99,12 @@ Mehrere kompatible Mikrowechselrichter können derselben Home-Assistant-Installa
 - **Konfigurieren** legt das normale Intervall zwischen 10 Sekunden und 5 Minuten (standardmäßig 30 Sekunden) sowie das Offline-/Nachtintervall zwischen 1 und 60 Minuten (standardmäßig 5 Minuten) fest;
 - **Neu konfigurieren** ändert IP-Adresse und TCP-Port, ohne Entitäten zu löschen;
 - jedes Gerät besitzt unabhängige Abfrageintervalle.
+
+## Lokaler Betrieb und Cloud-Isolierung
+
+TSUN Local kommuniziert ausschließlich im lokalen Netzwerk und verwendet keinen Cloud-Dienst. Die Integration ändert jedoch keine Cloud-Einstellungen der Gerätefirmware.
+
+Um den Internetzugriff des Mikrowechselrichters zu sperren, erstelle im Router oder in der Firewall eine Regel, die den WAN-Zugriff blockiert, aber lokales Netzwerk und DHCP erlaubt. Home Assistant muss die IP-Adresse des Mikrowechselrichters weiterhin über TCP-Port **8899** erreichen dürfen. Nach der Installation benötigt HACS Internet nur zum Prüfen und Herunterladen von Aktualisierungen.
 
 ## Nachtbetrieb
 

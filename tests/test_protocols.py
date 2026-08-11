@@ -6,9 +6,11 @@
 from __future__ import annotations
 
 import importlib.util
+from ipaddress import IPv4Address
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 
 PROTOCOLS_PATH = (
@@ -30,6 +32,7 @@ SPEC.loader.exec_module(PROTOCOLS)
 from tsun_local_protocol_tests.ap import (  # noqa: E402
     TsunProtocolError,
     checksum_ap,
+    format_ap_frame_for_log,
     parse_ap_frame,
 )
 from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402
@@ -43,6 +46,14 @@ from tsun_local_protocol_tests.protocol_1511 import (  # noqa: E402
     build_1511_request,
     detect_pv_count as detect_1511_pv_count,
 )
+
+DISCOVERY_SPEC = importlib.util.spec_from_file_location(
+    "tsun_local_discovery_tests",
+    PROTOCOLS_PATH.parent / "discovery.py",
+)
+assert DISCOVERY_SPEC is not None and DISCOVERY_SPEC.loader is not None
+DISCOVERY = importlib.util.module_from_spec(DISCOVERY_SPEC)
+DISCOVERY_SPEC.loader.exec_module(DISCOVERY)
 
 
 def _build_ap_reply(payload: bytes) -> bytes:
@@ -61,6 +72,12 @@ def _build_ap_reply(payload: bytes) -> bytes:
 
 class ApFrameTests(unittest.TestCase):
     """Verify the common AP envelope."""
+
+    def test_hides_logger_identifier_in_diagnostic_output(self) -> None:
+        octets = format_ap_frame_for_log(bytes(range(16))).split()
+        self.assertEqual(octets[7:11], ["XX", "XX", "XX", "XX"])
+        self.assertEqual(octets[6], "06")
+        self.assertEqual(octets[11], "0B")
 
     def test_extracts_protocol_payload(self) -> None:
         payload = bytes.fromhex("0103041234ABCD0020")
@@ -149,6 +166,32 @@ class Protocol1511Tests(unittest.TestCase):
         self.assertEqual(detect_1511_pv_count({}), 1)
         self.assertEqual(detect_1511_pv_count({0x0EF2: 1}), 5)
         self.assertEqual(detect_1511_pv_count({0x0EF4: 0xFFFF}), 1)
+
+
+class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
+    """Verify the bounded TCP discovery helper."""
+
+    async def test_finds_only_host_with_open_port(self) -> None:
+        class FakeWriter:
+            def close(self) -> None:
+                pass
+
+            async def wait_closed(self) -> None:
+                pass
+
+        async def open_connection(host: str, _port: int) -> tuple[object, FakeWriter]:
+            if host == "127.0.0.1":
+                return object(), FakeWriter()
+            raise ConnectionRefusedError
+
+        with patch.object(
+            DISCOVERY.asyncio, "open_connection", new=open_connection
+        ):
+            hosts = await DISCOVERY.async_scan_hosts(
+                [IPv4Address("127.0.0.1"), IPv4Address("127.0.0.2")], 8899
+            )
+
+        self.assertEqual(hosts, ["127.0.0.1"])
 
 
 if __name__ == "__main__":

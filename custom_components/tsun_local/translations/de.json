@@ -1,22 +1,203 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Gerät zu TSUN Local hinzufügen", "description": "Gib die lokalen Verbindungsdaten ein. Das Protokoll und die verfügbaren PV-Eingänge werden automatisch erkannt. Die benötigte Seriennummer (SN) steht auf dem Typenschild des Mikrowechselrichters. Wiederhole Integration hinzufügen für jedes weitere kompatible Gerät.", "data": {"host": "IP-Adresse", "port": "Port", "logger_sn": "SN des Mikrowechselrichters (Typenschild)"}},
-      "reconfigure": {"title": "Verbindung ändern", "description": "Ändere die IP-Adresse oder den TCP-Port dieses Geräts. Die SN des Mikrowechselrichters bleibt seine dauerhafte Kennung.", "data": {"host": "IP-Adresse", "port": "Port"}}
+      "user": {
+        "title": "Gerät zu TSUN Local hinzufügen",
+        "description": "Wähle die automatische Netzwerksuche oder die manuelle Konfiguration.",
+        "menu_options": {
+          "discover": "Lokales Netzwerk durchsuchen",
+          "manual": "Verbindungsdaten manuell eingeben"
+        }
+      },
+      "reconfigure": {
+        "title": "Verbindung ändern",
+        "description": "Ändere die IP-Adresse, den TCP-Port oder die Gerätefamilie. Die Monitor SN / Logger SN bleibt die dauerhafte Kennung.",
+        "data": {
+          "host": "IP-Adresse",
+          "port": "Port",
+          "protocol": "Gerätefamilie"
+        }
+      },
+      "manual": {
+        "title": "Manuelle Konfiguration",
+        "description": "Gib die Verbindungsdaten ein und wähle die Gerätefamilie. Die Monitor SN / Logger SN steht auf dem Typenschild.",
+        "data": {
+          "host": "IP-Adresse",
+          "port": "Port",
+          "protocol": "Gerätefamilie",
+          "logger_sn": "Monitor SN / Logger SN (Typenschild)"
+        }
+      },
+      "discover": {
+        "title": "Gefundene Geräte",
+        "description": "Wähle eine auf TCP-Port 8899 gefundene Adresse, die Gerätefamilie und gib die Monitor SN / Logger SN ein.",
+        "data": {
+          "host": "Gefundene Adresse",
+          "port": "Port",
+          "protocol": "Gerätefamilie",
+          "logger_sn": "Monitor SN / Logger SN (Typenschild)"
+        }
+      }
     },
-    "error": {"cannot_connect": "Verbindung zum Wechselrichter nicht möglich", "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet"},
-    "abort": {"already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert"}
+    "error": {
+      "cannot_connect": "Verbindung zum Wechselrichter nicht möglich",
+      "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet"
+    },
+    "abort": {
+      "already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert",
+      "no_devices_found": "Es wurde kein Gerät gefunden, das lokale Verbindungen auf Port 8899 annimmt"
+    }
   },
-  "options": {"step": {"init": {"title": "Abfrageeinstellungen", "description": "Lege das normale Abfrageintervall und das langsamere Intervall fest, das verwendet wird, wenn dieses Gerät offline oder nachts ohne Strom ist.", "data": {"scan_interval": "Normales Abfrageintervall", "offline_scan_interval": "Abfrageintervall offline/nachts"}}}},
-  "entity": {"sensor": {
-    "ac_voltage": {"name": "AC-Spannung"}, "ac_current": {"name": "AC-Strom"}, "ac_frequency": {"name": "AC-Frequenz"}, "ac_power": {"name": "AC-Leistung"},
-    "ac_energy_today": {"name": "AC-Energie heute"}, "ac_energy_total": {"name": "AC-Gesamtenergie"}, "dc_power_total": {"name": "DC-Gesamtleistung"},
-    "communication_last_success": {"name": "Letzte erfolgreiche Kommunikation"}, "communication_duration": {"name": "Kommunikationsdauer"}, "communication_blocks": {"name": "Empfangene Blöcke"}, "communication_failures": {"name": "Aufeinanderfolgende Kommunikationsfehler"},
-    "pv1_voltage": {"name": "PV1-Spannung"}, "pv1_current": {"name": "PV1-Strom"}, "pv1_power": {"name": "PV1-Leistung"}, "pv1_energy_today": {"name": "PV1-Energie heute"}, "pv1_energy_total": {"name": "PV1-Gesamtenergie"},
-    "pv2_voltage": {"name": "PV2-Spannung"}, "pv2_current": {"name": "PV2-Strom"}, "pv2_power": {"name": "PV2-Leistung"}, "pv2_energy_today": {"name": "PV2-Energie heute"}, "pv2_energy_total": {"name": "PV2-Gesamtenergie"},
-    "pv3_voltage": {"name": "PV3-Spannung"}, "pv3_current": {"name": "PV3-Strom"}, "pv3_power": {"name": "PV3-Leistung"}, "pv3_energy_today": {"name": "PV3-Energie heute"}, "pv3_energy_total": {"name": "PV3-Gesamtenergie"},
-    "pv4_voltage": {"name": "PV4-Spannung"}, "pv4_current": {"name": "PV4-Strom"}, "pv4_power": {"name": "PV4-Leistung"}, "pv4_energy_today": {"name": "PV4-Energie heute"}, "pv4_energy_total": {"name": "PV4-Gesamtenergie"},
-    "pv5_voltage": {"name": "PV5-Spannung"}, "pv5_current": {"name": "PV5-Strom"}, "pv5_power": {"name": "PV5-Leistung"}, "pv5_energy_today": {"name": "PV5-Energie heute"}, "pv5_energy_total": {"name": "PV5-Gesamtenergie"},
-    "pv6_voltage": {"name": "PV6-Spannung"}, "pv6_current": {"name": "PV6-Strom"}, "pv6_power": {"name": "PV6-Leistung"}, "pv6_energy_today": {"name": "PV6-Energie heute"}, "pv6_energy_total": {"name": "PV6-Gesamtenergie"}
-  }, "binary_sensor": {"communication_online": {"name": "Kommunikation"}}}
+  "options": {
+    "step": {
+      "init": {
+        "title": "Abfrageeinstellungen",
+        "description": "Lege das normale Abfrageintervall und das langsamere Intervall fest, das verwendet wird, wenn dieses Gerät offline oder nachts ohne Strom ist.",
+        "data": {
+          "scan_interval": "Normales Abfrageintervall",
+          "offline_scan_interval": "Abfrageintervall offline/nachts"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "AC-Spannung"
+      },
+      "ac_current": {
+        "name": "AC-Strom"
+      },
+      "ac_frequency": {
+        "name": "AC-Frequenz"
+      },
+      "ac_power": {
+        "name": "AC-Leistung"
+      },
+      "ac_energy_today": {
+        "name": "AC-Energie heute"
+      },
+      "ac_energy_total": {
+        "name": "AC-Gesamtenergie"
+      },
+      "dc_power_total": {
+        "name": "DC-Gesamtleistung"
+      },
+      "communication_last_success": {
+        "name": "Letzte erfolgreiche Kommunikation"
+      },
+      "communication_duration": {
+        "name": "Kommunikationsdauer"
+      },
+      "communication_blocks": {
+        "name": "Empfangene Blöcke"
+      },
+      "communication_failures": {
+        "name": "Aufeinanderfolgende Kommunikationsfehler"
+      },
+      "pv1_voltage": {
+        "name": "PV1-Spannung"
+      },
+      "pv1_current": {
+        "name": "PV1-Strom"
+      },
+      "pv1_power": {
+        "name": "PV1-Leistung"
+      },
+      "pv1_energy_today": {
+        "name": "PV1-Energie heute"
+      },
+      "pv1_energy_total": {
+        "name": "PV1-Gesamtenergie"
+      },
+      "pv2_voltage": {
+        "name": "PV2-Spannung"
+      },
+      "pv2_current": {
+        "name": "PV2-Strom"
+      },
+      "pv2_power": {
+        "name": "PV2-Leistung"
+      },
+      "pv2_energy_today": {
+        "name": "PV2-Energie heute"
+      },
+      "pv2_energy_total": {
+        "name": "PV2-Gesamtenergie"
+      },
+      "pv3_voltage": {
+        "name": "PV3-Spannung"
+      },
+      "pv3_current": {
+        "name": "PV3-Strom"
+      },
+      "pv3_power": {
+        "name": "PV3-Leistung"
+      },
+      "pv3_energy_today": {
+        "name": "PV3-Energie heute"
+      },
+      "pv3_energy_total": {
+        "name": "PV3-Gesamtenergie"
+      },
+      "pv4_voltage": {
+        "name": "PV4-Spannung"
+      },
+      "pv4_current": {
+        "name": "PV4-Strom"
+      },
+      "pv4_power": {
+        "name": "PV4-Leistung"
+      },
+      "pv4_energy_today": {
+        "name": "PV4-Energie heute"
+      },
+      "pv4_energy_total": {
+        "name": "PV4-Gesamtenergie"
+      },
+      "pv5_voltage": {
+        "name": "PV5-Spannung"
+      },
+      "pv5_current": {
+        "name": "PV5-Strom"
+      },
+      "pv5_power": {
+        "name": "PV5-Leistung"
+      },
+      "pv5_energy_today": {
+        "name": "PV5-Energie heute"
+      },
+      "pv5_energy_total": {
+        "name": "PV5-Gesamtenergie"
+      },
+      "pv6_voltage": {
+        "name": "PV6-Spannung"
+      },
+      "pv6_current": {
+        "name": "PV6-Strom"
+      },
+      "pv6_power": {
+        "name": "PV6-Leistung"
+      },
+      "pv6_energy_today": {
+        "name": "PV6-Energie heute"
+      },
+      "pv6_energy_total": {
+        "name": "PV6-Gesamtenergie"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Kommunikation"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "1511": "TITAN",
+        "02b0": "GEN3 / GEN3 PLUS"
+      }
+    }
+  }
 }

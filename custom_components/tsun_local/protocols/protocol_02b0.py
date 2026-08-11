@@ -6,10 +6,19 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 
 from . import TsunReadResult
-from .ap import TsunProtocolError, build_ap_frame, parse_ap_frame, read_ap_frame
+from .ap import (
+    TsunProtocolError,
+    build_ap_frame,
+    format_ap_frame_for_log,
+    parse_ap_frame,
+    read_ap_frame,
+)
+
+_LOGGER = logging.getLogger(__name__)
 
 PROTOCOL_NAME = "02b0"
 MODEL = "GEN3 / GEN3 PLUS"
@@ -170,13 +179,51 @@ class Tsun02b0Client:
             self.logger_sn, build_modbus_request(function, start, end)
         )
         writer: asyncio.StreamWriter | None = None
+        stage = "connection"
         try:
             async with asyncio.timeout(self.timeout):
+                _LOGGER.debug(
+                    "02B0 diagnostic: opening connection for registers 0x%04X-0x%04X",
+                    start,
+                    end,
+                )
                 reader, writer = await asyncio.open_connection(self.host, self.port)
+                stage = "send"
+                _LOGGER.debug(
+                    "02B0 diagnostic TX for registers 0x%04X-0x%04X: %s",
+                    start,
+                    end,
+                    format_ap_frame_for_log(request),
+                )
                 writer.write(request)
                 await writer.drain()
+                stage = "receive"
                 response = await read_ap_frame(reader)
-            return parse_modbus_response(parse_ap_frame(response), function, start, end)
+                _LOGGER.debug(
+                    "02B0 diagnostic RX for registers 0x%04X-0x%04X: %s",
+                    start,
+                    end,
+                    format_ap_frame_for_log(response),
+                )
+            stage = "validation"
+            return parse_modbus_response(
+                parse_ap_frame(response), function, start, end
+            )
+        except Exception as err:
+            detail = (
+                str(err)
+                if isinstance(err, TsunProtocolError)
+                else type(err).__name__
+            )
+            _LOGGER.debug(
+                "02B0 diagnostic failure during %s for registers "
+                "0x%04X-0x%04X: %s",
+                stage,
+                start,
+                end,
+                detail,
+            )
+            raise
         finally:
             if writer is not None:
                 writer.close()

@@ -17,6 +17,14 @@ def checksum_ap(data: bytes) -> int:
     return sum(data) & 0xFF
 
 
+def format_ap_frame_for_log(frame: bytes) -> str:
+    """Return a readable AP frame with the logger identifier hidden."""
+    octets = [f"{byte:02X}" for byte in frame]
+    for index in range(7, min(11, len(octets))):
+        octets[index] = "XX"
+    return " ".join(octets)
+
+
 def build_ap_frame(logger_sn: int, payload: bytes) -> bytes:
     """Wrap a local-protocol request in a TSUN AP frame."""
     data = b"\x02\x00\x00" + bytes(12) + payload

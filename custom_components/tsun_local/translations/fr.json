@@ -1,12 +1,15 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Ajouter un appareil à TSUN Local", "description": "Saisissez les paramètres de connexion locale. Le protocole et les entrées PV disponibles seront détectés automatiquement. Le SN demandé est inscrit sur l’étiquette du micro-onduleur. Répétez Ajouter une intégration pour chaque appareil compatible supplémentaire.", "data": {"host": "Adresse IP", "port": "Port", "logger_sn": "SN du micro-onduleur (étiquette)"}},
-      "reconfigure": {"title": "Modifier la connexion", "description": "Modifiez l’adresse IP ou le port TCP de cet appareil. Le SN du micro-onduleur reste son identité permanente.", "data": {"host": "Adresse IP", "port": "Port"}}
+      "user": {"title": "Ajouter un appareil à TSUN Local", "description": "Choisissez la recherche automatique sur le réseau ou la configuration manuelle.", "menu_options": {"discover": "Rechercher sur le réseau local", "manual": "Saisir les paramètres manuellement"}},
+      "manual": {"title": "Configuration manuelle", "description": "Saisissez les paramètres de connexion et choisissez la famille de l’appareil. Le Monitor SN / Logger SN est inscrit sur son étiquette.", "data": {"host": "Adresse IP", "port": "Port", "protocol": "Famille de l’appareil", "logger_sn": "Monitor SN / Logger SN (étiquette)"}},
+      "discover": {"title": "Appareils détectés", "description": "Sélectionnez une adresse trouvée sur le port TCP 8899, choisissez la famille et saisissez le Monitor SN / Logger SN.", "data": {"host": "Adresse détectée", "port": "Port", "protocol": "Famille de l’appareil", "logger_sn": "Monitor SN / Logger SN (étiquette)"}},
+      "reconfigure": {"title": "Modifier la connexion", "description": "Modifiez l’adresse IP, le port TCP ou la famille de cet appareil. Le Monitor SN / Logger SN reste son identité permanente.", "data": {"host": "Adresse IP", "port": "Port", "protocol": "Famille de l’appareil"}}
     },
     "error": {"cannot_connect": "Impossible de joindre l’appareil", "invalid_response": "La réponse de l’appareil est invalide"},
-    "abort": {"already_configured": "Ce micro-onduleur est déjà configuré"}
+    "abort": {"already_configured": "Ce micro-onduleur est déjà configuré", "no_devices_found": "Aucun appareil acceptant les connexions locales sur le port 8899 n’a été trouvé"}
   },
+  "selector": {"protocol": {"options": {"1511": "TITAN", "02b0": "GEN3 / GEN3 PLUS"}}},
   "options": {"step": {"init": {"title": "Paramètres d’interrogation", "description": "Réglez l’intervalle normal et l’intervalle ralenti utilisé lorsque cet appareil est hors ligne ou non alimenté la nuit.", "data": {"scan_interval": "Intervalle normal", "offline_scan_interval": "Intervalle hors ligne/nuit"}}}},
   "entity": {"sensor": {
     "ac_voltage": {"name": "Tension AC"}, "ac_current": {"name": "Courant AC"}, "ac_frequency": {"name": "Fréquence AC"}, "ac_power": {"name": "Puissance AC"},

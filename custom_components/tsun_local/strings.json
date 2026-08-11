@@ -2,12 +2,15 @@
   "title": "TSUN Local",
   "config": {
     "step": {
-      "user": {"title": "Add a TSUN Local device", "description": "Enter the local connection details. The protocol and available PV inputs will be detected automatically. The requested SN is printed on the micro-inverter label. Repeat Add integration for every additional compatible device.", "data": {"host": "IP address", "port": "Port", "logger_sn": "Micro-inverter SN (device label)"}},
-      "reconfigure": {"title": "Update connection", "description": "Change the IP address or TCP port for this device. The micro-inverter SN remains its permanent identity.", "data": {"host": "IP address", "port": "Port"}}
+      "user": {"title": "Add a TSUN Local device", "description": "Choose automatic network search or manual configuration.", "menu_options": {"discover": "Search the local network", "manual": "Enter connection details manually"}},
+      "manual": {"title": "Manual configuration", "description": "Enter the connection details and select the device family. The Monitor SN / Logger SN is printed on the device label.", "data": {"host": "IP address", "port": "Port", "protocol": "Device family", "logger_sn": "Monitor SN / Logger SN (device label)"}},
+      "discover": {"title": "Devices found", "description": "Select an address found on TCP port 8899, choose the device family and enter its Monitor SN / Logger SN.", "data": {"host": "Discovered address", "port": "Port", "protocol": "Device family", "logger_sn": "Monitor SN / Logger SN (device label)"}},
+      "reconfigure": {"title": "Update connection", "description": "Change the IP address, TCP port or device family. The Monitor SN / Logger SN remains its permanent identity.", "data": {"host": "IP address", "port": "Port", "protocol": "Device family"}}
     },
     "error": {"cannot_connect": "Unable to connect to the device", "invalid_response": "The device returned an invalid response"},
-    "abort": {"already_configured": "This micro-inverter is already configured"}
+    "abort": {"already_configured": "This micro-inverter is already configured", "no_devices_found": "No device accepting local connections on port 8899 was found"}
   },
+  "selector": {"protocol": {"options": {"1511": "TITAN", "02b0": "GEN3 / GEN3 PLUS"}}},
   "options": {"step": {"init": {"title": "Polling settings", "description": "Set the normal polling interval and the slower interval used when this device is offline or unpowered at night.", "data": {"scan_interval": "Normal polling interval", "offline_scan_interval": "Offline/night polling interval"}}}},
   "entity": {"sensor": {
     "ac_voltage": {"name": "AC voltage"}, "ac_current": {"name": "AC current"}, "ac_frequency": {"name": "AC frequency"}, "ac_power": {"name": "AC power"},

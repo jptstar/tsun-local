@@ -3,19 +3,39 @@
     "step": {
       "user": {
         "title": "Aggiungi un dispositivo TSUN Local",
-        "description": "Inserisci i dati della connessione locale. Il protocollo e gli ingressi PV disponibili verranno rilevati automaticamente. Il numero di serie (SN) richiesto è riportato sull'etichetta del microinverter. Ripeti Aggiungi integrazione per ogni dispositivo compatibile aggiuntivo.",
-        "data": {
-          "host": "Indirizzo IP",
-          "port": "Porta",
-          "logger_sn": "SN del microinverter (etichetta)"
+        "description": "Scegli la ricerca automatica in rete o la configurazione manuale.",
+        "menu_options": {
+          "discover": "Cerca nella rete locale",
+          "manual": "Inserisci manualmente i dati di connessione"
         }
       },
       "reconfigure": {
         "title": "Modifica connessione",
-        "description": "Modifica l'indirizzo IP o la porta TCP di questo dispositivo. Il numero di serie del microinverter rimane il suo identificativo permanente.",
+        "description": "Modifica l'indirizzo IP, la porta TCP o la famiglia del dispositivo. Il Monitor SN / Logger SN rimane il suo identificativo permanente.",
         "data": {
           "host": "Indirizzo IP",
-          "port": "Porta"
+          "port": "Porta",
+          "protocol": "Famiglia del dispositivo"
+        }
+      },
+      "manual": {
+        "title": "Configurazione manuale",
+        "description": "Inserisci i dati di connessione e scegli la famiglia del dispositivo. Il Monitor SN / Logger SN è riportato sull'etichetta del dispositivo.",
+        "data": {
+          "host": "Indirizzo IP",
+          "port": "Porta",
+          "protocol": "Famiglia del dispositivo",
+          "logger_sn": "Monitor SN / Logger SN (etichetta)"
+        }
+      },
+      "discover": {
+        "title": "Dispositivi trovati",
+        "description": "Seleziona un indirizzo trovato sulla porta TCP 8899, scegli la famiglia del dispositivo e inserisci il Monitor SN / Logger SN.",
+        "data": {
+          "host": "Indirizzo rilevato",
+          "port": "Porta",
+          "protocol": "Famiglia del dispositivo",
+          "logger_sn": "Monitor SN / Logger SN (etichetta)"
         }
       }
     },
@@ -24,7 +44,8 @@
       "invalid_response": "Il dispositivo ha restituito una risposta non valida"
     },
     "abort": {
-      "already_configured": "Questo microinverter è già configurato"
+      "already_configured": "Questo microinverter è già configurato",
+      "no_devices_found": "Non è stato trovato alcun dispositivo che accetti connessioni locali sulla porta 8899"
     }
   },
   "options": {
@@ -168,6 +189,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Comunicazione"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "1511": "TITAN",
+        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }

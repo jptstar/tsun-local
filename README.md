@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.3 prend en charge le **TSOL-MP3000** validé et ajoute une première prise en charge des familles **GEN3**, **GEN3 PLUS** et d’autres modèles **TITAN** en attente de validation sur matériel réel.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.4 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,8 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 | GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ À valider |
 | GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ À valider |
 | GEN3 / GEN3 PLUS | **MS3000** | ❌ À valider |
-| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ À valider |
+| GEN3 / GEN3 PLUS | **MX500** | ✅ Validé |
+| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ À valider |
 | GEN3 / GEN3 PLUS | **MX3000** | ⛔ Non pris en charge |
 
 L’adaptateur GEN3 / GEN3 PLUS détecte dynamiquement les appareils comportant **1, 2 ou 4 entrées PV**.
@@ -83,9 +84,9 @@ Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélecti
 2. Redémarrez Home Assistant.
 3. Ouvrez **Paramètres → Appareils et services → Ajouter une intégration**.
 4. Recherchez **TSUN Local**.
-5. Renseignez l’adresse IP, le port et le **SN inscrit sur l’étiquette du micro-onduleur**.
+5. Renseignez l’adresse IP, le port et le **Monitor SN / Logger SN inscrit sur l’étiquette du micro-onduleur**.
 
-Le protocole local est détecté automatiquement lors de l’ajout de l’appareil.
+Lors de l’ajout, choisissez **Rechercher sur le réseau local** ou **Configuration manuelle**, puis sélectionnez **TITAN** pour le TSOL-MP3000 ou **GEN3 / GEN3 PLUS** pour le MX500. Renseignez le **Monitor SN / Logger SN** imprimé sur l’étiquette. La recherche examine uniquement le réseau IPv4 local sur le port 8899 et n’envoie aucune donnée aux adresses candidates.
 
 ## Plusieurs appareils
 
@@ -98,6 +99,12 @@ Dans **Paramètres → Appareils et services → TSUN Local**, ouvrez le menu de
 - **Configurer** règle son intervalle normal, de 10 secondes à 5 minutes (30 secondes par défaut), ainsi que son intervalle hors ligne/nuit, de 1 à 60 minutes (5 minutes par défaut) ;
 - **Reconfigurer** permet de modifier son adresse IP et son port TCP sans supprimer les entités ;
 - chaque appareil possède son propre intervalle, indépendant des autres.
+
+## Fonctionnement local et isolation du cloud
+
+TSUN Local communique uniquement sur le réseau local et n’utilise aucun service cloud. L’intégration ne modifie toutefois pas les paramètres cloud du micrologiciel.
+
+Pour empêcher le micro-onduleur de joindre Internet, créez une règle dans le routeur ou le pare-feu qui bloque son accès WAN tout en conservant son accès au réseau local et au DHCP. Home Assistant doit rester autorisé à joindre l’adresse IP du micro-onduleur sur le port TCP **8899**. Une fois l’intégration installée, HACS n’a besoin d’Internet que pour rechercher et télécharger les mises à jour.
 
 ## Fonctionnement de nuit
 
