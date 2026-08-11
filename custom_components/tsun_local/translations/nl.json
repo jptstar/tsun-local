@@ -3,19 +3,39 @@
     "step": {
       "user": {
         "title": "Een TSUN Local-apparaat toevoegen",
-        "description": "Voer de lokale verbindingsgegevens in. Het protocol en de beschikbare PV-ingangen worden automatisch gedetecteerd. Het gevraagde serienummer (SN) staat op het typeplaatje van de micro-omvormer. Herhaal Integratie toevoegen voor elk extra compatibel apparaat.",
-        "data": {
-          "host": "IP-adres",
-          "port": "Poort",
-          "logger_sn": "SN van de micro-omvormer (typeplaatje)"
+        "description": "Kies automatisch zoeken op het netwerk of handmatige configuratie.",
+        "menu_options": {
+          "discover": "Lokaal netwerk doorzoeken",
+          "manual": "Verbindingsgegevens handmatig invoeren"
         }
       },
       "reconfigure": {
         "title": "Verbinding wijzigen",
-        "description": "Wijzig het IP-adres of de TCP-poort van dit apparaat. Het SN van de micro-omvormer blijft de permanente identificatie.",
+        "description": "Wijzig het IP-adres, de TCP-poort of de apparaatfamilie. De Monitor SN / Logger SN blijft de permanente identiteit.",
         "data": {
           "host": "IP-adres",
-          "port": "Poort"
+          "port": "Poort",
+          "protocol": "Apparaatfamilie"
+        }
+      },
+      "manual": {
+        "title": "Handmatige configuratie",
+        "description": "Voer de verbindingsgegevens in en kies de apparaatfamilie. De Monitor SN / Logger SN staat op het apparaatlabel.",
+        "data": {
+          "host": "IP-adres",
+          "port": "Poort",
+          "protocol": "Apparaatfamilie",
+          "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
+        }
+      },
+      "discover": {
+        "title": "Gevonden apparaten",
+        "description": "Selecteer een adres dat op TCP-poort 8899 is gevonden, kies de apparaatfamilie en voer de Monitor SN / Logger SN in.",
+        "data": {
+          "host": "Gevonden adres",
+          "port": "Poort",
+          "protocol": "Apparaatfamilie",
+          "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
         }
       }
     },
@@ -24,7 +44,8 @@
       "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden"
     },
     "abort": {
-      "already_configured": "Deze micro-omvormer is al geconfigureerd"
+      "already_configured": "Deze micro-omvormer is al geconfigureerd",
+      "no_devices_found": "Er is geen apparaat gevonden dat lokale verbindingen op poort 8899 accepteert"
     }
   },
   "options": {
@@ -168,6 +189,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Communicatie"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "1511": "TITAN",
+        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }
