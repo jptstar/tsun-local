@@ -38,23 +38,33 @@ Gepubliceerde versies volgen `MAJOR.MINOR.PATCH`. HACS gebruikt GitHub Releases 
 
 ### Micro-omvormers
 
-| Familie | Modellen | Status |
+#### TITAN
+
+| Configuratie | Modellen | Status |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Gevalideerd |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Validatie in afwachting |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Niet ondersteund |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Gevalideerd |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Validatie in afwachting |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Validatie in afwachting |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Validatie in afwachting |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocol en PV5/PV6 te valideren |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validatie in afwachting |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validatie in afwachting |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validatie in afwachting |
+| 6-in-1 | **TSOL-MP3000** | ✅ Gevalideerd |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Validatie in afwachting |
+| Ingangen nog te bepalen | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Niet ondersteund |
 
-De GEN3-/GEN3-PLUS-adapter detecteert dynamisch apparaten met **1, 2 of 4 PV-ingangen**.
+#### GEN3 / GEN3 PLUS — MX-serie
 
-De modelnamen **MX3300, MX3000, MX2700, MX2500 en MX2400** staan niet expliciet in de aangeleverde protocolkaarten. Een opname op echte hardware is nodig om het protocol te bevestigen en de PV5/PV6-registers te bepalen voordat ondersteuning kan worden toegevoegd.
+| Configuratie | Modellen | Status |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ Gevalideerd |
+| 1-in-1 | **MX450, MX400** | ❌ Validatie in afwachting |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ Validatie in afwachting |
+| 4-in-1 | **MX2250** | ❌ Validatie in afwachting |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Validatie in afwachting |
+
+#### GEN3 / GEN3 PLUS — MS-serie
+
+| Configuratie | Modellen | Status |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validatie in afwachting |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validatie in afwachting |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validatie in afwachting |
+
+De PV-detectie is voor TITAN dynamisch tot **6 ingangen**. Voor GEN3 / GEN3 PLUS omvat de huidige kaart **1, 2 of 4 PV-ingangen**; PV5 en PV6 worden nog niet gedetecteerd.
 
 ### Andere apparaten
 
