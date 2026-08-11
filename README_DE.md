@@ -28,28 +28,38 @@ Veröffentlichte Versionen folgen `MAJOR.MINOR.PATCH`. HACS verwendet GitHub Rel
 
 ## Kompatibilität
 
-- **Home Assistant 2026.3.0 oder neuer**.
+**Home Assistant 2026.3.0 oder neuer**
 
-### TITAN-Mikrowechselrichter
+### Legende
 
-- **TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**
-  - ✅ **TSOL-MP3000**: kompatibel und auf echter Hardware validiert;
-  - ❌ **TSOL-MP2250**: Adapter verfügbar, nicht auf echter Hardware validiert;
-  - ❌ **TSOL-MS3000**: Adapter verfügbar, nicht auf echter Hardware validiert.
-- **TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**
-  - ❌ nicht validiert und derzeit nicht unterstützt, da keine vollständige PV-Eingangskarte verfügbar ist.
+- ✅ Kompatibel und auf echter Hardware validiert
+- ❌ Adapter verfügbar, Hardwarevalidierung ausstehend
+- ⛔ Derzeit nicht unterstützt
 
-### GEN3- und GEN3-PLUS-Mikrowechselrichter
+### Mikrowechselrichter
 
-Der lokale Adapter ist für Geräte mit 1, 2 oder 4 PV-Eingängen verfügbar. Alle folgenden Modelle bleiben mit ❌ gekennzeichnet, bis sie durch eine Aufzeichnung oder Benutzerrückmeldung von echter Hardware validiert wurden:
+| Familie | Modelle | Status |
+|---|---|---|
+| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validiert |
+| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Validierung ausstehend |
+| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Nicht unterstützt |
+| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS | **MS3000** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ Validierung ausstehend |
+| GEN3 / GEN3 PLUS | **MX3000** | ⛔ Nicht unterstützt |
 
-- ❌ **MS300, MS350, MS400, MS400-D**;
-- ❌ **MS600, MS700, MS800, MS600-D, MS800-D**;
-- ❌ **MS1600, MS1800, MS2000, MS2000-D**;
-- ❌ **MS3000**;
-- ❌ **MX450, MX500, MX1000**.
+Der GEN3-/GEN3-PLUS-Adapter erkennt Geräte mit **1, 2 oder 4 PV-Eingängen** dynamisch.
 
-Der **MX3000** wird nicht als kompatibel angegeben: Die verfügbare Karte endet bei PV4, während dieses Modell mehr Eingänge haben kann. Das Speichersystem **DC1000** und die Smart Meter **TSOL-MG3-MS / DDZY422-D2** werden von diesem Mikrowechselrichter-Adapter nicht unterstützt.
+Der **MX3000** wird nicht unterstützt, da die verfügbare Karte bei PV4 endet, während dieses Modell zusätzliche Eingänge haben kann.
+
+### Andere Geräte
+
+| Typ | Modelle | Status |
+|---|---|---|
+| Speichersystem | **DC1000** | ⛔ Nicht unterstützt |
+| Smart Meter | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Nicht unterstützt |
 
 ## Installation
 
