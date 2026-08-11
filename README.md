@@ -28,28 +28,38 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 
 ## Compatibilité
 
-- **Home Assistant 2026.3.0 ou version ultérieure**.
+**Home Assistant 2026.3.0 ou version ultérieure**
 
-### Micro-onduleurs TITAN
+### Légende
 
-- **TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**
-  - ✅ **TSOL-MP3000** : compatible et validé sur matériel réel ;
-  - ❌ **TSOL-MP2250** : adaptateur disponible, non validé sur matériel réel ;
-  - ❌ **TSOL-MS3000** : adaptateur disponible, non validé sur matériel réel.
-- **TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**
-  - ❌ non validés et non pris en charge actuellement faute de carte complète des entrées PV.
+- ✅ Compatible et validé sur matériel réel
+- ❌ Adaptateur disponible, validation matérielle en attente
+- ⛔ Non pris en charge actuellement
 
-### Micro-onduleurs GEN3 et GEN3 PLUS
+### Micro-onduleurs
 
-L’adaptateur local est disponible pour les appareils à 1, 2 ou 4 entrées PV. Tous les modèles ci-dessous restent marqués ❌ jusqu’à validation par une capture ou un retour utilisateur sur matériel réel :
+| Famille | Modèles | Statut |
+|---|---|---|
+| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validé |
+| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ À valider |
+| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Non pris en charge |
+| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ À valider |
+| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ À valider |
+| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ À valider |
+| GEN3 / GEN3 PLUS | **MS3000** | ❌ À valider |
+| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ À valider |
+| GEN3 / GEN3 PLUS | **MX3000** | ⛔ Non pris en charge |
 
-- ❌ **MS300, MS350, MS400, MS400-D** ;
-- ❌ **MS600, MS700, MS800, MS600-D, MS800-D** ;
-- ❌ **MS1600, MS1800, MS2000, MS2000-D** ;
-- ❌ **MS3000** ;
-- ❌ **MX450, MX500, MX1000**.
+L’adaptateur GEN3 / GEN3 PLUS détecte dynamiquement les appareils comportant **1, 2 ou 4 entrées PV**.
 
-Le **MX3000** n’est pas déclaré compatible : la carte disponible s’arrête à PV4 alors que ce modèle peut comporter davantage d’entrées. Le stockage **DC1000** et les compteurs **TSOL-MG3-MS / DDZY422-D2** ne sont pas pris en charge par cet adaptateur de micro-onduleur.
+Le **MX3000** n’est pas pris en charge, car la carte disponible s’arrête à PV4 alors que ce modèle peut comporter davantage d’entrées.
+
+### Autres appareils
+
+| Type | Modèles | Statut |
+|---|---|---|
+| Système de stockage | **DC1000** | ⛔ Non pris en charge |
+| Compteurs intelligents | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Non pris en charge |
 
 ## Installation
 
