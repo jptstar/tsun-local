@@ -84,7 +84,7 @@ Se l’ultima versione non appare, aprire il menu del repository e selezionare *
 2. Riavviare Home Assistant.
 3. Aprire **Impostazioni → Dispositivi e servizi → Aggiungi integrazione**.
 4. Cercare **TSUN Local**.
-5. Inserire l’indirizzo IP, la porta e il **numero di serie (SN) riportato sull’etichetta del microinverter**.
+5. Inserire l’indirizzo IP, la porta e il **Monitor SN / Logger SN riportato sull’etichetta del microinverter**.
 
 Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione manuale**, quindi selezionare **TITAN** per TSOL-MP3000 oppure **GEN3 / GEN3 PLUS** per MX500. Inserire il **Monitor SN / Logger SN** riportato sull’etichetta. La ricerca controlla soltanto la rete IPv4 locale sulla porta 8899 e non invia dati agli indirizzi candidati.
 
