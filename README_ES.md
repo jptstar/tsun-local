@@ -38,23 +38,33 @@ Las versiones publicadas siguen el formato `MAJOR.MINOR.PATCH`. HACS utiliza las
 
 ### Microinversores
 
-| Familia | Modelos | Estado |
+#### TITAN
+
+| Configuración | Modelos | Estado |
 |---|---|---|
-| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validado |
-| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Validación pendiente |
-| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ No compatible |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validado |
-| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocolo y PV5/PV6 por validar |
-| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validación pendiente |
+| 6-in-1 | **TSOL-MP3000** | ✅ Validado |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Validación pendiente |
+| Entradas por determinar | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ No compatible |
 
-El adaptador GEN3 / GEN3 PLUS detecta dinámicamente los dispositivos con **1, 2 o 4 entradas FV**.
+#### GEN3 / GEN3 PLUS — serie MX
 
-Los nombres de modelo **MX3300, MX3000, MX2700, MX2500 y MX2400** no aparecen explícitamente en los mapas de protocolo proporcionados. Se necesita una captura en hardware real para confirmar el protocolo e identificar los registros PV5/PV6 antes de añadir compatibilidad.
+| Configuración | Modelos | Estado |
+|---|---|---|
+| 1-in-1 | **MX500** | ✅ Validado |
+| 1-in-1 | **MX450, MX400** | ❌ Validación pendiente |
+| 2-in-1 | **MX1000, MX900, MX800** | ❌ Validación pendiente |
+| 4-in-1 | **MX2250** | ❌ Validación pendiente |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Validación pendiente |
+
+#### GEN3 / GEN3 PLUS — serie MS
+
+| Configuración | Modelos | Estado |
+|---|---|---|
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validación pendiente |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validación pendiente |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validación pendiente |
+
+La detección FV es dinámica hasta **6 entradas para TITAN**. Para GEN3 / GEN3 PLUS, el mapa actual cubre **1, 2 o 4 entradas FV**; PV5 y PV6 todavía no se detectan.
 
 ### Otros dispositivos
 
