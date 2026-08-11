@@ -14,8 +14,7 @@
         "description": "Cambie la dirección IP o el puerto TCP. La familia detectada se conserva automáticamente y el Monitor SN / Logger SN sigue siendo la identidad permanente del dispositivo.",
         "data": {
           "host": "Dirección IP",
-          "port": "Puerto",
-          "protocol": "Familia del dispositivo"
+          "port": "Puerto"
         }
       },
       "manual": {
@@ -24,7 +23,6 @@
         "data": {
           "host": "Dirección IP",
           "port": "Puerto",
-          "protocol": "Familia del dispositivo",
           "logger_sn": "Monitor SN / Logger SN (etiqueta)"
         }
       },
@@ -34,7 +32,6 @@
         "data": {
           "host": "Dirección detectada",
           "port": "Puerto",
-          "protocol": "Familia del dispositivo",
           "logger_sn": "Monitor SN / Logger SN (etiqueta)"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Comunicación"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }
