@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.6 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.7 prend en charge les **TSOL-MP3000** et **MX500**, validés sur matériel réel, ainsi que d’autres modèles **TITAN**, **GEN3** et **GEN3 PLUS** en attente de validation.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ Si la dernière version n’apparaît pas, ouvrez le menu du dépôt et sélecti
 4. Recherchez **TSUN Local**.
 5. Renseignez l’adresse IP, le port et le **Monitor SN / Logger SN inscrit sur l’étiquette du micro-onduleur**.
 
-Lors de l’ajout, choisissez **Rechercher sur le réseau local** ou **Configuration manuelle**, puis sélectionnez **TITAN** pour le TSOL-MP3000 ou **GEN3 / GEN3 PLUS** pour le MX500. Renseignez le **Monitor SN / Logger SN** imprimé sur l’étiquette. La recherche examine tous les réseaux IPv4 actifs exposés par Home Assistant sur le port sélectionné et n’envoie aucune donnée applicative aux adresses candidates. Si aucun appareil n’est trouvé, le formulaire permet de saisir un sous-réseau LAN ou VLAN routé au format CIDR.
+Lors de l’ajout, choisissez **Rechercher sur le réseau local** ou **Configuration manuelle**, puis renseignez le **Monitor SN / Logger SN** imprimé sur l’étiquette. L’intégration détecte automatiquement le protocole local pris en charge ; aucun choix de famille n’est nécessaire. La recherche examine tous les réseaux IPv4 actifs exposés par Home Assistant sur le port sélectionné et n’envoie aucune donnée applicative aux adresses candidates. Si aucun appareil n’est trouvé, le formulaire permet de saisir un sous-réseau LAN ou VLAN routé au format CIDR.
 
 ## Plusieurs appareils
 
