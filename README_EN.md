@@ -28,28 +28,38 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 
 ## Compatibility
 
-- **Home Assistant 2026.3.0 or later**.
+**Home Assistant 2026.3.0 or later**
 
-### TITAN micro-inverters
+### Legend
 
-- **TITAN 2250 W–3000 W — MP3000 / MP2250 / MS3000**
-  - ✅ **TSOL-MP3000**: compatible and validated on real hardware;
-  - ❌ **TSOL-MP2250**: adapter available, not validated on real hardware;
-  - ❌ **TSOL-MS3000**: adapter available, not validated on real hardware.
-- **TITAN 3680 W–6000 W — MP6000 / MP5000 / MP4600 / MP4000 / MP3750 / MP3680**
-  - ❌ not validated and currently unsupported because a complete PV-input map is unavailable.
+- ✅ Compatible and validated on real hardware
+- ❌ Adapter available, hardware validation pending
+- ⛔ Currently unsupported
 
-### GEN3 and GEN3 PLUS micro-inverters
+### Micro-inverters
 
-The local adapter is available for devices with 1, 2, or 4 PV inputs. Every model below remains marked ❌ until it is validated with a capture or user feedback from real hardware:
+| Family | Models | Status |
+|---|---|---|
+| TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validated |
+| TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Pending validation |
+| TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Unsupported |
+| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ Pending validation |
+| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Pending validation |
+| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Pending validation |
+| GEN3 / GEN3 PLUS | **MS3000** | ❌ Pending validation |
+| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ Pending validation |
+| GEN3 / GEN3 PLUS | **MX3000** | ⛔ Unsupported |
 
-- ❌ **MS300, MS350, MS400, MS400-D**;
-- ❌ **MS600, MS700, MS800, MS600-D, MS800-D**;
-- ❌ **MS1600, MS1800, MS2000, MS2000-D**;
-- ❌ **MS3000**;
-- ❌ **MX450, MX500, MX1000**.
+The GEN3 / GEN3 PLUS adapter dynamically detects devices with **1, 2, or 4 PV inputs**.
 
-The **MX3000** is not declared compatible: the available map ends at PV4 while this model can have more inputs. The **DC1000** storage system and **TSOL-MG3-MS / DDZY422-D2** smart meters are not supported by this micro-inverter adapter.
+The **MX3000** is unsupported because the available map ends at PV4 while this model may have additional inputs.
+
+### Other devices
+
+| Type | Models | Status |
+|---|---|---|
+| Storage system | **DC1000** | ⛔ Unsupported |
+| Smart meters | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Unsupported |
 
 ## Installation
 
