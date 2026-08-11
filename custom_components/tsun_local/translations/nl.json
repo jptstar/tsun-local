@@ -1,0 +1,174 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Een TSUN Local-apparaat toevoegen",
+        "description": "Voer de lokale verbindingsgegevens in. Het protocol en de beschikbare PV-ingangen worden automatisch gedetecteerd. Het gevraagde serienummer (SN) staat op het typeplaatje van de micro-omvormer. Herhaal Integratie toevoegen voor elk extra compatibel apparaat.",
+        "data": {
+          "host": "IP-adres",
+          "port": "Poort",
+          "logger_sn": "SN van de micro-omvormer (typeplaatje)"
+        }
+      },
+      "reconfigure": {
+        "title": "Verbinding wijzigen",
+        "description": "Wijzig het IP-adres of de TCP-poort van dit apparaat. Het SN van de micro-omvormer blijft de permanente identificatie.",
+        "data": {
+          "host": "IP-adres",
+          "port": "Poort"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met het apparaat",
+      "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden"
+    },
+    "abort": {
+      "already_configured": "Deze micro-omvormer is al geconfigureerd"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Pollinginstellingen",
+        "description": "Stel het normale pollinginterval in en het langere interval dat wordt gebruikt wanneer dit apparaat offline is of 's nachts geen voeding heeft.",
+        "data": {
+          "scan_interval": "Normaal pollinginterval",
+          "offline_scan_interval": "Pollinginterval offline/'s nachts"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_voltage": {
+        "name": "AC-spanning"
+      },
+      "ac_current": {
+        "name": "AC-stroom"
+      },
+      "ac_frequency": {
+        "name": "AC-frequentie"
+      },
+      "ac_power": {
+        "name": "AC-vermogen"
+      },
+      "ac_energy_today": {
+        "name": "AC-energie vandaag"
+      },
+      "ac_energy_total": {
+        "name": "Totale AC-energie"
+      },
+      "dc_power_total": {
+        "name": "Totaal DC-vermogen"
+      },
+      "communication_last_success": {
+        "name": "Laatste geslaagde communicatie"
+      },
+      "communication_duration": {
+        "name": "Communicatieduur"
+      },
+      "communication_blocks": {
+        "name": "Ontvangen blokken"
+      },
+      "communication_failures": {
+        "name": "Opeenvolgende communicatiefouten"
+      },
+      "pv1_voltage": {
+        "name": "PV1-spanning"
+      },
+      "pv1_current": {
+        "name": "PV1-stroom"
+      },
+      "pv1_power": {
+        "name": "PV1-vermogen"
+      },
+      "pv1_energy_today": {
+        "name": "PV1-energie vandaag"
+      },
+      "pv1_energy_total": {
+        "name": "Totale PV1-energie"
+      },
+      "pv2_voltage": {
+        "name": "PV2-spanning"
+      },
+      "pv2_current": {
+        "name": "PV2-stroom"
+      },
+      "pv2_power": {
+        "name": "PV2-vermogen"
+      },
+      "pv2_energy_today": {
+        "name": "PV2-energie vandaag"
+      },
+      "pv2_energy_total": {
+        "name": "Totale PV2-energie"
+      },
+      "pv3_voltage": {
+        "name": "PV3-spanning"
+      },
+      "pv3_current": {
+        "name": "PV3-stroom"
+      },
+      "pv3_power": {
+        "name": "PV3-vermogen"
+      },
+      "pv3_energy_today": {
+        "name": "PV3-energie vandaag"
+      },
+      "pv3_energy_total": {
+        "name": "Totale PV3-energie"
+      },
+      "pv4_voltage": {
+        "name": "PV4-spanning"
+      },
+      "pv4_current": {
+        "name": "PV4-stroom"
+      },
+      "pv4_power": {
+        "name": "PV4-vermogen"
+      },
+      "pv4_energy_today": {
+        "name": "PV4-energie vandaag"
+      },
+      "pv4_energy_total": {
+        "name": "Totale PV4-energie"
+      },
+      "pv5_voltage": {
+        "name": "PV5-spanning"
+      },
+      "pv5_current": {
+        "name": "PV5-stroom"
+      },
+      "pv5_power": {
+        "name": "PV5-vermogen"
+      },
+      "pv5_energy_today": {
+        "name": "PV5-energie vandaag"
+      },
+      "pv5_energy_total": {
+        "name": "Totale PV5-energie"
+      },
+      "pv6_voltage": {
+        "name": "PV6-spanning"
+      },
+      "pv6_current": {
+        "name": "PV6-stroom"
+      },
+      "pv6_power": {
+        "name": "PV6-vermogen"
+      },
+      "pv6_energy_today": {
+        "name": "PV6-energie vandaag"
+      },
+      "pv6_energy_total": {
+        "name": "Totale PV6-energie"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Communicatie"
+      }
+    }
+  }
+}
