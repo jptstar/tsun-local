@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Modifica connessione",
-        "description": "Modifica l'indirizzo IP, la porta TCP o la famiglia del dispositivo. Il Monitor SN / Logger SN rimane il suo identificativo permanente.",
+        "description": "Modifica l’indirizzo IP o la porta TCP. La famiglia rilevata viene mantenuta automaticamente e il Monitor SN / Logger SN resta l’identità permanente del dispositivo.",
         "data": {
           "host": "Indirizzo IP",
           "port": "Porta",
@@ -20,7 +20,7 @@
       },
       "manual": {
         "title": "Configurazione manuale",
-        "description": "Inserisci i dati di connessione e scegli la famiglia del dispositivo. Il Monitor SN / Logger SN è riportato sull'etichetta del dispositivo.",
+        "description": "Inserisci i dati di connessione. La famiglia del dispositivo viene rilevata automaticamente. Il Monitor SN / Logger SN è riportato sull’etichetta del dispositivo.",
         "data": {
           "host": "Indirizzo IP",
           "port": "Porta",
@@ -30,7 +30,7 @@
       },
       "discover": {
         "title": "Dispositivi trovati",
-        "description": "Seleziona un indirizzo trovato sulla porta TCP 8899, scegli la famiglia del dispositivo e inserisci il Monitor SN / Logger SN.",
+        "description": "Seleziona un indirizzo trovato sulla porta TCP scelta e inserisci il Monitor SN / Logger SN. La famiglia del dispositivo viene rilevata automaticamente.",
         "data": {
           "host": "Indirizzo rilevato",
           "port": "Porta",
