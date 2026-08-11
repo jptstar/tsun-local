@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.0 unterstützt den validierten **TSOL-MP3000** und ergänzt eine erste Unterstützung für **GEN3**, **GEN3 PLUS** und weitere **TITAN**-Modelle, deren Validierung auf echter Hardware noch aussteht.
+**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.1 unterstützt den validierten **TSOL-MP3000** und ergänzt eine erste Unterstützung für **GEN3**, **GEN3 PLUS** und weitere **TITAN**-Modelle, deren Validierung auf echter Hardware noch aussteht.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,7 @@ Der lokale Adapter ist für Geräte mit 1, 2 oder 4 PV-Eingängen verfügbar. Al
 - ❌ **MS600, MS700, MS800, MS600-D, MS800-D**;
 - ❌ **MS1600, MS1800, MS2000, MS2000-D**;
 - ❌ **MS3000**;
-- ❌ **MX450, MX1000**.
+- ❌ **MX450, MX500, MX1000**.
 
 Der **MX3000** wird nicht als kompatibel angegeben: Die verfügbare Karte endet bei PV4, während dieses Modell mehr Eingänge haben kann. Das Speichersystem **DC1000** und die Smart Meter **TSOL-MG3-MS / DDZY422-D2** werden von diesem Mikrowechselrichter-Adapter nicht unterstützt.
 

@@ -2,6 +2,12 @@
 
 Toutes les évolutions notables de ce projet sont documentées ici. Le projet suit le [versionnement sémantique](https://semver.org/lang/fr/).
 
+## [1.1.1] - 2026-08-11
+
+### Modifié
+
+- ajout du **MX500** à la liste des micro-onduleurs GEN3 / GEN3 PLUS disponibles pour essai et en attente de validation sur matériel réel.
+
 ## [1.1.0] - 2026-08-11
 
 ### Ajouté
@@ -42,6 +48,7 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 - documentation GitHub en français, anglais et allemand ;
 - licence GPL-3.0 et copyright de Jean-Philippe TESTART (jptstar).
 
+[1.1.1]: https://github.com/jptstar/tsun-local/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jptstar/tsun-local/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/jptstar/tsun-local/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.0.0

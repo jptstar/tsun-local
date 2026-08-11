@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.0 prend en charge le **TSOL-MP3000** validé et ajoute une première prise en charge des familles **GEN3**, **GEN3 PLUS** et d’autres modèles **TITAN** en attente de validation sur matériel réel.
+**TSUN Local** permet d’intégrer directement dans Home Assistant des micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version 1.1.1 prend en charge le **TSOL-MP3000** validé et ajoute une première prise en charge des familles **GEN3**, **GEN3 PLUS** et d’autres modèles **TITAN** en attente de validation sur matériel réel.
 
 **Auteur : Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,7 @@ L’adaptateur local est disponible pour les appareils à 1, 2 ou 4 entrées PV.
 - ❌ **MS600, MS700, MS800, MS600-D, MS800-D** ;
 - ❌ **MS1600, MS1800, MS2000, MS2000-D** ;
 - ❌ **MS3000** ;
-- ❌ **MX450, MX1000**.
+- ❌ **MX450, MX500, MX1000**.
 
 Le **MX3000** n’est pas déclaré compatible : la carte disponible s’arrête à PV4 alors que ce modèle peut comporter davantage d’entrées. Le stockage **DC1000** et les compteurs **TSOL-MG3-MS / DDZY422-D2** ne sont pas pris en charge par cet adaptateur de micro-onduleur.
 

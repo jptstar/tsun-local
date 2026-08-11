@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.0 supports the validated **TSOL-MP3000** and adds initial support for **GEN3**, **GEN3 PLUS**, and other **TITAN** models pending validation on real hardware.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.1 supports the validated **TSOL-MP3000** and adds initial support for **GEN3**, **GEN3 PLUS**, and other **TITAN** models pending validation on real hardware.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,7 @@ The local adapter is available for devices with 1, 2, or 4 PV inputs. Every mode
 - ❌ **MS600, MS700, MS800, MS600-D, MS800-D**;
 - ❌ **MS1600, MS1800, MS2000, MS2000-D**;
 - ❌ **MS3000**;
-- ❌ **MX450, MX1000**.
+- ❌ **MX450, MX500, MX1000**.
 
 The **MX3000** is not declared compatible: the available map ends at PV4 while this model can have more inputs. The **DC1000** storage system and **TSOL-MG3-MS / DDZY422-D2** smart meters are not supported by this micro-inverter adapter.
 
