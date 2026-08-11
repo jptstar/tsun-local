@@ -10,7 +10,7 @@
 
 > **Onofficieel project** — Deze onafhankelijke community-integratie is niet ontwikkeld, goedgekeurd of onderhouden door TSUN en is op geen enkele wijze aan TSUN verbonden. TSUN en zijn productnamen blijven eigendom van hun respectieve rechthebbenden. Ondersteuningsverzoeken voor deze integratie moeten aan de auteur worden gericht, niet aan TSUN.
 
-**TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks via het lokale netwerk in Home Assistant, zonder proxy of cloudservice. Versie 1.1.6 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+**TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks via het lokale netwerk in Home Assistant, zonder proxy of cloudservice. Versie 1.1.7 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
 
 **Auteur: Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ Als de nieuwste versie niet verschijnt, open dan het menu van de opslagplaats en
 4. Zoek naar **TSUN Local**.
 5. Voer het IP-adres, de poort en de **Monitor SN / Logger SN op het etiket van de micro-omvormer** in.
 
-Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie** en selecteer vervolgens **TITAN** voor de TSOL-MP3000 of **GEN3 / GEN3 PLUS** voor de MX500. Voer de **Monitor SN / Logger SN** van het etiket in. De zoekfunctie controleert alle actieve IPv4-netwerken die Home Assistant beschikbaar stelt op de geselecteerde poort en verzendt geen toepassingsgegevens naar kandidaatadressen. Als geen apparaat wordt gevonden, kan in het formulier een gerouteerd LAN- of VLAN-subnet in CIDR-notatie worden ingevoerd.
+Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie** en voer vervolgens de **Monitor SN / Logger SN** van het etiket in. De integratie detecteert het ondersteunde lokale protocol automatisch; een apparaatfamilie kiezen is niet nodig. De zoekfunctie controleert alle actieve IPv4-netwerken die Home Assistant beschikbaar stelt op de geselecteerde poort en verzendt geen toepassingsgegevens naar kandidaatadressen. Als geen apparaat wordt gevonden, kan in het formulier een gerouteerd LAN- of VLAN-subnet in CIDR-notatie worden ingevoerd.
 
 ## Meerdere apparaten
 
