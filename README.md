@@ -43,17 +43,18 @@ Les versions publiées suivent le format `MAJEURE.MINEURE.CORRECTIF`. HACS utili
 | TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validé |
 | TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ À valider |
 | TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Non pris en charge |
-| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ À valider |
-| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ À valider |
-| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ À valider |
-| GEN3 / GEN3 PLUS | **MS3000** | ❌ À valider |
-| GEN3 / GEN3 PLUS | **MX500** | ✅ Validé |
-| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ À valider |
-| GEN3 / GEN3 PLUS | **MX3000** | ⛔ Non pris en charge |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validé |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ À valider |
+| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ À valider |
+| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ À valider |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Non pris en charge |
+| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ À valider |
+| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ À valider |
+| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ À valider |
 
 L’adaptateur GEN3 / GEN3 PLUS détecte dynamiquement les appareils comportant **1, 2 ou 4 entrées PV**.
 
-Le **MX3000** n’est pas pris en charge, car la carte disponible s’arrête à PV4 alors que ce modèle peut comporter davantage d’entrées.
+Les modèles **MX3300, MX3000, MX2700, MX2500 et MX2400** disposent de 6 entrées PV et ne sont pas pris en charge actuellement : la carte de registres disponible pour cet adaptateur s’arrête à PV4.
 
 ### Autres appareils
 
