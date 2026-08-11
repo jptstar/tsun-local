@@ -4,9 +4,10 @@
       "user": {"title": "Add a TSUN Local device", "description": "Choose automatic network search or manual configuration.", "menu_options": {"discover": "Search the local network", "manual": "Enter connection details manually"}},
       "manual": {"title": "Manual configuration", "description": "Enter the connection details and select the device family. The Monitor SN / Logger SN is printed on the device label.", "data": {"host": "IP address", "port": "Port", "protocol": "Device family", "logger_sn": "Monitor SN / Logger SN (device label)"}},
       "discover": {"title": "Devices found", "description": "Select an address found on TCP port 8899, choose the device family and enter its Monitor SN / Logger SN.", "data": {"host": "Discovered address", "port": "Port", "protocol": "Device family", "logger_sn": "Monitor SN / Logger SN (device label)"}},
+      "discover_network": {"title": "Network to scan", "description": "No device was found on the networks detected by Home Assistant. Enter the micro-inverter IPv4 subnet in CIDR notation (for example 192.168.1.0/24). The scan is limited to 254 addresses.", "data": {"discovery_network": "IPv4 subnet", "port": "Port"}},
       "reconfigure": {"title": "Update connection", "description": "Change the IP address, TCP port or device family. The Monitor SN / Logger SN remains its permanent identity.", "data": {"host": "IP address", "port": "Port", "protocol": "Device family"}}
     },
-    "error": {"cannot_connect": "Unable to connect to the device", "invalid_response": "The device returned an invalid response"},
+    "error": {"cannot_connect": "Unable to connect to the device", "invalid_network": "Enter a valid IPv4 subnet between /24 and /32", "invalid_response": "The device returned an invalid response", "no_devices_found": "No device accepting local connections was found on this subnet and port"},
     "abort": {"already_configured": "This micro-inverter is already configured", "no_devices_found": "No device accepting local connections on port 8899 was found"}
   },
   "selector": {"protocol": {"options": {"1511": "TITAN", "02b0": "GEN3 / GEN3 PLUS"}}},
