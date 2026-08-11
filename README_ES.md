@@ -70,7 +70,7 @@ La detección FV es dinámica hasta **6 entradas para TITAN**. Para GEN3 / GEN3 
 
 | Tipo | Modelos | Estado |
 |---|---|---|
-| Sistema de almacenamiento | **DC1000** | ⛔ No compatible |
+| Batería GEN3 PLUS | **TSOL-DC1000** | ❌ Validación pendiente |
 | Contadores inteligentes | **TSOL-MG3-MS, DDZY422-D2** | ⛔ No compatibles |
 
 ## Instalación
