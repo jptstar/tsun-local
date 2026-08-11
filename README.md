@@ -70,7 +70,7 @@ La détection est dynamique jusqu’à **6 entrées PV pour TITAN**. Pour GEN3 /
 
 | Type | Modèles | Statut |
 |---|---|---|
-| Système de stockage | **DC1000** | ⛔ Non pris en charge |
+| Batterie GEN3 PLUS | **TSOL-DC1000** | ❌ À valider |
 | Compteurs intelligents | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Non pris en charge |
 
 ## Installation
