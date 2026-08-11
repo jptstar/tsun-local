@@ -10,7 +10,7 @@
 
 > **Projekt nieoficjalny** — Ta niezależna integracja społecznościowa nie jest opracowywana, zatwierdzana ani utrzymywana przez TSUN i nie jest w żaden sposób powiązana z TSUN. TSUN oraz nazwy jego produktów pozostają własnością odpowiednich podmiotów. Prośby o pomoc dotyczącą tej integracji należy kierować do jej autora, a nie do TSUN.
 
-**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.3 obsługuje zweryfikowany model **TSOL-MP3000** oraz zapewnia wstępną obsługę rodzin **GEN3**, **GEN3 PLUS** i innych modeli **TITAN**, które oczekują na weryfikację na rzeczywistym sprzęcie.
+**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej. Wersja 1.1.4 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -47,7 +47,8 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 | GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS | **MS3000** | ❌ Oczekuje na weryfikację |
-| GEN3 / GEN3 PLUS | **MX450, MX500, MX1000** | ❌ Oczekują na weryfikację |
+| GEN3 / GEN3 PLUS | **MX500** | ✅ Zweryfikowany |
+| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS | **MX3000** | ⛔ Nieobsługiwany |
 
 Adapter GEN3 / GEN3 PLUS dynamicznie wykrywa urządzenia z **1, 2 lub 4 wejściami PV**.
@@ -85,7 +86,7 @@ Jeśli najnowsza wersja nie jest widoczna, otwórz menu repozytorium i wybierz *
 4. Wyszukaj **TSUN Local**.
 5. Wprowadź adres IP, port oraz **numer SN wydrukowany na etykiecie mikrofalownika**.
 
-Protokół lokalny jest wykrywany automatycznie podczas dodawania urządzenia.
+Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**, a następnie **TITAN** dla TSOL-MP3000 albo **GEN3 / GEN3 PLUS** dla MX500. Wprowadź **Monitor SN / Logger SN** z etykiety. Wyszukiwanie sprawdza wyłącznie lokalną sieć IPv4 na porcie 8899 i nie wysyła danych do adresów kandydatów.
 
 ## Wiele urządzeń
 
@@ -98,6 +99,12 @@ W **Ustawienia → Urządzenia i usługi → TSUN Local** otwórz menu odpowiedn
 - **Konfiguruj** ustawia normalny interwał od 10 sekund do 5 minut (domyślnie 30 sekund) oraz interwał offline/nocny od 1 do 60 minut (domyślnie 5 minut);
 - **Skonfiguruj ponownie** zmienia adres IP i port TCP bez usuwania encji;
 - każde urządzenie ma niezależne interwały odpytywania.
+
+## Działanie lokalne i izolacja od chmury
+
+TSUN Local komunikuje się wyłącznie przez sieć lokalną i nie korzysta z usług chmurowych. Integracja nie zmienia ustawień chmury w oprogramowaniu urządzenia.
+
+Aby uniemożliwić mikrofalownikowi dostęp do Internetu, utwórz w routerze lub zaporze regułę blokującą dostęp WAN, pozostawiając dostęp do sieci lokalnej i DHCP. Home Assistant musi nadal mieć dostęp do adresu IP mikrofalownika przez port TCP **8899**. Po instalacji HACS potrzebuje Internetu wyłącznie do sprawdzania i pobierania aktualizacji.
 
 ## Praca nocna
 
