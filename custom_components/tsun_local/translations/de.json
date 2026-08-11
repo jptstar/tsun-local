@@ -14,8 +14,7 @@
         "description": "Ändere die IP-Adresse oder den TCP-Port. Die erkannte Gerätefamilie wird automatisch beibehalten und die Monitor SN / Logger SN bleibt die dauerhafte Identität des Geräts.",
         "data": {
           "host": "IP-Adresse",
-          "port": "Port",
-          "protocol": "Gerätefamilie"
+          "port": "Port"
         }
       },
       "manual": {
@@ -24,7 +23,6 @@
         "data": {
           "host": "IP-Adresse",
           "port": "Port",
-          "protocol": "Gerätefamilie",
           "logger_sn": "Monitor SN / Logger SN (Typenschild)"
         }
       },
@@ -34,7 +32,6 @@
         "data": {
           "host": "Gefundene Adresse",
           "port": "Port",
-          "protocol": "Gerätefamilie",
           "logger_sn": "Monitor SN / Logger SN (Typenschild)"
         }
       },
@@ -199,14 +196,6 @@
     "binary_sensor": {
       "communication_online": {
         "name": "Kommunikation"
-      }
-    }
-  },
-  "selector": {
-    "protocol": {
-      "options": {
-        "1511": "TITAN",
-        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }
