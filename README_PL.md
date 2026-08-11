@@ -47,14 +47,14 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 | GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Brak obsługi |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protokół i PV5/PV6 do weryfikacji |
 | GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
 | GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Oczekują na weryfikację |
 
 Adapter GEN3 / GEN3 PLUS dynamicznie wykrywa urządzenia z **1, 2 lub 4 wejściami PV**.
 
-Modele **MX3300, MX3000, MX2700, MX2500 i MX2400** mają 6 wejść PV i obecnie nie są obsługiwane: mapa rejestrów dostępna dla tego adaptera kończy się na PV4.
+Nazwy modeli **MX3300, MX3000, MX2700, MX2500 i MX2400** nie występują jawnie w dostarczonych mapach protokołów. Przed dodaniem obsługi potrzebny jest zapis z rzeczywistego urządzenia, aby potwierdzić protokół i określić rejestry PV5/PV6.
 
 ### Inne urządzenia
 
