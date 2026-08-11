@@ -84,7 +84,7 @@ Jeśli najnowsza wersja nie jest widoczna, otwórz menu repozytorium i wybierz *
 2. Uruchom ponownie Home Assistant.
 3. Otwórz **Ustawienia → Urządzenia i usługi → Dodaj integrację**.
 4. Wyszukaj **TSUN Local**.
-5. Wprowadź adres IP, port oraz **numer SN wydrukowany na etykiecie mikrofalownika**.
+5. Wprowadź adres IP, port oraz **Monitor SN / Logger SN wydrukowany na etykiecie mikrofalownika**.
 
 Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**, a następnie **TITAN** dla TSOL-MP3000 albo **GEN3 / GEN3 PLUS** dla MX500. Wprowadź **Monitor SN / Logger SN** z etykiety. Wyszukiwanie sprawdza wyłącznie lokalną sieć IPv4 na porcie 8899 i nie wysyła danych do adresów kandydatów.
 
