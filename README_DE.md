@@ -1,6 +1,6 @@
 # TSUN Local — Lokale Home-Assistant-Integration
 
-[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md)
+[Français](README.md) | [English](README_EN.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
 
 [![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
 
@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.2 unterstützt den validierten **TSOL-MP3000** und ergänzt eine erste Unterstützung für **GEN3**, **GEN3 PLUS** und weitere **TITAN**-Modelle, deren Validierung auf echter Hardware noch aussteht.
+**TSUN Local** bindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt in Home Assistant ein, ohne Proxy oder Cloud-Dienst. Version 1.1.3 unterstützt den validierten **TSOL-MP3000** und ergänzt eine erste Unterstützung für **GEN3**, **GEN3 PLUS** und weitere **TITAN**-Modelle, deren Validierung auf echter Hardware noch aussteht.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
