@@ -70,7 +70,7 @@ Il rilevamento PV è dinamico fino a **6 ingressi per TITAN**. Per GEN3 / GEN3 P
 
 | Tipo | Modelli | Stato |
 |---|---|---|
-| Sistema di accumulo | **DC1000** | ⛔ Non supportato |
+| Batteria GEN3 PLUS | **TSOL-DC1000** | ❌ In attesa di convalida |
 | Contatori intelligenti | **TSOL-MG3-MS, DDZY422-D2** | ⛔ Non supportato |
 
 ## Installazione
