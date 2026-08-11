@@ -14,6 +14,7 @@ Toutes les évolutions notables de ce projet sont documentées ici. Le projet su
 ### Modifié
 
 - **MX500** déclaré compatible et validé sur matériel réel avec une entrée PV ;
+- matrice de compatibilité MX et MS restructurée selon les variantes à 1, 2, 4 ou 6 entrées PV ;
 - libellés de configuration précisant que le **Monitor SN / Logger SN** se trouve sur l’étiquette de l’appareil ;
 - documentation du fonctionnement entièrement local et de l’isolation facultative du cloud au niveau du routeur ou du pare-feu.
 
