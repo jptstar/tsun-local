@@ -43,17 +43,18 @@ Las versiones publicadas siguen el formato `MAJOR.MINOR.PATCH`. HACS utiliza las
 | TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Validado |
 | TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Validación pendiente |
 | TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ No compatible |
-| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS | **MS3000** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS | **MX500** | ✅ Validado |
-| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ Validación pendiente |
-| GEN3 / GEN3 PLUS | **MX3000** | ⛔ No compatible |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Validado |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Validación pendiente |
+| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Validación pendiente |
+| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Validación pendiente |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocolo y PV5/PV6 por validar |
+| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Validación pendiente |
+| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Validación pendiente |
+| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Validación pendiente |
 
 El adaptador GEN3 / GEN3 PLUS detecta dinámicamente los dispositivos con **1, 2 o 4 entradas FV**.
 
-El **MX3000** no es compatible porque el mapa de registros disponible termina en PV4, mientras que este modelo puede tener entradas adicionales.
+Los nombres de modelo **MX3300, MX3000, MX2700, MX2500 y MX2400** no aparecen explícitamente en los mapas de protocolo proporcionados. Se necesita una captura en hardware real para confirmar el protocolo e identificar los registros PV5/PV6 antes de añadir compatibilidad.
 
 ### Otros dispositivos
 

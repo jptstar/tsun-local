@@ -43,17 +43,18 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 | TITAN 2250 W–3000 W | **TSOL-MP3000** | ✅ Zweryfikowany |
 | TITAN 2250 W–3000 W | **TSOL-MP2250, TSOL-MS3000** | ❌ Oczekuje na weryfikację |
 | TITAN 3680 W–6000 W | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ Nieobsługiwane |
-| GEN3 / GEN3 PLUS | **MS300, MS350, MS400, MS400-D** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS | **MS600, MS700, MS800, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS | **MS1600, MS1800, MS2000, MS2000-D** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS | **MS3000** | ❌ Oczekuje na weryfikację |
-| GEN3 / GEN3 PLUS | **MX500** | ✅ Zweryfikowany |
-| GEN3 / GEN3 PLUS | **MX450, MX1000** | ❌ Oczekują na weryfikację |
-| GEN3 / GEN3 PLUS | **MX3000** | ⛔ Nieobsługiwany |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX500** | ✅ Zweryfikowany |
+| GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Oczekują na weryfikację |
+| GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Oczekują na weryfikację |
+| GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Oczekują na weryfikację |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protokół i PV5/PV6 do weryfikacji |
+| GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Oczekują na weryfikację |
+| GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Oczekują na weryfikację |
+| GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Oczekują na weryfikację |
 
 Adapter GEN3 / GEN3 PLUS dynamicznie wykrywa urządzenia z **1, 2 lub 4 wejściami PV**.
 
-Model **MX3000** nie jest obsługiwany, ponieważ dostępna mapa rejestrów kończy się na PV4, a ten model może mieć dodatkowe wejścia.
+Nazwy modeli **MX3300, MX3000, MX2700, MX2500 i MX2400** nie występują jawnie w dostarczonych mapach protokołów. Przed dodaniem obsługi potrzebny jest zapis z rzeczywistego urządzenia, aby potwierdzić protokół i określić rejestry PV5/PV6.
 
 ### Inne urządzenia
 
