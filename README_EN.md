@@ -47,14 +47,14 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 | GEN3 / GEN3 PLUS · MX 1-in-1 | **MX450, MX400** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS · MX 2-in-1 | **MX1000, MX900, MX800** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS · MX 4-in-1 | **MX2250** | ❌ Pending validation |
-| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Unsupported |
+| GEN3 / GEN3 PLUS · MX 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ⛔ Protocol and PV5/PV6 map to validate |
 | GEN3 / GEN3 PLUS · MS 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS · MS 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Pending validation |
 | GEN3 / GEN3 PLUS · MS 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Pending validation |
 
 The GEN3 / GEN3 PLUS adapter dynamically detects devices with **1, 2, or 4 PV inputs**.
 
-The **MX3300, MX3000, MX2700, MX2500, and MX2400** models have 6 PV inputs and are not currently supported: the register map available to this adapter stops at PV4.
+The **MX3300, MX3000, MX2700, MX2500, and MX2400** model names do not appear explicitly in the supplied protocol maps. A real-device capture is required to confirm the protocol and identify the PV5/PV6 registers before support can be added.
 
 ### Other devices
 
