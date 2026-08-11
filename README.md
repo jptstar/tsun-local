@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.7 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
+**TSUN Local** integrates compatible TSUN micro-inverters directly into Home Assistant over the local network, without a proxy or cloud service. Version 1.1.8 supports the **TSOL-MP3000** and **MX500**, validated on real hardware, plus other **TITAN**, **GEN3**, and **GEN3 PLUS** models awaiting validation.
 
 **Author: Jean-Philippe TESTART (jptstar)**
 
@@ -39,8 +39,8 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 ### Legend
 
 - ✅ Compatible and validated on real hardware
-- ❌ Adapter available, hardware validation pending
-- ⛔ To be tested
+- 🧪 Ready for community testing — adapter available; test reports are welcome
+- 🔎 Hardware data needed — compatibility has not yet been confirmed
 
 ### Micro-inverters
 
@@ -49,26 +49,26 @@ Published versions follow `MAJOR.MINOR.PATCH`. HACS uses GitHub Releases to offe
 | Configuration | Models | Status |
 |---|---|---|
 | 6-in-1 | **TSOL-MP3000** | ✅ Validated |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | ❌ Pending validation |
-| Inputs to be determined | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | ⛔ To be tested |
+| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Testers wanted |
+| Inputs to be determined | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Hardware data needed |
 
 #### GEN3 / GEN3 PLUS — MX series
 
 | Configuration | Models | Status |
 |---|---|---|
 | 1-in-1 | **MX500** | ✅ Validated |
-| 1-in-1 | **MX450, MX400** | ❌ Pending validation |
-| 2-in-1 | **MX1000, MX900, MX800** | ❌ Pending validation |
-| 4-in-1 | **MX2250** | ❌ Pending validation |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | ❌ Pending validation |
+| 1-in-1 | **MX450, MX400** | 🧪 Testers wanted |
+| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Testers wanted |
+| 4-in-1 | **MX2250** | 🧪 Testers wanted |
+| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Hardware data needed |
 
 #### GEN3 / GEN3 PLUS — MS series
 
 | Configuration | Models | Status |
 |---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | ❌ Pending validation |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | ❌ Pending validation |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | ❌ Pending validation |
+| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Testers wanted |
+| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Testers wanted |
+| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Testers wanted |
 
 PV input discovery is dynamic up to **6 inputs for TITAN**. For GEN3 / GEN3 PLUS, the current map covers **1, 2, or 4 PV inputs**; PV5 and PV6 are not detected yet.
 
@@ -76,8 +76,10 @@ PV input discovery is dynamic up to **6 inputs for TITAN**. For GEN3 / GEN3 PLUS
 
 | Type | Models | Status |
 |---|---|---|
-| GEN3 PLUS battery | **TSOL-DC1000** | ❌ Pending validation |
-| Smart meter | **TSOL-MG3-MS, DDZY422-D2** | ❌ Pending validation |
+| GEN3 PLUS battery | **TSOL-DC1000** | 🔎 Hardware data needed |
+| Smart meter | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Hardware data needed |
+
+> **Do you own one of these models?** Models marked 🧪 are ready for community testing. Please [open a compatibility report](https://github.com/jptstar/tsun-local/issues/new) with the exact model, firmware version, and test result. Mask complete serial numbers and private network information.
 
 ## Installation
 
