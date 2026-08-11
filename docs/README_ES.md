@@ -10,7 +10,7 @@
 
 > **Proyecto no oficial** — Esta integración comunitaria independiente no está desarrollada, aprobada ni mantenida por TSUN y no está afiliada a TSUN de ninguna manera. TSUN y los nombres de sus productos siguen siendo propiedad de sus respectivos titulares. Las solicitudes de asistencia relacionadas con esta integración deben dirigirse a su autor, no a TSUN.
 
-**TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles presentes en la red local, sin proxy ni servicio en la nube. La versión 1.1.5 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
+**TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles presentes en la red local, sin proxy ni servicio en la nube. La versión 1.1.6 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ Si no aparece la última versión, abra el menú del repositorio y seleccione **
 4. Busque **TSUN Local**.
 5. Introduzca la dirección IP, el puerto y el **Monitor SN / Logger SN impreso en la etiqueta del microinversor**.
 
-Al añadir un dispositivo, elija **Buscar en la red local** o **Configuración manual** y seleccione **TITAN** para TSOL-MP3000 o **GEN3 / GEN3 PLUS** para MX500. Introduzca el **Monitor SN / Logger SN** impreso en la etiqueta. La búsqueda examina únicamente la red IPv4 local en el puerto 8899 y no envía datos a las direcciones candidatas.
+Al añadir un dispositivo, elija **Buscar en la red local** o **Configuración manual** y seleccione **TITAN** para TSOL-MP3000 o **GEN3 / GEN3 PLUS** para MX500. Introduzca el **Monitor SN / Logger SN** impreso en la etiqueta. La búsqueda examina todas las redes IPv4 activas expuestas por Home Assistant en el puerto seleccionado y no envía datos de aplicación a las direcciones candidatas. Si no se encuentra ningún dispositivo, el formulario permite introducir una subred LAN o VLAN enrutada en notación CIDR.
 
 ## Varios dispositivos
 

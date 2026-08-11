@@ -37,11 +37,21 @@
           "protocol": "Familia del dispositivo",
           "logger_sn": "Monitor SN / Logger SN (etiqueta)"
         }
+      },
+      "discover_network": {
+        "title": "Red que se va a analizar",
+        "description": "No se encontró ningún dispositivo en las redes detectadas por Home Assistant. Introduce la subred IPv4 de los microinversores en formato CIDR (por ejemplo, 192.168.1.0/24). La búsqueda está limitada a 254 direcciones.",
+        "data": {
+          "discovery_network": "Subred IPv4",
+          "port": "Puerto"
+        }
       }
     },
     "error": {
       "cannot_connect": "No se puede conectar con el dispositivo",
-      "invalid_response": "El dispositivo ha devuelto una respuesta no válida"
+      "invalid_network": "Introduce una subred IPv4 válida entre /24 y /32",
+      "invalid_response": "El dispositivo ha devuelto una respuesta no válida",
+      "no_devices_found": "No se encontró ningún dispositivo con conexión local en esta subred y puerto"
     },
     "abort": {
       "already_configured": "Este microinversor ya está configurado",

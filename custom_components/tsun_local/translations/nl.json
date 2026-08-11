@@ -37,11 +37,21 @@
           "protocol": "Apparaatfamilie",
           "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
         }
+      },
+      "discover_network": {
+        "title": "Te doorzoeken netwerk",
+        "description": "Er is geen apparaat gevonden op de door Home Assistant gedetecteerde netwerken. Voer het IPv4-subnet van de micro-omvormers in CIDR-notatie in (bijvoorbeeld 192.168.1.0/24). De zoekopdracht is beperkt tot 254 adressen.",
+        "data": {
+          "discovery_network": "IPv4-subnet",
+          "port": "Poort"
+        }
       }
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken met het apparaat",
-      "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden"
+      "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in",
+      "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden",
+      "no_devices_found": "Er is geen apparaat met lokale verbinding gevonden op dit subnet en deze poort"
     },
     "abort": {
       "already_configured": "Deze micro-omvormer is al geconfigureerd",

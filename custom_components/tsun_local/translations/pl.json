@@ -37,11 +37,21 @@
           "protocol": "Rodzina urządzenia",
           "logger_sn": "Monitor SN / Logger SN (etykieta)"
         }
+      },
+      "discover_network": {
+        "title": "Sieć do przeskanowania",
+        "description": "Nie znaleziono urządzenia w sieciach wykrytych przez Home Assistant. Wprowadź podsieć IPv4 mikrofalowników w notacji CIDR (na przykład 192.168.1.0/24). Wyszukiwanie jest ograniczone do 254 adresów.",
+        "data": {
+          "discovery_network": "Podsieć IPv4",
+          "port": "Port"
+        }
       }
     },
     "error": {
       "cannot_connect": "Nie można połączyć się z urządzeniem",
-      "invalid_response": "Urządzenie zwróciło nieprawidłową odpowiedź"
+      "invalid_network": "Wprowadź prawidłową podsieć IPv4 od /24 do /32",
+      "invalid_response": "Urządzenie zwróciło nieprawidłową odpowiedź",
+      "no_devices_found": "W tej podsieci i na tym porcie nie znaleziono urządzenia z połączeniem lokalnym"
     },
     "abort": {
       "already_configured": "Ten mikrofalownik jest już skonfigurowany",

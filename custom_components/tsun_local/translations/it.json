@@ -37,11 +37,21 @@
           "protocol": "Famiglia del dispositivo",
           "logger_sn": "Monitor SN / Logger SN (etichetta)"
         }
+      },
+      "discover_network": {
+        "title": "Rete da analizzare",
+        "description": "Non è stato trovato alcun dispositivo nelle reti rilevate da Home Assistant. Inserisci la sottorete IPv4 dei microinverter in notazione CIDR (ad esempio 192.168.1.0/24). La ricerca è limitata a 254 indirizzi.",
+        "data": {
+          "discovery_network": "Sottorete IPv4",
+          "port": "Porta"
+        }
       }
     },
     "error": {
       "cannot_connect": "Impossibile connettersi al dispositivo",
-      "invalid_response": "Il dispositivo ha restituito una risposta non valida"
+      "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32",
+      "invalid_response": "Il dispositivo ha restituito una risposta non valida",
+      "no_devices_found": "Nessun dispositivo con connessione locale è stato trovato in questa sottorete e porta"
     },
     "abort": {
       "already_configured": "Questo microinverter è già configurato",

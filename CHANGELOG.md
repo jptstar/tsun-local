@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.6] - 2026-08-11
+
+### Fixed
+
+- automatic discovery now scans every active IPv4 network exposed by Home Assistant instead of only the single network selected for mDNS;
+- when no device is found automatically, the setup flow now allows a routed LAN or VLAN subnet and port to be entered manually in CIDR notation;
+- discovery uses a more tolerant connection timeout while keeping the scan limited to at most 254 addresses per subnet.
+
+### Added
+
+- unit tests for bounded adapter networks, invalid oversized discovery networks, and ignored loopback interfaces.
+
 ## [1.1.5] - 2026-08-11
 
 ### Changed
@@ -96,6 +108,7 @@ All notable changes to this project are documented here. The project follows [Se
 - GitHub documentation in French, English, and German;
 - the GPL-3.0 license and copyright notice for Jean-Philippe TESTART (jptstar).
 
+[1.1.6]: https://github.com/jptstar/tsun-local/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/jptstar/tsun-local/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/jptstar/tsun-local/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/jptstar/tsun-local/compare/v1.1.2...v1.1.3

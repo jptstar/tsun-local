@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import asyncio
-from ipaddress import IPv4Network, ip_network
+from ipaddress import IPv4Network
 from typing import Any
 
 import voluptuous as vol
@@ -17,6 +17,7 @@ from homeassistant.components.network import MDNS_TARGET_IP
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
@@ -28,6 +29,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_DISCOVERY_NETWORK,
     CONF_LOGGER_SN,
     CONF_OFFLINE_SCAN_INTERVAL,
     CONF_PROTOCOL,
@@ -41,7 +43,11 @@ from .const import (
     MIN_OFFLINE_SCAN_INTERVAL,
     MIN_SCAN_INTERVAL,
 )
-from .discovery import async_scan_hosts
+from .discovery import (
+    async_scan_networks,
+    bounded_ipv4_network,
+    parse_discovery_network,
+)
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 CONFIGURABLE_PROTOCOLS = ("1511", "02b0")
@@ -69,7 +75,10 @@ def _protocol_selector() -> SelectSelector:
     )
 
 
-def _connection_schema(discovered_hosts: list[str] | None = None) -> vol.Schema:
+def _connection_schema(
+    discovered_hosts: list[str] | None = None,
+    port: int = DEFAULT_PORT,
+) -> vol.Schema:
     """Build a manual or discovery-assisted connection form."""
     host_field: Any = str
     if discovered_hosts:
@@ -85,12 +94,32 @@ def _connection_schema(discovered_hosts: list[str] | None = None) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_HOST): host_field,
-            vol.Required(CONF_PORT, default=DEFAULT_PORT): vol.All(
+            vol.Required(CONF_PORT, default=port): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=65535)
             ),
             vol.Required(CONF_PROTOCOL): _protocol_selector(),
             vol.Required(CONF_LOGGER_SN): vol.All(
                 vol.Coerce(int), vol.Range(min=1, max=0xFFFFFFFF)
+            ),
+        }
+    )
+
+
+def _discovery_network_schema(
+    suggested_network: str | None,
+    port: int,
+) -> vol.Schema:
+    """Build the fallback form for routed or containerized installations."""
+    network_key = vol.Required(CONF_DISCOVERY_NETWORK)
+    if suggested_network is not None:
+        network_key = vol.Required(
+            CONF_DISCOVERY_NETWORK, default=suggested_network
+        )
+    return vol.Schema(
+        {
+            network_key: str,
+            vol.Required(CONF_PORT, default=port): vol.All(
+                vol.Coerce(int), vol.Range(min=1, max=65535)
             ),
         }
     )
@@ -134,21 +163,28 @@ OPTIONS_SCHEMA = vol.Schema(
 )
 
 
-async def _async_get_discovery_network(hass: HomeAssistant) -> IPv4Network:
-    """Return a bounded local IPv4 network for an on-demand scan."""
-    local_ip = await network.async_get_source_ip(hass, MDNS_TARGET_IP)
-    prefix = 24
+async def _async_get_discovery_networks(
+    hass: HomeAssistant,
+) -> list[IPv4Network]:
+    """Return all bounded IPv4 networks exposed by Home Assistant."""
+    discovered_networks: set[IPv4Network] = set()
     for adapter in await network.async_get_adapters(hass):
         if not adapter["enabled"]:
             continue
         for ipv4 in adapter["ipv4"]:
-            if ipv4["address"] == local_ip:
-                prefix = max(ipv4["network_prefix"], 24)
-                break
-    discovered_network = ip_network(f"{local_ip}/{prefix}", strict=False)
-    if not isinstance(discovered_network, IPv4Network):
-        raise ValueError("No IPv4 network available for discovery")
-    return discovered_network
+            if discovered_network := bounded_ipv4_network(
+                ipv4["address"], ipv4["network_prefix"]
+            ):
+                discovered_networks.add(discovered_network)
+
+    if not discovered_networks:
+        local_ip = await network.async_get_source_ip(hass, MDNS_TARGET_IP)
+        if discovered_network := bounded_ipv4_network(local_ip, 24):
+            discovered_networks.add(discovered_network)
+
+    return sorted(
+        discovered_networks, key=lambda item: int(item.network_address)
+    )
 
 
 class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -159,6 +195,8 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the configuration flow."""
         self._discovered_hosts: list[str] | None = None
+        self._discovery_port = DEFAULT_PORT
+        self._suggested_network: str | None = None
 
     async def _async_create_device(
         self, user_input: dict[str, Any]
@@ -208,17 +246,21 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_discover(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Search the local /24 on demand, then configure a selected host."""
+        """Search every local /24 exposed by Home Assistant on demand."""
         if self._discovered_hosts is None:
             try:
-                discovery_network = await _async_get_discovery_network(self.hass)
-                self._discovered_hosts = await async_scan_hosts(
-                    discovery_network.hosts(), DEFAULT_PORT
+                discovery_networks = await _async_get_discovery_networks(
+                    self.hass
                 )
-            except (OSError, RuntimeError, ValueError):
-                return self.async_abort(reason="no_devices_found")
+                if discovery_networks:
+                    self._suggested_network = str(discovery_networks[0])
+                self._discovered_hosts = await async_scan_networks(
+                    discovery_networks, self._discovery_port
+                )
+            except (HomeAssistantError, OSError, RuntimeError, ValueError):
+                self._discovered_hosts = []
             if not self._discovered_hosts:
-                return self.async_abort(reason="no_devices_found")
+                return await self.async_step_discover_network()
 
         errors: dict[str, str] = {}
         if user_input is not None:
@@ -229,7 +271,41 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="discover",
-            data_schema=_connection_schema(self._discovered_hosts),
+            data_schema=_connection_schema(
+                self._discovered_hosts, self._discovery_port
+            ),
+            errors=errors,
+        )
+
+    async def async_step_discover_network(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Allow a routed LAN or VLAN to be supplied when automatic scan fails."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            try:
+                discovery_network = parse_discovery_network(
+                    user_input[CONF_DISCOVERY_NETWORK]
+                )
+                self._discovery_port = user_input[CONF_PORT]
+                self._suggested_network = str(discovery_network)
+                self._discovered_hosts = await async_scan_networks(
+                    [discovery_network], self._discovery_port
+                )
+            except ValueError:
+                errors["base"] = "invalid_network"
+            except (OSError, RuntimeError):
+                errors["base"] = "no_devices_found"
+            else:
+                if self._discovered_hosts:
+                    return await self.async_step_discover()
+                errors["base"] = "no_devices_found"
+
+        return self.async_show_form(
+            step_id="discover_network",
+            data_schema=_discovery_network_schema(
+                self._suggested_network, self._discovery_port
+            ),
             errors=errors,
         )
 

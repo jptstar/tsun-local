@@ -37,11 +37,21 @@
           "protocol": "Gerätefamilie",
           "logger_sn": "Monitor SN / Logger SN (Typenschild)"
         }
+      },
+      "discover_network": {
+        "title": "Zu durchsuchendes Netzwerk",
+        "description": "In den von Home Assistant erkannten Netzwerken wurde kein Gerät gefunden. Gib das IPv4-Subnetz der Mikrowechselrichter in CIDR-Schreibweise ein (zum Beispiel 192.168.1.0/24). Die Suche ist auf 254 Adressen begrenzt.",
+        "data": {
+          "discovery_network": "IPv4-Subnetz",
+          "port": "Port"
+        }
       }
     },
     "error": {
       "cannot_connect": "Verbindung zum Wechselrichter nicht möglich",
-      "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet"
+      "invalid_network": "Gib ein gültiges IPv4-Subnetz zwischen /24 und /32 ein",
+      "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet",
+      "no_devices_found": "In diesem Subnetz und an diesem Port wurde kein Gerät mit lokaler Verbindung gefunden"
     },
     "abort": {
       "already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert",

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import importlib.util
-from ipaddress import IPv4Address
+from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
 import sys
 import unittest
@@ -192,6 +192,19 @@ class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertEqual(hosts, ["127.0.0.1"])
+
+    def test_bounds_large_adapter_network_to_24(self) -> None:
+        network = DISCOVERY.bounded_ipv4_network("192.0.2.42", 16)
+        self.assertEqual(network, IPv4Network("192.0.2.0/24"))
+
+    def test_rejects_scan_network_larger_than_24(self) -> None:
+        with self.assertRaises(ValueError):
+            DISCOVERY.parse_discovery_network("192.0.2.0/23")
+
+    def test_ignores_loopback_adapter(self) -> None:
+        self.assertIsNone(
+            DISCOVERY.bounded_ipv4_network("127.0.0.1", 8)
+        )
 
 
 if __name__ == "__main__":

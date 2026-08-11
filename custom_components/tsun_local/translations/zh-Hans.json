@@ -37,11 +37,21 @@
           "protocol": "设备系列",
           "logger_sn": "Monitor SN / Logger SN（铭牌）"
         }
+      },
+      "discover_network": {
+        "title": "要扫描的网络",
+        "description": "在 Home Assistant 检测到的网络中未找到设备。请用 CIDR 格式输入微型逆变器的 IPv4 子网（例如 192.168.1.0/24）。扫描最多包含 254 个地址。",
+        "data": {
+          "discovery_network": "IPv4 子网",
+          "port": "端口"
+        }
       }
     },
     "error": {
       "cannot_connect": "无法连接到设备",
-      "invalid_response": "设备返回了无效响应"
+      "invalid_network": "请输入 /24 到 /32 之间的有效 IPv4 子网",
+      "invalid_response": "设备返回了无效响应",
+      "no_devices_found": "在此子网和端口上未找到接受本地连接的设备"
     },
     "abort": {
       "already_configured": "此微型逆变器已配置",

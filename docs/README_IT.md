@@ -10,7 +10,7 @@
 
 > **Progetto non ufficiale** — Questa integrazione indipendente della comunità non è sviluppata, approvata o mantenuta da TSUN e non è affiliata a TSUN in alcun modo. TSUN e i nomi dei suoi prodotti restano di proprietà dei rispettivi titolari. Le richieste di assistenza relative a questa integrazione devono essere rivolte all’autore, non a TSUN.
 
-**TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili presenti sulla rete locale, senza proxy né servizi cloud. La versione 1.1.5 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
+**TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili presenti sulla rete locale, senza proxy né servizi cloud. La versione 1.1.6 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
@@ -103,7 +103,7 @@ Se l’ultima versione non appare, aprire il menu del repository e selezionare *
 4. Cercare **TSUN Local**.
 5. Inserire l’indirizzo IP, la porta e il **Monitor SN / Logger SN riportato sull’etichetta del microinverter**.
 
-Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione manuale**, quindi selezionare **TITAN** per TSOL-MP3000 oppure **GEN3 / GEN3 PLUS** per MX500. Inserire il **Monitor SN / Logger SN** riportato sull’etichetta. La ricerca controlla soltanto la rete IPv4 locale sulla porta 8899 e non invia dati agli indirizzi candidati.
+Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione manuale**, quindi selezionare **TITAN** per TSOL-MP3000 oppure **GEN3 / GEN3 PLUS** per MX500. Inserire il **Monitor SN / Logger SN** riportato sull’etichetta. La ricerca controlla tutte le reti IPv4 attive esposte da Home Assistant sulla porta selezionata e non invia dati applicativi agli indirizzi candidati. Se non viene trovato alcun dispositivo, il modulo consente di inserire una sottorete LAN o VLAN instradata in notazione CIDR.
 
 ## Più dispositivi
 
