@@ -3,19 +3,39 @@
     "step": {
       "user": {
         "title": "添加 TSUN Local 设备",
-        "description": "请输入本地连接信息。系统会自动检测通信协议和可用的光伏输入。所需的序列号（SN）印在微型逆变器的铭牌上。每添加一台兼容设备，请重新执行“添加集成”。",
-        "data": {
-          "host": "IP 地址",
-          "port": "端口",
-          "logger_sn": "微型逆变器 SN（铭牌）"
+        "description": "请选择自动搜索本地网络或手动配置。",
+        "menu_options": {
+          "discover": "搜索本地网络",
+          "manual": "手动输入连接信息"
         }
       },
       "reconfigure": {
         "title": "修改连接",
-        "description": "修改此设备的 IP 地址或 TCP 端口。微型逆变器的 SN 将继续作为其永久标识。",
+        "description": "修改 IP 地址、TCP 端口或设备系列。Monitor SN / Logger SN 仍作为设备的永久标识。",
         "data": {
           "host": "IP 地址",
-          "port": "端口"
+          "port": "端口",
+          "protocol": "设备系列"
+        }
+      },
+      "manual": {
+        "title": "手动配置",
+        "description": "请输入连接信息并选择设备系列。Monitor SN / Logger SN 印在设备铭牌上。",
+        "data": {
+          "host": "IP 地址",
+          "port": "端口",
+          "protocol": "设备系列",
+          "logger_sn": "Monitor SN / Logger SN（铭牌）"
+        }
+      },
+      "discover": {
+        "title": "已发现的设备",
+        "description": "请选择在 TCP 端口 8899 上发现的地址、设备系列，并输入 Monitor SN / Logger SN。",
+        "data": {
+          "host": "已发现的地址",
+          "port": "端口",
+          "protocol": "设备系列",
+          "logger_sn": "Monitor SN / Logger SN（铭牌）"
         }
       }
     },
@@ -24,7 +44,8 @@
       "invalid_response": "设备返回了无效响应"
     },
     "abort": {
-      "already_configured": "此微型逆变器已配置"
+      "already_configured": "此微型逆变器已配置",
+      "no_devices_found": "未找到在端口 8899 上接受本地连接的设备"
     }
   },
   "options": {
@@ -168,6 +189,14 @@
     "binary_sensor": {
       "communication_online": {
         "name": "通信"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "1511": "TITAN",
+        "02b0": "GEN3 / GEN3 PLUS"
       }
     }
   }
