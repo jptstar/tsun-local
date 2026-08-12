@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Modificar la conexión",
-        "description": "Modifica la dirección IP o el puerto TCP. El Monitor SN / Logger SN seguirá siendo su identificador permanente.",
+        "description": "Modifica la dirección IP o el puerto TCP. El SN numérico seguirá siendo el identificador permanente de conexión.",
         "data": {
           "host": "Dirección IP",
           "port": "Puerto"
@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Configuración manual",
-        "description": "Introduce la dirección IP y el puerto. Home Assistant intenta primero leer automáticamente el Monitor SN / Logger SN en la página de estado local del logger. Si no puede leerlo, el formulario solicitará su introducción manual.",
+        "description": "Introduce la dirección IP y el puerto. Home Assistant intenta primero leer automáticamente el SN numérico en la página de estado local del logger. Si no puede leerlo, el formulario solicitará su introducción manual.",
         "data": {
           "host": "Dirección IP",
           "port": "Puerto",
-          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
+          "logger_sn": "SN"
         }
       },
       "discover": {
         "title": "Dispositivos encontrados",
-        "description": "Selecciona una dirección encontrada en el puerto TCP configurado. Home Assistant intenta primero leer automáticamente el Monitor SN / Logger SN en la página de estado local del logger. Si no puede leerlo, el formulario solicitará su introducción manual.",
+        "description": "Selecciona una dirección encontrada en el puerto TCP configurado. Home Assistant intenta primero leer automáticamente el SN numérico en la página de estado local del logger. Si no puede leerlo, el formulario solicitará su introducción manual.",
         "data": {
           "host": "Dirección detectada",
           "port": "Puerto",
-          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
+          "logger_sn": "SN"
         }
       },
       "discover_network": {
@@ -46,7 +46,7 @@
     },
     "error": {
       "cannot_connect": "No se puede conectar con el dispositivo",
-      "cannot_detect_logger_sn": "La detección automática ha fallado. Introduce el Monitor SN / Logger SN que aparece como Device serial number en la página de estado local o en la etiqueta del dispositivo.",
+      "cannot_detect_logger_sn": "La detección automática ha fallado. Introduce el SN numérico que aparece como Device serial number en la página de estado local o en la etiqueta del dispositivo.",
       "invalid_network": "Introduce una subred IPv4 válida entre /24 y /32",
       "invalid_response": "El dispositivo ha devuelto una respuesta no válida",
       "no_devices_found": "No se encontró ningún dispositivo con conexión local en esta subred y puerto"
@@ -73,7 +73,8 @@
   },
   "entity": {
     "sensor": {
-      "inverter_serial_number": {"name": "Número de serie del microinversor"},
+      "label_serial_number": {"name": "SN"},
+      "inverter_serial_number": {"name": "SN del microinversor"},
       "logger_firmware_version": {"name": "Versión de firmware del logger"},
       "logger_mac_address": {"name": "Dirección MAC del logger"},
       "alarm_global_0_raw": {"name": "Alarma global (valor bruto) 0"}, "alarm_global_1_raw": {"name": "Alarma global (valor bruto) 1"}, "alarm_global_2_raw": {"name": "Alarma global (valor bruto) 2"}, "alarm_global_3_raw": {"name": "Alarma global (valor bruto) 3"},

@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.3.1** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
+**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.3.2** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
 
 ## About this project
 
@@ -81,20 +81,13 @@ If a new release does not appear, open the repository menu and select **Update i
 
 ## Adding a device
 
-You can search the local network or enter the connection details manually. Home Assistant first asks only for:
+TSUN Local can search for micro-inverters on the local network, or you can enter their IP address manually. TCP port `8899` is proposed by default and remains editable.
 
-- the micro-inverter/logger IP address;
-- TCP port `8899` by default, which remains editable;
+The local protocol and numeric **SN** are detected automatically. If necessary, the SN can be entered manually from the local status page or the device label. It is distinct from the alphanumeric **Micro-inverter SN**.
 
-Home Assistant then reads the numeric **Monitor SN / Logger SN** automatically from the logger's local `index_cn.html` or `status.html` page using the factory web credentials. These credentials are used only for this local request and are not stored. The correct value is shown as **Device serial number**; it is not the alphanumeric **Inverter serial number**.
+If a device is on another VLAN and is not found, enter its subnet in CIDR notation or use manual configuration.
 
-If the page is unavailable, the credentials have been changed, or the value cannot be read, the same form displays a Monitor SN field for manual entry. The value can be copied from **Device serial number** on the local status page or from the device label.
-
-The local protocol is detected automatically after the device answers. The alphanumeric inverter serial number is not used in the AP communication envelope.
-
-Network search first sends read-only native logger discovery requests over UDP/48899, then validates every reply on the selected TCP port. It also scans the IPv4 subnets visible to Home Assistant and automatically reuses the `/24` subnet of every previously configured TSUN device. For the first device on an unknown routed VLAN, enter that subnet once in CIDR notation; later searches will include it automatically. Routers that block inter-VLAN broadcasts, container networking, or client isolation can still require this first manual subnet entry.
-
-When a device is added from network search, Home Assistant automatically opens a fresh search for the next micro-inverter. The new search uses the same networks and TCP port, hides the address just configured, and stops when no unconfigured device remains. Each device creates an independent entry with its automatically detected or manually entered Monitor SN, entities, and polling settings. Complete device polls share a lock and run one after another, preventing overlapping requests to local loggers.
+Multiple micro-inverters can be added. Each device has its own entities and polling settings.
 
 ## Polling settings
 
@@ -120,7 +113,7 @@ Available data includes:
 - AC instantaneous measurements and energy counters;
 - five measurements for every detected PV input;
 - calculated total DC power;
-- four communication diagnostics, plus micro-inverter serial number, logger firmware, and MAC-address diagnostic sensors;
+- four communication diagnostics, plus **SN**, **Micro-inverter SN**, logger firmware, and MAC-address diagnostic sensors;
 - a **Micro-inverter online** connectivity binary sensor;
 - a global inverter alarm status and protocol-specific raw alarm registers;
 - a manual **Refresh data** button.
@@ -177,7 +170,7 @@ If setup cannot complete, run the standalone capture from a copy of this reposit
 python3 tools/diagnose_device.py --host DEVICE_IP
 ```
 
-The Monitor SN is requested interactively and is not stored in the command history. The generated `tsun_local_diagnostic.json` contains decoded measurements and a short circular trace of inner protocol requests and responses. It does **not** contain the device IP address, Monitor SN, logger MAC address, or AP envelope. Review the file before sharing it, as production and energy readings remain visible.
+The numeric SN is requested interactively and is not stored in the command history. The generated `tsun_local_diagnostic.json` contains decoded measurements and a short circular trace of inner protocol requests and responses. It does **not** contain the device IP address, SN, logger MAC address, or AP envelope. Review the file before sharing it, as production and energy readings remain visible.
 
 The captured responses can be replayed locally without the physical device:
 

@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Verbindung ändern",
-        "description": "Ändere die IP-Adresse oder den TCP-Port. Die Monitor SN / Logger SN bleibt die dauerhafte Kennung.",
+        "description": "Ändere die IP-Adresse oder den TCP-Port. Die numerische SN bleibt die dauerhafte Verbindungskennung.",
         "data": {
           "host": "IP-Adresse",
           "port": "Port"
@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Manuelle Konfiguration",
-        "description": "Gib IP-Adresse und Port ein. Home Assistant versucht zuerst, die Monitor SN / Logger SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
+        "description": "Gib IP-Adresse und Port ein. Home Assistant versucht zuerst, die numerische SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
         "data": {
           "host": "IP-Adresse",
           "port": "Port",
-          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
+          "logger_sn": "SN"
         }
       },
       "discover": {
         "title": "Gefundene Geräte",
-        "description": "Wähle eine am konfigurierten TCP-Port gefundene Adresse. Home Assistant versucht zuerst, die Monitor SN / Logger SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
+        "description": "Wähle eine am konfigurierten TCP-Port gefundene Adresse. Home Assistant versucht zuerst, die numerische SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
         "data": {
           "host": "Gefundene Adresse",
           "port": "Port",
-          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
+          "logger_sn": "SN"
         }
       },
       "discover_network": {
@@ -46,7 +46,7 @@
     },
     "error": {
       "cannot_connect": "Verbindung zum Wechselrichter nicht möglich",
-      "cannot_detect_logger_sn": "Die automatische Erkennung ist fehlgeschlagen. Gib die Monitor SN / Logger SN ein, die auf der lokalen Statusseite als Device serial number angezeigt wird oder auf dem Gerät steht.",
+      "cannot_detect_logger_sn": "Die automatische Erkennung ist fehlgeschlagen. Gib die numerische SN ein, die auf der lokalen Statusseite als Device serial number angezeigt wird oder auf dem Gerät steht.",
       "invalid_network": "Gib ein gültiges IPv4-Subnetz zwischen /24 und /32 ein",
       "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet",
       "no_devices_found": "In diesem Subnetz und an diesem Port wurde kein Gerät mit lokaler Verbindung gefunden"
@@ -73,7 +73,8 @@
   },
   "entity": {
     "sensor": {
-      "inverter_serial_number": {"name": "Seriennummer des Mikrowechselrichters"},
+      "label_serial_number": {"name": "SN"},
+      "inverter_serial_number": {"name": "SN des Mikrowechselrichters"},
       "logger_firmware_version": {"name": "Logger-Firmwareversion"},
       "logger_mac_address": {"name": "MAC-Adresse des Loggers"},
       "alarm_global_0_raw": {"name": "Globalalarm (Rohwert) 0"}, "alarm_global_1_raw": {"name": "Globalalarm (Rohwert) 1"}, "alarm_global_2_raw": {"name": "Globalalarm (Rohwert) 2"}, "alarm_global_3_raw": {"name": "Globalalarm (Rohwert) 3"},

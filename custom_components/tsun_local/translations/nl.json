@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "Verbinding wijzigen",
-        "description": "Wijzig het IP-adres of de TCP-poort. De Monitor SN / Logger SN blijft de permanente identiteit.",
+        "description": "Wijzig het IP-adres of de TCP-poort. De numerieke SN blijft de permanente verbindingsidentificatie.",
         "data": {
           "host": "IP-adres",
           "port": "Poort"
@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Handmatige configuratie",
-        "description": "Voer het IP-adres en de poort in. Home Assistant probeert eerst de Monitor SN / Logger SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
+        "description": "Voer het IP-adres en de poort in. Home Assistant probeert eerst de numerieke SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
         "data": {
           "host": "IP-adres",
           "port": "Poort",
-          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
+          "logger_sn": "SN"
         }
       },
       "discover": {
         "title": "Gevonden apparaten",
-        "description": "Selecteer een adres dat op de ingestelde TCP-poort is gevonden. Home Assistant probeert eerst de Monitor SN / Logger SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
+        "description": "Selecteer een adres dat op de ingestelde TCP-poort is gevonden. Home Assistant probeert eerst de numerieke SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
         "data": {
           "host": "Gevonden adres",
           "port": "Poort",
-          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
+          "logger_sn": "SN"
         }
       },
       "discover_network": {
@@ -46,7 +46,7 @@
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken met het apparaat",
-      "cannot_detect_logger_sn": "Automatische detectie is mislukt. Voer de Monitor SN / Logger SN in die als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
+      "cannot_detect_logger_sn": "Automatische detectie is mislukt. Voer de numerieke SN in die als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
       "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in",
       "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden",
       "no_devices_found": "Er is geen apparaat met lokale verbinding gevonden op dit subnet en deze poort"
@@ -73,7 +73,8 @@
   },
   "entity": {
     "sensor": {
-      "inverter_serial_number": {"name": "Serienummer van micro-omvormer"},
+      "label_serial_number": {"name": "SN"},
+      "inverter_serial_number": {"name": "SN van micro-omvormer"},
       "logger_firmware_version": {"name": "Firmwareversie van logger"},
       "logger_mac_address": {"name": "MAC-adres van logger"},
       "alarm_global_0_raw": {"name": "Globaal alarm (ruwe waarde) 0"}, "alarm_global_1_raw": {"name": "Globaal alarm (ruwe waarde) 1"}, "alarm_global_2_raw": {"name": "Globaal alarm (ruwe waarde) 2"}, "alarm_global_3_raw": {"name": "Globaal alarm (ruwe waarde) 3"},

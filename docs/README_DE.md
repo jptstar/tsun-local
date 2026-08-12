@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.3.1** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
+**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.3.2** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
 
 ## Über dieses Projekt
 
@@ -81,20 +81,13 @@ Wenn eine neue Version nicht erscheint, öffne das Repository-Menü und wähle *
 
 ## Gerät hinzufügen
 
-Das Gerät kann im lokalen Netzwerk gesucht oder manuell eingetragen werden. Home Assistant fragt zunächst nur nach:
+TSUN Local kann im lokalen Netzwerk nach Mikrowechselrichtern suchen. Alternativ kann ihre IP-Adresse manuell eingegeben werden. TCP-Port `8899` ist voreingestellt und bleibt änderbar.
 
-- IP-Adresse des Mikrowechselrichters/Loggers;
-- TCP-Port `8899` als änderbarer Standardwert;
+Lokales Protokoll und numerische **SN** werden automatisch erkannt. Falls nötig, kann die SN von der lokalen Statusseite oder dem Typenschild manuell eingegeben werden. Sie unterscheidet sich von der alphanumerischen **Mikrowechselrichter-SN**.
 
-Anschließend liest Home Assistant die numerische **Monitor SN / Logger SN** automatisch über die lokale Seite `index_cn.html` oder `status.html` des Loggers mit den werkseitigen Web-Zugangsdaten aus. Diese Daten werden nur für diese lokale Anfrage verwendet und nicht gespeichert. Der richtige Wert steht unter **Device serial number**; es handelt sich nicht um die alphanumerische **Inverter serial number**.
+Befindet sich das Gerät in einem anderen VLAN und wird nicht gefunden, kann sein Subnetz in CIDR-Notation angegeben oder die manuelle Konfiguration verwendet werden.
 
-Ist die Seite nicht verfügbar, wurden ihre Zugangsdaten geändert oder ist der Wert nicht lesbar, zeigt dasselbe Formular ein Feld zur manuellen Eingabe der Monitor SN an. Der Wert kann von **Device serial number** auf der lokalen Statusseite oder vom Typenschild übernommen werden.
-
-Das lokale Protokoll wird automatisch erkannt, sobald das Gerät antwortet. Die alphanumerische Seriennummer des Wechselrichters wird in der AP-Kommunikationshülle nicht verwendet.
-
-Die Netzwerksuche sendet zunächst schreibgeschützte native Erkennungsanfragen über UDP/48899 und prüft anschließend jede Antwort am gewählten TCP-Port. Zusätzlich werden die für Home Assistant sichtbaren IPv4-Subnetze geprüft und das `/24`-Subnetz jedes bereits konfigurierten TSUN-Geräts automatisch wiederverwendet. Für das erste Gerät in einem unbekannten gerouteten VLAN muss dieses Subnetz einmal in CIDR-Notation eingegeben werden; spätere Suchen berücksichtigen es automatisch. Router, die Broadcasts zwischen VLANs blockieren, Container-Netzwerke oder WLAN-Client-Isolation können diese erste manuelle Eingabe weiterhin erforderlich machen.
-
-Nach dem Hinzufügen eines über die Netzwerksuche gefundenen Geräts öffnet Home Assistant automatisch eine neue Suche für den nächsten Mikrowechselrichter. Sie verwendet dieselben Netzwerke und denselben TCP-Port, blendet die gerade eingerichtete Adresse aus und endet, wenn kein weiteres Gerät übrig ist. Jeder Mikrowechselrichter erhält einen unabhängigen Eintrag mit automatisch erkannter oder manuell eingegebener Monitor SN, eigenen Entitäten und Abfrageintervallen. Vollständige Geräteabfragen verwenden eine gemeinsame Sperre und laufen nacheinander.
+Mehrere Mikrowechselrichter können hinzugefügt werden. Jedes Gerät besitzt eigene Entitäten und Abfrageeinstellungen.
 
 ## Abfrageeinstellungen
 
@@ -120,7 +113,7 @@ Verfügbar sind:
 - AC-Momentanwerte und Energiezähler;
 - fünf Messwerte je erkanntem PV-Eingang;
 - berechnete DC-Gesamtleistung;
-- vier Kommunikationsdiagnosen sowie Mikrowechselrichter-Seriennummer, Logger-Firmwareversion und MAC-Adresse als Diagnoseentitäten;
+- vier Kommunikationsdiagnosen sowie **SN**, **Mikrowechselrichter-SN**, Logger-Firmwareversion und MAC-Adresse als Diagnoseentitäten;
 - ein binärer Verbindungssensor **Mikrowechselrichter online**;
 - ein globaler Wechselrichteralarm und protokollspezifische rohe Alarmregister;
 - eine manuelle Schaltfläche **Daten aktualisieren**.
@@ -177,7 +170,7 @@ Wenn die Einrichtung nicht abgeschlossen werden kann, starte die eigenständige 
 python3 tools/diagnose_device.py --host GERAETE_IP
 ```
 
-Die Monitor SN wird interaktiv abgefragt und nicht im Befehlsverlauf gespeichert. Die erzeugte Datei `tsun_local_diagnostic.json` enthält dekodierte Messwerte und eine kurze Ringspur der internen Protokollanfragen und -antworten. Sie enthält **weder Geräte-IP noch Monitor SN noch Logger-MAC-Adresse noch AP-Hülle**. Prüfe die Datei vor dem Teilen, da Produktions- und Energiewerte sichtbar bleiben.
+Die numerische SN wird interaktiv abgefragt und nicht im Befehlsverlauf gespeichert. Die erzeugte Datei `tsun_local_diagnostic.json` enthält dekodierte Messwerte und eine kurze Ringspur der internen Protokollanfragen und -antworten. Sie enthält **weder Geräte-IP noch SN noch Logger-MAC-Adresse noch AP-Hülle**. Prüfe die Datei vor dem Teilen, da Produktions- und Energiewerte sichtbar bleiben.
 
 Die aufgezeichneten Antworten können ohne das physische Gerät lokal erneut ausgewertet werden:
 
