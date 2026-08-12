@@ -12,7 +12,7 @@
 
 **TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles **a través de la red local, sin proxy ni servicio en la nube**.
 
-La versión 1.3.1 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
+La versión 1.3.2 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -90,13 +90,16 @@ Si no aparece la última versión, abra el menú del repositorio y seleccione **
 2. Reinicie Home Assistant.
 3. Abra **Ajustes → Dispositivos y servicios → Añadir integración**.
 4. Busque **TSUN Local**.
-5. Introduzca la dirección IP y el puerto. Home Assistant intentará detectar automáticamente el **Monitor SN / Logger SN**.
 
-Al añadir un dispositivo, elija **Buscar en la red local** o **Configuración manual**. Home Assistant lee primero el **Monitor SN / Logger SN** de la página de estado local del logger. Si no está disponible, el formulario permite introducir manualmente el valor **Device serial number** de la página o de la etiqueta. La integración detecta automáticamente el protocolo local compatible; no es necesario seleccionar la familia del dispositivo. La búsqueda envía primero consultas nativas de solo lectura por UDP/48899 y valida cada respuesta en el puerto TCP elegido. También examina todas las redes IPv4 activas expuestas por Home Assistant y reutiliza automáticamente la subred `/24` de cada dispositivo TSUN ya configurado. Para el primer dispositivo de una VLAN enrutada desconocida, introduzca la subred una vez en notación CIDR; las búsquedas posteriores la incluirán automáticamente. Si el router bloquea la difusión entre VLAN, esta primera entrada manual puede seguir siendo necesaria.
+## Añadir un dispositivo
 
-## Varios dispositivos
+TSUN Local puede buscar microinversores en la red local. También puede introducir manualmente su dirección IP. El puerto TCP `8899` se propone de forma predeterminada y puede modificarse.
 
-Después de añadir un dispositivo encontrado mediante la búsqueda de red, Home Assistant abre automáticamente una nueva búsqueda para el siguiente microinversor. Reutiliza las mismas redes y el mismo puerto TCP, oculta la dirección recién configurada y se detiene cuando no queda ningún dispositivo sin configurar. Cada microinversor sigue necesitando su propio Monitor SN y crea una entrada independiente con sus propias entidades e intervalos.
+El protocolo local y el **SN** numérico se detectan automáticamente. Si es necesario, el SN puede introducirse manualmente desde la página local o la etiqueta del dispositivo. Es distinto del **SN del microinversor** alfanumérico.
+
+Si el dispositivo está en otra VLAN y no se encuentra, indique su subred en notación CIDR o utilice la configuración manual.
+
+Se pueden añadir varios microinversores. Cada dispositivo dispone de sus propias entidades y ajustes de sondeo.
 
 ## Ajustes en Home Assistant
 
@@ -128,7 +131,7 @@ Hasta alcanzar el umbral configurable, los últimos valores siguen disponibles y
 
 ## Sensores
 
-La integración crea un único dispositivo con mediciones de CA, 5 mediciones por cada entrada FV detectada, la suma de las potencias de CC detectadas, 4 diagnósticos de comunicación, sensores de diagnóstico para el número de serie del microinversor, el firmware y la dirección MAC del logger, y el sensor binario de conectividad **Microinversor en línea**.
+La integración crea un único dispositivo con mediciones de CA, 5 mediciones por cada entrada FV detectada, la suma de las potencias de CC detectadas, 4 diagnósticos de comunicación, sensores de diagnóstico para **SN**, **SN del microinversor**, firmware y dirección MAC del logger, y el sensor binario de conectividad **Microinversor en línea**.
 
 El número de entradas FV es dinámico: PV1 está disponible después de la primera lectura; de PV2 a PV6 para TITAN o de PV2 a PV4 para GEN3/GEN3 PLUS se añaden cuando se observa una medición o un contador de energía válido. Una entrada detectada permanece registrada en Home Assistant.
 
