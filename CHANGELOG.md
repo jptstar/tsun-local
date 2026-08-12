@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.3] - 2026-08-12
+
+### Changed
+
+- republish the HACS release metadata with the generic **TSUN Local** project name;
+- align the integration manifest and all localized documentation with version 1.3.3.
+
 ## [1.3.2] - 2026-08-12
 
 ### Added
@@ -135,6 +142,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.3.3]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.3
 [1.3.2]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.2
 [1.3.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.1
 [1.3.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.0
