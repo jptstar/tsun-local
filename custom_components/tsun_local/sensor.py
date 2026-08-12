@@ -24,7 +24,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -83,6 +83,7 @@ COMMUNICATION_SENSOR_KEYS = frozenset(
 )
 LOGGER_METADATA_SENSOR_KEYS = frozenset(
     {
+        "label_serial_number",
         "inverter_serial_number",
         "logger_firmware_version",
         "logger_mac_address",
@@ -166,6 +167,12 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         suggested_object_id="communication_failures",
         translation_key="communication_failures",
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="label_serial_number",
+        suggested_object_id="label_serial_number",
+        translation_key="label_serial_number",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(
@@ -313,24 +320,24 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         super().__init__(coordinator)
         self.entity_description = description
         logger_sn = str(entry.data[CONF_LOGGER_SN])
+        self._label_serial_number = logger_sn
         self._attr_unique_id = f"{logger_sn}_{description.key}"
         firmware_version = coordinator.data.get("logger_firmware_version")
-        mac_address = coordinator.data.get("logger_mac_address")
+        inverter_serial_number = coordinator.data.get("inverter_serial_number")
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
             model=coordinator.client.model,
             name=f"TSUN Local {logger_sn}",
-            serial_number=logger_sn,
+            serial_number=(
+                str(inverter_serial_number)
+                if inverter_serial_number is not None
+                else None
+            ),
             sw_version=(
                 str(firmware_version)
                 if firmware_version is not None
                 else None
-            ),
-            connections=(
-                {(CONNECTION_NETWORK_MAC, str(mac_address))}
-                if mac_address is not None
-                else set()
             ),
         )
 
@@ -343,6 +350,8 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the latest decoded value."""
+        if self.entity_description.key == "label_serial_number":
+            return self._label_serial_number
         return self.coordinator.data.get(self.entity_description.key)
 
     @property
