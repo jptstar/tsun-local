@@ -12,6 +12,13 @@ from ipaddress import IPv4Address, IPv4Network, ip_network
 
 DISCOVERY_CONCURRENCY = 128
 DISCOVERY_TIMEOUT = 1.0
+UDP_DISCOVERY_PORT = 48899
+UDP_DISCOVERY_TIMEOUT = 1.5
+UDP_DISCOVERY_MESSAGES = (
+    b"WIFIKIT-214028-READ",
+    b"HF-A11ASSISTHREAD",
+    b"devicelinkfind",
+)
 MIN_DISCOVERY_PREFIX = 24
 
 
@@ -87,3 +94,105 @@ async def async_scan_networks(
         for host in discovered_network.hosts()
     }
     return await async_scan_hosts(hosts, port)
+
+
+def parse_udp_discovery_reply(
+    payload: bytes, source: str
+) -> str | None:
+    """Return a candidate IPv4 address from a known logger UDP reply."""
+    message = payload.decode("utf-8", errors="ignore").strip("\x00\r\n ")
+    if not message or payload in UDP_DISCOVERY_MESSAGES:
+        return None
+
+    candidate = ""
+    if message.startswith("{"):
+        # Some logger variants answer devicelinkfind with a small JSON object.
+        import json
+
+        try:
+            candidate = str(json.loads(message).get("ip", ""))
+        except (TypeError, ValueError):
+            return None
+    elif "," in message:
+        # LPB replies use IP, MAC, identifier. Only the IP is needed here.
+        candidate = message.split(",", 1)[0].strip()
+    elif message.startswith("HF-"):
+        # A11 replies identify themselves in the payload; their source is the
+        # candidate address.
+        candidate = source
+    else:
+        return None
+
+    try:
+        address = IPv4Address(candidate)
+    except ValueError:
+        return None
+    if (
+        address.is_loopback
+        or address.is_link_local
+        or address.is_multicast
+        or address.is_unspecified
+    ):
+        return None
+    return str(address)
+
+
+class _UdpDiscoveryProtocol(asyncio.DatagramProtocol):
+    """Collect candidate hosts from read-only UDP discovery replies."""
+
+    def __init__(self) -> None:
+        self.hosts: set[str] = set()
+
+    def datagram_received(
+        self, data: bytes, addr: tuple[str, int]
+    ) -> None:
+        if host := parse_udp_discovery_reply(data, addr[0]):
+            self.hosts.add(host)
+
+
+async def async_discover_udp(targets: Iterable[str]) -> list[str]:
+    """Discover candidate loggers through their read-only UDP service."""
+    loop = asyncio.get_running_loop()
+    protocol = _UdpDiscoveryProtocol()
+    try:
+        transport, _ = await loop.create_datagram_endpoint(
+            lambda: protocol,
+            local_addr=("0.0.0.0", UDP_DISCOVERY_PORT),
+            allow_broadcast=True,
+        )
+    except OSError:
+        return []
+
+    try:
+        for target in set(targets):
+            for message in UDP_DISCOVERY_MESSAGES:
+                transport.sendto(message, (target, UDP_DISCOVERY_PORT))
+        await asyncio.sleep(UDP_DISCOVERY_TIMEOUT)
+    finally:
+        transport.close()
+    return sorted(protocol.hosts, key=IPv4Address)
+
+
+async def async_discover_devices(
+    networks: Iterable[IPv4Network], port: int
+) -> list[str]:
+    """Combine UDP discovery with bounded TCP scanning and validation."""
+    discovery_networks = tuple(networks)
+    udp_targets = {
+        "255.255.255.255",
+        *(str(network.broadcast_address) for network in discovery_networks),
+    }
+    tcp_task = asyncio.create_task(
+        async_scan_networks(discovery_networks, port)
+    )
+    udp_hosts = await async_discover_udp(udp_targets)
+    tcp_hosts = set(await tcp_task)
+
+    # Never trust an announcement alone: require the configured local TCP port
+    # to accept a connection before Home Assistant proposes the candidate.
+    unvalidated = [
+        IPv4Address(host) for host in udp_hosts if host not in tcp_hosts
+    ]
+    if unvalidated:
+        tcp_hosts.update(await async_scan_hosts(unvalidated, port))
+    return sorted(tcp_hosts, key=IPv4Address)

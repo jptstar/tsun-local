@@ -73,6 +73,7 @@
   },
   "entity": {
     "sensor": {
+      "inverter_serial_number": {"name": "微型逆变器序列号"},
       "logger_firmware_version": {"name": "Logger 固件版本"},
       "logger_mac_address": {"name": "Logger MAC 地址"},
       "alarm_global_0_raw": {"name": "全局报警原始值 0"}, "alarm_global_1_raw": {"name": "全局报警原始值 1"}, "alarm_global_2_raw": {"name": "全局报警原始值 2"}, "alarm_global_3_raw": {"name": "全局报警原始值 3"},

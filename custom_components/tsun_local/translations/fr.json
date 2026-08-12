@@ -19,7 +19,7 @@
     "ac_voltage": {"name": "Tension AC"}, "ac_current": {"name": "Courant AC"}, "ac_frequency": {"name": "Fréquence AC"}, "ac_power": {"name": "Puissance AC"},
     "ac_energy_today": {"name": "Énergie AC du jour"}, "ac_energy_total": {"name": "Énergie AC totale"}, "dc_power_total": {"name": "Puissance DC totale"},
     "communication_last_success": {"name": "Dernière communication réussie"}, "communication_duration": {"name": "Durée de communication"}, "communication_blocks": {"name": "Blocs reçus"}, "communication_failures": {"name": "Échecs de communication consécutifs"},
-    "logger_firmware_version": {"name": "Version du firmware du logger"}, "logger_mac_address": {"name": "Adresse MAC du logger"},
+    "inverter_serial_number": {"name": "Numéro de série du micro-onduleur"}, "logger_firmware_version": {"name": "Version du firmware du logger"}, "logger_mac_address": {"name": "Adresse MAC du logger"},
     "pv1_voltage": {"name": "Tension PV1"}, "pv1_current": {"name": "Courant PV1"}, "pv1_power": {"name": "Puissance PV1"}, "pv1_energy_today": {"name": "Énergie PV1 du jour"}, "pv1_energy_total": {"name": "Énergie PV1 totale"},
     "pv2_voltage": {"name": "Tension PV2"}, "pv2_current": {"name": "Courant PV2"}, "pv2_power": {"name": "Puissance PV2"}, "pv2_energy_today": {"name": "Énergie PV2 du jour"}, "pv2_energy_total": {"name": "Énergie PV2 totale"},
     "pv3_voltage": {"name": "Tension PV3"}, "pv3_current": {"name": "Courant PV3"}, "pv3_power": {"name": "Puissance PV3"}, "pv3_energy_today": {"name": "Énergie PV3 du jour"}, "pv3_energy_total": {"name": "Énergie PV3 totale"},

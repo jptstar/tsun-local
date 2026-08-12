@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from .const import (
     CONF_ERROR_SCAN_INTERVAL,
     CONF_FAILURE_THRESHOLD,
+    CONF_INVERTER_SERIAL_NUMBER,
     CONF_LOGGER_FIRMWARE_VERSION,
     CONF_LOGGER_MAC_ADDRESS,
     CONF_LOGGER_SN,
@@ -35,6 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
     """Set up one locally connected TSUN device from a config entry."""
     logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
     logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
+    inverter_serial_number = entry.data.get(CONF_INVERTER_SERIAL_NUMBER)
     logger_data = await async_read_logger_web_data(
         hass, str(entry.data[CONF_HOST])
     )
@@ -42,6 +44,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         logger_data.firmware_version or logger_firmware_version
     )
     logger_mac_address = logger_data.mac_address or logger_mac_address
+    inverter_serial_number = (
+        logger_data.inverter_serial_number or inverter_serial_number
+    )
     data_updates = dict(entry.data)
     if logger_firmware_version is not None:
         data_updates[CONF_LOGGER_FIRMWARE_VERSION] = (
@@ -49,6 +54,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         )
     if logger_mac_address is not None:
         data_updates[CONF_LOGGER_MAC_ADDRESS] = logger_mac_address
+    if inverter_serial_number is not None:
+        data_updates[CONF_INVERTER_SERIAL_NUMBER] = inverter_serial_number
     if data_updates != entry.data:
         hass.config_entries.async_update_entry(entry, data=data_updates)
 
@@ -83,6 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         get_poll_lock(hass),
         logger_firmware_version,
         logger_mac_address,
+        inverter_serial_number,
     )
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator

@@ -73,6 +73,7 @@
   },
   "entity": {
     "sensor": {
+      "inverter_serial_number": {"name": "Seriennummer des Mikrowechselrichters"},
       "logger_firmware_version": {"name": "Logger-Firmwareversion"},
       "logger_mac_address": {"name": "MAC-Adresse des Loggers"},
       "alarm_global_0_raw": {"name": "Globalalarm (Rohwert) 0"}, "alarm_global_1_raw": {"name": "Globalalarm (Rohwert) 1"}, "alarm_global_2_raw": {"name": "Globalalarm (Rohwert) 2"}, "alarm_global_3_raw": {"name": "Globalalarm (Rohwert) 3"},

@@ -73,6 +73,7 @@
   },
   "entity": {
     "sensor": {
+      "inverter_serial_number": {"name": "Numero di serie del microinverter"},
       "logger_firmware_version": {"name": "Versione firmware del logger"},
       "logger_mac_address": {"name": "Indirizzo MAC del logger"},
       "alarm_global_0_raw": {"name": "Allarme globale (valore grezzo) 0"}, "alarm_global_1_raw": {"name": "Allarme globale (valore grezzo) 1"}, "alarm_global_2_raw": {"name": "Allarme globale (valore grezzo) 2"}, "alarm_global_3_raw": {"name": "Allarme globale (valore grezzo) 3"},

@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.3.0** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
+**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.3.1** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
 
 ## Über dieses Projekt
 
@@ -22,6 +22,7 @@ Hardware-Rückmeldungen, Diagnoseergebnisse und präzise Fehlerberichte sind wil
 
 - vollständig lokale TCP-Abfrage ohne Proxy und ohne Cloud-Abhängigkeit;
 - automatische Auswahl des unterstützten lokalen Protokolladapters;
+- native UDP-Erkennung ergänzt durch eine begrenzte TCP-Netzwerksuche;
 - automatische Erkennung der verfügbaren PV-Eingänge innerhalb der validierten Registerkarten;
 - AC-Spannung, Strom, Frequenz, Leistung sowie Tages- und Gesamtenergie;
 - Spannung, Strom, Leistung sowie Tages- und Gesamtenergie je erkanntem PV-Eingang;
@@ -91,7 +92,7 @@ Ist die Seite nicht verfügbar, wurden ihre Zugangsdaten geändert oder ist der 
 
 Das lokale Protokoll wird automatisch erkannt, sobald das Gerät antwortet. Die alphanumerische Seriennummer des Wechselrichters wird in der AP-Kommunikationshülle nicht verwendet.
 
-Die Netzwerksuche prüft die für Home Assistant sichtbaren IPv4-Subnetze am gewählten TCP-Port. VLANs, geroutete Netzwerke, Container-Netzwerke oder WLAN-Client-Isolation können die automatische Suche verhindern; die manuelle Konfiguration bleibt verfügbar.
+Die Netzwerksuche sendet zunächst schreibgeschützte native Erkennungsanfragen über UDP/48899 und prüft anschließend jede Antwort am gewählten TCP-Port. Zusätzlich werden die für Home Assistant sichtbaren IPv4-Subnetze geprüft und das `/24`-Subnetz jedes bereits konfigurierten TSUN-Geräts automatisch wiederverwendet. Für das erste Gerät in einem unbekannten gerouteten VLAN muss dieses Subnetz einmal in CIDR-Notation eingegeben werden; spätere Suchen berücksichtigen es automatisch. Router, die Broadcasts zwischen VLANs blockieren, Container-Netzwerke oder WLAN-Client-Isolation können diese erste manuelle Eingabe weiterhin erforderlich machen.
 
 Nach dem Hinzufügen eines über die Netzwerksuche gefundenen Geräts öffnet Home Assistant automatisch eine neue Suche für den nächsten Mikrowechselrichter. Sie verwendet dieselben Netzwerke und denselben TCP-Port, blendet die gerade eingerichtete Adresse aus und endet, wenn kein weiteres Gerät übrig ist. Jeder Mikrowechselrichter erhält einen unabhängigen Eintrag mit automatisch erkannter oder manuell eingegebener Monitor SN, eigenen Entitäten und Abfrageintervallen. Vollständige Geräteabfragen verwenden eine gemeinsame Sperre und laufen nacheinander.
 
@@ -119,7 +120,7 @@ Verfügbar sind:
 - AC-Momentanwerte und Energiezähler;
 - fünf Messwerte je erkanntem PV-Eingang;
 - berechnete DC-Gesamtleistung;
-- vier Kommunikationsdiagnosen sowie Logger-Firmwareversion und MAC-Adresse als Diagnoseentitäten;
+- vier Kommunikationsdiagnosen sowie Mikrowechselrichter-Seriennummer, Logger-Firmwareversion und MAC-Adresse als Diagnoseentitäten;
 - ein binärer Verbindungssensor **Mikrowechselrichter online**;
 - ein globaler Wechselrichteralarm und protokollspezifische rohe Alarmregister;
 - eine manuelle Schaltfläche **Daten aktualisieren**.

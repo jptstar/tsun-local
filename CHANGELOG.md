@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-08-12
+
+### Added
+
+- expose the alphanumeric micro-inverter serial number from `webdata_sn` as a translated diagnostic entity, separate from the numeric Monitor SN / Logger SN.
+- add read-only UDP logger discovery on port 48899, with mandatory TCP validation before a device is proposed;
+- add a privacy-safe standalone UDP discovery diagnostic for hardware and routed-network testing.
+
+### Fixed
+
+- read the complete streamed logger status page before parsing metadata;
+- use `cover_mid` as the numeric Monitor SN / Logger SN and never confuse it with the inverter serial stored in `webdata_sn`;
+- try the unauthenticated status page before the factory HTTP credentials and retain automatic AP-envelope detection as a fallback;
+- continue multi-device discovery only after the current config entry has been created, preventing the `already_in_progress` abort shown after adding a device.
+
+### Changed
+
+- network discovery automatically reuses the `/24` subnet of every configured TSUN device, including devices on routed VLANs that are not exposed as Home Assistant adapters.
+
 ## [1.3.0] - 2026-08-12
 
 ### Added
@@ -103,6 +122,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.3.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.1
 [1.3.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.0
 [1.2.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.1
 [1.2.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.0

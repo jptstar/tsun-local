@@ -12,9 +12,18 @@ from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 
 from . import TsunConfigEntry
-from .const import CONF_LOGGER_MAC_ADDRESS, CONF_LOGGER_SN
+from .const import (
+    CONF_INVERTER_SERIAL_NUMBER,
+    CONF_LOGGER_MAC_ADDRESS,
+    CONF_LOGGER_SN,
+)
 
-TO_REDACT = {CONF_HOST, CONF_LOGGER_SN, CONF_LOGGER_MAC_ADDRESS}
+TO_REDACT = {
+    CONF_HOST,
+    CONF_INVERTER_SERIAL_NUMBER,
+    CONF_LOGGER_SN,
+    CONF_LOGGER_MAC_ADDRESS,
+}
 
 
 async def async_get_config_entry_diagnostics(
@@ -26,7 +35,7 @@ async def async_get_config_entry_diagnostics(
         key: value
         for key, value in (coordinator.data or {}).items()
         if not key.startswith("communication_")
-        and key != "logger_mac_address"
+        and key not in {"inverter_serial_number", "logger_mac_address"}
     }
     return {
         "config_entry": {
@@ -49,6 +58,7 @@ async def async_get_config_entry_diagnostics(
             "network_address_included": False,
             "logger_number_included": False,
             "logger_mac_address_included": False,
+            "inverter_serial_number_included": False,
             "ap_envelope_included": False,
         },
     }

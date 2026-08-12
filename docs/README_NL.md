@@ -12,7 +12,7 @@
 
 **TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks in Home Assistant **via het lokale netwerk, zonder proxy of cloudservice**.
 
-Versie 1.3.0 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+Versie 1.3.1 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
 
 **Auteur: Jean-Philippe TESTART (jptstar)**
 
@@ -92,7 +92,7 @@ Als de nieuwste versie niet verschijnt, open dan het menu van de opslagplaats en
 4. Zoek naar **TSUN Local**.
 5. Voer het IP-adres en de poort in. Home Assistant probeert de **Monitor SN / Logger SN** automatisch te detecteren.
 
-Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie**. Home Assistant leest eerst de **Monitor SN / Logger SN** van de lokale statuspagina van de logger. Is deze niet beschikbaar, dan kan de waarde **Device serial number** van de pagina of het apparaatlabel handmatig worden ingevoerd. De integratie detecteert het ondersteunde lokale protocol automatisch; een apparaatfamilie kiezen is niet nodig. Als geen apparaat wordt gevonden, kan in het formulier een gerouteerd LAN- of VLAN-subnet in CIDR-notatie worden ingevoerd.
+Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie**. Home Assistant leest eerst de **Monitor SN / Logger SN** van de lokale statuspagina van de logger. Is deze niet beschikbaar, dan kan de waarde **Device serial number** van de pagina of het apparaatlabel handmatig worden ingevoerd. De integratie detecteert het ondersteunde lokale protocol automatisch; een apparaatfamilie kiezen is niet nodig. De zoekfunctie verstuurt eerst alleen-lezen native aanvragen via UDP/48899 en valideert elk antwoord op de gekozen TCP-poort. Ze hergebruikt ook automatisch het `/24`-subnet van elk eerder geconfigureerd TSUN-apparaat. Voer voor het eerste apparaat op een onbekend gerouteerd VLAN het subnet één keer in CIDR-notatie in; latere zoekopdrachten nemen het automatisch mee. Als de router broadcasts tussen VLAN’s blokkeert, kan deze eerste handmatige invoer nog steeds nodig zijn.
 
 ## Meerdere apparaten
 
@@ -128,7 +128,7 @@ Tot de instelbare foutdrempel is bereikt, blijven de laatste waarden beschikbaar
 
 ## Sensoren
 
-De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 communicatiediagnoses, diagnosesensoren voor loggerfirmware en MAC-adres en de binaire verbindingssensor **Micro-omvormer online**.
+De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 communicatiediagnoses, diagnosesensoren voor serienummer van de micro-omvormer, loggerfirmware en MAC-adres en de binaire verbindingssensor **Micro-omvormer online**.
 
 Het aantal PV-ingangen is dynamisch: PV1 is na de eerste uitlezing beschikbaar; PV2 tot PV6 voor TITAN of PV2 tot PV4 voor GEN3/GEN3 PLUS worden toegevoegd zodra een geldige meting of energieteller wordt waargenomen. Een eenmaal gedetecteerde ingang blijft in Home Assistant geregistreerd.
 

@@ -46,6 +46,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         poll_lock: asyncio.Lock,
         logger_firmware_version: str | None = None,
         logger_mac_address: str | None = None,
+        inverter_serial_number: str | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -69,6 +70,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for key, value in {
                 "logger_firmware_version": logger_firmware_version,
                 "logger_mac_address": logger_mac_address,
+                "inverter_serial_number": inverter_serial_number,
             }.items()
             if value is not None
         }
