@@ -24,7 +24,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -81,6 +81,10 @@ COMMUNICATION_SENSOR_KEYS = frozenset(
         "communication_failures",
     }
 )
+LOGGER_METADATA_SENSOR_KEYS = frozenset(
+    {"logger_firmware_version", "logger_mac_address"}
+)
+DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
 
 
 SENSORS: tuple[TsunSensorDescription, ...] = (
@@ -158,6 +162,18 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         suggested_object_id="communication_failures",
         translation_key="communication_failures",
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="logger_firmware_version",
+        suggested_object_id="logger_firmware_version",
+        translation_key="logger_firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="logger_mac_address",
+        suggested_object_id="logger_mac_address",
+        translation_key="logger_mac_address",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     *(
@@ -255,7 +271,7 @@ async def async_setup_entry(
             for description in SENSORS + PV_SENSORS
             if description.key not in added_keys
             and (
-                description.key in COMMUNICATION_SENSOR_KEYS
+                description.key in DIAGNOSTIC_SENSOR_KEYS
                 or description.key in coordinator.client.measurement_keys
             )
         ]
@@ -288,12 +304,24 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         self.entity_description = description
         logger_sn = str(entry.data[CONF_LOGGER_SN])
         self._attr_unique_id = f"{logger_sn}_{description.key}"
+        firmware_version = coordinator.data.get("logger_firmware_version")
+        mac_address = coordinator.data.get("logger_mac_address")
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
             model=coordinator.client.model,
             name=f"TSUN Local {logger_sn}",
             serial_number=logger_sn,
+            sw_version=(
+                str(firmware_version)
+                if firmware_version is not None
+                else None
+            ),
+            connections=(
+                {(CONNECTION_NETWORK_MAC, str(mac_address))}
+                if mac_address is not None
+                else set()
+            ),
         )
 
     @property
@@ -330,7 +358,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
                 and key in self.coordinator.data
             )
         if (
-            key in COMMUNICATION_SENSOR_KEYS
+            key in DIAGNOSTIC_SENSOR_KEYS
             or self.entity_description.device_class == SensorDeviceClass.ENERGY
         ):
             return super().available

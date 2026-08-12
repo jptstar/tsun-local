@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Manuelle Konfiguration",
-        "description": "Gib die Verbindungsdaten ein. Das lokale Protokoll wird automatisch erkannt und die Monitor SN / Logger SN steht auf dem Typenschild.",
+        "description": "Gib IP-Adresse und Port ein. Home Assistant versucht zuerst, die Monitor SN / Logger SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
         "data": {
           "host": "IP-Adresse",
           "port": "Port",
-          "logger_sn": "Monitor SN / Logger SN (Typenschild)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover": {
         "title": "Gefundene Geräte",
-        "description": "Wähle eine am konfigurierten TCP-Port gefundene Adresse und gib die Monitor SN / Logger SN ein. Das lokale Protokoll wird automatisch erkannt.",
+        "description": "Wähle eine am konfigurierten TCP-Port gefundene Adresse. Home Assistant versucht zuerst, die Monitor SN / Logger SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
         "data": {
           "host": "Gefundene Adresse",
           "port": "Port",
-          "logger_sn": "Monitor SN / Logger SN (Typenschild)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover_network": {
@@ -46,6 +46,7 @@
     },
     "error": {
       "cannot_connect": "Verbindung zum Wechselrichter nicht möglich",
+      "cannot_detect_logger_sn": "Die automatische Erkennung ist fehlgeschlagen. Gib die Monitor SN / Logger SN ein, die auf der lokalen Statusseite als Device serial number angezeigt wird oder auf dem Gerät steht.",
       "invalid_network": "Gib ein gültiges IPv4-Subnetz zwischen /24 und /32 ein",
       "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet",
       "no_devices_found": "In diesem Subnetz und an diesem Port wurde kein Gerät mit lokaler Verbindung gefunden"
@@ -72,6 +73,8 @@
   },
   "entity": {
     "sensor": {
+      "logger_firmware_version": {"name": "Logger-Firmwareversion"},
+      "logger_mac_address": {"name": "MAC-Adresse des Loggers"},
       "alarm_global_0_raw": {"name": "Globalalarm (Rohwert) 0"}, "alarm_global_1_raw": {"name": "Globalalarm (Rohwert) 1"}, "alarm_global_2_raw": {"name": "Globalalarm (Rohwert) 2"}, "alarm_global_3_raw": {"name": "Globalalarm (Rohwert) 3"},
       "alarm_secondary_0_raw": {"name": "Sekundäralarm (Rohwert) 0"}, "alarm_secondary_1_raw": {"name": "Sekundäralarm (Rohwert) 1"}, "alarm_secondary_2_raw": {"name": "Sekundäralarm (Rohwert) 2"}, "alarm_secondary_3_raw": {"name": "Sekundäralarm (Rohwert) 3"},
       "alarm_code_1_raw": {"name": "Alarmcode (Rohwert) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (Rohwert) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (Rohwert) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (Rohwert) 4"},

@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Configurazione manuale",
-        "description": "Inserisci i dati di connessione. Il protocollo locale viene rilevato automaticamente e il Monitor SN / Logger SN è riportato sull'etichetta del dispositivo.",
+        "description": "Inserisci l'indirizzo IP e la porta. Home Assistant prova prima a leggere automaticamente il Monitor SN / Logger SN dalla pagina di stato locale del logger. Se non è leggibile, il modulo ne richiederà l'inserimento manuale.",
         "data": {
           "host": "Indirizzo IP",
           "port": "Porta",
-          "logger_sn": "Monitor SN / Logger SN (etichetta)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover": {
         "title": "Dispositivi trovati",
-        "description": "Seleziona un indirizzo trovato sulla porta TCP configurata e inserisci il Monitor SN / Logger SN. Il protocollo locale viene rilevato automaticamente.",
+        "description": "Seleziona un indirizzo trovato sulla porta TCP configurata. Home Assistant prova prima a leggere automaticamente il Monitor SN / Logger SN dalla pagina di stato locale del logger. Se non è leggibile, il modulo ne richiederà l'inserimento manuale.",
         "data": {
           "host": "Indirizzo rilevato",
           "port": "Porta",
-          "logger_sn": "Monitor SN / Logger SN (etichetta)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover_network": {
@@ -46,6 +46,7 @@
     },
     "error": {
       "cannot_connect": "Impossibile connettersi al dispositivo",
+      "cannot_detect_logger_sn": "Il rilevamento automatico non è riuscito. Inserisci il Monitor SN / Logger SN mostrato come Device serial number nella pagina di stato locale o sull'etichetta del dispositivo.",
       "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32",
       "invalid_response": "Il dispositivo ha restituito una risposta non valida",
       "no_devices_found": "Nessun dispositivo con connessione locale è stato trovato in questa sottorete e porta"
@@ -72,6 +73,8 @@
   },
   "entity": {
     "sensor": {
+      "logger_firmware_version": {"name": "Versione firmware del logger"},
+      "logger_mac_address": {"name": "Indirizzo MAC del logger"},
       "alarm_global_0_raw": {"name": "Allarme globale (valore grezzo) 0"}, "alarm_global_1_raw": {"name": "Allarme globale (valore grezzo) 1"}, "alarm_global_2_raw": {"name": "Allarme globale (valore grezzo) 2"}, "alarm_global_3_raw": {"name": "Allarme globale (valore grezzo) 3"},
       "alarm_secondary_0_raw": {"name": "Allarme secondario (valore grezzo) 0"}, "alarm_secondary_1_raw": {"name": "Allarme secondario (valore grezzo) 1"}, "alarm_secondary_2_raw": {"name": "Allarme secondario (valore grezzo) 2"}, "alarm_secondary_3_raw": {"name": "Allarme secondario (valore grezzo) 3"},
       "alarm_code_1_raw": {"name": "Codice allarme (valore grezzo) 1"}, "alarm_code_2_raw": {"name": "Codice allarme (valore grezzo) 2"}, "alarm_code_3_raw": {"name": "Codice allarme (valore grezzo) 3"}, "alarm_code_4_raw": {"name": "Codice allarme (valore grezzo) 4"},

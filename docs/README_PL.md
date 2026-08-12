@@ -12,7 +12,7 @@
 
 **TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant **przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej**.
 
-Wersja 1.2.1 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+Wersja 1.3.0 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -66,13 +66,6 @@ Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Rele
 
 Wykrywanie wejść PV jest dynamiczne do **6 wejść dla TITAN**. Dla GEN3 / GEN3 PLUS aktualna mapa obejmuje **1, 2 lub 4 wejścia PV**; PV5 i PV6 nie są jeszcze wykrywane.
 
-### Inne urządzenia
-
-| Typ | Modele | Status |
-|---|---|---|
-| Akumulator GEN3 PLUS | **TSOL-DC1000** | 🔎 Poszukiwane dane sprzętowe |
-| Inteligentny licznik | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Poszukiwane dane sprzętowe |
-
 > **Masz jeden z tych modeli?** Modele oznaczone 🧪 są gotowe do testów społeczności. [Otwórz raport zgodności](https://github.com/jptstar/tsun-local/issues/new), podając dokładny model, wersję oprogramowania i wynik testu. Ukryj pełne numery seryjne oraz prywatne informacje sieciowe.
 
 ## Instalacja
@@ -97,9 +90,9 @@ Jeśli najnowsza wersja nie jest widoczna, otwórz menu repozytorium i wybierz *
 2. Uruchom ponownie Home Assistant.
 3. Otwórz **Ustawienia → Urządzenia i usługi → Dodaj integrację**.
 4. Wyszukaj **TSUN Local**.
-5. Wprowadź adres IP, port oraz **Monitor SN / Logger SN wydrukowany na etykiecie mikrofalownika**.
+5. Wprowadź adres IP i port. Home Assistant spróbuje automatycznie wykryć **Monitor SN / Logger SN**.
 
-Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**, a następnie wprowadź **Monitor SN / Logger SN** z etykiety. Integracja automatycznie wykrywa obsługiwany protokół lokalny; wybór rodziny urządzenia nie jest wymagany. Wyszukiwanie sprawdza wszystkie aktywne sieci IPv4 udostępnione przez Home Assistant na wybranym porcie i nie wysyła danych aplikacji do adresów kandydatów. Jeśli nie zostanie znalezione żadne urządzenie, formularz umożliwia podanie routowanej podsieci LAN lub VLAN w notacji CIDR.
+Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**. Home Assistant najpierw odczyta **Monitor SN / Logger SN** z lokalnej strony stanu loggera. Jeśli numer nie jest dostępny, formularz pozwoli ręcznie wprowadzić wartość **Device serial number** ze strony lub etykiety urządzenia. Integracja automatycznie wykrywa obsługiwany protokół lokalny; wybór rodziny urządzenia nie jest wymagany. Jeśli nie zostanie znalezione żadne urządzenie, formularz umożliwia podanie routowanej podsieci LAN lub VLAN w notacji CIDR.
 
 ## Wiele urządzeń
 
@@ -135,7 +128,7 @@ Do osiągnięcia konfigurowalnego progu ostatnie wartości pozostają dostępne,
 
 ## Czujniki
 
-Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 czujnikami diagnostycznymi i binarnym czujnikiem łączności **Mikrofalownik online**.
+Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 diagnostykami komunikacji, czujnikami diagnostycznymi wersji oprogramowania i adresu MAC loggera oraz binarnym czujnikiem łączności **Mikrofalownik online**.
 
 Liczba wejść PV jest dynamiczna: PV1 jest dostępne po pierwszym odczycie; PV2–PV6 dla TITAN lub PV2–PV4 dla GEN3/GEN3 PLUS są dodawane po wykryciu prawidłowego pomiaru lub licznika energii. Wykryte wejście pozostaje zarejestrowane w Home Assistant.
 

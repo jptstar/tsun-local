@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-08-12
+
+### Added
+
+- setup now detects the Monitor SN / Logger SN automatically from the logger's local `index_cn.html` or `status.html` page;
+- logger firmware version and MAC address are exposed as translated diagnostic sensors and added to Home Assistant device information;
+- if the page or serial number cannot be read, the same form exposes the Monitor SN field for manual entry.
+
+### Changed
+
+- all README compatibility sections now focus exclusively on TSUN micro-inverters.
+
+### Security
+
+- the factory logger Web credentials are used only for the local detection request and are never stored;
+- automatic extraction distinguishes **Device serial number** from the alphanumeric **Inverter serial number**.
+
 ## [1.2.1] - 2026-08-11
 
 ### Changed
@@ -86,6 +103,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.3.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.0
 [1.2.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.1
 [1.2.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.0
 [1.1.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.1.4

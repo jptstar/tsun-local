@@ -12,7 +12,7 @@
 
 **TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks in Home Assistant **via het lokale netwerk, zonder proxy of cloudservice**.
 
-Versie 1.2.1 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+Versie 1.3.0 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
 
 **Auteur: Jean-Philippe TESTART (jptstar)**
 
@@ -66,13 +66,6 @@ Gepubliceerde versies volgen `MAJOR.MINOR.PATCH`. HACS gebruikt GitHub Releases 
 
 De PV-detectie is voor TITAN dynamisch tot **6 ingangen**. Voor GEN3 / GEN3 PLUS omvat de huidige kaart **1, 2 of 4 PV-ingangen**; PV5 en PV6 worden nog niet gedetecteerd.
 
-### Andere apparaten
-
-| Type | Modellen | Status |
-|---|---|---|
-| GEN3 PLUS-accu | **TSOL-DC1000** | 🔎 Hardwaregegevens gezocht |
-| Slimme meter | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Hardwaregegevens gezocht |
-
 > **Hebt u een van deze modellen?** Modellen met 🧪 zijn klaar voor tests door de community. [Open een compatibiliteitsrapport](https://github.com/jptstar/tsun-local/issues/new) met het exacte model, de firmwareversie en het testresultaat. Maak volledige serienummers en privé-netwerkgegevens onleesbaar.
 
 ## Installatie
@@ -97,9 +90,9 @@ Als de nieuwste versie niet verschijnt, open dan het menu van de opslagplaats en
 2. Start Home Assistant opnieuw op.
 3. Open **Instellingen → Apparaten & diensten → Integratie toevoegen**.
 4. Zoek naar **TSUN Local**.
-5. Voer het IP-adres, de poort en de **Monitor SN / Logger SN op het etiket van de micro-omvormer** in.
+5. Voer het IP-adres en de poort in. Home Assistant probeert de **Monitor SN / Logger SN** automatisch te detecteren.
 
-Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie** en voer vervolgens de **Monitor SN / Logger SN** van het etiket in. De integratie detecteert het ondersteunde lokale protocol automatisch; een apparaatfamilie kiezen is niet nodig. De zoekfunctie controleert alle actieve IPv4-netwerken die Home Assistant beschikbaar stelt op de geselecteerde poort en verzendt geen toepassingsgegevens naar kandidaatadressen. Als geen apparaat wordt gevonden, kan in het formulier een gerouteerd LAN- of VLAN-subnet in CIDR-notatie worden ingevoerd.
+Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie**. Home Assistant leest eerst de **Monitor SN / Logger SN** van de lokale statuspagina van de logger. Is deze niet beschikbaar, dan kan de waarde **Device serial number** van de pagina of het apparaatlabel handmatig worden ingevoerd. De integratie detecteert het ondersteunde lokale protocol automatisch; een apparaatfamilie kiezen is niet nodig. Als geen apparaat wordt gevonden, kan in het formulier een gerouteerd LAN- of VLAN-subnet in CIDR-notatie worden ingevoerd.
 
 ## Meerdere apparaten
 
@@ -135,7 +128,7 @@ Tot de instelbare foutdrempel is bereikt, blijven de laatste waarden beschikbaar
 
 ## Sensoren
 
-De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 diagnosesensoren en de binaire verbindingssensor **Micro-omvormer online**.
+De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 communicatiediagnoses, diagnosesensoren voor loggerfirmware en MAC-adres en de binaire verbindingssensor **Micro-omvormer online**.
 
 Het aantal PV-ingangen is dynamisch: PV1 is na de eerste uitlezing beschikbaar; PV2 tot PV6 voor TITAN of PV2 tot PV4 voor GEN3/GEN3 PLUS worden toegevoegd zodra een geldige meting of energieteller wordt waargenomen. Een eenmaal gedetecteerde ingang blijft in Home Assistant geregistreerd.
 

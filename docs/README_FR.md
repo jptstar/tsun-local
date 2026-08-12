@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.2.1** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
+**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.3.0** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
 
 ## À propos du projet
 
@@ -56,8 +56,6 @@ Les retours matériels, résultats de diagnostic et signalements de bugs précis
 | 4 | MX2250, MS1600, MS1800, MS2000, MS2000-D | 🧪 | Adaptateur 02B0 prêt à tester |
 | 6 | MS3000, MX2400, MX2500, MX2700, MX3000/MX3000D, MX3300 | 🔎 | La carte 02B0 disponible s’arrête actuellement à PV4 |
 
-⏸️ Les systèmes de stockage et batteries, dont le DC1000, ainsi que les compteurs comme les TSOL-MG3-MS ou DDZY422-D2, sont volontairement laissés de côté pour le moment. Leur communication locale nécessite une implémentation séparée et validée.
-
 ## Installation
 
 ### Avec HACS
@@ -82,17 +80,20 @@ Si une nouvelle version n’apparaît pas, ouvrez le menu du dépôt puis sélec
 
 ## Ajouter un appareil
 
-Vous pouvez rechercher l’appareil sur le réseau local ou saisir manuellement les paramètres de connexion. Les informations nécessaires sont :
+Vous pouvez rechercher l’appareil sur le réseau local ou saisir manuellement les paramètres de connexion. Home Assistant demande d’abord seulement :
 
 - l’adresse IP du micro-onduleur/logger ;
 - le port TCP `8899` proposé par défaut et toujours modifiable ;
-- le **Monitor SN / Logger SN numérique inscrit sur l’étiquette du micro-onduleur**.
+
+Home Assistant lit ensuite automatiquement le **Monitor SN / Logger SN numérique** sur la page locale `index_cn.html` ou `status.html` du logger avec les identifiants Web d’usine. Ces identifiants servent uniquement à cette requête locale et ne sont pas enregistrés. La bonne valeur est affichée sous **Device serial number** ; ce n’est pas le **Inverter serial number** alphanumérique.
+
+Si la page est absente, si ses identifiants ont été modifiés ou si la valeur n’est pas lisible, le même formulaire affiche un champ Monitor SN pour permettre la saisie manuelle. La valeur peut être recopiée depuis **Device serial number** sur la page d’état locale ou depuis l’étiquette de l’appareil.
 
 Le protocole local est détecté automatiquement dès que l’appareil répond. Le numéro de série alphanumérique du micro-onduleur n’est pas utilisé dans l’enveloppe de communication AP.
 
 La recherche réseau examine les sous-réseaux IPv4 visibles depuis Home Assistant sur le port TCP choisi. Un VLAN, un réseau routé, un conteneur ou l’isolation des clients Wi-Fi peuvent empêcher cette recherche ; la configuration manuelle reste alors disponible.
 
-Après l’ajout d’un appareil trouvé sur le réseau, Home Assistant ouvre automatiquement une nouvelle recherche pour le micro-onduleur suivant. Elle réutilise les mêmes réseaux et le même port TCP, masque l’adresse qui vient d’être configurée et s’arrête lorsqu’il ne reste aucun appareil. Chaque micro-onduleur nécessite toujours son propre Monitor SN et crée une entrée indépendante avec ses entités et ses intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
+Après l’ajout d’un appareil trouvé sur le réseau, Home Assistant ouvre automatiquement une nouvelle recherche pour le micro-onduleur suivant. Elle réutilise les mêmes réseaux et le même port TCP, masque l’adresse qui vient d’être configurée et s’arrête lorsqu’il ne reste aucun appareil. Chaque micro-onduleur crée une entrée indépendante avec son Monitor SN détecté automatiquement ou saisi manuellement, ses entités et ses intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
 
 ## Réglages d’interrogation
 
@@ -118,8 +119,9 @@ Les données disponibles comprennent :
 - les mesures instantanées et compteurs d’énergie AC ;
 - cinq mesures pour chaque entrée PV détectée ;
 - la puissance DC totale calculée ;
-- quatre diagnostics de communication et un capteur binaire de connectivité **Micro-onduleur en ligne** ;
-- un état global d’alarme et les registres bruts propres au protocole.
+- quatre diagnostics de communication, plus la version du firmware et l’adresse MAC du logger sous forme de capteurs de diagnostic ;
+- un capteur binaire de connectivité **Micro-onduleur en ligne** ;
+- un état global d’alarme et les registres bruts propres au protocole ;
 - un bouton manuel **Actualiser les données**.
 
 La détection des entrées PV est progressive. TITAN peut exposer PV1 à PV6 avec la carte 1511 actuelle. GEN3/GEN3 PLUS peut exposer PV1 à PV4 avec la carte 02B0 actuelle. Une fois découverte, une entrée reste enregistrée dans Home Assistant.
@@ -174,7 +176,7 @@ Si la configuration ne peut pas aboutir, lancez la capture autonome depuis une c
 python3 tools/diagnose_device.py --host ADRESSE_IP
 ```
 
-Le Monitor SN est demandé de manière interactive et ne reste pas dans l’historique de la commande. Le fichier `tsun_local_diagnostic.json` généré contient les mesures décodées et une courte trace circulaire des requêtes et réponses internes au protocole. Il ne contient **ni l’adresse IP, ni le Monitor SN, ni l’enveloppe AP**. Vérifiez-le avant de le partager, car les valeurs de production et d’énergie restent visibles.
+Le Monitor SN est demandé de manière interactive et ne reste pas dans l’historique de la commande. Le fichier `tsun_local_diagnostic.json` généré contient les mesures décodées et une courte trace circulaire des requêtes et réponses internes au protocole. Il ne contient **ni l’adresse IP, ni le Monitor SN, ni l’adresse MAC du logger, ni l’enveloppe AP**. Vérifiez-le avant de le partager, car les valeurs de production et d’énergie restent visibles.
 
 Les réponses capturées peuvent être relues localement sans disposer du micro-onduleur :
 
@@ -192,7 +194,7 @@ Les idées suivantes ne sont volontairement pas encore activées et nécessitent
 - le coefficient de sortie 02B0 sous forme de pourcentage en lecture seule ;
 - des notifications ou réparations Home Assistant pour les alarmes persistantes ;
 - les descriptions traduites des défauts lorsque la correspondance des registres et bits aura été confirmée ;
-- d’autres adaptateurs locaux pour les systèmes de stockage, compteurs et futurs produits TSUN.
+- d’autres adaptateurs locaux pour de futures familles de micro-onduleurs TSUN.
 
 Aucune commande d’écriture ou de contrôle ne sera ajoutée sans protections explicites et validation sur matériel réel.
 

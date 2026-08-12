@@ -12,6 +12,8 @@ from homeassistant.core import HomeAssistant
 from .const import (
     CONF_ERROR_SCAN_INTERVAL,
     CONF_FAILURE_THRESHOLD,
+    CONF_LOGGER_FIRMWARE_VERSION,
+    CONF_LOGGER_MAC_ADDRESS,
     CONF_LOGGER_SN,
     CONF_OFFLINE_SCAN_INTERVAL,
     CONF_PROTOCOL,
@@ -23,6 +25,7 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import TsunCoordinator, get_poll_lock
+from .logger_web import async_read_logger_web_data
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 type TsunConfigEntry = ConfigEntry[TsunCoordinator]
@@ -30,6 +33,25 @@ type TsunConfigEntry = ConfigEntry[TsunCoordinator]
 
 async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool:
     """Set up one locally connected TSUN device from a config entry."""
+    logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
+    logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
+    logger_data = await async_read_logger_web_data(
+        hass, str(entry.data[CONF_HOST])
+    )
+    logger_firmware_version = (
+        logger_data.firmware_version or logger_firmware_version
+    )
+    logger_mac_address = logger_data.mac_address or logger_mac_address
+    data_updates = dict(entry.data)
+    if logger_firmware_version is not None:
+        data_updates[CONF_LOGGER_FIRMWARE_VERSION] = (
+            logger_firmware_version
+        )
+    if logger_mac_address is not None:
+        data_updates[CONF_LOGGER_MAC_ADDRESS] = logger_mac_address
+    if data_updates != entry.data:
+        hass.config_entries.async_update_entry(entry, data=data_updates)
+
     client = create_protocol_client(
         entry.data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
         entry.data[CONF_HOST],
@@ -59,6 +81,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         offline_interval,
         failure_threshold,
         get_poll_lock(hass),
+        logger_firmware_version,
+        logger_mac_address,
     )
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator

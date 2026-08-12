@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Handmatige configuratie",
-        "description": "Voer de verbindingsgegevens in. Het lokale protocol wordt automatisch gedetecteerd en de Monitor SN / Logger SN staat op het apparaatlabel.",
+        "description": "Voer het IP-adres en de poort in. Home Assistant probeert eerst de Monitor SN / Logger SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
         "data": {
           "host": "IP-adres",
           "port": "Poort",
-          "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover": {
         "title": "Gevonden apparaten",
-        "description": "Selecteer een adres dat op de ingestelde TCP-poort is gevonden en voer de Monitor SN / Logger SN in. Het lokale protocol wordt automatisch gedetecteerd.",
+        "description": "Selecteer een adres dat op de ingestelde TCP-poort is gevonden. Home Assistant probeert eerst de Monitor SN / Logger SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
         "data": {
           "host": "Gevonden adres",
           "port": "Poort",
-          "logger_sn": "Monitor SN / Logger SN (apparaatlabel)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover_network": {
@@ -46,6 +46,7 @@
     },
     "error": {
       "cannot_connect": "Kan geen verbinding maken met het apparaat",
+      "cannot_detect_logger_sn": "Automatische detectie is mislukt. Voer de Monitor SN / Logger SN in die als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
       "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in",
       "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden",
       "no_devices_found": "Er is geen apparaat met lokale verbinding gevonden op dit subnet en deze poort"
@@ -72,6 +73,8 @@
   },
   "entity": {
     "sensor": {
+      "logger_firmware_version": {"name": "Firmwareversie van logger"},
+      "logger_mac_address": {"name": "MAC-adres van logger"},
       "alarm_global_0_raw": {"name": "Globaal alarm (ruwe waarde) 0"}, "alarm_global_1_raw": {"name": "Globaal alarm (ruwe waarde) 1"}, "alarm_global_2_raw": {"name": "Globaal alarm (ruwe waarde) 2"}, "alarm_global_3_raw": {"name": "Globaal alarm (ruwe waarde) 3"},
       "alarm_secondary_0_raw": {"name": "Secundair alarm (ruwe waarde) 0"}, "alarm_secondary_1_raw": {"name": "Secundair alarm (ruwe waarde) 1"}, "alarm_secondary_2_raw": {"name": "Secundair alarm (ruwe waarde) 2"}, "alarm_secondary_3_raw": {"name": "Secundair alarm (ruwe waarde) 3"},
       "alarm_code_1_raw": {"name": "Alarmcode (ruwe waarde) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (ruwe waarde) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (ruwe waarde) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (ruwe waarde) 4"},
