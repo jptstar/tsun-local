@@ -11,7 +11,7 @@
       },
       "reconfigure": {
         "title": "修改连接",
-        "description": "修改 IP 地址或 TCP 端口。Monitor SN / Logger SN 仍作为设备的永久标识。",
+        "description": "修改 IP 地址或 TCP 端口。数字 SN 仍作为永久连接标识。",
         "data": {
           "host": "IP 地址",
           "port": "端口"
@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "手动配置",
-        "description": "请输入 IP 地址和端口。Home Assistant 会先尝试从 logger 的本地状态页面自动读取 Monitor SN / Logger SN；如果无法读取，表单将要求手动输入。",
+        "description": "请输入 IP 地址和端口。Home Assistant 会先尝试从 logger 的本地状态页面自动读取数字 SN；如果无法读取，表单将要求手动输入。",
         "data": {
           "host": "IP 地址",
           "port": "端口",
-          "logger_sn": "Monitor SN / Logger SN（Device serial number）"
+          "logger_sn": "SN"
         }
       },
       "discover": {
         "title": "已发现的设备",
-        "description": "请选择在已配置 TCP 端口上发现的地址。Home Assistant 会先尝试从 logger 的本地状态页面自动读取 Monitor SN / Logger SN；如果无法读取，表单将要求手动输入。",
+        "description": "请选择在已配置 TCP 端口上发现的地址。Home Assistant 会先尝试从 logger 的本地状态页面自动读取数字 SN；如果无法读取，表单将要求手动输入。",
         "data": {
           "host": "已发现的地址",
           "port": "端口",
-          "logger_sn": "Monitor SN / Logger SN（Device serial number）"
+          "logger_sn": "SN"
         }
       },
       "discover_network": {
@@ -46,7 +46,7 @@
     },
     "error": {
       "cannot_connect": "无法连接到设备",
-      "cannot_detect_logger_sn": "自动检测失败。请输入本地状态页面上 Device serial number 字段显示的 Monitor SN / Logger SN，或设备铭牌上的编号。",
+      "cannot_detect_logger_sn": "自动检测失败。请输入本地状态页面上 Device serial number 字段显示的数字 SN，或设备铭牌上的编号。",
       "invalid_network": "请输入 /24 到 /32 之间的有效 IPv4 子网",
       "invalid_response": "设备返回了无效响应",
       "no_devices_found": "在此子网和端口上未找到接受本地连接的设备"
@@ -73,7 +73,8 @@
   },
   "entity": {
     "sensor": {
-      "inverter_serial_number": {"name": "微型逆变器序列号"},
+      "label_serial_number": {"name": "SN"},
+      "inverter_serial_number": {"name": "微型逆变器 SN"},
       "logger_firmware_version": {"name": "Logger 固件版本"},
       "logger_mac_address": {"name": "Logger MAC 地址"},
       "alarm_global_0_raw": {"name": "全局报警原始值 0"}, "alarm_global_1_raw": {"name": "全局报警原始值 1"}, "alarm_global_2_raw": {"name": "全局报警原始值 2"}, "alarm_global_3_raw": {"name": "全局报警原始值 3"},
