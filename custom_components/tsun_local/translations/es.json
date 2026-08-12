@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Configuración manual",
-        "description": "Introduce los datos de conexión. El protocolo local se detecta automáticamente y el Monitor SN / Logger SN figura en la etiqueta del dispositivo.",
+        "description": "Introduce la dirección IP y el puerto. Home Assistant intenta primero leer automáticamente el Monitor SN / Logger SN en la página de estado local del logger. Si no puede leerlo, el formulario solicitará su introducción manual.",
         "data": {
           "host": "Dirección IP",
           "port": "Puerto",
-          "logger_sn": "Monitor SN / Logger SN (etiqueta)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover": {
         "title": "Dispositivos encontrados",
-        "description": "Selecciona una dirección encontrada en el puerto TCP configurado e introduce el Monitor SN / Logger SN. El protocolo local se detecta automáticamente.",
+        "description": "Selecciona una dirección encontrada en el puerto TCP configurado. Home Assistant intenta primero leer automáticamente el Monitor SN / Logger SN en la página de estado local del logger. Si no puede leerlo, el formulario solicitará su introducción manual.",
         "data": {
           "host": "Dirección detectada",
           "port": "Puerto",
-          "logger_sn": "Monitor SN / Logger SN (etiqueta)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover_network": {
@@ -46,6 +46,7 @@
     },
     "error": {
       "cannot_connect": "No se puede conectar con el dispositivo",
+      "cannot_detect_logger_sn": "La detección automática ha fallado. Introduce el Monitor SN / Logger SN que aparece como Device serial number en la página de estado local o en la etiqueta del dispositivo.",
       "invalid_network": "Introduce una subred IPv4 válida entre /24 y /32",
       "invalid_response": "El dispositivo ha devuelto una respuesta no válida",
       "no_devices_found": "No se encontró ningún dispositivo con conexión local en esta subred y puerto"
@@ -72,6 +73,8 @@
   },
   "entity": {
     "sensor": {
+      "logger_firmware_version": {"name": "Versión de firmware del logger"},
+      "logger_mac_address": {"name": "Dirección MAC del logger"},
       "alarm_global_0_raw": {"name": "Alarma global (valor bruto) 0"}, "alarm_global_1_raw": {"name": "Alarma global (valor bruto) 1"}, "alarm_global_2_raw": {"name": "Alarma global (valor bruto) 2"}, "alarm_global_3_raw": {"name": "Alarma global (valor bruto) 3"},
       "alarm_secondary_0_raw": {"name": "Alarma secundaria (valor bruto) 0"}, "alarm_secondary_1_raw": {"name": "Alarma secundaria (valor bruto) 1"}, "alarm_secondary_2_raw": {"name": "Alarma secundaria (valor bruto) 2"}, "alarm_secondary_3_raw": {"name": "Alarma secundaria (valor bruto) 3"},
       "alarm_code_1_raw": {"name": "Código de alarma (valor bruto) 1"}, "alarm_code_2_raw": {"name": "Código de alarma (valor bruto) 2"}, "alarm_code_3_raw": {"name": "Código de alarma (valor bruto) 3"}, "alarm_code_4_raw": {"name": "Código de alarma (valor bruto) 4"},

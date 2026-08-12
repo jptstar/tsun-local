@@ -12,7 +12,7 @@
 
 **TSUN Local** integra directamente en Home Assistant los microinversores TSUN compatibles **a través de la red local, sin proxy ni servicio en la nube**.
 
-La versión 1.2.1 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
+La versión 1.3.0 admite los modelos **TSOL-MP3000** y **MX500**, validados en hardware real, además de otros modelos **TITAN**, **GEN3** y **GEN3 PLUS** pendientes de validación.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -66,13 +66,6 @@ Las versiones publicadas siguen el formato `MAJOR.MINOR.PATCH`. HACS utiliza las
 
 La detección FV es dinámica hasta **6 entradas para TITAN**. Para GEN3 / GEN3 PLUS, el mapa actual cubre **1, 2 o 4 entradas FV**; PV5 y PV6 todavía no se detectan.
 
-### Otros dispositivos
-
-| Tipo | Modelos | Estado |
-|---|---|---|
-| Batería GEN3 PLUS | **TSOL-DC1000** | 🔎 Se buscan datos del hardware |
-| Contador inteligente | **TSOL-MG3-MS, DDZY422-D2** | 🔎 Se buscan datos del hardware |
-
 > **¿Tiene uno de estos modelos?** Los modelos marcados con 🧪 están listos para pruebas de la comunidad. [Abra un informe de compatibilidad](https://github.com/jptstar/tsun-local/issues/new) indicando el modelo exacto, la versión del firmware y el resultado de la prueba. Oculte los números de serie completos y los datos privados de la red.
 
 ## Instalación
@@ -97,9 +90,9 @@ Si no aparece la última versión, abra el menú del repositorio y seleccione **
 2. Reinicie Home Assistant.
 3. Abra **Ajustes → Dispositivos y servicios → Añadir integración**.
 4. Busque **TSUN Local**.
-5. Introduzca la dirección IP, el puerto y el **Monitor SN / Logger SN impreso en la etiqueta del microinversor**.
+5. Introduzca la dirección IP y el puerto. Home Assistant intentará detectar automáticamente el **Monitor SN / Logger SN**.
 
-Al añadir un dispositivo, elija **Buscar en la red local** o **Configuración manual** e introduzca el **Monitor SN / Logger SN** impreso en la etiqueta. La integración detecta automáticamente el protocolo local compatible; no es necesario seleccionar la familia del dispositivo. La búsqueda examina todas las redes IPv4 activas expuestas por Home Assistant en el puerto seleccionado y no envía datos de aplicación a las direcciones candidatas. Si no se encuentra ningún dispositivo, el formulario permite introducir una subred LAN o VLAN enrutada en notación CIDR.
+Al añadir un dispositivo, elija **Buscar en la red local** o **Configuración manual**. Home Assistant lee primero el **Monitor SN / Logger SN** de la página de estado local del logger. Si no está disponible, el formulario permite introducir manualmente el valor **Device serial number** de la página o de la etiqueta. La integración detecta automáticamente el protocolo local compatible; no es necesario seleccionar la familia del dispositivo. La búsqueda examina todas las redes IPv4 activas expuestas por Home Assistant en el puerto seleccionado. Si no se encuentra ningún dispositivo, el formulario permite introducir una subred LAN o VLAN enrutada en notación CIDR.
 
 ## Varios dispositivos
 
@@ -135,7 +128,7 @@ Hasta alcanzar el umbral configurable, los últimos valores siguen disponibles y
 
 ## Sensores
 
-La integración crea un único dispositivo con mediciones de CA, 5 mediciones por cada entrada FV detectada, la suma de las potencias de CC detectadas, 4 sensores de diagnóstico y el sensor binario de conectividad **Microinversor en línea**.
+La integración crea un único dispositivo con mediciones de CA, 5 mediciones por cada entrada FV detectada, la suma de las potencias de CC detectadas, 4 diagnósticos de comunicación, sensores de diagnóstico para el firmware y la dirección MAC del logger, y el sensor binario de conectividad **Microinversor en línea**.
 
 El número de entradas FV es dinámico: PV1 está disponible después de la primera lectura; de PV2 a PV6 para TITAN o de PV2 a PV4 para GEN3/GEN3 PLUS se añaden cuando se observa una medición o un contador de energía válido. Una entrada detectada permanece registrada en Home Assistant.
 

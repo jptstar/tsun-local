@@ -12,9 +12,9 @@ from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 
 from . import TsunConfigEntry
-from .const import CONF_LOGGER_SN
+from .const import CONF_LOGGER_MAC_ADDRESS, CONF_LOGGER_SN
 
-TO_REDACT = {CONF_HOST, CONF_LOGGER_SN}
+TO_REDACT = {CONF_HOST, CONF_LOGGER_SN, CONF_LOGGER_MAC_ADDRESS}
 
 
 async def async_get_config_entry_diagnostics(
@@ -26,6 +26,7 @@ async def async_get_config_entry_diagnostics(
         key: value
         for key, value in (coordinator.data or {}).items()
         if not key.startswith("communication_")
+        and key != "logger_mac_address"
     }
     return {
         "config_entry": {
@@ -37,6 +38,9 @@ async def async_get_config_entry_diagnostics(
             "protocol": coordinator.client.protocol_name,
             "pv_count": coordinator.client.pv_count,
             "measurement_keys": sorted(coordinator.client.measurement_keys),
+            "logger_firmware_version": coordinator.data.get(
+                "logger_firmware_version"
+            ),
         },
         "communication": coordinator.diagnostic_summary,
         "measurements": measurements,
@@ -44,6 +48,7 @@ async def async_get_config_entry_diagnostics(
         "privacy": {
             "network_address_included": False,
             "logger_number_included": False,
+            "logger_mac_address_included": False,
             "ap_envelope_included": False,
         },
     }

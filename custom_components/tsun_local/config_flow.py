@@ -32,6 +32,8 @@ from .const import (
     CONF_DISCOVERY_NETWORK,
     CONF_ERROR_SCAN_INTERVAL,
     CONF_FAILURE_THRESHOLD,
+    CONF_LOGGER_FIRMWARE_VERSION,
+    CONF_LOGGER_MAC_ADDRESS,
     CONF_LOGGER_SN,
     CONF_OFFLINE_SCAN_INTERVAL,
     CONF_PROTOCOL,
@@ -57,6 +59,7 @@ from .discovery import (
     bounded_ipv4_network,
     parse_discovery_network,
 )
+from .logger_web import async_read_logger_web_data
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 
@@ -81,6 +84,8 @@ async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
 def _connection_schema(
     discovered_hosts: list[str] | None = None,
     port: int = DEFAULT_PORT,
+    *,
+    request_logger_sn: bool = False,
 ) -> vol.Schema:
     """Build a manual or discovery-assisted connection form."""
     host_field: Any = str
@@ -94,17 +99,17 @@ def _connection_schema(
                 mode=SelectSelectorMode.DROPDOWN,
             )
         )
-    return vol.Schema(
-        {
-            vol.Required(CONF_HOST): host_field,
-            vol.Required(CONF_PORT, default=port): vol.All(
-                vol.Coerce(int), vol.Range(min=1, max=65535)
-            ),
-            vol.Required(CONF_LOGGER_SN): vol.All(
-                vol.Coerce(int), vol.Range(min=1, max=0xFFFFFFFF)
-            ),
-        }
-    )
+    schema: dict[vol.Marker, Any] = {
+        vol.Required(CONF_HOST): host_field,
+        vol.Required(CONF_PORT, default=port): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=65535)
+        ),
+    }
+    if request_logger_sn:
+        schema[vol.Required(CONF_LOGGER_SN)] = vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=0xFFFFFFFF)
+        )
+    return vol.Schema(schema)
 
 
 def _discovery_network_schema(
@@ -220,6 +225,10 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._discovery_networks: list[IPv4Network] | None = None
         self._discovery_port = DEFAULT_PORT
         self._excluded_hosts: set[str] = set()
+        self._detected_logger_sn: int | None = None
+        self._logger_firmware_version: str | None = None
+        self._logger_mac_address: str | None = None
+        self._logger_sn_required = False
         self._suggested_network: str | None = None
 
     def _unconfigured_hosts(self, hosts: list[str]) -> list[str]:
@@ -260,25 +269,48 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         continue_discovery: bool = False,
     ) -> FlowResult | str:
         """Validate a device and return an entry or a translated error key."""
+        entry_input = dict(user_input)
+        automatically_detected = CONF_LOGGER_SN not in entry_input
+        if automatically_detected:
+            logger_data = await async_read_logger_web_data(
+                self.hass, str(entry_input[CONF_HOST])
+            )
+            logger_sn = logger_data.logger_sn
+            self._logger_firmware_version = logger_data.firmware_version
+            self._logger_mac_address = logger_data.mac_address
+            if logger_sn is None:
+                self._logger_sn_required = True
+                return "cannot_detect_logger_sn"
+            entry_input[CONF_LOGGER_SN] = logger_sn
+            self._detected_logger_sn = logger_sn
+
         try:
-            detected_protocol = await _validate_input(self.hass, user_input)
+            detected_protocol = await _validate_input(self.hass, entry_input)
         except (TimeoutError, asyncio.TimeoutError, ConnectionError, OSError):
             return "cannot_connect"
         except Exception:
+            if automatically_detected:
+                self._logger_sn_required = True
             return "invalid_response"
 
-        unique_id = str(user_input[CONF_LOGGER_SN])
+        unique_id = str(entry_input[CONF_LOGGER_SN])
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
         entry_data = {
-            **user_input,
+            **entry_input,
             CONF_PROTOCOL: detected_protocol,
         }
+        if self._logger_firmware_version is not None:
+            entry_data[CONF_LOGGER_FIRMWARE_VERSION] = (
+                self._logger_firmware_version
+            )
+        if self._logger_mac_address is not None:
+            entry_data[CONF_LOGGER_MAC_ADDRESS] = self._logger_mac_address
         next_flow = None
         if continue_discovery:
-            self._discovery_port = user_input[CONF_PORT]
+            self._discovery_port = entry_input[CONF_PORT]
             next_flow = await self._async_prepare_next_discovery(
-                str(user_input[CONF_HOST])
+                str(entry_input[CONF_HOST])
             )
         return self.async_create_entry(
             title=f"TSUN Local ({unique_id})",
@@ -323,7 +355,21 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors["base"] = result
 
         return self.async_show_form(
-            step_id="manual", data_schema=_connection_schema(), errors=errors
+            step_id="manual",
+            data_schema=self.add_suggested_values_to_schema(
+                _connection_schema(
+                    request_logger_sn=self._logger_sn_required
+                ),
+                {
+                    **(
+                        {CONF_LOGGER_SN: self._detected_logger_sn}
+                        if self._detected_logger_sn is not None
+                        else {}
+                    ),
+                    **(user_input or {}),
+                },
+            ),
+            errors=errors,
         )
 
     async def async_step_discover(
@@ -363,8 +409,20 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="discover",
-            data_schema=_connection_schema(
-                self._discovered_hosts, self._discovery_port
+            data_schema=self.add_suggested_values_to_schema(
+                _connection_schema(
+                    self._discovered_hosts,
+                    self._discovery_port,
+                    request_logger_sn=self._logger_sn_required,
+                ),
+                {
+                    **(
+                        {CONF_LOGGER_SN: self._detected_logger_sn}
+                        if self._detected_logger_sn is not None
+                        else {}
+                    ),
+                    **(user_input or {}),
+                },
             ),
             errors=errors,
         )

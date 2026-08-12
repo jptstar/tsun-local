@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.2.1** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
+**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.3.0** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
 
 ## About this project
 
@@ -56,8 +56,6 @@ Hardware feedback, diagnostic results, and focused bug reports are welcome. I ca
 | 4 | MX2250, MS1600, MS1800, MS2000, MS2000-D | 🧪 | 02B0 adapter ready for testing |
 | 6 | MS3000, MX2400, MX2500, MX2700, MX3000/MX3000D, MX3300 | 🔎 | The available 02B0 map currently ends at PV4 |
 
-⏸️ Storage systems and batteries, including DC1000, and smart meters such as TSOL-MG3-MS or DDZY422-D2 are intentionally left out for now. Their local communication requires a separate, validated implementation.
-
 ## Installation
 
 ### With HACS
@@ -82,17 +80,20 @@ If a new release does not appear, open the repository menu and select **Update i
 
 ## Adding a device
 
-You can search the local network or enter the connection details manually. The required fields are:
+You can search the local network or enter the connection details manually. Home Assistant first asks only for:
 
 - the micro-inverter/logger IP address;
 - TCP port `8899` by default, which remains editable;
-- the numeric **Monitor SN / Logger SN printed on the micro-inverter label**.
+
+Home Assistant then reads the numeric **Monitor SN / Logger SN** automatically from the logger's local `index_cn.html` or `status.html` page using the factory web credentials. These credentials are used only for this local request and are not stored. The correct value is shown as **Device serial number**; it is not the alphanumeric **Inverter serial number**.
+
+If the page is unavailable, the credentials have been changed, or the value cannot be read, the same form displays a Monitor SN field for manual entry. The value can be copied from **Device serial number** on the local status page or from the device label.
 
 The local protocol is detected automatically after the device answers. The alphanumeric inverter serial number is not used in the AP communication envelope.
 
 Network search scans the IPv4 subnets visible to Home Assistant for the selected TCP port. VLANs, routed networks, container networking, or client isolation can prevent automatic discovery; manual configuration remains available in those cases.
 
-When a device is added from network search, Home Assistant automatically opens a fresh search for the next micro-inverter. The new search uses the same networks and TCP port, hides the address just configured, and stops when no unconfigured device remains. Each device still requires its own Monitor SN and creates an independent entry with its own entities and polling settings. Complete device polls share a lock and run one after another, preventing overlapping requests to local loggers.
+When a device is added from network search, Home Assistant automatically opens a fresh search for the next micro-inverter. The new search uses the same networks and TCP port, hides the address just configured, and stops when no unconfigured device remains. Each device creates an independent entry with its automatically detected or manually entered Monitor SN, entities, and polling settings. Complete device polls share a lock and run one after another, preventing overlapping requests to local loggers.
 
 ## Polling settings
 
@@ -118,8 +119,9 @@ Available data includes:
 - AC instantaneous measurements and energy counters;
 - five measurements for every detected PV input;
 - calculated total DC power;
-- four communication diagnostics and a **Micro-inverter online** connectivity binary sensor;
-- a global inverter alarm status and protocol-specific raw alarm registers.
+- four communication diagnostics, plus logger firmware and MAC-address diagnostic sensors;
+- a **Micro-inverter online** connectivity binary sensor;
+- a global inverter alarm status and protocol-specific raw alarm registers;
 - a manual **Refresh data** button.
 
 PV detection is progressive. TITAN can expose PV1 to PV6 with the current 1511 map. GEN3/GEN3 PLUS can expose PV1 to PV4 with the current 02B0 map. Once an input is discovered, its entities remain registered in Home Assistant.
@@ -174,7 +176,7 @@ If setup cannot complete, run the standalone capture from a copy of this reposit
 python3 tools/diagnose_device.py --host DEVICE_IP
 ```
 
-The Monitor SN is requested interactively and is not stored in the command history. The generated `tsun_local_diagnostic.json` contains decoded measurements and a short circular trace of inner protocol requests and responses. It does **not** contain the device IP address, Monitor SN, or AP envelope. Review the file before sharing it, as production and energy readings remain visible.
+The Monitor SN is requested interactively and is not stored in the command history. The generated `tsun_local_diagnostic.json` contains decoded measurements and a short circular trace of inner protocol requests and responses. It does **not** contain the device IP address, Monitor SN, logger MAC address, or AP envelope. Review the file before sharing it, as production and energy readings remain visible.
 
 The captured responses can be replayed locally without the physical device:
 
@@ -192,7 +194,7 @@ The following ideas are deliberately not enabled yet and require validation befo
 - the 02B0 output coefficient as a read-only percentage;
 - Home Assistant notifications or repairs for persistent inverter alarms;
 - translated fault descriptions after the raw register/bit mapping has been confirmed;
-- additional local protocol adapters for storage systems, meters, and future TSUN products.
+- additional local protocol adapters for future TSUN micro-inverter families.
 
 No control or write command will be added without explicit safeguards and real-hardware validation.
 

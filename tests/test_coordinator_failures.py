@@ -122,6 +122,33 @@ class _Client:
 class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
     """Protect the three-attempt availability threshold."""
 
+    async def test_logger_metadata_is_exposed_and_survives_failures(self) -> None:
+        client = _Client([_ReadResult({"ac_power": 400}), OSError("one")])
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            client,
+            20,
+            25,
+            300,
+            3,
+            asyncio.Lock(),
+            "LSW_TEST_1.0",
+            "02:00:00:00:00:01",
+        )
+
+        first = await coordinator._async_update_data()
+        coordinator.data = first
+        second = await coordinator._async_update_data()
+
+        for data in (first, second):
+            self.assertEqual(
+                data["logger_firmware_version"], "LSW_TEST_1.0"
+            )
+            self.assertEqual(
+                data["logger_mac_address"], "02:00:00:00:00:01"
+            )
+
     async def test_marks_device_offline_on_third_consecutive_failure(self) -> None:
         client = _Client([OSError("one"), OSError("two"), OSError("three")])
         coordinator = COORDINATOR.TsunCoordinator(

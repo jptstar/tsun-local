@@ -19,20 +19,20 @@
       },
       "manual": {
         "title": "Konfiguracja ręczna",
-        "description": "Wprowadź dane połączenia. Protokół lokalny jest wykrywany automatycznie, a Monitor SN / Logger SN znajduje się na etykiecie urządzenia.",
+        "description": "Wprowadź adres IP i port. Home Assistant najpierw spróbuje automatycznie odczytać Monitor SN / Logger SN z lokalnej strony stanu loggera. Jeśli odczyt się nie powiedzie, formularz poprosi o ręczne wprowadzenie numeru.",
         "data": {
           "host": "Adres IP",
           "port": "Port",
-          "logger_sn": "Monitor SN / Logger SN (etykieta)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover": {
         "title": "Znalezione urządzenia",
-        "description": "Wybierz adres znaleziony na skonfigurowanym porcie TCP i wprowadź Monitor SN / Logger SN. Protokół lokalny jest wykrywany automatycznie.",
+        "description": "Wybierz adres znaleziony na skonfigurowanym porcie TCP. Home Assistant najpierw spróbuje automatycznie odczytać Monitor SN / Logger SN z lokalnej strony stanu loggera. Jeśli odczyt się nie powiedzie, formularz poprosi o ręczne wprowadzenie numeru.",
         "data": {
           "host": "Wykryty adres",
           "port": "Port",
-          "logger_sn": "Monitor SN / Logger SN (etykieta)"
+          "logger_sn": "Monitor SN / Logger SN (Device serial number)"
         }
       },
       "discover_network": {
@@ -46,6 +46,7 @@
     },
     "error": {
       "cannot_connect": "Nie można połączyć się z urządzeniem",
+      "cannot_detect_logger_sn": "Automatyczne wykrywanie nie powiodło się. Wprowadź Monitor SN / Logger SN widoczny jako Device serial number na lokalnej stronie stanu lub na etykiecie urządzenia.",
       "invalid_network": "Wprowadź prawidłową podsieć IPv4 od /24 do /32",
       "invalid_response": "Urządzenie zwróciło nieprawidłową odpowiedź",
       "no_devices_found": "W tej podsieci i na tym porcie nie znaleziono urządzenia z połączeniem lokalnym"
@@ -72,6 +73,8 @@
   },
   "entity": {
     "sensor": {
+      "logger_firmware_version": {"name": "Wersja oprogramowania loggera"},
+      "logger_mac_address": {"name": "Adres MAC loggera"},
       "alarm_global_0_raw": {"name": "Alarm globalny (wartość surowa) 0"}, "alarm_global_1_raw": {"name": "Alarm globalny (wartość surowa) 1"}, "alarm_global_2_raw": {"name": "Alarm globalny (wartość surowa) 2"}, "alarm_global_3_raw": {"name": "Alarm globalny (wartość surowa) 3"},
       "alarm_secondary_0_raw": {"name": "Alarm dodatkowy (wartość surowa) 0"}, "alarm_secondary_1_raw": {"name": "Alarm dodatkowy (wartość surowa) 1"}, "alarm_secondary_2_raw": {"name": "Alarm dodatkowy (wartość surowa) 2"}, "alarm_secondary_3_raw": {"name": "Alarm dodatkowy (wartość surowa) 3"},
       "alarm_code_1_raw": {"name": "Kod alarmu (wartość surowa) 1"}, "alarm_code_2_raw": {"name": "Kod alarmu (wartość surowa) 2"}, "alarm_code_3_raw": {"name": "Kod alarmu (wartość surowa) 3"}, "alarm_code_4_raw": {"name": "Kod alarmu (wartość surowa) 4"},

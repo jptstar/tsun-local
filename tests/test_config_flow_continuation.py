@@ -9,8 +9,9 @@ import importlib.util
 from ipaddress import IPv4Network
 from pathlib import Path
 import sys
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 import unittest
+from unittest.mock import AsyncMock, patch
 
 
 ROOT = Path(__file__).parents[1]
@@ -28,6 +29,17 @@ def _module(name: str, **attributes: object) -> ModuleType:
 class _ConfigFlow:
     def __init_subclass__(cls, *, domain: str | None = None, **kwargs: object):
         super().__init_subclass__(**kwargs)
+
+    async def async_set_unique_id(self, unique_id: str) -> None:
+        self.unique_id = unique_id
+
+    def _abort_if_unique_id_configured(self) -> None:
+        pass
+
+    def async_create_entry(
+        self, *, title: str, data: dict[str, object], **kwargs: object
+    ) -> dict[str, object]:
+        return {"title": title, "data": data, **kwargs}
 
 
 class _OptionsFlowWithReload:
@@ -106,6 +118,8 @@ def _load_config_flow() -> ModuleType:
         CONF_DISCOVERY_NETWORK="discovery_network",
         CONF_ERROR_SCAN_INTERVAL="error_scan_interval",
         CONF_FAILURE_THRESHOLD="failure_threshold",
+        CONF_LOGGER_FIRMWARE_VERSION="logger_firmware_version",
+        CONF_LOGGER_MAC_ADDRESS="logger_mac_address",
         CONF_LOGGER_SN="logger_sn",
         CONF_OFFLINE_SCAN_INTERVAL="offline_scan_interval",
         CONF_PROTOCOL="protocol",
@@ -126,6 +140,10 @@ def _load_config_flow() -> ModuleType:
         MIN_SCAN_INTERVAL=10,
     )
     _module(f"{PACKAGE}.coordinator", get_poll_lock=lambda hass: None)
+    _module(
+        f"{PACKAGE}.logger_web",
+        async_read_logger_web_data=lambda *args: None,
+    )
     _module(
         f"{PACKAGE}.protocols",
         DEFAULT_PROTOCOL="auto",
@@ -200,6 +218,107 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(CONFIG_FLOW.DEFAULT_ERROR_SCAN_INTERVAL, 20)
         self.assertEqual(CONFIG_FLOW.DEFAULT_OFFLINE_SCAN_INTERVAL, 300)
         self.assertEqual(CONFIG_FLOW.DEFAULT_FAILURE_THRESHOLD, 3)
+
+    def test_logger_sn_is_hidden_until_automatic_detection_fails(self) -> None:
+        automatic_schema = CONFIG_FLOW._connection_schema()
+        fallback_schema = CONFIG_FLOW._connection_schema(
+            request_logger_sn=True
+        )
+
+        automatic_keys = {str(key) for key in automatic_schema}
+        fallback_keys = {str(key) for key in fallback_schema}
+        self.assertNotIn("logger_sn", automatic_keys)
+        self.assertIn("logger_sn", fallback_keys)
+
+    async def test_automatically_detected_logger_sn_is_saved(self) -> None:
+        flow = CONFIG_FLOW.TsunConfigFlow()
+        flow.hass = object()
+        with (
+            patch.object(
+                CONFIG_FLOW,
+                "async_read_logger_web_data",
+                new=AsyncMock(
+                    return_value=SimpleNamespace(
+                        logger_sn=1234567890,
+                        firmware_version="LSW_TEST_1.0",
+                        mac_address="02:00:00:00:00:01",
+                    )
+                ),
+            ),
+            patch.object(
+                CONFIG_FLOW,
+                "_validate_input",
+                new=AsyncMock(return_value="1511"),
+            ),
+        ):
+            result = await flow._async_create_device(
+                {"host": "192.0.2.10", "port": 8899}
+            )
+
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["data"]["logger_sn"], 1234567890)
+        self.assertEqual(result["data"]["protocol"], "1511")
+        self.assertEqual(
+            result["data"]["logger_firmware_version"], "LSW_TEST_1.0"
+        )
+        self.assertEqual(
+            result["data"]["logger_mac_address"], "02:00:00:00:00:01"
+        )
+        self.assertEqual(flow.unique_id, "1234567890")
+
+    async def test_manual_logger_sn_is_requested_when_detection_fails(
+        self,
+    ) -> None:
+        flow = CONFIG_FLOW.TsunConfigFlow()
+        flow.hass = object()
+        with patch.object(
+            CONFIG_FLOW,
+            "async_read_logger_web_data",
+            new=AsyncMock(
+                return_value=SimpleNamespace(
+                    logger_sn=None,
+                    firmware_version=None,
+                    mac_address=None,
+                )
+            ),
+        ):
+            result = await flow._async_create_device(
+                {"host": "192.0.2.10", "port": 8899}
+            )
+
+        self.assertEqual(result, "cannot_detect_logger_sn")
+        self.assertTrue(flow._logger_sn_required)
+
+    async def test_detected_sn_can_be_corrected_after_invalid_response(
+        self,
+    ) -> None:
+        flow = CONFIG_FLOW.TsunConfigFlow()
+        flow.hass = object()
+        with (
+            patch.object(
+                CONFIG_FLOW,
+                "async_read_logger_web_data",
+                new=AsyncMock(
+                    return_value=SimpleNamespace(
+                        logger_sn=1234567890,
+                        firmware_version=None,
+                        mac_address=None,
+                    )
+                ),
+            ),
+            patch.object(
+                CONFIG_FLOW,
+                "_validate_input",
+                new=AsyncMock(side_effect=ValueError),
+            ),
+        ):
+            result = await flow._async_create_device(
+                {"host": "192.0.2.10", "port": 8899}
+            )
+
+        self.assertEqual(result, "invalid_response")
+        self.assertTrue(flow._logger_sn_required)
+        self.assertEqual(flow._detected_logger_sn, 1234567890)
 
     async def test_prepares_next_flow_with_pending_host_excluded(self) -> None:
         flow = CONFIG_FLOW.TsunConfigFlow()
