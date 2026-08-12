@@ -50,13 +50,18 @@ class TsunConnectivitySensor(
     def __init__(self, coordinator: TsunCoordinator, entry: TsunConfigEntry) -> None:
         super().__init__(coordinator)
         logger_sn = str(entry.data[CONF_LOGGER_SN])
+        inverter_serial_number = coordinator.data.get("inverter_serial_number")
         self._attr_unique_id = f"{logger_sn}_communication_online"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
             model=coordinator.client.model,
             name=f"TSUN Local {logger_sn}",
-            serial_number=logger_sn,
+            serial_number=(
+                str(inverter_serial_number)
+                if inverter_serial_number is not None
+                else None
+            ),
         )
 
     @property
@@ -82,13 +87,18 @@ class TsunAlarmSensor(CoordinatorEntity[TsunCoordinator], BinarySensorEntity):
     def __init__(self, coordinator: TsunCoordinator, entry: TsunConfigEntry) -> None:
         super().__init__(coordinator)
         logger_sn = str(entry.data[CONF_LOGGER_SN])
+        inverter_serial_number = coordinator.data.get("inverter_serial_number")
         self._attr_unique_id = f"{logger_sn}_inverter_alarm"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
             model=coordinator.client.model,
             name=f"TSUN Local {logger_sn}",
-            serial_number=logger_sn,
+            serial_number=(
+                str(inverter_serial_number)
+                if inverter_serial_number is not None
+                else None
+            ),
         )
 
     @property
