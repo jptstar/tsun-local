@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] - 2026-08-12
+
+### Added
+
+- expose the numeric **SN** used for local communication as a translated diagnostic entity alongside the alphanumeric **Micro-inverter SN**.
+
+### Changed
+
+- simplify the device setup documentation in every supported language while retaining the essential automatic discovery, manual fallback, VLAN, and multi-device guidance;
+- use the alphanumeric micro-inverter SN as the Home Assistant device serial number while retaining the numeric SN as the stable device-registry identifier;
+- keep the logger MAC address as a text diagnostic without registering it as a clickable network connection;
+- fix the automatic transition to the next device search so Home Assistant does not display `Invalid flow specified` after adding a discovered micro-inverter.
+
 ## [1.3.1] - 2026-08-12
 
 ### Added
@@ -122,6 +135,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.3.2]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.2
 [1.3.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.1
 [1.3.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.0
 [1.2.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.1
