@@ -68,6 +68,7 @@ _CONTEXT_CONTINUE_DISCOVERY = "tsun_continue_discovery"
 _CONTEXT_DISCOVERY_NETWORKS = "tsun_discovery_networks"
 _CONTEXT_DISCOVERY_PORT = "tsun_discovery_port"
 _CONTEXT_EXCLUDED_HOSTS = "tsun_excluded_hosts"
+_SOURCE_CONTINUE_DISCOVERY = "tsun_continue_discovery"
 
 
 async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
@@ -264,7 +265,11 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         next_result = await self.hass.config_entries.flow.async_init(
             DOMAIN,
             context={
-                "source": config_entries.SOURCE_USER,
+                # A second SOURCE_USER flow for the same integration is
+                # rejected while async_on_create_entry is still finalizing
+                # this one. A dedicated source keeps the returned flow alive
+                # for the frontend's next_flow transition.
+                "source": _SOURCE_CONTINUE_DISCOVERY,
                 _CONTEXT_CONTINUE_DISCOVERY: True,
                 _CONTEXT_DISCOVERY_NETWORKS: [
                     str(network) for network in self._discovery_networks or []
@@ -273,7 +278,10 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _CONTEXT_EXCLUDED_HOSTS: sorted(excluded_hosts),
             },
         )
-        if flow_id := next_result.get("flow_id"):
+        if (
+            next_result.get("type") not in {"abort", "create_entry"}
+            and (flow_id := next_result.get("flow_id"))
+        ):
             return (config_entries.FlowType.CONFIG_FLOW, flow_id)
         return None
 
@@ -374,6 +382,12 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_menu(
             step_id="user", menu_options=["discover", "manual"]
         )
+
+    async def async_step_tsun_continue_discovery(
+        self, discovery_info: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Resume discovery after another TSUN entry was created."""
+        return await self.async_step_user()
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
