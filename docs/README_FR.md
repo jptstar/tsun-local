@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.3.1** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
+**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.3.2** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
 
 ## À propos du projet
 
@@ -81,20 +81,13 @@ Si une nouvelle version n’apparaît pas, ouvrez le menu du dépôt puis sélec
 
 ## Ajouter un appareil
 
-Vous pouvez rechercher l’appareil sur le réseau local ou saisir manuellement les paramètres de connexion. Home Assistant demande d’abord seulement :
+TSUN Local peut rechercher automatiquement les micro-onduleurs présents sur le réseau local. Vous pouvez également saisir manuellement leur adresse IP. Le port TCP `8899` est proposé par défaut et reste modifiable.
 
-- l’adresse IP du micro-onduleur/logger ;
-- le port TCP `8899` proposé par défaut et toujours modifiable ;
+Le protocole utilisé et le **SN** numérique sont détectés automatiquement. Si nécessaire, le SN peut être saisi manuellement depuis la page locale ou l’étiquette de l’appareil. Il est distinct du **SN Micro-onduleur** alphanumérique.
 
-Home Assistant lit ensuite automatiquement le **Monitor SN / Logger SN numérique** sur la page locale `index_cn.html` ou `status.html` du logger avec les identifiants Web d’usine. Ces identifiants servent uniquement à cette requête locale et ne sont pas enregistrés. La bonne valeur est affichée sous **Device serial number** ; ce n’est pas le **Inverter serial number** alphanumérique.
+Si l’appareil se trouve sur un autre VLAN et n’est pas détecté, indiquez son sous-réseau au format CIDR ou utilisez la configuration manuelle.
 
-Si la page est absente, si ses identifiants ont été modifiés ou si la valeur n’est pas lisible, le même formulaire affiche un champ Monitor SN pour permettre la saisie manuelle. La valeur peut être recopiée depuis **Device serial number** sur la page d’état locale ou depuis l’étiquette de l’appareil.
-
-Le protocole local est détecté automatiquement dès que l’appareil répond. Le numéro de série alphanumérique du micro-onduleur n’est pas utilisé dans l’enveloppe de communication AP.
-
-La recherche réseau envoie d’abord des requêtes natives en lecture seule sur UDP/48899, puis valide chaque réponse sur le port TCP choisi. Elle examine également les sous-réseaux IPv4 visibles depuis Home Assistant et réutilise automatiquement le sous-réseau `/24` de chaque appareil TSUN déjà configuré. Pour le premier appareil d’un VLAN routé inconnu, indiquez une seule fois ce sous-réseau au format CIDR ; les recherches suivantes l’incluront automatiquement. Un routeur bloquant la diffusion entre VLAN, un réseau de conteneurs ou l’isolation des clients Wi-Fi peut encore nécessiter cette première saisie manuelle.
-
-Après l’ajout d’un appareil trouvé sur le réseau, Home Assistant ouvre automatiquement une nouvelle recherche pour le micro-onduleur suivant. Elle réutilise les mêmes réseaux et le même port TCP, masque l’adresse qui vient d’être configurée et s’arrête lorsqu’il ne reste aucun appareil. Chaque micro-onduleur crée une entrée indépendante avec son Monitor SN détecté automatiquement ou saisi manuellement, ses entités et ses intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
+Plusieurs micro-onduleurs peuvent être ajoutés. Chaque appareil dispose de ses propres entités et paramètres d’actualisation.
 
 ## Réglages d’interrogation
 
@@ -120,7 +113,7 @@ Les données disponibles comprennent :
 - les mesures instantanées et compteurs d’énergie AC ;
 - cinq mesures pour chaque entrée PV détectée ;
 - la puissance DC totale calculée ;
-- quatre diagnostics de communication, plus le numéro de série du micro-onduleur, la version du firmware et l’adresse MAC du logger sous forme de capteurs de diagnostic ;
+- quatre diagnostics de communication, plus les capteurs de diagnostic **SN**, **SN Micro-onduleur**, version du firmware et adresse MAC du logger ;
 - un capteur binaire de connectivité **Micro-onduleur en ligne** ;
 - un état global d’alarme et les registres bruts propres au protocole ;
 - un bouton manuel **Actualiser les données**.
@@ -177,7 +170,7 @@ Si la configuration ne peut pas aboutir, lancez la capture autonome depuis une c
 python3 tools/diagnose_device.py --host ADRESSE_IP
 ```
 
-Le Monitor SN est demandé de manière interactive et ne reste pas dans l’historique de la commande. Le fichier `tsun_local_diagnostic.json` généré contient les mesures décodées et une courte trace circulaire des requêtes et réponses internes au protocole. Il ne contient **ni l’adresse IP, ni le Monitor SN, ni l’adresse MAC du logger, ni l’enveloppe AP**. Vérifiez-le avant de le partager, car les valeurs de production et d’énergie restent visibles.
+Le SN numérique est demandé de manière interactive et ne reste pas dans l’historique de la commande. Le fichier `tsun_local_diagnostic.json` généré contient les mesures décodées et une courte trace circulaire des requêtes et réponses internes au protocole. Il ne contient **ni l’adresse IP, ni le SN, ni l’adresse MAC du logger, ni l’enveloppe AP**. Vérifiez-le avant de le partager, car les valeurs de production et d’énergie restent visibles.
 
 Les réponses capturées peuvent être relues localement sans disposer du micro-onduleur :
 
