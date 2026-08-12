@@ -12,7 +12,7 @@
 
 **TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks in Home Assistant **via het lokale netwerk, zonder proxy of cloudservice**.
 
-Versie 1.3.1 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+Versie 1.3.2 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
 
 **Auteur: Jean-Philippe TESTART (jptstar)**
 
@@ -90,13 +90,16 @@ Als de nieuwste versie niet verschijnt, open dan het menu van de opslagplaats en
 2. Start Home Assistant opnieuw op.
 3. Open **Instellingen → Apparaten & diensten → Integratie toevoegen**.
 4. Zoek naar **TSUN Local**.
-5. Voer het IP-adres en de poort in. Home Assistant probeert de **Monitor SN / Logger SN** automatisch te detecteren.
 
-Kies bij het toevoegen **Lokaal netwerk doorzoeken** of **Handmatige configuratie**. Home Assistant leest eerst de **Monitor SN / Logger SN** van de lokale statuspagina van de logger. Is deze niet beschikbaar, dan kan de waarde **Device serial number** van de pagina of het apparaatlabel handmatig worden ingevoerd. De integratie detecteert het ondersteunde lokale protocol automatisch; een apparaatfamilie kiezen is niet nodig. De zoekfunctie verstuurt eerst alleen-lezen native aanvragen via UDP/48899 en valideert elk antwoord op de gekozen TCP-poort. Ze hergebruikt ook automatisch het `/24`-subnet van elk eerder geconfigureerd TSUN-apparaat. Voer voor het eerste apparaat op een onbekend gerouteerd VLAN het subnet één keer in CIDR-notatie in; latere zoekopdrachten nemen het automatisch mee. Als de router broadcasts tussen VLAN’s blokkeert, kan deze eerste handmatige invoer nog steeds nodig zijn.
+## Een apparaat toevoegen
 
-## Meerdere apparaten
+TSUN Local kan op het lokale netwerk naar micro-omvormers zoeken. Het IP-adres kan ook handmatig worden ingevoerd. TCP-poort `8899` wordt standaard voorgesteld en blijft aanpasbaar.
 
-Nadat een via de netwerkzoekfunctie gevonden apparaat is toegevoegd, opent Home Assistant automatisch een nieuwe zoekopdracht voor de volgende micro-omvormer. Dezelfde netwerken en TCP-poort worden hergebruikt, het zojuist ingestelde adres wordt verborgen en de reeks stopt wanneer geen ongeconfigureerd apparaat overblijft. Elke micro-omvormer vereist nog steeds een eigen Monitor SN en krijgt een onafhankelijke configuratie met eigen entiteiten en intervallen.
+Het lokale protocol en de numerieke **SN** worden automatisch gedetecteerd. Indien nodig kan de SN handmatig worden ingevoerd vanaf de lokale pagina of het apparaatlabel. Deze verschilt van de alfanumerieke **SN van de micro-omvormer**.
+
+Als het apparaat zich op een ander VLAN bevindt en niet wordt gevonden, voer dan het subnet in CIDR-notatie in of gebruik de handmatige configuratie.
+
+Er kunnen meerdere micro-omvormers worden toegevoegd. Elk apparaat heeft eigen entiteiten en pollinginstellingen.
 
 ## Instellingen in Home Assistant
 
@@ -128,7 +131,7 @@ Tot de instelbare foutdrempel is bereikt, blijven de laatste waarden beschikbaar
 
 ## Sensoren
 
-De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 communicatiediagnoses, diagnosesensoren voor serienummer van de micro-omvormer, loggerfirmware en MAC-adres en de binaire verbindingssensor **Micro-omvormer online**.
+De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 communicatiediagnoses, diagnosesensoren voor **SN**, **SN van de micro-omvormer**, loggerfirmware en MAC-adres en de binaire verbindingssensor **Micro-omvormer online**.
 
 Het aantal PV-ingangen is dynamisch: PV1 is na de eerste uitlezing beschikbaar; PV2 tot PV6 voor TITAN of PV2 tot PV4 voor GEN3/GEN3 PLUS worden toegevoegd zodra een geldige meting of energieteller wordt waargenomen. Een eenmaal gedetecteerde ingang blijft in Home Assistant geregistreerd.
 
