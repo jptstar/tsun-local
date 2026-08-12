@@ -364,7 +364,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_prepares_next_flow_with_pending_host_excluded(self) -> None:
         flow = CONFIG_FLOW.TsunConfigFlow()
-        flow.hass = _Hass({"flow_id": "next-flow"})
+        flow.hass = _Hass({"type": "form", "flow_id": "next-flow"})
         flow._discovery_networks = [IPv4Network("192.0.2.0/24")]
         flow._discovery_port = 8899
         flow._excluded_hosts = {"192.0.2.10"}
@@ -373,7 +373,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(result, (_FlowType.CONFIG_FLOW, "next-flow"))
         _, context = flow.hass.config_entries.flow.calls[0]
-        self.assertEqual(context["source"], "user")
+        self.assertEqual(context["source"], "tsun_continue_discovery")
         self.assertEqual(
             context["tsun_discovery_networks"], ["192.0.2.0/24"]
         )
@@ -385,7 +385,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_continuation_starts_only_after_entry_creation(self) -> None:
         flow = CONFIG_FLOW.TsunConfigFlow()
-        flow.hass = _Hass({"flow_id": "next-flow"})
+        flow.hass = _Hass({"type": "form", "flow_id": "next-flow"})
         flow._discovery_networks = [IPv4Network("192.0.2.0/24")]
         flow._discovery_port = 8899
         flow._continue_discovery_host = "192.0.2.11"
@@ -401,11 +401,30 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_stops_when_continuation_has_no_form(self) -> None:
         flow = CONFIG_FLOW.TsunConfigFlow()
-        flow.hass = _Hass({"type": "abort"})
+        flow.hass = _Hass({"type": "abort", "flow_id": "stale-flow"})
 
         self.assertIsNone(
             await flow._async_prepare_next_discovery("192.0.2.11")
         )
+
+    async def test_dedicated_continuation_source_restarts_discovery(
+        self,
+    ) -> None:
+        flow = CONFIG_FLOW.TsunConfigFlow()
+        flow.context = {
+            "tsun_continue_discovery": True,
+            "tsun_discovery_networks": ["198.51.100.0/24"],
+            "tsun_discovery_port": 8899,
+            "tsun_excluded_hosts": ["198.51.100.20"],
+        }
+        flow.async_step_user = AsyncMock(
+            return_value={"type": "form", "step_id": "discover"}
+        )
+
+        result = await flow.async_step_tsun_continue_discovery()
+
+        self.assertEqual(result["step_id"], "discover")
+        flow.async_step_user.assert_awaited_once_with()
 
     async def test_continuation_restarts_discovery_on_same_networks(self) -> None:
         flow = CONFIG_FLOW.TsunConfigFlow()
