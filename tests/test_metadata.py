@@ -75,6 +75,19 @@ class MetadataTests(unittest.TestCase):
                 expected_name,
             )
 
+    def test_device_identifiers_are_clear_and_mac_is_not_a_link(self) -> None:
+        """Keep both SN values explicit and the MAC diagnostic non-clickable."""
+        strings = _load_json(INTEGRATION / "strings.json")
+        sensors = strings["entity"]["sensor"]
+        self.assertEqual(sensors["label_serial_number"]["name"], "SN")
+        self.assertEqual(
+            sensors["inverter_serial_number"]["name"],
+            "Micro-inverter SN",
+        )
+        sensor_source = (INTEGRATION / "sensor.py").read_text(encoding="utf-8")
+        self.assertNotIn("CONNECTION_NETWORK_MAC", sensor_source)
+        self.assertNotIn("connections=", sensor_source)
+
     def test_documentation_language_layout(self) -> None:
         self.assertTrue((ROOT / "README.md").is_file())
         self.assertFalse((ROOT / "README_EN.md").exists())
