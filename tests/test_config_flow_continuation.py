@@ -118,6 +118,7 @@ def _load_config_flow() -> ModuleType:
         CONF_DISCOVERY_NETWORK="discovery_network",
         CONF_ERROR_SCAN_INTERVAL="error_scan_interval",
         CONF_FAILURE_THRESHOLD="failure_threshold",
+        CONF_INVERTER_SERIAL_NUMBER="inverter_serial_number",
         CONF_LOGGER_FIRMWARE_VERSION="logger_firmware_version",
         CONF_LOGGER_MAC_ADDRESS="logger_mac_address",
         CONF_LOGGER_SN="logger_sn",
@@ -202,6 +203,41 @@ class _Hass:
 class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
     """Protect the automatic transition to the next device search."""
 
+    async def test_discovery_reuses_networks_from_configured_tsun_hosts(
+        self,
+    ) -> None:
+        hass = SimpleNamespace(
+            config_entries=SimpleNamespace(
+                async_entries=lambda _domain: [
+                    SimpleNamespace(data={"host": "198.51.100.42"})
+                ]
+            )
+        )
+        with patch.object(
+            CONFIG_FLOW.network,
+            "async_get_adapters",
+            new=AsyncMock(
+                return_value=[
+                    {
+                        "enabled": True,
+                        "ipv4": [
+                            {
+                                "address": "192.0.2.20",
+                                "network_prefix": 24,
+                            }
+                        ],
+                    }
+                ]
+            ),
+            create=True,
+        ):
+            networks = await CONFIG_FLOW._async_get_discovery_networks(hass)
+
+        self.assertEqual(
+            [str(network) for network in networks],
+            ["192.0.2.0/24", "198.51.100.0/24"],
+        )
+
     def test_polling_options_expose_three_intervals_and_failure_threshold(
         self,
     ) -> None:
@@ -240,6 +276,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
                 new=AsyncMock(
                     return_value=SimpleNamespace(
                         logger_sn=1234567890,
+                        inverter_serial_number="TESTINVERTER0001",
                         firmware_version="LSW_TEST_1.0",
                         mac_address="02:00:00:00:00:01",
                     )
@@ -264,6 +301,9 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             result["data"]["logger_mac_address"], "02:00:00:00:00:01"
         )
+        self.assertEqual(
+            result["data"]["inverter_serial_number"], "TESTINVERTER0001"
+        )
         self.assertEqual(flow.unique_id, "1234567890")
 
     async def test_manual_logger_sn_is_requested_when_detection_fails(
@@ -277,6 +317,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
             new=AsyncMock(
                 return_value=SimpleNamespace(
                     logger_sn=None,
+                    inverter_serial_number=None,
                     firmware_version=None,
                     mac_address=None,
                 )
@@ -301,6 +342,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
                 new=AsyncMock(
                     return_value=SimpleNamespace(
                         logger_sn=1234567890,
+                        inverter_serial_number=None,
                         firmware_version=None,
                         mac_address=None,
                     )
@@ -340,6 +382,22 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
             context["tsun_excluded_hosts"],
             ["192.0.2.10", "192.0.2.11"],
         )
+
+    async def test_continuation_starts_only_after_entry_creation(self) -> None:
+        flow = CONFIG_FLOW.TsunConfigFlow()
+        flow.hass = _Hass({"flow_id": "next-flow"})
+        flow._discovery_networks = [IPv4Network("192.0.2.0/24")]
+        flow._discovery_port = 8899
+        flow._continue_discovery_host = "192.0.2.11"
+
+        result = await flow.async_on_create_entry(
+            {"type": "create_entry", "data": {}}
+        )
+
+        self.assertEqual(
+            result["next_flow"], (_FlowType.CONFIG_FLOW, "next-flow")
+        )
+        self.assertEqual(len(flow.hass.config_entries.flow.calls), 1)
 
     async def test_stops_when_continuation_has_no_form(self) -> None:
         flow = CONFIG_FLOW.TsunConfigFlow()

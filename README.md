@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.3.0** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
+**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.3.1** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
 
 ## About this project
 
@@ -22,6 +22,7 @@ Hardware feedback, diagnostic results, and focused bug reports are welcome. I ca
 
 - fully local polling over TCP, with no proxy and no cloud dependency;
 - automatic selection between the currently supported local protocol adapters;
+- combined native UDP discovery and bounded TCP network scanning;
 - automatic detection of the available PV inputs within the validated register maps;
 - AC voltage, current, frequency, power, daily energy, and total energy;
 - voltage, current, power, daily energy, and total energy for every detected PV input;
@@ -91,7 +92,7 @@ If the page is unavailable, the credentials have been changed, or the value cann
 
 The local protocol is detected automatically after the device answers. The alphanumeric inverter serial number is not used in the AP communication envelope.
 
-Network search scans the IPv4 subnets visible to Home Assistant for the selected TCP port. VLANs, routed networks, container networking, or client isolation can prevent automatic discovery; manual configuration remains available in those cases.
+Network search first sends read-only native logger discovery requests over UDP/48899, then validates every reply on the selected TCP port. It also scans the IPv4 subnets visible to Home Assistant and automatically reuses the `/24` subnet of every previously configured TSUN device. For the first device on an unknown routed VLAN, enter that subnet once in CIDR notation; later searches will include it automatically. Routers that block inter-VLAN broadcasts, container networking, or client isolation can still require this first manual subnet entry.
 
 When a device is added from network search, Home Assistant automatically opens a fresh search for the next micro-inverter. The new search uses the same networks and TCP port, hides the address just configured, and stops when no unconfigured device remains. Each device creates an independent entry with its automatically detected or manually entered Monitor SN, entities, and polling settings. Complete device polls share a lock and run one after another, preventing overlapping requests to local loggers.
 
@@ -119,7 +120,7 @@ Available data includes:
 - AC instantaneous measurements and energy counters;
 - five measurements for every detected PV input;
 - calculated total DC power;
-- four communication diagnostics, plus logger firmware and MAC-address diagnostic sensors;
+- four communication diagnostics, plus micro-inverter serial number, logger firmware, and MAC-address diagnostic sensors;
 - a **Micro-inverter online** connectivity binary sensor;
 - a global inverter alarm status and protocol-specific raw alarm registers;
 - a manual **Refresh data** button.

@@ -10,7 +10,7 @@
 
 > **Projet non officiel** — Cette intégration communautaire indépendante n’est ni développée, ni approuvée, ni maintenue par TSUN. Elle n’est affiliée à TSUN d’aucune manière. TSUN et les noms de ses produits restent la propriété de leurs détenteurs respectifs. Toute demande d’assistance concernant cette intégration doit être adressée à son auteur et non à TSUN.
 
-**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.3.0** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
+**TSUN Local** connecte directement à Home Assistant les micro-onduleurs TSUN compatibles présents sur le réseau local, sans proxy et sans service cloud. La version **1.3.1** prend en charge les **TSOL-MP3000** et **TSOL-MX500**, tous deux validés sur du matériel réel, et fournit des adaptateurs prêts à tester pour d’autres modèles TITAN, GEN3 et GEN3 PLUS.
 
 ## À propos du projet
 
@@ -22,6 +22,7 @@ Les retours matériels, résultats de diagnostic et signalements de bugs précis
 
 - interrogation entièrement locale en TCP, sans proxy ni dépendance au cloud ;
 - sélection automatique du protocole local actuellement pris en charge ;
+- découverte native par UDP complétée par une recherche TCP limitée ;
 - détection automatique des entrées PV disponibles dans les cartes de registres validées ;
 - tension, courant, fréquence, puissance, énergie journalière et énergie totale AC ;
 - tension, courant, puissance, énergie journalière et énergie totale pour chaque entrée PV détectée ;
@@ -91,7 +92,7 @@ Si la page est absente, si ses identifiants ont été modifiés ou si la valeur 
 
 Le protocole local est détecté automatiquement dès que l’appareil répond. Le numéro de série alphanumérique du micro-onduleur n’est pas utilisé dans l’enveloppe de communication AP.
 
-La recherche réseau examine les sous-réseaux IPv4 visibles depuis Home Assistant sur le port TCP choisi. Un VLAN, un réseau routé, un conteneur ou l’isolation des clients Wi-Fi peuvent empêcher cette recherche ; la configuration manuelle reste alors disponible.
+La recherche réseau envoie d’abord des requêtes natives en lecture seule sur UDP/48899, puis valide chaque réponse sur le port TCP choisi. Elle examine également les sous-réseaux IPv4 visibles depuis Home Assistant et réutilise automatiquement le sous-réseau `/24` de chaque appareil TSUN déjà configuré. Pour le premier appareil d’un VLAN routé inconnu, indiquez une seule fois ce sous-réseau au format CIDR ; les recherches suivantes l’incluront automatiquement. Un routeur bloquant la diffusion entre VLAN, un réseau de conteneurs ou l’isolation des clients Wi-Fi peut encore nécessiter cette première saisie manuelle.
 
 Après l’ajout d’un appareil trouvé sur le réseau, Home Assistant ouvre automatiquement une nouvelle recherche pour le micro-onduleur suivant. Elle réutilise les mêmes réseaux et le même port TCP, masque l’adresse qui vient d’être configurée et s’arrête lorsqu’il ne reste aucun appareil. Chaque micro-onduleur crée une entrée indépendante avec son Monitor SN détecté automatiquement ou saisi manuellement, ses entités et ses intervalles. Les interrogations complètes partagent un verrou et s’exécutent l’une après l’autre afin d’éviter des requêtes simultanées vers les loggers locaux.
 
@@ -119,7 +120,7 @@ Les données disponibles comprennent :
 - les mesures instantanées et compteurs d’énergie AC ;
 - cinq mesures pour chaque entrée PV détectée ;
 - la puissance DC totale calculée ;
-- quatre diagnostics de communication, plus la version du firmware et l’adresse MAC du logger sous forme de capteurs de diagnostic ;
+- quatre diagnostics de communication, plus le numéro de série du micro-onduleur, la version du firmware et l’adresse MAC du logger sous forme de capteurs de diagnostic ;
 - un capteur binaire de connectivité **Micro-onduleur en ligne** ;
 - un état global d’alarme et les registres bruts propres au protocole ;
 - un bouton manuel **Actualiser les données**.

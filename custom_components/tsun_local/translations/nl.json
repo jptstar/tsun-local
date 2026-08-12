@@ -73,6 +73,7 @@
   },
   "entity": {
     "sensor": {
+      "inverter_serial_number": {"name": "Serienummer van micro-omvormer"},
       "logger_firmware_version": {"name": "Firmwareversie van logger"},
       "logger_mac_address": {"name": "MAC-adres van logger"},
       "alarm_global_0_raw": {"name": "Globaal alarm (ruwe waarde) 0"}, "alarm_global_1_raw": {"name": "Globaal alarm (ruwe waarde) 1"}, "alarm_global_2_raw": {"name": "Globaal alarm (ruwe waarde) 2"}, "alarm_global_3_raw": {"name": "Globaal alarm (ruwe waarde) 3"},

@@ -6,7 +6,7 @@ The project follows Semantic Versioning using `MAJOR.MINOR.PATCH`:
 - **MINOR**: a backward-compatible feature;
 - **PATCH**: a backward-compatible correction.
 
-Git tags use a `v` prefix. For example, release `1.3.0` uses tag `v1.3.0`. The version without the prefix must match `version` in `custom_components/tsun_local/manifest.json`.
+Git tags use a `v` prefix. For example, release `1.3.1` uses tag `v1.3.1`. The version without the prefix must match `version` in `custom_components/tsun_local/manifest.json`.
 
 ## Release checklist
 
@@ -20,8 +20,8 @@ Git tags use a `v` prefix. For example, release `1.3.0` uses tag `v1.3.0`. The v
    ```bash
    git switch main
    git pull --ff-only
-   git tag -a v1.3.0 -m "Version 1.3.0"
-   git push origin v1.3.0
+   git tag -a v1.3.1 -m "Version 1.3.1"
+   git push origin v1.3.1
    ```
 
 7. The release workflow verifies that the tag, manifest, and changelog agree, then creates the GitHub Release used by HACS.

@@ -33,6 +33,7 @@ from tsun_local_protocol_tests.ap import (  # noqa: E402
     ProtocolTrace,
     TsunProtocolError,
     checksum_ap,
+    extract_ap_logger_sn,
     format_ap_frame_for_log,
     parse_ap_frame,
 )
@@ -90,6 +91,9 @@ class ApFrameTests(unittest.TestCase):
     def test_extracts_protocol_payload(self) -> None:
         payload = bytes.fromhex("0103041234ABCD0020")
         self.assertEqual(parse_ap_frame(_build_ap_reply(payload)), payload)
+
+    def test_extracts_logger_identifier_from_ap_envelope(self) -> None:
+        self.assertEqual(extract_ap_logger_sn(_build_ap_reply(b"\x01")), 0x12345678)
 
     def test_rejects_bad_checksum(self) -> None:
         frame = bytearray(_build_ap_reply(b"\x01\x03\x00"))
@@ -398,6 +402,65 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
 
 class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
     """Verify the bounded TCP discovery helper."""
+
+    def test_parses_lpb_udp_discovery_reply(self) -> None:
+        self.assertEqual(
+            DISCOVERY.parse_udp_discovery_reply(
+                b"192.0.2.42,AABBCCDDEEFF,TESTIDENTIFIER", "192.0.2.42"
+            ),
+            "192.0.2.42",
+        )
+
+    def test_parses_json_udp_discovery_reply(self) -> None:
+        self.assertEqual(
+            DISCOVERY.parse_udp_discovery_reply(
+                b'{"mid":"TEST","mac":"AABBCC","ip":"192.0.2.43"}',
+                "192.0.2.43",
+            ),
+            "192.0.2.43",
+        )
+
+    def test_uses_source_for_a11_udp_reply(self) -> None:
+        self.assertEqual(
+            DISCOVERY.parse_udp_discovery_reply(
+                b"HF-A11-TEST", "192.0.2.44"
+            ),
+            "192.0.2.44",
+        )
+
+    def test_ignores_udp_request_echoes(self) -> None:
+        for message in DISCOVERY.UDP_DISCOVERY_MESSAGES:
+            self.assertIsNone(
+                DISCOVERY.parse_udp_discovery_reply(message, "192.0.2.45")
+            )
+
+    async def test_udp_candidates_require_open_tcp_port(self) -> None:
+        async def discover_udp(targets: set[str]) -> list[str]:
+            self.assertIn("255.255.255.255", targets)
+            self.assertIn("192.0.2.255", targets)
+            return ["192.0.2.10", "198.51.100.7"]
+
+        async def scan_networks(
+            _networks: tuple[IPv4Network, ...], _port: int
+        ) -> list[str]:
+            return ["192.0.2.10"]
+
+        async def scan_hosts(
+            hosts: list[IPv4Address], _port: int
+        ) -> list[str]:
+            self.assertEqual(hosts, [IPv4Address("198.51.100.7")])
+            return ["198.51.100.7"]
+
+        with (
+            patch.object(DISCOVERY, "async_discover_udp", new=discover_udp),
+            patch.object(DISCOVERY, "async_scan_networks", new=scan_networks),
+            patch.object(DISCOVERY, "async_scan_hosts", new=scan_hosts),
+        ):
+            hosts = await DISCOVERY.async_discover_devices(
+                [IPv4Network("192.0.2.0/24")], 8899
+            )
+
+        self.assertEqual(hosts, ["192.0.2.10", "198.51.100.7"])
 
     async def test_finds_only_host_with_open_port(self) -> None:
         class FakeWriter:

@@ -135,6 +135,7 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             asyncio.Lock(),
             "LSW_TEST_1.0",
             "02:00:00:00:00:01",
+            "TESTINVERTER0001",
         )
 
         first = await coordinator._async_update_data()
@@ -147,6 +148,9 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             )
             self.assertEqual(
                 data["logger_mac_address"], "02:00:00:00:00:01"
+            )
+            self.assertEqual(
+                data["inverter_serial_number"], "TESTINVERTER0001"
             )
 
     async def test_marks_device_offline_on_third_consecutive_failure(self) -> None:

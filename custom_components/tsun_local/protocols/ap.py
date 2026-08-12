@@ -93,8 +93,8 @@ def build_ap_frame(logger_sn: int, payload: bytes) -> bytes:
     return b"\xA5" + scope + bytes((checksum_ap(scope), 0x15))
 
 
-def parse_ap_frame(frame: bytes) -> bytes:
-    """Validate an AP response and return its embedded protocol payload."""
+def _validate_ap_frame(frame: bytes) -> None:
+    """Validate the common AP response envelope."""
     if len(frame) < 27 or frame[0] != 0xA5 or frame[-1] != 0x15:
         raise TsunProtocolError("Invalid AP frame markers or length")
     expected_length = int.from_bytes(frame[1:3], "little") + 13
@@ -104,6 +104,20 @@ def parse_ap_frame(frame: bytes) -> bytes:
         )
     if checksum_ap(frame[1:-2]) != frame[-2]:
         raise TsunProtocolError("Invalid AP checksum")
+
+
+def extract_ap_logger_sn(frame: bytes) -> int:
+    """Return the logger identifier carried by a validated AP response."""
+    _validate_ap_frame(frame)
+    logger_sn = int.from_bytes(frame[7:11], "little")
+    if logger_sn == 0:
+        raise TsunProtocolError("AP response does not contain a logger identifier")
+    return logger_sn
+
+
+def parse_ap_frame(frame: bytes) -> bytes:
+    """Validate an AP response and return its embedded protocol payload."""
+    _validate_ap_frame(frame)
     if frame[11] != 0x02:
         raise TsunProtocolError(f"Unexpected AP frame type 0x{frame[11]:02X}")
     if frame[12] != 0x01:

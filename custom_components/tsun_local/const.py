@@ -9,6 +9,7 @@ DOMAIN = "tsun_local"
 PLATFORMS = ["binary_sensor", "button", "sensor"]
 
 CONF_LOGGER_SN = "logger_sn"
+CONF_INVERTER_SERIAL_NUMBER = "inverter_serial_number"
 CONF_LOGGER_FIRMWARE_VERSION = "logger_firmware_version"
 CONF_LOGGER_MAC_ADDRESS = "logger_mac_address"
 CONF_DISCOVERY_NETWORK = "discovery_network"

@@ -12,7 +12,7 @@
 
 **TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant **przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej**.
 
-Wersja 1.3.0 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+Wersja 1.3.1 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
 
 **Autor: Jean-Philippe TESTART (jptstar)**
 
@@ -92,7 +92,7 @@ Jeśli najnowsza wersja nie jest widoczna, otwórz menu repozytorium i wybierz *
 4. Wyszukaj **TSUN Local**.
 5. Wprowadź adres IP i port. Home Assistant spróbuje automatycznie wykryć **Monitor SN / Logger SN**.
 
-Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**. Home Assistant najpierw odczyta **Monitor SN / Logger SN** z lokalnej strony stanu loggera. Jeśli numer nie jest dostępny, formularz pozwoli ręcznie wprowadzić wartość **Device serial number** ze strony lub etykiety urządzenia. Integracja automatycznie wykrywa obsługiwany protokół lokalny; wybór rodziny urządzenia nie jest wymagany. Jeśli nie zostanie znalezione żadne urządzenie, formularz umożliwia podanie routowanej podsieci LAN lub VLAN w notacji CIDR.
+Podczas dodawania wybierz **Wyszukaj w sieci lokalnej** lub **Konfiguracja ręczna**. Home Assistant najpierw odczyta **Monitor SN / Logger SN** z lokalnej strony stanu loggera. Jeśli numer nie jest dostępny, formularz pozwoli ręcznie wprowadzić wartość **Device serial number** ze strony lub etykiety urządzenia. Integracja automatycznie wykrywa obsługiwany protokół lokalny; wybór rodziny urządzenia nie jest wymagany. Wyszukiwanie najpierw wysyła natywne zapytania tylko do odczytu przez UDP/48899 i sprawdza każdą odpowiedź na wybranym porcie TCP. Automatycznie ponownie wykorzystuje także podsieć `/24` każdego wcześniej skonfigurowanego urządzenia TSUN. Dla pierwszego urządzenia w nieznanej routowanej sieci VLAN podaj podsieć raz w notacji CIDR; kolejne wyszukiwania uwzględnią ją automatycznie. Jeśli router blokuje rozgłaszanie między sieciami VLAN, ten pierwszy wpis ręczny może być nadal konieczny.
 
 ## Wiele urządzeń
 
@@ -128,7 +128,7 @@ Do osiągnięcia konfigurowalnego progu ostatnie wartości pozostają dostępne,
 
 ## Czujniki
 
-Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 diagnostykami komunikacji, czujnikami diagnostycznymi wersji oprogramowania i adresu MAC loggera oraz binarnym czujnikiem łączności **Mikrofalownik online**.
+Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 diagnostykami komunikacji, czujnikami diagnostycznymi numeru seryjnego mikrofalownika, wersji oprogramowania i adresu MAC loggera oraz binarnym czujnikiem łączności **Mikrofalownik online**.
 
 Liczba wejść PV jest dynamiczna: PV1 jest dostępne po pierwszym odczycie; PV2–PV6 dla TITAN lub PV2–PV4 dla GEN3/GEN3 PLUS są dodawane po wykryciu prawidłowego pomiaru lub licznika energii. Wykryte wejście pozostaje zarejestrowane w Home Assistant.
 

@@ -20,7 +20,7 @@
     "ac_voltage": {"name": "AC voltage"}, "ac_current": {"name": "AC current"}, "ac_frequency": {"name": "AC frequency"}, "ac_power": {"name": "AC power"},
     "ac_energy_today": {"name": "AC energy today"}, "ac_energy_total": {"name": "Total AC energy"}, "dc_power_total": {"name": "Total DC power"},
     "communication_last_success": {"name": "Last successful communication"}, "communication_duration": {"name": "Communication duration"}, "communication_blocks": {"name": "Blocks received"}, "communication_failures": {"name": "Consecutive communication failures"},
-    "logger_firmware_version": {"name": "Logger firmware version"}, "logger_mac_address": {"name": "Logger MAC address"},
+    "inverter_serial_number": {"name": "Micro-inverter serial number"}, "logger_firmware_version": {"name": "Logger firmware version"}, "logger_mac_address": {"name": "Logger MAC address"},
     "pv1_voltage": {"name": "PV1 voltage"}, "pv1_current": {"name": "PV1 current"}, "pv1_power": {"name": "PV1 power"}, "pv1_energy_today": {"name": "PV1 energy today"}, "pv1_energy_total": {"name": "Total PV1 energy"},
     "pv2_voltage": {"name": "PV2 voltage"}, "pv2_current": {"name": "PV2 current"}, "pv2_power": {"name": "PV2 power"}, "pv2_energy_today": {"name": "PV2 energy today"}, "pv2_energy_total": {"name": "Total PV2 energy"},
     "pv3_voltage": {"name": "PV3 voltage"}, "pv3_current": {"name": "PV3 current"}, "pv3_power": {"name": "PV3 power"}, "pv3_energy_today": {"name": "PV3 energy today"}, "pv3_energy_total": {"name": "Total PV3 energy"},

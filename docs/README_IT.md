@@ -12,7 +12,7 @@
 
 **TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili **attraverso la rete locale, senza proxy né servizi cloud**.
 
-La versione 1.3.0 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
+La versione 1.3.1 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
@@ -92,7 +92,7 @@ Se l’ultima versione non appare, aprire il menu del repository e selezionare *
 4. Cercare **TSUN Local**.
 5. Inserire l’indirizzo IP e la porta. Home Assistant proverà a rilevare automaticamente il **Monitor SN / Logger SN**.
 
-Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione manuale**. Home Assistant legge prima il **Monitor SN / Logger SN** dalla pagina di stato locale del logger. Se non è disponibile, il modulo consente di inserire manualmente il valore **Device serial number** della pagina o dell’etichetta. L’integrazione rileva automaticamente il protocollo locale supportato; non è necessario scegliere la famiglia del dispositivo. La ricerca controlla tutte le reti IPv4 attive esposte da Home Assistant sulla porta selezionata. Se non viene trovato alcun dispositivo, il modulo consente di inserire una sottorete LAN o VLAN instradata in notazione CIDR.
+Durante l’aggiunta scegliere **Cerca nella rete locale** o **Configurazione manuale**. Home Assistant legge prima il **Monitor SN / Logger SN** dalla pagina di stato locale del logger. Se non è disponibile, il modulo consente di inserire manualmente il valore **Device serial number** della pagina o dell’etichetta. L’integrazione rileva automaticamente il protocollo locale supportato; non è necessario scegliere la famiglia del dispositivo. La ricerca invia prima richieste native di sola lettura su UDP/48899 e convalida ogni risposta sulla porta TCP scelta. Controlla inoltre le reti IPv4 esposte da Home Assistant e riutilizza automaticamente la sottorete `/24` di ogni dispositivo TSUN già configurato. Per il primo dispositivo su una VLAN instradata sconosciuta, inserire la sottorete una sola volta in notazione CIDR; le ricerche successive la includeranno automaticamente. Se il router blocca i broadcast tra VLAN, questa prima immissione manuale può essere ancora necessaria.
 
 ## Più dispositivi
 
@@ -128,7 +128,7 @@ Fino al raggiungimento della soglia configurabile, gli ultimi valori restano dis
 
 ## Sensori
 
-L’integrazione crea un unico dispositivo con misure AC, 5 misure per ogni ingresso FV rilevato, la somma delle potenze DC rilevate, 4 diagnostiche di comunicazione, sensori diagnostici per firmware e indirizzo MAC del logger e il sensore binario di connettività **Microinverter online**.
+L’integrazione crea un unico dispositivo con misure AC, 5 misure per ogni ingresso FV rilevato, la somma delle potenze DC rilevate, 4 diagnostiche di comunicazione, sensori diagnostici per numero di serie del microinverter, firmware e indirizzo MAC del logger e il sensore binario di connettività **Microinverter online**.
 
 Il numero di ingressi FV è dinamico: PV1 è disponibile dopo la prima lettura; da PV2 a PV6 per TITAN o da PV2 a PV4 per GEN3/GEN3 PLUS vengono aggiunti quando viene rilevata una misura o un contatore di energia valido. Un ingresso rilevato resta registrato in Home Assistant.
 

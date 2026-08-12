@@ -32,6 +32,7 @@ from .const import (
     CONF_DISCOVERY_NETWORK,
     CONF_ERROR_SCAN_INTERVAL,
     CONF_FAILURE_THRESHOLD,
+    CONF_INVERTER_SERIAL_NUMBER,
     CONF_LOGGER_FIRMWARE_VERSION,
     CONF_LOGGER_MAC_ADDRESS,
     CONF_LOGGER_SN,
@@ -55,7 +56,7 @@ from .const import (
 )
 from .coordinator import get_poll_lock
 from .discovery import (
-    async_scan_networks,
+    async_discover_devices,
     bounded_ipv4_network,
     parse_discovery_network,
 )
@@ -193,7 +194,7 @@ OPTIONS_SCHEMA = vol.Schema(
 async def _async_get_discovery_networks(
     hass: HomeAssistant,
 ) -> list[IPv4Network]:
-    """Return all bounded IPv4 networks exposed by Home Assistant."""
+    """Return visible networks plus networks learned from TSUN entries."""
     discovered_networks: set[IPv4Network] = set()
     for adapter in await network.async_get_adapters(hass):
         if not adapter["enabled"]:
@@ -202,6 +203,18 @@ async def _async_get_discovery_networks(
             if discovered_network := bounded_ipv4_network(
                 ipv4["address"], ipv4["network_prefix"]
             ):
+                discovered_networks.add(discovered_network)
+
+    # A routed VLAN does not necessarily appear as a Home Assistant network
+    # adapter. Once one TSUN on that VLAN has been configured manually, reuse
+    # its /24 automatically for every later discovery run.
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if host := entry.data.get(CONF_HOST):
+            try:
+                discovered_network = bounded_ipv4_network(str(host), 24)
+            except ValueError:
+                continue
+            if discovered_network is not None:
                 discovered_networks.add(discovered_network)
 
     if not discovered_networks:
@@ -228,8 +241,10 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._detected_logger_sn: int | None = None
         self._logger_firmware_version: str | None = None
         self._logger_mac_address: str | None = None
+        self._inverter_serial_number: str | None = None
         self._logger_sn_required = False
         self._suggested_network: str | None = None
+        self._continue_discovery_host: str | None = None
 
     def _unconfigured_hosts(self, hosts: list[str]) -> list[str]:
         """Return discovered hosts not already assigned to a config entry."""
@@ -273,11 +288,14 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         automatically_detected = CONF_LOGGER_SN not in entry_input
         if automatically_detected:
             logger_data = await async_read_logger_web_data(
-                self.hass, str(entry_input[CONF_HOST])
+                self.hass,
+                str(entry_input[CONF_HOST]),
+                int(entry_input[CONF_PORT]),
             )
             logger_sn = logger_data.logger_sn
             self._logger_firmware_version = logger_data.firmware_version
             self._logger_mac_address = logger_data.mac_address
+            self._inverter_serial_number = logger_data.inverter_serial_number
             if logger_sn is None:
                 self._logger_sn_required = True
                 return "cannot_detect_logger_sn"
@@ -306,17 +324,31 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
         if self._logger_mac_address is not None:
             entry_data[CONF_LOGGER_MAC_ADDRESS] = self._logger_mac_address
-        next_flow = None
+        if self._inverter_serial_number is not None:
+            entry_data[CONF_INVERTER_SERIAL_NUMBER] = (
+                self._inverter_serial_number
+            )
         if continue_discovery:
             self._discovery_port = entry_input[CONF_PORT]
-            next_flow = await self._async_prepare_next_discovery(
-                str(entry_input[CONF_HOST])
-            )
+            # Starting another flow before this one has finished causes Home
+            # Assistant to reject it as already_in_progress. Defer it to
+            # async_on_create_entry, which runs after this entry exists.
+            self._continue_discovery_host = str(entry_input[CONF_HOST])
         return self.async_create_entry(
             title=f"TSUN Local ({unique_id})",
             data=entry_data,
-            next_flow=next_flow,
         )
+
+    async def async_on_create_entry(self, result: FlowResult) -> FlowResult:
+        """Continue discovery only after the current flow has finalized."""
+        if self._continue_discovery_host is None:
+            return result
+        next_flow = await self._async_prepare_next_discovery(
+            self._continue_discovery_host
+        )
+        if next_flow is not None:
+            result["next_flow"] = next_flow
+        return result
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -387,7 +419,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._discovery_networks = discovery_networks
                 if discovery_networks:
                     self._suggested_network = str(discovery_networks[0])
-                discovered_hosts = await async_scan_networks(
+                discovered_hosts = await async_discover_devices(
                     discovery_networks, self._discovery_port
                 )
                 self._discovered_hosts = self._unconfigured_hosts(discovered_hosts)
@@ -440,7 +472,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._discovery_port = user_input[CONF_PORT]
                 self._suggested_network = str(discovery_network)
                 self._discovery_networks = [discovery_network]
-                discovered_hosts = await async_scan_networks(
+                discovered_hosts = await async_discover_devices(
                     [discovery_network], self._discovery_port
                 )
                 self._discovered_hosts = self._unconfigured_hosts(discovered_hosts)

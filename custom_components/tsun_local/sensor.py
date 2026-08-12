@@ -82,7 +82,11 @@ COMMUNICATION_SENSOR_KEYS = frozenset(
     }
 )
 LOGGER_METADATA_SENSOR_KEYS = frozenset(
-    {"logger_firmware_version", "logger_mac_address"}
+    {
+        "inverter_serial_number",
+        "logger_firmware_version",
+        "logger_mac_address",
+    }
 )
 DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
 
@@ -162,6 +166,12 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         suggested_object_id="communication_failures",
         translation_key="communication_failures",
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="inverter_serial_number",
+        suggested_object_id="inverter_serial_number",
+        translation_key="inverter_serial_number",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(
