@@ -196,6 +196,12 @@ No control or write command will be added without explicit safeguards and real-h
 
 Jean-Philippe TESTART (`jptstar`)
 
+
+## Acknowledgements
+
+The 1097 register mapping was informed by publicly available protocol research
+from the `s-allius/tsun-gen3-proxy` project by Stefan Allius.
+
 ## License
 
 Copyright © 2026 Jean-Philippe TESTART (jptstar).
