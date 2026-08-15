@@ -11,7 +11,7 @@ import logging
 from typing import Any, Protocol
 
 DEFAULT_PROTOCOL = "auto"
-SUPPORTED_PROTOCOLS = ("1511", "02b0")
+SUPPORTED_PROTOCOLS = ("1511", "1097", "02b0")
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -69,6 +69,10 @@ def _create_specific_client(
         from .protocol_1511 import Tsun1511Client
 
         return Tsun1511Client(host, port, logger_sn)
+    if protocol_name == "1097":
+        from .protocol_1097 import Tsun1097Client
+
+        return Tsun1097Client(host, port, logger_sn)
     if protocol_name == "02b0":
         from .protocol_02b0 import Tsun02b0Client
 
