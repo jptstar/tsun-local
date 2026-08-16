@@ -1,0 +1,154 @@
+name: Fix and publish beta6 legacy profile cleanup
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".github/workflows/fix-beta6-legacy-profile.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  fix-validate-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Apply beta6 cleanup
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          init_path = Path("custom_components/tsun_local/__init__.py")
+          source = init_path.read_text(encoding="utf-8")
+          source = source.replace(
+              "from homeassistant.helpers import device_registry as dr\n",
+              "from homeassistant.helpers import device_registry as dr, entity_registry as er\n",
+              1,
+          )
+
+          marker = "\n\nasync def async_setup_entry(\n"
+          helper = '''\n\ndef _async_remove_legacy_raw_profile_entity(\n    hass: HomeAssistant, logger_sn: str\n) -> None:\n    \"\"\"Remove the obsolete raw-profile diagnostic entity from beta.4.\"\"\"\n    entity_registry = er.async_get(hass)\n    legacy_unique_id = f\"{logger_sn}_logger_raw_profile\"\n    if entity_id := entity_registry.async_get_entity_id(\n        \"sensor\", DOMAIN, legacy_unique_id\n    ):\n        entity_registry.async_remove(entity_id)\n'''
+          if helper not in source:
+              if marker not in source:
+                  raise SystemExit("async_setup_entry marker not found")
+              source = source.replace(marker, helper + marker, 1)
+
+          setup_marker = '    logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)\n'
+          cleanup_call = (
+              '    logger_sn = str(entry.data[CONF_LOGGER_SN])\n'
+              '    _async_remove_legacy_raw_profile_entity(hass, logger_sn)\n'
+          )
+          if cleanup_call not in source:
+              if setup_marker not in source:
+                  raise SystemExit("setup metadata marker not found")
+              source = source.replace(setup_marker, cleanup_call + setup_marker, 1)
+          init_path.write_text(source, encoding="utf-8")
+
+          integration = Path("custom_components/tsun_local")
+          translation_paths = [integration / "strings.json", *sorted((integration / "translations").glob("*.json"))]
+          for path in translation_paths:
+              document = json.loads(path.read_text(encoding="utf-8"))
+              sensors = document.get("entity", {}).get("sensor", {})
+              sensors.pop("logger_raw_profile", None)
+              path.write_text(
+                  json.dumps(document, ensure_ascii=False, indent=2) + "\n",
+                  encoding="utf-8",
+              )
+
+          manifest_path = integration / "manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if manifest.get("version") != "1.4.0-beta.5":
+              raise SystemExit(f"unexpected manifest version {manifest.get('version')}")
+          manifest["version"] = "1.4.0-beta.6"
+          manifest_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
+          readmes = [
+              Path("README.md"),
+              Path("docs/README_FR.md"),
+              Path("docs/README_DE.md"),
+              Path("docs/README_ES.md"),
+              Path("docs/README_IT.md"),
+              Path("docs/README_NL.md"),
+              Path("docs/README_PL.md"),
+              Path("docs/README_ZH.md"),
+          ]
+          for path in readmes:
+              text = path.read_text(encoding="utf-8")
+              if "1.4.0-beta.5" not in text:
+                  raise SystemExit(f"beta5 version missing from {path}")
+              path.write_text(
+                  text.replace("1.4.0-beta.5", "1.4.0-beta.6"),
+                  encoding="utf-8",
+              )
+
+          changelog_path = Path("CHANGELOG.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          marker = "## [1.4.0-beta.5] - 2026-08-16\n"
+          section = '''## [1.4.0-beta.6] - 2026-08-16\n\n### Fixed\n\n- remove the obsolete **Raw logger profile** diagnostic entity left in the Home Assistant entity registry by beta.4; the raw profile is now shown only in device information as the model identifier;\n- remove the unused raw-profile entity translation key from every supported language.\n\n'''
+          if marker not in changelog:
+              raise SystemExit("beta5 changelog marker not found")
+          changelog_path.write_text(
+              changelog.replace(marker, section + marker, 1), encoding="utf-8"
+          )
+
+          test_path = Path("tests/test_metadata.py")
+          tests = test_path.read_text(encoding="utf-8")
+          anchor = "    def test_documentation_language_layout(self) -> None:\n"
+          new_test = '''    def test_raw_logger_profile_is_device_info_only(self) -> None:\n        \"\"\"Keep the raw profile out of entities and clean the beta.4 orphan.\"\"\"\n        strings = _load_json(INTEGRATION / \"strings.json\")\n        self.assertNotIn(\n            \"logger_raw_profile\", strings[\"entity\"][\"sensor\"]\n        )\n        init_source = (INTEGRATION / \"__init__.py\").read_text(encoding=\"utf-8\")\n        self.assertIn(\n            'legacy_unique_id = f\"{logger_sn}_logger_raw_profile\"',\n            init_source,\n        )\n        sensor_source = (INTEGRATION / \"sensor.py\").read_text(encoding=\"utf-8\")\n        self.assertNotIn('key=\"logger_raw_profile\"', sensor_source)\n\n'''
+          if new_test not in tests:
+              if anchor not in tests:
+                  raise SystemExit("metadata test insertion marker not found")
+              tests = tests.replace(anchor, new_test + anchor, 1)
+              test_path.write_text(tests, encoding="utf-8")
+
+          Path(".github/workflows/fix-beta6-legacy-profile.yml").unlink()
+          PY
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check source
+        run: |
+          python -m compileall -q custom_components/tsun_local tests
+          git diff --check
+
+      - name: Validate HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Validate Home Assistant integration
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Commit final beta6 tree
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix legacy raw profile entity for beta6"
+          git push origin HEAD:beta-1097
+
+      - name: Publish beta6 prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch origin beta-1097
+          FINAL_SHA="$(git rev-parse origin/beta-1097)"
+          git tag -a v1.4.0-beta.6 "$FINAL_SHA" -m "Version 1.4.0-beta.6"
+          git push origin v1.4.0-beta.6
+          gh release create v1.4.0-beta.6 \
+            --verify-tag \
+            --prerelease \
+            --title "Version 1.4.0-beta.6" \
+            --notes $'### Fixed\n- Removes the obsolete Raw logger profile diagnostic entity left behind by beta.4.\n- Keeps the raw logger profile only in Home Assistant device information as the model identifier.\n- Cleans the unused raw-profile translation key from all supported languages.\n\nExisting installations are cleaned automatically when the integration is reloaded after updating.'
