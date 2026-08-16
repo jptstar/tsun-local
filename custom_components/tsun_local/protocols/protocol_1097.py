@@ -27,6 +27,7 @@ PROTOCOL_NAME = "1097"
 MODEL = "GEN3 / GEN3 PLUS (1097)"
 SENSOR_LIST = 0x1097
 MAX_PV_COUNT = 6
+DIAGNOSTIC_INTERVAL = 300.0
 
 BLOCKS = (
     (0x03, 0x1000, 0x100F),
@@ -36,6 +37,11 @@ BLOCKS = (
     (0x03, 0x1300, 0x130F),
     (0x03, 0x1310, 0x131F),
     (0x03, 0x1320, 0x132F),
+)
+
+DIAGNOSTIC_BLOCKS = (
+    # Public 1097 mapping: maximum designed power.
+    (0x03, 0x1437, 0x1437),
 )
 
 ALARM_REGISTERS = (0x1105, 0x1106, 0x1107, 0x1108)
@@ -53,6 +59,9 @@ AC_MEASUREMENT_KEYS = frozenset(
         "ac_energy_total",
         "dc_power_total",
     }
+)
+DEVICE_DIAGNOSTIC_KEYS = frozenset(
+    {"inverter_status_raw", "rated_power", "max_designed_power"}
 )
 
 PV_MEASUREMENT_NAMES = (
@@ -130,10 +139,15 @@ def detect_pv_count(registers: dict[int, int]) -> int:
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return measurement keys for the advertised number of PV inputs."""
-    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(
-        f"pv{number}_{measurement}"
-        for number in range(1, pv_count + 1)
-        for measurement in PV_MEASUREMENT_NAMES
+    return (
+        AC_MEASUREMENT_KEYS
+        | DEVICE_DIAGNOSTIC_KEYS
+        | ALARM_MEASUREMENT_KEYS
+        | frozenset(
+            f"pv{number}_{measurement}"
+            for number in range(1, pv_count + 1)
+            for measurement in PV_MEASUREMENT_NAMES
+        )
     )
 
 
@@ -142,13 +156,17 @@ def decode_measurements(
 ) -> dict[str, float | int]:
     """Decode the 1097 AC and PV measurement map."""
     data: dict[str, float | int] = {
+        "inverter_status_raw": registers[0x1100],
         "ac_voltage": registers[0x1200] * 0.1,
         "ac_current": registers[0x1201] * 0.01,
         "ac_power": registers[0x1202] * 0.1,
         "ac_frequency": registers[0x1209] * 0.01,
+        "rated_power": registers[0x1210],
         "ac_energy_today": registers[0x1212] * 0.01,
         "ac_energy_total": _u32(registers, 0x1213) * 0.01,
     }
+    if 0x1437 in registers:
+        data["max_designed_power"] = registers[0x1437]
 
     # PV1 begins at 0x1302; every PV channel spans seven registers:
     # voltage, current, power, daily energy (u32), total energy (u32).
@@ -200,6 +218,8 @@ class Tsun1097Client:
         self.timeout = timeout
         self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
+        self._diagnostic_registers: dict[int, int] = {}
+        self._last_diagnostic_read = 0.0
 
     @property
     def pv_count(self) -> int:
@@ -313,6 +333,24 @@ class Tsun1097Client:
 
         for block in BLOCKS:
             registers.update(await self._read_block(block))
+        blocks_ok = len(BLOCKS)
+
+        now = time.monotonic()
+        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+            self._last_diagnostic_read = now
+            for block in DIAGNOSTIC_BLOCKS:
+                try:
+                    self._diagnostic_registers.update(await self._read_block(block))
+                except Exception as err:
+                    _LOGGER.debug(
+                        "1097 diagnostic block 0x%04X-0x%04X is unavailable: %s",
+                        block[1],
+                        block[2],
+                        type(err).__name__,
+                    )
+                else:
+                    blocks_ok += 1
+        registers.update(self._diagnostic_registers)
 
         # Keep the highest input ever observed so entities never disappear.
         detected_pv_count = detect_pv_count(registers)
@@ -325,5 +363,5 @@ class Tsun1097Client:
         return TsunReadResult(
             measurements=measurements,
             duration_ms=round((time.monotonic() - started) * 1000),
-            blocks_ok=len(BLOCKS),
+            blocks_ok=blocks_ok,
         )

@@ -29,6 +29,7 @@ SPEC.loader.exec_module(PROTOCOLS)
 
 from tsun_local_1511_diagnostic_tests.protocol_1511 import (  # noqa: E402
     DIAGNOSTIC_BLOCKS,
+    Tsun1511Client,
     build_1511_request,
     decode_measurements,
 )
@@ -36,6 +37,10 @@ from tsun_local_1511_diagnostic_tests.protocol_1511 import (  # noqa: E402
 
 class Protocol1511DiagnosticTests(unittest.TestCase):
     """Protect the validated MP3000 diagnostic reads and raw semantics."""
+
+    def test_slow_diagnostics_are_due_on_first_poll(self) -> None:
+        client = Tsun1511Client("192.0.2.10", 8899, 123456)
+        self.assertEqual(client._last_diagnostic_read, 0.0)
 
     def test_builds_validated_a1_21_2000_block_request(self) -> None:
         self.assertIn((0xA1, 0x21, 2000, 2095), DIAGNOSTIC_BLOCKS)

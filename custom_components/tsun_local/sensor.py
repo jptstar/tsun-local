@@ -120,6 +120,24 @@ LOGGER_METADATA_SENSOR_KEYS = frozenset(
 )
 DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
 
+PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
+    "1511": {
+        "inverter_status_raw": "3000 (0x0BB8)",
+        "rated_power": "3020 (0x0BCC)",
+        "max_designed_power": "2042 (0x07FA)",
+    },
+    "02b0": {
+        "inverter_status_raw": "0x3000",
+        "rated_power": "0x300E",
+        "max_designed_power": "0x2007",
+    },
+    "1097": {
+        "inverter_status_raw": "0x1100",
+        "rated_power": "0x1210",
+        "max_designed_power": "0x1437",
+    },
+}
+
 
 SENSORS: tuple[TsunSensorDescription, ...] = (
     _measurement(
@@ -411,10 +429,17 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
             return self._label_serial_number
         return self.coordinator.data.get(self.entity_description.key)
 
+    def _source_register_address(self) -> str | None:
+        """Return the register address used by the active protocol."""
+        protocol_name = str(getattr(self.coordinator.client, "protocol_name", ""))
+        return PROTOCOL_REGISTER_ADDRESSES.get(protocol_name, {}).get(
+            self.entity_description.key, self.entity_description.register_address
+        )
+
     @property
     def extra_state_attributes(self) -> dict[str, str] | None:
         """Expose the source address and hexadecimal value for raw registers."""
-        address = self.entity_description.register_address
+        address = self._source_register_address()
         value = self.native_value
         if address is None or not isinstance(value, int):
             return None
@@ -427,7 +452,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
     def available(self) -> bool:
         """Keep diagnostics and energy counters available while offline."""
         key = self.entity_description.key
-        if self.entity_description.register_address is not None:
+        if self._source_register_address() is not None:
             return (
                 super().available
                 and bool(self.coordinator.data.get("communication_online", False))

@@ -251,9 +251,9 @@ class Tsun1511Client:
         self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
         self._diagnostic_registers: dict[int, int] = {}
-        # Keep the normal startup poll unchanged; extra diagnostic blocks are
-        # collected later at a slow cadence and never make telemetry fail.
-        self._last_diagnostic_read = time.monotonic()
+        # Collect optional diagnostics on the first poll, then at a slow cadence.
+        # A diagnostic failure never makes normal telemetry fail.
+        self._last_diagnostic_read = 0.0
 
     @property
     def pv_count(self) -> int:

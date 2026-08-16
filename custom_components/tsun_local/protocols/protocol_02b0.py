@@ -22,6 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PROTOCOL_NAME = "02b0"
 MODEL = "GEN3 / GEN3 PLUS"
+DIAGNOSTIC_INTERVAL = 300.0
 
 BLOCKS = (
     (0x03, 0x3009, 0x301E),
@@ -29,7 +30,13 @@ BLOCKS = (
 )
 
 ALARM_BLOCKS = (
-    (0x03, 0x3003, 0x3006),
+    # Include 0x3000 so raw inverter status is collected with the alarm words.
+    (0x03, 0x3000, 0x3006),
+)
+
+DIAGNOSTIC_BLOCKS = (
+    # Public TSUN community mapping: maximum designed power.
+    (0x03, 0x2007, 0x2007),
 )
 
 ALARM_REGISTERS = (0x3003, 0x3004, 0x3005, 0x3006)
@@ -47,6 +54,9 @@ AC_MEASUREMENT_KEYS = frozenset(
         "ac_energy_total",
         "dc_power_total",
     }
+)
+DEVICE_DIAGNOSTIC_KEYS = frozenset(
+    {"inverter_status_raw", "rated_power", "max_designed_power"}
 )
 PV_MEASUREMENT_NAMES = (
     "voltage",
@@ -124,10 +134,15 @@ def detect_pv_count(registers: dict[int, int]) -> int:
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
-    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(
-        f"pv{number}_{measurement}"
-        for number in range(1, pv_count + 1)
-        for measurement in PV_MEASUREMENT_NAMES
+    return (
+        AC_MEASUREMENT_KEYS
+        | DEVICE_DIAGNOSTIC_KEYS
+        | ALARM_MEASUREMENT_KEYS
+        | frozenset(
+            f"pv{number}_{measurement}"
+            for number in range(1, pv_count + 1)
+            for measurement in PV_MEASUREMENT_NAMES
+        )
     )
 
 
@@ -139,10 +154,16 @@ def decode_measurements(
         "ac_voltage": registers[0x3009] * 0.1,
         "ac_current": registers[0x300A] * 0.01,
         "ac_frequency": registers[0x300B] * 0.01,
+        "rated_power": registers[0x300E],
         "ac_power": registers[0x300F] * 0.1,
         "ac_energy_today": registers[0x301C] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x301D) * 0.01,
     }
+    if 0x3000 in registers:
+        data["inverter_status_raw"] = registers[0x3000]
+    if 0x2007 in registers:
+        data["max_designed_power"] = registers[0x2007]
+
     for number in range(1, pv_count + 1):
         base = 0x3010 + (number - 1) * 3
         energy_base = 0x301F + (number - 1) * 3
@@ -188,6 +209,8 @@ class Tsun02b0Client:
         self.timeout = timeout
         self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
+        self._diagnostic_registers: dict[int, int] = {}
+        self._last_diagnostic_read = 0.0
 
     @property
     def pv_count(self) -> int:
@@ -301,6 +324,24 @@ class Tsun02b0Client:
                 )
             else:
                 blocks_ok += 1
+
+        now = time.monotonic()
+        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+            self._last_diagnostic_read = now
+            for block in DIAGNOSTIC_BLOCKS:
+                try:
+                    self._diagnostic_registers.update(await self._read_block(block))
+                except Exception as err:
+                    _LOGGER.debug(
+                        "02B0 diagnostic block 0x%04X-0x%04X is unavailable: %s",
+                        block[1],
+                        block[2],
+                        type(err).__name__,
+                    )
+                else:
+                    blocks_ok += 1
+        registers.update(self._diagnostic_registers)
+
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
         measurements.update(decode_alarms(registers))

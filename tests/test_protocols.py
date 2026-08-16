@@ -38,6 +38,7 @@ from tsun_local_protocol_tests.ap import (  # noqa: E402
     parse_ap_frame,
 )
 from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402
+    DIAGNOSTIC_BLOCKS as BLOCKS_02B0_DIAGNOSTIC,
     Tsun02b0Client,
     build_modbus_request,
     crc16_modbus,
@@ -47,6 +48,9 @@ from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402
     parse_modbus_response,
 )
 from tsun_local_protocol_tests.protocol_1097 import (  # noqa: E402
+    DIAGNOSTIC_BLOCKS as BLOCKS_1097_DIAGNOSTIC,
+    Tsun1097Client,
+    decode_measurements as decode_1097,
     detect_pv_count as detect_1097_pv_count,
 )
 from tsun_local_protocol_tests.protocol_1511 import (  # noqa: E402
@@ -137,16 +141,26 @@ class Protocol02b0Tests(unittest.TestCase):
             bytes.fromhex("01 03 30 1F 00 0C 7B 09"),
         )
 
-    def test_builds_official_alarm_request(self) -> None:
+    def test_builds_official_alarm_and_status_request(self) -> None:
         self.assertEqual(
-            build_modbus_request(0x03, 0x3003, 0x3006),
-            bytes.fromhex("01 03 30 03 00 04 BB 09"),
+            build_modbus_request(0x03, 0x3000, 0x3006),
+            bytes.fromhex("01 03 30 00 00 07 0B 08"),
+        )
+
+    def test_builds_max_designed_power_request(self) -> None:
+        self.assertIn((0x03, 0x2007, 0x2007), BLOCKS_02B0_DIAGNOSTIC)
+        self.assertEqual(
+            build_modbus_request(0x03, 0x2007, 0x2007),
+            bytes.fromhex("01 03 20 07 00 01 3E 0B"),
         )
 
     def test_exposes_only_02b0_alarm_entities(self) -> None:
         keys = Tsun02b0Client("192.0.2.10", 8899, 123456).measurement_keys
         self.assertIn("alarm_code_1_raw", keys)
         self.assertIn("alarm_active", keys)
+        self.assertIn("inverter_status_raw", keys)
+        self.assertIn("rated_power", keys)
+        self.assertIn("max_designed_power", keys)
         self.assertNotIn("alarm_global_0_raw", keys)
 
     def test_parses_big_endian_registers(self) -> None:
@@ -161,9 +175,12 @@ class Protocol02b0Tests(unittest.TestCase):
         registers = {address: 0 for address in range(0x3009, 0x302B)}
         registers.update(
             {
+                0x2007: 2000,
+                0x3000: 1,
                 0x3009: 2301,
                 0x300A: 123,
                 0x300B: 5000,
+                0x300E: 800,
                 0x300F: 4567,
                 0x301C: 125,
                 0x301D: 1,
@@ -184,6 +201,9 @@ class Protocol02b0Tests(unittest.TestCase):
         self.assertAlmostEqual(data["ac_voltage"], 230.1)
         self.assertAlmostEqual(data["ac_frequency"], 50.0)
         self.assertAlmostEqual(data["ac_energy_total"], 678.81)
+        self.assertEqual(data["inverter_status_raw"], 1)
+        self.assertEqual(data["rated_power"], 800)
+        self.assertEqual(data["max_designed_power"], 2000)
         self.assertAlmostEqual(data["pv1_energy_total"], 123.45)
         self.assertEqual(data["dc_power_total"], 171.0)
 
@@ -350,7 +370,35 @@ class Protocol1511ClientTests(unittest.IsolatedAsyncioTestCase):
 
 
 class Protocol1097DetectionTests(unittest.TestCase):
-    """Verify 1097 PV detection never invents six inputs."""
+    """Verify 1097 PV detection and device diagnostics."""
+
+    def test_exposes_device_diagnostics(self) -> None:
+        client = Tsun1097Client("192.0.2.10", 8899, 123456)
+        self.assertIn("inverter_status_raw", client.measurement_keys)
+        self.assertIn("rated_power", client.measurement_keys)
+        self.assertIn("max_designed_power", client.measurement_keys)
+        self.assertIn((0x03, 0x1437, 0x1437), BLOCKS_1097_DIAGNOSTIC)
+        self.assertEqual(
+            build_modbus_request(0x03, 0x1437, 0x1437),
+            bytes.fromhex("01 03 14 37 00 01 30 34"),
+        )
+
+        registers = {
+            0x1100: 2,
+            0x1200: 2300,
+            0x1201: 100,
+            0x1202: 500,
+            0x1209: 5000,
+            0x1210: 3000,
+            0x1212: 50,
+            0x1213: 0,
+            0x1214: 1259,
+            0x1437: 3000,
+        }
+        data = decode_1097(registers, 0)
+        self.assertEqual(data["inverter_status_raw"], 2)
+        self.assertEqual(data["rated_power"], 3000)
+        self.assertEqual(data["max_designed_power"], 3000)
 
     def test_zero_registers_do_not_default_to_six(self) -> None:
         self.assertEqual(detect_1097_pv_count({}), 0)

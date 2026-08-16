@@ -13,7 +13,8 @@ All notable changes to this project are documented here. The project follows [Se
 - logger Wi-Fi signal diagnostic with an independent five-minute refresh;
 - raw logger inverter profile in Home Assistant device information;
 - read-only access to the TITAN native A1/21 diagnostic block (decimal registers 2000-2095), collected at a slow diagnostic cadence;
-- TITAN diagnostic entities for raw inverter status, rated inverter power and maximum designed power;
+- cross-protocol diagnostic entities for raw inverter status, rated inverter power and maximum designed power on 1511, 02B0 and 1097;
+- read-only slow diagnostic reads for 02B0 register `0x2007` and 1097 register `0x1437`;
 - raw diagnostic entities for TITAN registers 3017 and 3028, whose physical meaning and scaling remain unconfirmed.
 
 ### Changed
@@ -23,6 +24,7 @@ All notable changes to this project are documented here. The project follows [Se
 - logger metadata refresh is independent from inverter telemetry polling and freshly retrieved metadata is preserved across later inverter polling failures;
 - raw logger profile discovery is retried until available and the profile is stored as the Home Assistant device model identifier;
 - registers 3017 and 3028 are exposed without an offset, temperature unit, or temperature device class, and their entity names explicitly state that their meaning is unconfirmed;
+- optional inverter diagnostic blocks are read on the first poll and then refreshed every five minutes;
 - credit to Stefan Allius and the public `s-allius/tsun-gen3-proxy` research is retained for the experimental 1097 protocol work.
 
 ### Fixed
