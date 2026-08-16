@@ -49,23 +49,9 @@ jobs:
           if needle not in text:
               raise SystemExit("config-flow protocol test stub not found")
           text = text.replace(needle, replacement, 1)
-          text = text.replace('firmware_version="LSW_TEST_1.0"', 'firmware_version="LSW_TEST_1511_1.0"', 1)
-          text = text.replace(
-              'result["data"]["logger_firmware_version"], "LSW_TEST_1.0"',
-              'result["data"]["logger_firmware_version"], "LSW_TEST_1511_1.0"',
-              1,
-          )
-          needle = '''                        logger_sn=1234567890,
-                        inverter_serial_number=None,
-                        firmware_version=None,
-                        mac_address=None,'''
-          replacement = '''                        logger_sn=1234567890,
-                        inverter_serial_number=None,
-                        firmware_version="LSW_TEST_1511_1.0",
-                        mac_address=None,'''
-          if needle not in text:
-              raise SystemExit("invalid-response logger fixture not found")
-          text = text.replace(needle, replacement, 1)
+          text = text.replace('firmware_version="LSW_TEST_1.0"', 'firmware_version="LSW_TEST_1511_1.0"')
+          text = text.replace('"LSW_TEST_1.0"', '"LSW_TEST_1511_1.0"')
+          text = text.replace('firmware_version=None,', 'firmware_version="LSW_TEST_1511_1.0",')
           test_flow.write_text(text, encoding="utf-8")
 
           test_protocols = Path("tests/test_protocols.py")
@@ -78,11 +64,7 @@ jobs:
           expected = 'self.assertEqual(attempts, ["1511", "02b0"])'
           if expected not in text:
               raise SystemExit("automatic protocol test assertion not found")
-          text = text.replace(
-              expected,
-              'self.assertEqual(attempts, ["1511", "1097", "02b0"])',
-              1,
-          )
+          text = text.replace(expected, 'self.assertEqual(attempts, ["1511", "1097", "02b0"])', 1)
           test_protocols.write_text(text, encoding="utf-8")
 
           for path in [Path("README.md"), *sorted(Path("docs").glob("README_*.md"))]:
