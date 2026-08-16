@@ -59,6 +59,8 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 | 🛡️ **Avancé** | Protection réseau · Diagnostics onduleur · Désactivés par défaut |
 | 🔒 **Sécurité** | Lecture seule · Aucune écriture de configuration vers l’onduleur |
 
+📚 **[Liste complète des entités par protocole](ENTITIES.md)** — capteurs, capteurs binaires et boutons exposés par **1511, 02B0 et 1097**.
+
 ---
 
 ## Compatibilité
@@ -114,8 +116,6 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 
 > [!NOTE]
 > Les recherches publiques sur GEN3 associent généralement ces appareils à la famille de numéros de série **R17 / R47**. La compatibilité avec le protocole **1097** de TSUN Local reste expérimentale tant qu’elle n’a pas été confirmée sur davantage de matériel réel.
-
-> **Contribution communautaire :** **TheSmartGerman** a contribué au support 1097 par des tests sur matériel réel et des retours de compatibilité.
 
 | | Données disponibles |
 |---|---|
@@ -218,9 +218,16 @@ La version 1.4 fait évoluer TSUN Local d’une prise en charge de modèles indi
 
 Les implémentations 1511 et 02B0 sont développées à partir d’une **analyse indépendante du protocole local, d’observations sur appareil réel et de validations matérielles**.
 
-Le mapping expérimental 1097 s’appuie sur les recherches publiques de **Stefan Allius / `s-allius/tsun-gen3-proxy`**, puis a été adapté à TSUN Local pour une utilisation locale directe.
-
 Les candidats à la compatibilité sont volontairement distingués du matériel réellement validé.
+
+---
+
+## Contributions
+
+Le support expérimental **1097** bénéficie également de contributions communautaires :
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — recherches publiques sur le protocole 1097 ayant contribué au mapping expérimental utilisé par TSUN Local.
+- **TheSmartGerman** — tests sur matériel réel et retours de compatibilité pour le support 1097.
 
 ---
 
