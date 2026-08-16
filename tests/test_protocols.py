@@ -428,6 +428,47 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(PROTOCOLS.protocol_from_firmware("LOGGER_1097_TEST"), "1097")
         self.assertIsNone(PROTOCOLS.protocol_from_firmware("LSW3_15_FFFF_1.0.9E"))
 
+    async def test_forced_probe_ignores_firmware_hint(self) -> None:
+        attempts: list[str] = []
+
+        class FakeClient:
+            model = "Test"
+            pv_count = 1
+            measurement_keys = frozenset({"ac_power"})
+            diagnostic_trace = ()
+
+            def __init__(self, protocol_name: str) -> None:
+                self.protocol_name = protocol_name
+
+            async def async_read_all(self):
+                if self.protocol_name != "1097":
+                    raise RuntimeError("wrong protocol")
+                return PROTOCOLS.TsunReadResult(
+                    measurements={"ac_power": 1}, duration_ms=1, blocks_ok=1
+                )
+
+        def create_client(protocol_name: str, *_args):
+            attempts.append(protocol_name)
+            return FakeClient(protocol_name)
+
+        with (
+            patch.object(
+                PROTOCOLS,
+                "async_detect_protocol_from_firmware",
+                new=AsyncMock(return_value="02b0"),
+            ),
+            patch.object(
+                PROTOCOLS, "_create_specific_client", new=create_client
+            ),
+        ):
+            client = PROTOCOLS.create_protocol_client(
+                PROTOCOLS.FORCE_PROTOCOL, "192.0.2.10", 8899, 123456
+            )
+            await client.async_read_all()
+
+        self.assertEqual(attempts, ["1511", "1097"])
+        self.assertEqual(client.protocol_name, "1097")
+
     async def test_firmware_hint_prevents_blind_protocol_probing(self) -> None:
         attempts: list[str] = []
 

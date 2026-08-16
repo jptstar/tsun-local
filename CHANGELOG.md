@@ -7,7 +7,7 @@ All notable changes to this project are documented here. The project follows [Se
 ### Added
 
 - firmware-guided protocol selection for logger firmware names containing `1511`, `02B0`, or `1097`;
-- a manual **Force protocol probing** mode plus direct `1511`, `1097`, and `02B0` choices for controlled compatibility testing;
+- a manual **Force protocol probing** mode that deliberately ignores firmware hints and tries the supported adapters, plus direct `1511`, `1097`, and `02B0` choices for controlled compatibility testing;
 - diagnostics showing the firmware protocol hint and whether it matches the selected adapter.
 
 ### Changed

@@ -14,6 +14,7 @@ import re
 from typing import Any, Protocol
 
 DEFAULT_PROTOCOL = "auto"
+FORCE_PROTOCOL = "force_probe"
 SUPPORTED_PROTOCOLS = ("1511", "1097", "02b0")
 
 _LOGGER = logging.getLogger(__name__)
@@ -182,10 +183,18 @@ def _create_specific_client(
 class TsunAutoClient:
     """Detect a supported local protocol, then retain the selected adapter."""
 
-    def __init__(self, host: str, port: int, logger_sn: int) -> None:
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        logger_sn: int,
+        *,
+        use_firmware_hint: bool = True,
+    ) -> None:
         self.host = host
         self.port = port
         self.logger_sn = logger_sn
+        self._use_firmware_hint = use_firmware_hint
         self._client: TsunProtocolClient | None = None
         self._failed_trace: deque[dict[str, Any]] = deque(maxlen=24)
 
@@ -231,7 +240,11 @@ class TsunAutoClient:
             return await self._client.async_read_all()
 
         last_error: Exception | None = None
-        firmware_protocol = await async_detect_protocol_from_firmware(self.host)
+        firmware_protocol = (
+            await async_detect_protocol_from_firmware(self.host)
+            if self._use_firmware_hint
+            else None
+        )
         protocol_names = (
             (firmware_protocol,)
             if firmware_protocol is not None
@@ -277,4 +290,8 @@ def create_protocol_client(
     """Create an automatic or explicit local-protocol adapter."""
     if protocol_name == DEFAULT_PROTOCOL:
         return TsunAutoClient(host, port, logger_sn)
+    if protocol_name == FORCE_PROTOCOL:
+        return TsunAutoClient(
+            host, port, logger_sn, use_firmware_hint=False
+        )
     return _create_specific_client(protocol_name, host, port, logger_sn)

@@ -148,6 +148,7 @@ def _load_config_flow() -> ModuleType:
     _module(
         f"{PACKAGE}.protocols",
         DEFAULT_PROTOCOL="auto",
+        FORCE_PROTOCOL="force_probe",
         SUPPORTED_PROTOCOLS=("1511", "1097", "02b0"),
         protocol_from_firmware=lambda firmware: next(
             (protocol for protocol in ("1511", "1097", "02b0") if protocol in str(firmware).lower()),

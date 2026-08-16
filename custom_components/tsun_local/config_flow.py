@@ -63,6 +63,7 @@ from .discovery import (
 from .logger_web import async_read_logger_web_data
 from .protocols import (
     DEFAULT_PROTOCOL,
+    FORCE_PROTOCOL,
     SUPPORTED_PROTOCOLS,
     create_protocol_client,
     protocol_from_firmware,
@@ -346,7 +347,7 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._detected_logger_sn = logger_sn
 
         if detection_mode == _FORCE_PROTOCOL_DETECTION:
-            entry_input[CONF_PROTOCOL] = DEFAULT_PROTOCOL
+            entry_input[CONF_PROTOCOL] = FORCE_PROTOCOL
         elif detection_mode in SUPPORTED_PROTOCOLS:
             entry_input[CONF_PROTOCOL] = detection_mode
         else:
