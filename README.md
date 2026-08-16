@@ -10,7 +10,7 @@
 
 > **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
 
-**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.4.0-beta.6** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
+**TSUN Local** connects compatible TSUN micro-inverters directly to Home Assistant over the local network, without a proxy or cloud service. Version **1.4.0** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
 
 ## About this project
 
@@ -113,7 +113,9 @@ Available data includes:
 - AC instantaneous measurements and energy counters;
 - five measurements for every detected PV input;
 - calculated total DC power;
-- four communication diagnostics, plus **SN**, **Micro-inverter SN**, logger firmware, and MAC-address diagnostic sensors;
+- four communication diagnostics, plus **SN**, **Micro-inverter SN**, logger firmware, MAC address, and Wi-Fi signal diagnostics;
+- TITAN/1511 read-only diagnostics for raw inverter status, rated power, maximum designed power, and raw registers 3017 and 3028;
+- registers 3017 and 3028 are intentionally shown as raw values with no temperature unit or offset because their physical meaning and scaling are not yet confirmed;
 - a **Micro-inverter online** connectivity binary sensor;
 - a global inverter alarm status and protocol-specific raw alarm registers;
 - a manual **Refresh data** button.
@@ -195,7 +197,6 @@ No control or write command will be added without explicit safeguards and real-h
 ## Author
 
 Jean-Philippe TESTART (`jptstar`)
-
 
 ## Acknowledgements
 
