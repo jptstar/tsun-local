@@ -15,6 +15,7 @@ from .const import (
     CONF_INVERTER_SERIAL_NUMBER,
     CONF_LOGGER_FIRMWARE_VERSION,
     CONF_LOGGER_MAC_ADDRESS,
+    CONF_LOGGER_RAW_PROFILE,
     CONF_LOGGER_SN,
     CONF_OFFLINE_SCAN_INTERVAL,
     CONF_PROTOCOL,
@@ -36,6 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
     """Set up one locally connected TSUN device from a config entry."""
     logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
     logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
+    logger_raw_profile = entry.data.get(CONF_LOGGER_RAW_PROFILE)
     inverter_serial_number = entry.data.get(CONF_INVERTER_SERIAL_NUMBER)
     logger_data = await async_read_logger_web_data(
         hass, str(entry.data[CONF_HOST])
@@ -44,6 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         logger_data.firmware_version or logger_firmware_version
     )
     logger_mac_address = logger_data.mac_address or logger_mac_address
+    logger_raw_profile = logger_data.raw_profile or logger_raw_profile
     inverter_serial_number = (
         logger_data.inverter_serial_number or inverter_serial_number
     )
@@ -54,6 +57,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         )
     if logger_mac_address is not None:
         data_updates[CONF_LOGGER_MAC_ADDRESS] = logger_mac_address
+    if logger_raw_profile is not None:
+        data_updates[CONF_LOGGER_RAW_PROFILE] = logger_raw_profile
     if inverter_serial_number is not None:
         data_updates[CONF_INVERTER_SERIAL_NUMBER] = inverter_serial_number
     if data_updates != entry.data:
@@ -91,6 +96,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         logger_firmware_version,
         logger_mac_address,
         inverter_serial_number,
+        logger_raw_profile,
+        logger_data.wifi_signal,
+        str(entry.data[CONF_HOST]),
     )
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator

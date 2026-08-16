@@ -21,6 +21,7 @@ from .protocols.ap import safe_error_details
 
 _LOGGER = logging.getLogger(__name__)
 POLL_LOCK = "poll_lock"
+LOGGER_WIFI_REFRESH_INTERVAL = timedelta(minutes=5)
 
 
 def get_poll_lock(hass: HomeAssistant) -> asyncio.Lock:
@@ -47,6 +48,9 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         logger_firmware_version: str | None = None,
         logger_mac_address: str | None = None,
         inverter_serial_number: str | None = None,
+        logger_raw_profile: str | None = None,
+        logger_wifi_signal: int | None = None,
+        logger_host: str | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -71,9 +75,18 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "logger_firmware_version": logger_firmware_version,
                 "logger_mac_address": logger_mac_address,
                 "inverter_serial_number": inverter_serial_number,
+                "logger_raw_profile": logger_raw_profile,
+                "logger_wifi_signal": logger_wifi_signal,
             }.items()
             if value is not None
         }
+        self._hass = hass
+        self._logger_host = logger_host
+        self._next_logger_wifi_refresh = (
+            dt_util.utcnow() + LOGGER_WIFI_REFRESH_INTERVAL
+            if logger_host is not None
+            else None
+        )
 
     @property
     def diagnostic_summary(self) -> dict[str, Any]:
@@ -103,7 +116,33 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             summary["last_blocks_ok"] = self.data.get("communication_blocks")
         return summary
 
+    async def _async_refresh_logger_wifi_signal(self) -> None:
+        """Refresh dynamic logger Wi-Fi telemetry at a low frequency."""
+        if (
+            self._logger_host is None
+            or self._next_logger_wifi_refresh is None
+        ):
+            return
+        now = dt_util.utcnow()
+        if now < self._next_logger_wifi_refresh:
+            return
+        self._next_logger_wifi_refresh = now + LOGGER_WIFI_REFRESH_INTERVAL
+        try:
+            from .logger_web import async_read_logger_wifi_signal
+
+            signal = await async_read_logger_wifi_signal(
+                self._hass, self._logger_host
+            )
+        except Exception:  # Best-effort diagnostic refresh only.
+            _LOGGER.debug(
+                "Unable to refresh logger Wi-Fi signal", exc_info=True
+            )
+            return
+        if signal is not None:
+            self._logger_metadata["logger_wifi_signal"] = signal
+
     async def _async_update_data(self) -> dict[str, Any]:
+        await self._async_refresh_logger_wifi_signal()
         try:
             # Some local loggers accept only one active protocol exchange.
             # Serialize complete polls across all configured TSUN devices.

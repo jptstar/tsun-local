@@ -131,6 +131,7 @@ class LoggerWebParserTests(unittest.TestCase):
         var cover_mid = "3456789012";
         var cover_ver = "LSW5_SSL_1511_1.03";
         var cover_sta_mac = "02:00:00:00:00:03";
+        var cover_sta_rssi = "52";
         """
 
         metadata = LOGGER_WEB.parse_logger_web_data(document)
@@ -141,6 +142,13 @@ class LoggerWebParserTests(unittest.TestCase):
         )
         self.assertEqual(metadata.firmware_version, "LSW5_SSL_1511_1.03")
         self.assertEqual(metadata.mac_address, "02:00:00:00:00:03")
+        self.assertEqual(metadata.wifi_signal, 52)
+
+    def test_reads_raw_logger_profile(self) -> None:
+        metadata = LOGGER_WEB.parse_logger_web_data(
+            'var inv_tp = "5393:Tengsheng_titan";'
+        )
+        self.assertEqual(metadata.raw_profile, "5393:Tengsheng_titan")
 
     def test_does_not_use_inverter_serial_number(self) -> None:
         self.assertIsNone(
@@ -217,12 +225,14 @@ class LoggerWebReaderTests(unittest.IsolatedAsyncioTestCase):
         var cover_mid = "3456789012";
         var cover_ver = "LSW_TEST_1.00";
         var cover_sta_mac = "02:00:00:00:00:04";
+        var cover_sta_rssi = "41";
         var webdata_sn = "";
         """
         authenticated_page = 'var webdata_sn = "TESTINVERTER0001";'
+        profile_page = 'var inv_tp = "688:Tengsheng_G3";'
         original_session_factory = LOGGER_WEB.async_get_clientsession
         LOGGER_WEB.async_get_clientsession = lambda _hass: _Session(
-            public_page, authenticated_page
+            public_page, authenticated_page, profile_page
         )
         try:
             metadata = await LOGGER_WEB.async_read_logger_web_data(
@@ -237,6 +247,21 @@ class LoggerWebReaderTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(metadata.firmware_version, "LSW_TEST_1.00")
         self.assertEqual(metadata.mac_address, "02:00:00:00:00:04")
+        self.assertEqual(metadata.raw_profile, "688:Tengsheng_G3")
+        self.assertEqual(metadata.wifi_signal, 41)
+
+    async def test_reads_current_wifi_signal(self) -> None:
+        original_session_factory = LOGGER_WEB.async_get_clientsession
+        LOGGER_WEB.async_get_clientsession = lambda _hass: _Session(
+            'var cover_sta_rssi = "63";'
+        )
+        try:
+            signal = await LOGGER_WEB.async_read_logger_wifi_signal(
+                object(), "192.0.2.10"
+            )
+        finally:
+            LOGGER_WEB.async_get_clientsession = original_session_factory
+        self.assertEqual(signal, 63)
 
     def test_rejects_value_outside_unsigned_32_bit_range(self) -> None:
         self.assertIsNone(

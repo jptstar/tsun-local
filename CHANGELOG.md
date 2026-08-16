@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0-beta.4] - 2026-08-16
+
+### Added
+
+- expose the raw logger inverter profile reported by `inv_tp` as a diagnostic entity;
+- expose the logger Wi-Fi signal as a percentage diagnostic entity and refresh it every five minutes independently of inverter polling.
+
+### Fixed
+
+- publish the localized setup and protocol-selector strings under a new beta version so Home Assistant and HACS reload them cleanly.
+
+### Safety
+
+- logger metadata remains read-only and is collected with local HTTP GET requests only;
+- no inverter control or configuration write has been added.
+
 ## [1.4.0-beta.3] - 2026-08-16
 
 ### Added
@@ -162,6 +178,8 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.4.0-beta.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.4
+[1.4.0-beta.3]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.3
 [1.3.3]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.3
 [1.3.2]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.2
 [1.3.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.1

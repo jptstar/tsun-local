@@ -263,6 +263,12 @@
       },
       "pv6_energy_total": {
         "name": "PV6 总电量"
+      },
+      "logger_raw_profile": {
+        "name": "记录器原始配置标识"
+      },
+      "logger_wifi_signal": {
+        "name": "记录器 Wi-Fi 信号"
       }
     },
     "binary_sensor": {

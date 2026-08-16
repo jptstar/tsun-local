@@ -263,6 +263,12 @@
       },
       "pv6_energy_total": {
         "name": "Énergie PV6 totale"
+      },
+      "logger_raw_profile": {
+        "name": "Profil brut du logger"
+      },
+      "logger_wifi_signal": {
+        "name": "Signal Wi-Fi du logger"
       }
     },
     "binary_sensor": {

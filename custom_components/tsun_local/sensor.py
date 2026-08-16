@@ -16,6 +16,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     EntityCategory,
+    PERCENTAGE,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
@@ -87,6 +88,8 @@ LOGGER_METADATA_SENSOR_KEYS = frozenset(
         "inverter_serial_number",
         "logger_firmware_version",
         "logger_mac_address",
+        "logger_raw_profile",
+        "logger_wifi_signal",
     }
 )
 DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
@@ -191,6 +194,21 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         key="logger_mac_address",
         suggested_object_id="logger_mac_address",
         translation_key="logger_mac_address",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="logger_raw_profile",
+        suggested_object_id="logger_raw_profile",
+        translation_key="logger_raw_profile",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="logger_wifi_signal",
+        suggested_object_id="logger_wifi_signal",
+        translation_key="logger_wifi_signal",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     *(

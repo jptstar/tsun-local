@@ -136,6 +136,8 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             "LSW_TEST_1.0",
             "02:00:00:00:00:01",
             "TESTINVERTER0001",
+            "5393:Tengsheng_titan",
+            57,
         )
 
         first = await coordinator._async_update_data()
@@ -152,6 +154,10 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(
                 data["inverter_serial_number"], "TESTINVERTER0001"
             )
+            self.assertEqual(
+                data["logger_raw_profile"], "5393:Tengsheng_titan"
+            )
+            self.assertEqual(data["logger_wifi_signal"], 57)
 
     async def test_marks_device_offline_on_third_consecutive_failure(self) -> None:
         client = _Client([OSError("one"), OSError("two"), OSError("three")])

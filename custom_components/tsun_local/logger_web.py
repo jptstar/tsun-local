@@ -9,6 +9,7 @@ import asyncio
 from dataclasses import dataclass
 from html import unescape
 import re
+from typing import Any
 
 from aiohttp import BasicAuth, ClientError, ClientTimeout
 from yarl import URL
@@ -18,6 +19,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 
 LOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
+LOGGER_PROFILE_PATHS = ("/hide_set_edit.html",)
 LOGGER_WEB_USERNAME = "admin"
 LOGGER_WEB_PASSWORD = "admin"
 LOGGER_WEB_TIMEOUT = 4.0
@@ -84,6 +86,18 @@ _INVERTER_SERIAL_KEYS = (
         re.IGNORECASE,
     ),
 )
+_RAW_PROFILE_KEYS = (
+    re.compile(
+        r"\binv_tp\b\s*[:=]\s*[\"']\s*([^\"']{1,127}?)\s*[\"']",
+        re.IGNORECASE,
+    ),
+)
+_WIFI_SIGNAL_KEYS = (
+    re.compile(
+        r"\bcover_sta_rssi\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
+        re.IGNORECASE,
+    ),
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -94,6 +108,8 @@ class LoggerWebData:
     inverter_serial_number: str | None = None
     firmware_version: str | None = None
     mac_address: str | None = None
+    raw_profile: str | None = None
+    wifi_signal: int | None = None
 
 
 def _valid_logger_sn(value: str) -> int | None:
@@ -127,6 +143,15 @@ def _first_match(
     return None
 
 
+def _parse_wifi_signal(document: str) -> int | None:
+    """Extract the logger Wi-Fi signal percentage when exposed locally."""
+    value = _first_match(_WIFI_SIGNAL_KEYS, document)
+    if value is None:
+        return None
+    signal = int(value)
+    return signal if 0 <= signal <= 100 else None
+
+
 def parse_logger_web_data(document: str) -> LoggerWebData:
     """Extract logger identity, firmware, and MAC from a local page."""
     visible_document = unescape(re.sub(r"<[^>]*>", " ", document))
@@ -147,12 +172,38 @@ def parse_logger_web_data(document: str) -> LoggerWebData:
         mac_address = mac_address.replace("-", ":").upper()
 
     inverter_serial_number = _first_match(_INVERTER_SERIAL_KEYS, document)
+    raw_profile = _first_match(_RAW_PROFILE_KEYS, document)
+    if raw_profile is not None:
+        raw_profile = raw_profile.strip() or None
+    wifi_signal = _parse_wifi_signal(document)
 
     return LoggerWebData(
         logger_sn=parse_logger_sn(document),
         inverter_serial_number=inverter_serial_number,
         firmware_version=firmware_version,
         mac_address=mac_address,
+        raw_profile=raw_profile,
+        wifi_signal=wifi_signal,
+    )
+
+
+def _merge_logger_web_data(
+    current: LoggerWebData, new: LoggerWebData
+) -> LoggerWebData:
+    """Merge newly parsed logger data without dropping known values."""
+    return LoggerWebData(
+        logger_sn=current.logger_sn or new.logger_sn,
+        inverter_serial_number=(
+            current.inverter_serial_number or new.inverter_serial_number
+        ),
+        firmware_version=current.firmware_version or new.firmware_version,
+        mac_address=current.mac_address or new.mac_address,
+        raw_profile=current.raw_profile or new.raw_profile,
+        wifi_signal=(
+            new.wifi_signal
+            if new.wifi_signal is not None
+            else current.wifi_signal
+        ),
     )
 
 
@@ -211,6 +262,32 @@ async def async_probe_logger_sn(host: str, port: int) -> int | None:
     return None
 
 
+async def _async_read_logger_document(
+    session: Any, host: str, path: str, auth: BasicAuth | None
+) -> str | None:
+    """Read one bounded logger web page."""
+    url = URL.build(scheme="http", host=host, path=path)
+    try:
+        async with session.get(
+            url,
+            auth=auth,
+            timeout=ClientTimeout(total=LOGGER_WEB_TIMEOUT),
+            allow_redirects=False,
+        ) as response:
+            if response.status != 200:
+                return None
+            if response.content_length is not None and (
+                response.content_length > MAX_LOGGER_PAGE_SIZE
+            ):
+                return None
+            content = await _async_read_limited(response.content)
+    except (ClientError, TimeoutError, UnicodeError, ValueError):
+        return None
+    if content is None:
+        return None
+    return content.decode("utf-8", errors="replace")
+
+
 async def async_read_logger_web_data(
     hass: HomeAssistant,
     host: str,
@@ -219,44 +296,20 @@ async def async_read_logger_web_data(
     """Best-effort read of identity and metadata from the local logger."""
     session = async_get_clientsession(hass)
     metadata = LoggerWebData()
-    for path in LOGGER_STATUS_PATHS:
-        url = URL.build(scheme="http", host=host, path=path)
-        for auth in (
-            None,
-            BasicAuth(LOGGER_WEB_USERNAME, LOGGER_WEB_PASSWORD),
-        ):
-            try:
-                async with session.get(
-                    url,
-                    auth=auth,
-                    timeout=ClientTimeout(total=LOGGER_WEB_TIMEOUT),
-                    allow_redirects=False,
-                ) as response:
-                    if response.status != 200:
-                        continue
-                    if response.content_length is not None and (
-                        response.content_length > MAX_LOGGER_PAGE_SIZE
-                    ):
-                        continue
-                    content = await _async_read_limited(response.content)
-            except (ClientError, TimeoutError, UnicodeError, ValueError):
-                continue
+    credentials = (
+        None,
+        BasicAuth(LOGGER_WEB_USERNAME, LOGGER_WEB_PASSWORD),
+    )
 
-            if content is None:
-                continue
-            page_data = parse_logger_web_data(
-                content.decode("utf-8", errors="replace")
+    for path in LOGGER_STATUS_PATHS:
+        for auth in credentials:
+            document = await _async_read_logger_document(
+                session, host, path, auth
             )
-            metadata = LoggerWebData(
-                logger_sn=metadata.logger_sn or page_data.logger_sn,
-                inverter_serial_number=(
-                    metadata.inverter_serial_number
-                    or page_data.inverter_serial_number
-                ),
-                firmware_version=(
-                    metadata.firmware_version or page_data.firmware_version
-                ),
-                mac_address=metadata.mac_address or page_data.mac_address,
+            if document is None:
+                continue
+            metadata = _merge_logger_web_data(
+                metadata, parse_logger_web_data(document)
             )
             if all(
                 (
@@ -266,7 +319,32 @@ async def async_read_logger_web_data(
                     metadata.mac_address,
                 )
             ):
-                return metadata
+                break
+        if all(
+            (
+                metadata.logger_sn,
+                metadata.inverter_serial_number,
+                metadata.firmware_version,
+                metadata.mac_address,
+            )
+        ):
+            break
+
+    if metadata.raw_profile is None:
+        for path in LOGGER_PROFILE_PATHS:
+            for auth in credentials:
+                document = await _async_read_logger_document(
+                    session, host, path, auth
+                )
+                if document is None:
+                    continue
+                metadata = _merge_logger_web_data(
+                    metadata, parse_logger_web_data(document)
+                )
+                if metadata.raw_profile is not None:
+                    break
+            if metadata.raw_profile is not None:
+                break
 
     if metadata.logger_sn is None and port is not None:
         metadata = LoggerWebData(
@@ -274,8 +352,36 @@ async def async_read_logger_web_data(
             inverter_serial_number=metadata.inverter_serial_number,
             firmware_version=metadata.firmware_version,
             mac_address=metadata.mac_address,
+            raw_profile=metadata.raw_profile,
+            wifi_signal=metadata.wifi_signal,
         )
     return metadata
+
+
+async def async_read_logger_wifi_signal(
+    hass: HomeAssistant, host: str
+) -> int | None:
+    """Read the current logger Wi-Fi signal without polling the inverter."""
+    session = async_get_clientsession(hass)
+    credentials = (
+        None,
+        BasicAuth(LOGGER_WEB_USERNAME, LOGGER_WEB_PASSWORD),
+    )
+    for path in LOGGER_STATUS_PATHS:
+        page_found = False
+        for auth in credentials:
+            document = await _async_read_logger_document(
+                session, host, path, auth
+            )
+            if document is None:
+                continue
+            page_found = True
+            signal = _parse_wifi_signal(document)
+            if signal is not None:
+                return signal
+        if page_found:
+            return None
+    return None
 
 
 async def async_detect_logger_sn(
