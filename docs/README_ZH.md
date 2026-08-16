@@ -224,10 +224,10 @@ Home Assistant
 
 ## 贡献
 
-实验性的 **1097** 支持也受益于社区贡献：
+TSUN Local 也受益于社区贡献：
 
 - **Stefan Allius / `s-allius/tsun-gen3-proxy`** — 公开的 1097 协议研究，为 TSUN Local 使用的实验性映射提供了参考。
-- **TheSmartGerman** — 通过真实设备测试和兼容性反馈为 1097 支持作出贡献。
+- **TheSmartGerman** — 对 **TSOL-MP3000 / 1511** 的真实硬件测试和兼容性反馈，在此过程中意外检测到了 **1097** 协议。
 
 ---
 
