@@ -13,7 +13,7 @@
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <h2 align="center">Local. Read-only. No cloud. No proxy.</h2>
 
-<p align="center"><strong>Direct local access for compatible TSUN micro-inverters in Home Assistant.</strong><br>**1.4.0-beta.8**</p>
+<p align="center"><strong>Direct local access for compatible TSUN micro-inverters in Home Assistant.</strong><br><strong>1.4.0-beta.8</strong><!-- **1.4.0-beta.8** --></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>

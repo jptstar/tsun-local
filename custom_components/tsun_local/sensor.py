@@ -260,16 +260,16 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "grid_undervoltage_time_1",
         "grid_undervoltage_time_1",
-        device_class=SensorDeviceClass.VOLTAGE,
-        unit=UnitOfElectricPotential.VOLT,
-        precision=1,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
+        precision=2,
     ),
     _advanced_diagnostic(
         "grid_undervoltage_time_2",
         "grid_undervoltage_time_2",
-        device_class=SensorDeviceClass.VOLTAGE,
-        unit=UnitOfElectricPotential.VOLT,
-        precision=1,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
+        precision=2,
     ),
     _advanced_diagnostic(
         "grid_overvoltage_level_1",
@@ -288,16 +288,16 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "grid_overvoltage_time_1",
         "grid_overvoltage_time_1",
-        device_class=SensorDeviceClass.VOLTAGE,
-        unit=UnitOfElectricPotential.VOLT,
-        precision=1,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
+        precision=2,
     ),
     _advanced_diagnostic(
         "grid_overvoltage_time_2",
         "grid_overvoltage_time_2",
-        device_class=SensorDeviceClass.VOLTAGE,
-        unit=UnitOfElectricPotential.VOLT,
-        precision=1,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
+        precision=2,
     ),
     _advanced_diagnostic(
         "grid_underfrequency_level_1",
@@ -316,15 +316,15 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "grid_underfrequency_time_1",
         "grid_underfrequency_time_1",
-        device_class=SensorDeviceClass.FREQUENCY,
-        unit=UnitOfFrequency.HERTZ,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
         "grid_underfrequency_time_2",
         "grid_underfrequency_time_2",
-        device_class=SensorDeviceClass.FREQUENCY,
-        unit=UnitOfFrequency.HERTZ,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -344,15 +344,15 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "grid_overfrequency_time_1",
         "grid_overfrequency_time_1",
-        device_class=SensorDeviceClass.FREQUENCY,
-        unit=UnitOfFrequency.HERTZ,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
         "grid_overfrequency_time_2",
         "grid_overfrequency_time_2",
-        device_class=SensorDeviceClass.FREQUENCY,
-        unit=UnitOfFrequency.HERTZ,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -365,9 +365,9 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "grid_undervoltage_time_3",
         "grid_undervoltage_time_3",
-        device_class=SensorDeviceClass.VOLTAGE,
-        unit=UnitOfElectricPotential.VOLT,
-        precision=1,
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.MILLISECONDS,
+        precision=2,
     ),
     _advanced_diagnostic(
         "output_coefficient",
