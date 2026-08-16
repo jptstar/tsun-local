@@ -226,10 +226,10 @@ Compatibility candidates are intentionally labelled separately from validated ha
 
 ## Contributions
 
-The experimental **1097** support also benefits from community work:
+TSUN Local also benefits from community contributions:
 
 - **Stefan Allius / `s-allius/tsun-gen3-proxy`** — public 1097 protocol research that informed the experimental mapping used by TSUN Local.
-- **TheSmartGerman** — real-device testing and compatibility feedback for 1097 support.
+- **TheSmartGerman** — real-device testing and compatibility feedback for the **1511 TSOL-MP3000**, during which protocol **1097** was detected unintentionally.
 
 ---
 
