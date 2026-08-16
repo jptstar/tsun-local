@@ -22,9 +22,9 @@ UDP_DISCOVERY_MESSAGES = (
     b"devicelinkfind",
 )
 MIN_DISCOVERY_PREFIX = 24
-FIRMWARE_HTTP_TIMEOUT = 1.5
-FIRMWARE_PAGE_LIMIT = 256 * 1024
-FIRMWARE_STATUS_PATHS = ("/status.html", "/index_cn.html", "/index.html", "/")
+FIRMWARE_HTTP_TIMEOUT = 4.0
+FIRMWARE_PAGE_LIMIT = 512 * 1024
+FIRMWARE_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
 _FIRMWARE_VALUE_PATTERNS = (
     re.compile(
         r"\b(?:webdata|cover)[_-]ver\s*[:=]\s*[\"']"
@@ -61,10 +61,41 @@ def _firmware_version_from_document(document: str) -> str | None:
     return None
 
 
+async def _read_chunked_body(
+    reader: asyncio.StreamReader,
+) -> bytes | None:
+    """Read a small HTTP chunked body without waiting for connection close."""
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        line = await reader.readline()
+        if not line:
+            return None
+        size_text = line.split(b";", 1)[0].strip()
+        try:
+            size = int(size_text, 16)
+        except ValueError:
+            return None
+        if size == 0:
+            # Consume optional trailer headers up to the final empty line.
+            while True:
+                trailer = await reader.readline()
+                if trailer in {b"\r\n", b"\n", b""}:
+                    break
+            return b"".join(chunks)
+        total += size
+        if total > FIRMWARE_PAGE_LIMIT:
+            return None
+        chunk = await reader.readexactly(size)
+        chunks.append(chunk)
+        if await reader.readexactly(2) != b"\r\n":
+            return None
+
+
 async def _async_read_status_document(
     host: str, path: str, *, authenticated: bool
 ) -> str | None:
-    """Read a local logger page using GET only."""
+    """Read a local logger page without depending on the server closing TCP."""
     writer: asyncio.StreamWriter | None = None
     try:
         async with asyncio.timeout(FIRMWARE_HTTP_TIMEOUT):
@@ -82,8 +113,41 @@ async def _async_read_status_document(
                 ("\r\n".join(headers) + "\r\n\r\n").encode("ascii")
             )
             await writer.drain()
-            response = await reader.read(FIRMWARE_PAGE_LIMIT + 1)
-    except (OSError, TimeoutError, asyncio.IncompleteReadError):
+
+            header = await reader.readuntil(b"\r\n\r\n")
+            header_lines = header[:-4].split(b"\r\n")
+            if not header_lines or b" 200 " not in header_lines[0]:
+                return None
+
+            response_headers: dict[bytes, bytes] = {}
+            for line in header_lines[1:]:
+                name, separator, value = line.partition(b":")
+                if separator:
+                    response_headers[name.strip().lower()] = value.strip()
+
+            transfer_encoding = response_headers.get(b"transfer-encoding", b"").lower()
+            content_length = response_headers.get(b"content-length")
+
+            if b"chunked" in transfer_encoding:
+                body = await _read_chunked_body(reader)
+            elif content_length is not None:
+                try:
+                    length = int(content_length)
+                except ValueError:
+                    return None
+                if length < 0 or length > FIRMWARE_PAGE_LIMIT:
+                    return None
+                body = await reader.readexactly(length)
+            else:
+                body = await reader.read(FIRMWARE_PAGE_LIMIT + 1)
+                if len(body) > FIRMWARE_PAGE_LIMIT:
+                    return None
+    except (
+        OSError,
+        TimeoutError,
+        asyncio.IncompleteReadError,
+        asyncio.LimitOverrunError,
+    ):
         return None
     finally:
         if writer is not None:
@@ -93,12 +157,7 @@ async def _async_read_status_document(
             except OSError:
                 pass
 
-    if len(response) > FIRMWARE_PAGE_LIMIT:
-        return None
-    header, separator, body = response.partition(b"\r\n\r\n")
-    if not separator:
-        return None
-    if b" 200 " not in header.split(b"\r\n", 1)[0]:
+    if body is None:
         return None
     return body.decode("utf-8", errors="replace")
 
@@ -294,8 +353,9 @@ async def async_discover_devices(
 
     # Other Solarman-based equipment can expose the same TCP port. Automatic
     # discovery proposes only candidates with a supported protocol token in
-    # the local logger firmware. Unknown devices remain available to manual
-    # setup, where the user can explicitly force protocol probing.
+    # the local logger firmware. The HTTP reader intentionally handles
+    # Content-Length/chunked responses without requiring the embedded logger
+    # to close its TCP connection after serving the status page.
     candidates = sorted(tcp_hosts, key=IPv4Address)
     identified_protocols = await asyncio.gather(
         *(async_identify_tsun_firmware(host) for host in candidates)
