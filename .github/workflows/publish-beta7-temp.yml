@@ -1,0 +1,50 @@
+name: Publish beta 1.4.0-beta.7
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".release-trigger-beta7"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish beta.7 prerelease
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Verify target version
+        env:
+          TARGET_SHA: 518811e141f47eaf642d1ae33a808a30c502da6b
+        run: |
+          version=$(git show "${TARGET_SHA}:custom_components/tsun_local/manifest.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          test "${version}" = "1.4.0-beta.7"
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: 518811e141f47eaf642d1ae33a808a30c502da6b
+        run: |
+          if gh release view "v1.4.0-beta.7" >/dev/null 2>&1; then
+            echo "v1.4.0-beta.7 already exists"
+            exit 0
+          fi
+          cat > /tmp/release-notes.md <<'EOF'
+          ### Added
+          - read-only access to the TITAN native A1/21 diagnostic block (decimal registers 2000-2095) at a slow diagnostic cadence;
+          - TITAN diagnostic entities for raw inverter status, rated inverter power and maximum designed power;
+          - raw diagnostic entities for TITAN registers 3017 and 3028.
+
+          ### Changed
+          - registers 3017 and 3028 are exposed without an offset, temperature unit, or temperature device class because their physical meaning and scaling remain unconfirmed.
+          EOF
+          gh release create "v1.4.0-beta.7" \
+            --target "${TARGET_SHA}" \
+            --prerelease \
+            --title "Version 1.4.0-beta.7" \
+            --notes-file /tmp/release-notes.md
