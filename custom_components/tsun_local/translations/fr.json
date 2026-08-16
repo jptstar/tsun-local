@@ -1,30 +1,282 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Ajouter un appareil à TSUN Local", "description": "Choisissez la recherche automatique sur le réseau ou la configuration manuelle.", "menu_options": {"discover": "Rechercher sur le réseau local", "manual": "Saisir les paramètres manuellement"}},
-      "manual": {"title": "Configuration manuelle", "description": "Saisissez l’adresse IP et le port. Home Assistant essaie d’abord de lire automatiquement le SN numérique sur la page d’état locale du logger. S’il n’est pas lisible, ce formulaire vous demandera de le saisir manuellement.", "data": {"host": "Adresse IP", "port": "Port", "logger_sn": "SN"}},
-      "discover": {"title": "Appareils détectés", "description": "Sélectionnez une adresse trouvée sur le port TCP configuré. Home Assistant essaie d’abord de lire automatiquement le SN numérique sur la page d’état locale du logger. S’il n’est pas lisible, ce formulaire vous demandera de le saisir manuellement.", "data": {"host": "Adresse détectée", "port": "Port", "logger_sn": "SN"}},
-      "discover_network": {"title": "Réseau à analyser", "description": "Aucun appareil n’a été trouvé sur les réseaux détectés par Home Assistant. Indiquez le sous-réseau IPv4 des micro-onduleurs au format CIDR (par exemple 192.168.1.0/24). La recherche est limitée à 254 adresses.", "data": {"discovery_network": "Sous-réseau IPv4", "port": "Port"}},
-      "reconfigure": {"title": "Modifier la connexion", "description": "Modifiez l’adresse IP ou le port TCP. Le SN numérique reste l’identifiant permanent de connexion.", "data": {"host": "Adresse IP", "port": "Port"}}
+      "user": {
+        "title": "Ajouter un appareil à TSUN Local",
+        "description": "Choisissez la recherche automatique sur le réseau ou la configuration manuelle.",
+        "menu_options": {
+          "discover": "Rechercher sur le réseau local",
+          "manual": "Saisir les paramètres manuellement"
+        }
+      },
+      "manual": {
+        "title": "Configuration manuelle",
+        "description": "Saisissez l’adresse IP et le port. Home Assistant essaie d’abord de lire automatiquement le SN numérique sur la page d’état locale du logger. S’il n’est pas lisible, ce formulaire vous demandera de le saisir manuellement.",
+        "data": {
+          "host": "Adresse IP",
+          "port": "Port",
+          "logger_sn": "SN",
+          "protocol": "Détection du protocole"
+        }
+      },
+      "discover": {
+        "title": "Appareils détectés",
+        "description": "Sélectionnez une adresse trouvée sur le port TCP configuré. Home Assistant essaie d’abord de lire automatiquement le SN numérique sur la page d’état locale du logger. S’il n’est pas lisible, ce formulaire vous demandera de le saisir manuellement.",
+        "data": {
+          "host": "Adresse détectée",
+          "port": "Port",
+          "logger_sn": "SN"
+        }
+      },
+      "discover_network": {
+        "title": "Réseau à analyser",
+        "description": "Aucun appareil n’a été trouvé sur les réseaux détectés par Home Assistant. Indiquez le sous-réseau IPv4 des micro-onduleurs au format CIDR (par exemple 192.168.1.0/24). La recherche est limitée à 254 adresses.",
+        "data": {
+          "discovery_network": "Sous-réseau IPv4",
+          "port": "Port"
+        }
+      },
+      "reconfigure": {
+        "title": "Modifier la connexion",
+        "description": "Modifiez l’adresse IP ou le port TCP. Le SN numérique reste l’identifiant permanent de connexion.",
+        "data": {
+          "host": "Adresse IP",
+          "port": "Port"
+        }
+      }
     },
-    "error": {"cannot_connect": "Impossible de joindre l’appareil", "cannot_detect_logger_sn": "La détection automatique a échoué. Saisissez le SN numérique affiché comme Device serial number sur la page d’état locale ou inscrit sur l’étiquette de l’appareil.", "invalid_network": "Saisissez un sous-réseau IPv4 valide entre /24 et /32", "invalid_response": "La réponse de l’appareil est invalide", "no_devices_found": "Aucun appareil acceptant les connexions locales n’a été trouvé sur ce sous-réseau et ce port"},
-    "abort": {"already_configured": "Ce micro-onduleur est déjà configuré", "all_devices_configured": "Tous les micro-onduleurs détectés sont déjà configurés", "no_devices_found": "Aucun appareil acceptant les connexions locales sur le port 8899 n’a été trouvé"}
+    "error": {
+      "cannot_connect": "Impossible de joindre l’appareil",
+      "cannot_detect_logger_sn": "La détection automatique a échoué. Saisissez le SN numérique affiché comme Device serial number sur la page d’état locale ou inscrit sur l’étiquette de l’appareil.",
+      "invalid_network": "Saisissez un sous-réseau IPv4 valide entre /24 et /32",
+      "invalid_response": "La réponse de l’appareil est invalide",
+      "no_devices_found": "Aucun appareil acceptant les connexions locales n’a été trouvé sur ce sous-réseau et ce port",
+      "unknown_firmware": "Le firmware du logger est inconnu. Choisissez Forcer la détection du protocole dans la configuration manuelle pour tester explicitement les protocoles pris en charge."
+    },
+    "abort": {
+      "already_configured": "Ce micro-onduleur est déjà configuré",
+      "all_devices_configured": "Tous les micro-onduleurs détectés sont déjà configurés",
+      "no_devices_found": "Aucun appareil acceptant les connexions locales sur le port 8899 n’a été trouvé"
+    }
   },
-  "options": {"step": {"init": {"title": "Paramètres d’interrogation", "description": "Réglez l’intervalle normal, la nouvelle tentative après une erreur, l’intervalle hors ligne/nuit et le nombre d’échecs consécutifs avant le passage hors ligne.", "data": {"scan_interval": "Intervalle normal", "error_scan_interval": "Intervalle après une erreur", "offline_scan_interval": "Intervalle hors ligne/nuit", "failure_threshold": "Échecs avant passage hors ligne"}}}},
-  "entity": {"sensor": {
-    "alarm_global_0_raw": {"name": "Alarme globale brute 0"}, "alarm_global_1_raw": {"name": "Alarme globale brute 1"}, "alarm_global_2_raw": {"name": "Alarme globale brute 2"}, "alarm_global_3_raw": {"name": "Alarme globale brute 3"},
-    "alarm_secondary_0_raw": {"name": "Alarme secondaire brute 0"}, "alarm_secondary_1_raw": {"name": "Alarme secondaire brute 1"}, "alarm_secondary_2_raw": {"name": "Alarme secondaire brute 2"}, "alarm_secondary_3_raw": {"name": "Alarme secondaire brute 3"},
-    "alarm_code_1_raw": {"name": "Code d’alarme brut 1"}, "alarm_code_2_raw": {"name": "Code d’alarme brut 2"}, "alarm_code_3_raw": {"name": "Code d’alarme brut 3"}, "alarm_code_4_raw": {"name": "Code d’alarme brut 4"},
-    "pv1_alarm_raw": {"name": "Alarme PV1 brute"}, "pv2_alarm_raw": {"name": "Alarme PV2 brute"}, "pv3_alarm_raw": {"name": "Alarme PV3 brute"}, "pv4_alarm_raw": {"name": "Alarme PV4 brute"}, "pv5_alarm_raw": {"name": "Alarme PV5 brute"}, "pv6_alarm_raw": {"name": "Alarme PV6 brute"},
-    "ac_voltage": {"name": "Tension AC"}, "ac_current": {"name": "Courant AC"}, "ac_frequency": {"name": "Fréquence AC"}, "ac_power": {"name": "Puissance AC"},
-    "ac_energy_today": {"name": "Énergie AC du jour"}, "ac_energy_total": {"name": "Énergie AC totale"}, "dc_power_total": {"name": "Puissance DC totale"},
-    "communication_last_success": {"name": "Dernière communication réussie"}, "communication_duration": {"name": "Durée de communication"}, "communication_blocks": {"name": "Blocs reçus"}, "communication_failures": {"name": "Échecs de communication consécutifs"},
-    "label_serial_number": {"name": "SN"}, "inverter_serial_number": {"name": "SN Micro-onduleur"}, "logger_firmware_version": {"name": "Version du firmware du logger"}, "logger_mac_address": {"name": "Adresse MAC du logger"},
-    "pv1_voltage": {"name": "Tension PV1"}, "pv1_current": {"name": "Courant PV1"}, "pv1_power": {"name": "Puissance PV1"}, "pv1_energy_today": {"name": "Énergie PV1 du jour"}, "pv1_energy_total": {"name": "Énergie PV1 totale"},
-    "pv2_voltage": {"name": "Tension PV2"}, "pv2_current": {"name": "Courant PV2"}, "pv2_power": {"name": "Puissance PV2"}, "pv2_energy_today": {"name": "Énergie PV2 du jour"}, "pv2_energy_total": {"name": "Énergie PV2 totale"},
-    "pv3_voltage": {"name": "Tension PV3"}, "pv3_current": {"name": "Courant PV3"}, "pv3_power": {"name": "Puissance PV3"}, "pv3_energy_today": {"name": "Énergie PV3 du jour"}, "pv3_energy_total": {"name": "Énergie PV3 totale"},
-    "pv4_voltage": {"name": "Tension PV4"}, "pv4_current": {"name": "Courant PV4"}, "pv4_power": {"name": "Puissance PV4"}, "pv4_energy_today": {"name": "Énergie PV4 du jour"}, "pv4_energy_total": {"name": "Énergie PV4 totale"},
-    "pv5_voltage": {"name": "Tension PV5"}, "pv5_current": {"name": "Courant PV5"}, "pv5_power": {"name": "Puissance PV5"}, "pv5_energy_today": {"name": "Énergie PV5 du jour"}, "pv5_energy_total": {"name": "Énergie PV5 totale"},
-    "pv6_voltage": {"name": "Tension PV6"}, "pv6_current": {"name": "Courant PV6"}, "pv6_power": {"name": "Puissance PV6"}, "pv6_energy_today": {"name": "Énergie PV6 du jour"}, "pv6_energy_total": {"name": "Énergie PV6 totale"}
-  }, "binary_sensor": {"communication_online": {"name": "Micro-onduleur en ligne"}, "inverter_alarm": {"name": "Alarme de l’onduleur"}}, "button": {"refresh_data": {"name": "Actualiser les données"}}}
+  "options": {
+    "step": {
+      "init": {
+        "title": "Paramètres d’interrogation",
+        "description": "Réglez l’intervalle normal, la nouvelle tentative après une erreur, l’intervalle hors ligne/nuit et le nombre d’échecs consécutifs avant le passage hors ligne.",
+        "data": {
+          "scan_interval": "Intervalle normal",
+          "error_scan_interval": "Intervalle après une erreur",
+          "offline_scan_interval": "Intervalle hors ligne/nuit",
+          "failure_threshold": "Échecs avant passage hors ligne"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alarm_global_0_raw": {
+        "name": "Alarme globale brute 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Alarme globale brute 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Alarme globale brute 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Alarme globale brute 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Alarme secondaire brute 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Alarme secondaire brute 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Alarme secondaire brute 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Alarme secondaire brute 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Code d’alarme brut 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Code d’alarme brut 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Code d’alarme brut 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Code d’alarme brut 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "Alarme PV1 brute"
+      },
+      "pv2_alarm_raw": {
+        "name": "Alarme PV2 brute"
+      },
+      "pv3_alarm_raw": {
+        "name": "Alarme PV3 brute"
+      },
+      "pv4_alarm_raw": {
+        "name": "Alarme PV4 brute"
+      },
+      "pv5_alarm_raw": {
+        "name": "Alarme PV5 brute"
+      },
+      "pv6_alarm_raw": {
+        "name": "Alarme PV6 brute"
+      },
+      "ac_voltage": {
+        "name": "Tension AC"
+      },
+      "ac_current": {
+        "name": "Courant AC"
+      },
+      "ac_frequency": {
+        "name": "Fréquence AC"
+      },
+      "ac_power": {
+        "name": "Puissance AC"
+      },
+      "ac_energy_today": {
+        "name": "Énergie AC du jour"
+      },
+      "ac_energy_total": {
+        "name": "Énergie AC totale"
+      },
+      "dc_power_total": {
+        "name": "Puissance DC totale"
+      },
+      "communication_last_success": {
+        "name": "Dernière communication réussie"
+      },
+      "communication_duration": {
+        "name": "Durée de communication"
+      },
+      "communication_blocks": {
+        "name": "Blocs reçus"
+      },
+      "communication_failures": {
+        "name": "Échecs de communication consécutifs"
+      },
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN Micro-onduleur"
+      },
+      "logger_firmware_version": {
+        "name": "Version du firmware du logger"
+      },
+      "logger_mac_address": {
+        "name": "Adresse MAC du logger"
+      },
+      "pv1_voltage": {
+        "name": "Tension PV1"
+      },
+      "pv1_current": {
+        "name": "Courant PV1"
+      },
+      "pv1_power": {
+        "name": "Puissance PV1"
+      },
+      "pv1_energy_today": {
+        "name": "Énergie PV1 du jour"
+      },
+      "pv1_energy_total": {
+        "name": "Énergie PV1 totale"
+      },
+      "pv2_voltage": {
+        "name": "Tension PV2"
+      },
+      "pv2_current": {
+        "name": "Courant PV2"
+      },
+      "pv2_power": {
+        "name": "Puissance PV2"
+      },
+      "pv2_energy_today": {
+        "name": "Énergie PV2 du jour"
+      },
+      "pv2_energy_total": {
+        "name": "Énergie PV2 totale"
+      },
+      "pv3_voltage": {
+        "name": "Tension PV3"
+      },
+      "pv3_current": {
+        "name": "Courant PV3"
+      },
+      "pv3_power": {
+        "name": "Puissance PV3"
+      },
+      "pv3_energy_today": {
+        "name": "Énergie PV3 du jour"
+      },
+      "pv3_energy_total": {
+        "name": "Énergie PV3 totale"
+      },
+      "pv4_voltage": {
+        "name": "Tension PV4"
+      },
+      "pv4_current": {
+        "name": "Courant PV4"
+      },
+      "pv4_power": {
+        "name": "Puissance PV4"
+      },
+      "pv4_energy_today": {
+        "name": "Énergie PV4 du jour"
+      },
+      "pv4_energy_total": {
+        "name": "Énergie PV4 totale"
+      },
+      "pv5_voltage": {
+        "name": "Tension PV5"
+      },
+      "pv5_current": {
+        "name": "Courant PV5"
+      },
+      "pv5_power": {
+        "name": "Puissance PV5"
+      },
+      "pv5_energy_today": {
+        "name": "Énergie PV5 du jour"
+      },
+      "pv5_energy_total": {
+        "name": "Énergie PV5 totale"
+      },
+      "pv6_voltage": {
+        "name": "Tension PV6"
+      },
+      "pv6_current": {
+        "name": "Courant PV6"
+      },
+      "pv6_power": {
+        "name": "Puissance PV6"
+      },
+      "pv6_energy_today": {
+        "name": "Énergie PV6 du jour"
+      },
+      "pv6_energy_total": {
+        "name": "Énergie PV6 totale"
+      }
+    },
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Micro-onduleur en ligne"
+      },
+      "inverter_alarm": {
+        "name": "Alarme de l’onduleur"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Actualiser les données"
+      }
+    }
+  }
 }

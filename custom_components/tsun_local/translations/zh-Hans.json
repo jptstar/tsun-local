@@ -23,7 +23,8 @@
         "data": {
           "host": "IP 地址",
           "port": "端口",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "协议检测"
         }
       },
       "discover": {
@@ -49,7 +50,8 @@
       "cannot_detect_logger_sn": "自动检测失败。请输入本地状态页面上 Device serial number 字段显示的数字 SN，或设备铭牌上的编号。",
       "invalid_network": "请输入 /24 到 /32 之间的有效 IPv4 子网",
       "invalid_response": "设备返回了无效响应",
-      "no_devices_found": "在此子网和端口上未找到接受本地连接的设备"
+      "no_devices_found": "在此子网和端口上未找到接受本地连接的设备",
+      "unknown_firmware": "记录器固件未知。请在手动设置中选择强制协议检测，以明确测试受支持的协议。"
     },
     "abort": {
       "already_configured": "此微型逆变器已配置",
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "微型逆变器 SN"},
-      "logger_firmware_version": {"name": "Logger 固件版本"},
-      "logger_mac_address": {"name": "Logger MAC 地址"},
-      "alarm_global_0_raw": {"name": "全局报警原始值 0"}, "alarm_global_1_raw": {"name": "全局报警原始值 1"}, "alarm_global_2_raw": {"name": "全局报警原始值 2"}, "alarm_global_3_raw": {"name": "全局报警原始值 3"},
-      "alarm_secondary_0_raw": {"name": "次级报警原始值 0"}, "alarm_secondary_1_raw": {"name": "次级报警原始值 1"}, "alarm_secondary_2_raw": {"name": "次级报警原始值 2"}, "alarm_secondary_3_raw": {"name": "次级报警原始值 3"},
-      "alarm_code_1_raw": {"name": "报警代码原始值 1"}, "alarm_code_2_raw": {"name": "报警代码原始值 2"}, "alarm_code_3_raw": {"name": "报警代码原始值 3"}, "alarm_code_4_raw": {"name": "报警代码原始值 4"},
-      "pv1_alarm_raw": {"name": "PV1 报警原始值"}, "pv2_alarm_raw": {"name": "PV2 报警原始值"}, "pv3_alarm_raw": {"name": "PV3 报警原始值"}, "pv4_alarm_raw": {"name": "PV4 报警原始值"}, "pv5_alarm_raw": {"name": "PV5 报警原始值"}, "pv6_alarm_raw": {"name": "PV6 报警原始值"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "微型逆变器 SN"
+      },
+      "logger_firmware_version": {
+        "name": "Logger 固件版本"
+      },
+      "logger_mac_address": {
+        "name": "Logger MAC 地址"
+      },
+      "alarm_global_0_raw": {
+        "name": "全局报警原始值 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "全局报警原始值 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "全局报警原始值 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "全局报警原始值 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "次级报警原始值 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "次级报警原始值 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "次级报警原始值 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "次级报警原始值 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "报警代码原始值 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "报警代码原始值 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "报警代码原始值 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "报警代码原始值 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "PV1 报警原始值"
+      },
+      "pv2_alarm_raw": {
+        "name": "PV2 报警原始值"
+      },
+      "pv3_alarm_raw": {
+        "name": "PV3 报警原始值"
+      },
+      "pv4_alarm_raw": {
+        "name": "PV4 报警原始值"
+      },
+      "pv5_alarm_raw": {
+        "name": "PV5 报警原始值"
+      },
+      "pv6_alarm_raw": {
+        "name": "PV6 报警原始值"
+      },
       "ac_voltage": {
         "name": "交流电压"
       },

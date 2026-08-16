@@ -23,7 +23,8 @@
         "data": {
           "host": "Dirección IP",
           "port": "Puerto",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "Detección de protocolo"
         }
       },
       "discover": {
@@ -49,7 +50,8 @@
       "cannot_detect_logger_sn": "La detección automática ha fallado. Introduce el SN numérico que aparece como Device serial number en la página de estado local o en la etiqueta del dispositivo.",
       "invalid_network": "Introduce una subred IPv4 válida entre /24 y /32",
       "invalid_response": "El dispositivo ha devuelto una respuesta no válida",
-      "no_devices_found": "No se encontró ningún dispositivo con conexión local en esta subred y puerto"
+      "no_devices_found": "No se encontró ningún dispositivo con conexión local en esta subred y puerto",
+      "unknown_firmware": "El firmware del logger es desconocido. Elija forzar la detección del protocolo en la configuración manual para probar explícitamente los protocolos compatibles."
     },
     "abort": {
       "already_configured": "Este microinversor ya está configurado",
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "SN del microinversor"},
-      "logger_firmware_version": {"name": "Versión de firmware del logger"},
-      "logger_mac_address": {"name": "Dirección MAC del logger"},
-      "alarm_global_0_raw": {"name": "Alarma global (valor bruto) 0"}, "alarm_global_1_raw": {"name": "Alarma global (valor bruto) 1"}, "alarm_global_2_raw": {"name": "Alarma global (valor bruto) 2"}, "alarm_global_3_raw": {"name": "Alarma global (valor bruto) 3"},
-      "alarm_secondary_0_raw": {"name": "Alarma secundaria (valor bruto) 0"}, "alarm_secondary_1_raw": {"name": "Alarma secundaria (valor bruto) 1"}, "alarm_secondary_2_raw": {"name": "Alarma secundaria (valor bruto) 2"}, "alarm_secondary_3_raw": {"name": "Alarma secundaria (valor bruto) 3"},
-      "alarm_code_1_raw": {"name": "Código de alarma (valor bruto) 1"}, "alarm_code_2_raw": {"name": "Código de alarma (valor bruto) 2"}, "alarm_code_3_raw": {"name": "Código de alarma (valor bruto) 3"}, "alarm_code_4_raw": {"name": "Código de alarma (valor bruto) 4"},
-      "pv1_alarm_raw": {"name": "Alarma PV1 (valor bruto)"}, "pv2_alarm_raw": {"name": "Alarma PV2 (valor bruto)"}, "pv3_alarm_raw": {"name": "Alarma PV3 (valor bruto)"}, "pv4_alarm_raw": {"name": "Alarma PV4 (valor bruto)"}, "pv5_alarm_raw": {"name": "Alarma PV5 (valor bruto)"}, "pv6_alarm_raw": {"name": "Alarma PV6 (valor bruto)"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN del microinversor"
+      },
+      "logger_firmware_version": {
+        "name": "Versión de firmware del logger"
+      },
+      "logger_mac_address": {
+        "name": "Dirección MAC del logger"
+      },
+      "alarm_global_0_raw": {
+        "name": "Alarma global (valor bruto) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Alarma global (valor bruto) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Alarma global (valor bruto) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Alarma global (valor bruto) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Alarma secundaria (valor bruto) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Alarma secundaria (valor bruto) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Alarma secundaria (valor bruto) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Alarma secundaria (valor bruto) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Código de alarma (valor bruto) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Código de alarma (valor bruto) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Código de alarma (valor bruto) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Código de alarma (valor bruto) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "Alarma PV1 (valor bruto)"
+      },
+      "pv2_alarm_raw": {
+        "name": "Alarma PV2 (valor bruto)"
+      },
+      "pv3_alarm_raw": {
+        "name": "Alarma PV3 (valor bruto)"
+      },
+      "pv4_alarm_raw": {
+        "name": "Alarma PV4 (valor bruto)"
+      },
+      "pv5_alarm_raw": {
+        "name": "Alarma PV5 (valor bruto)"
+      },
+      "pv6_alarm_raw": {
+        "name": "Alarma PV6 (valor bruto)"
+      },
       "ac_voltage": {
         "name": "Tensión CA"
       },

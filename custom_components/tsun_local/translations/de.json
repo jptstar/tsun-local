@@ -23,7 +23,8 @@
         "data": {
           "host": "IP-Adresse",
           "port": "Port",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "Protokollerkennung"
         }
       },
       "discover": {
@@ -49,7 +50,8 @@
       "cannot_detect_logger_sn": "Die automatische Erkennung ist fehlgeschlagen. Gib die numerische SN ein, die auf der lokalen Statusseite als Device serial number angezeigt wird oder auf dem Gerät steht.",
       "invalid_network": "Gib ein gültiges IPv4-Subnetz zwischen /24 und /32 ein",
       "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet",
-      "no_devices_found": "In diesem Subnetz und an diesem Port wurde kein Gerät mit lokaler Verbindung gefunden"
+      "no_devices_found": "In diesem Subnetz und an diesem Port wurde kein Gerät mit lokaler Verbindung gefunden",
+      "unknown_firmware": "Die Logger-Firmware ist unbekannt. Wählen Sie in der manuellen Einrichtung die erzwungene Protokollerkennung, um die unterstützten Protokolle gezielt zu testen."
     },
     "abort": {
       "already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert",
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "SN des Mikrowechselrichters"},
-      "logger_firmware_version": {"name": "Logger-Firmwareversion"},
-      "logger_mac_address": {"name": "MAC-Adresse des Loggers"},
-      "alarm_global_0_raw": {"name": "Globalalarm (Rohwert) 0"}, "alarm_global_1_raw": {"name": "Globalalarm (Rohwert) 1"}, "alarm_global_2_raw": {"name": "Globalalarm (Rohwert) 2"}, "alarm_global_3_raw": {"name": "Globalalarm (Rohwert) 3"},
-      "alarm_secondary_0_raw": {"name": "Sekundäralarm (Rohwert) 0"}, "alarm_secondary_1_raw": {"name": "Sekundäralarm (Rohwert) 1"}, "alarm_secondary_2_raw": {"name": "Sekundäralarm (Rohwert) 2"}, "alarm_secondary_3_raw": {"name": "Sekundäralarm (Rohwert) 3"},
-      "alarm_code_1_raw": {"name": "Alarmcode (Rohwert) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (Rohwert) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (Rohwert) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (Rohwert) 4"},
-      "pv1_alarm_raw": {"name": "PV1-Alarm (Rohwert)"}, "pv2_alarm_raw": {"name": "PV2-Alarm (Rohwert)"}, "pv3_alarm_raw": {"name": "PV3-Alarm (Rohwert)"}, "pv4_alarm_raw": {"name": "PV4-Alarm (Rohwert)"}, "pv5_alarm_raw": {"name": "PV5-Alarm (Rohwert)"}, "pv6_alarm_raw": {"name": "PV6-Alarm (Rohwert)"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN des Mikrowechselrichters"
+      },
+      "logger_firmware_version": {
+        "name": "Logger-Firmwareversion"
+      },
+      "logger_mac_address": {
+        "name": "MAC-Adresse des Loggers"
+      },
+      "alarm_global_0_raw": {
+        "name": "Globalalarm (Rohwert) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Globalalarm (Rohwert) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Globalalarm (Rohwert) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Globalalarm (Rohwert) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Sekundäralarm (Rohwert) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Sekundäralarm (Rohwert) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Sekundäralarm (Rohwert) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Sekundäralarm (Rohwert) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Alarmcode (Rohwert) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Alarmcode (Rohwert) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Alarmcode (Rohwert) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Alarmcode (Rohwert) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "PV1-Alarm (Rohwert)"
+      },
+      "pv2_alarm_raw": {
+        "name": "PV2-Alarm (Rohwert)"
+      },
+      "pv3_alarm_raw": {
+        "name": "PV3-Alarm (Rohwert)"
+      },
+      "pv4_alarm_raw": {
+        "name": "PV4-Alarm (Rohwert)"
+      },
+      "pv5_alarm_raw": {
+        "name": "PV5-Alarm (Rohwert)"
+      },
+      "pv6_alarm_raw": {
+        "name": "PV6-Alarm (Rohwert)"
+      },
       "ac_voltage": {
         "name": "AC-Spannung"
       },

@@ -23,7 +23,8 @@
         "data": {
           "host": "IP-adres",
           "port": "Poort",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "Protocoldetectie"
         }
       },
       "discover": {
@@ -49,7 +50,8 @@
       "cannot_detect_logger_sn": "Automatische detectie is mislukt. Voer de numerieke SN in die als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
       "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in",
       "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden",
-      "no_devices_found": "Er is geen apparaat met lokale verbinding gevonden op dit subnet en deze poort"
+      "no_devices_found": "Er is geen apparaat met lokale verbinding gevonden op dit subnet en deze poort",
+      "unknown_firmware": "De loggerfirmware is onbekend. Kies geforceerde protocoldetectie in de handmatige configuratie om de ondersteunde protocollen expliciet te testen."
     },
     "abort": {
       "already_configured": "Deze micro-omvormer is al geconfigureerd",
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "SN van micro-omvormer"},
-      "logger_firmware_version": {"name": "Firmwareversie van logger"},
-      "logger_mac_address": {"name": "MAC-adres van logger"},
-      "alarm_global_0_raw": {"name": "Globaal alarm (ruwe waarde) 0"}, "alarm_global_1_raw": {"name": "Globaal alarm (ruwe waarde) 1"}, "alarm_global_2_raw": {"name": "Globaal alarm (ruwe waarde) 2"}, "alarm_global_3_raw": {"name": "Globaal alarm (ruwe waarde) 3"},
-      "alarm_secondary_0_raw": {"name": "Secundair alarm (ruwe waarde) 0"}, "alarm_secondary_1_raw": {"name": "Secundair alarm (ruwe waarde) 1"}, "alarm_secondary_2_raw": {"name": "Secundair alarm (ruwe waarde) 2"}, "alarm_secondary_3_raw": {"name": "Secundair alarm (ruwe waarde) 3"},
-      "alarm_code_1_raw": {"name": "Alarmcode (ruwe waarde) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (ruwe waarde) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (ruwe waarde) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (ruwe waarde) 4"},
-      "pv1_alarm_raw": {"name": "PV1-alarm (ruwe waarde)"}, "pv2_alarm_raw": {"name": "PV2-alarm (ruwe waarde)"}, "pv3_alarm_raw": {"name": "PV3-alarm (ruwe waarde)"}, "pv4_alarm_raw": {"name": "PV4-alarm (ruwe waarde)"}, "pv5_alarm_raw": {"name": "PV5-alarm (ruwe waarde)"}, "pv6_alarm_raw": {"name": "PV6-alarm (ruwe waarde)"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN van micro-omvormer"
+      },
+      "logger_firmware_version": {
+        "name": "Firmwareversie van logger"
+      },
+      "logger_mac_address": {
+        "name": "MAC-adres van logger"
+      },
+      "alarm_global_0_raw": {
+        "name": "Globaal alarm (ruwe waarde) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Globaal alarm (ruwe waarde) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Globaal alarm (ruwe waarde) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Globaal alarm (ruwe waarde) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Secundair alarm (ruwe waarde) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Secundair alarm (ruwe waarde) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Secundair alarm (ruwe waarde) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Secundair alarm (ruwe waarde) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Alarmcode (ruwe waarde) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Alarmcode (ruwe waarde) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Alarmcode (ruwe waarde) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Alarmcode (ruwe waarde) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "PV1-alarm (ruwe waarde)"
+      },
+      "pv2_alarm_raw": {
+        "name": "PV2-alarm (ruwe waarde)"
+      },
+      "pv3_alarm_raw": {
+        "name": "PV3-alarm (ruwe waarde)"
+      },
+      "pv4_alarm_raw": {
+        "name": "PV4-alarm (ruwe waarde)"
+      },
+      "pv5_alarm_raw": {
+        "name": "PV5-alarm (ruwe waarde)"
+      },
+      "pv6_alarm_raw": {
+        "name": "PV6-alarm (ruwe waarde)"
+      },
       "ac_voltage": {
         "name": "AC-spanning"
       },

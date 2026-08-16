@@ -17,6 +17,7 @@ from .const import (
     CONF_LOGGER_MAC_ADDRESS,
     CONF_LOGGER_SN,
 )
+from .protocols import protocol_from_firmware
 
 TO_REDACT = {
     CONF_HOST,
@@ -31,6 +32,10 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics with the network address and logger number redacted."""
     coordinator = entry.runtime_data
+    firmware_version = coordinator.data.get("logger_firmware_version")
+    firmware_protocol_hint = protocol_from_firmware(
+        str(firmware_version) if firmware_version is not None else None
+    )
     measurements = {
         key: value
         for key, value in (coordinator.data or {}).items()
@@ -46,9 +51,14 @@ async def async_get_config_entry_diagnostics(
             "model_family": coordinator.client.model,
             "protocol": coordinator.client.protocol_name,
             "pv_count": coordinator.client.pv_count,
+            "pv_count_strategy": "progressive_highest_observed_input",
             "measurement_keys": sorted(coordinator.client.measurement_keys),
-            "logger_firmware_version": coordinator.data.get(
-                "logger_firmware_version"
+            "logger_firmware_version": firmware_version,
+            "firmware_protocol_hint": firmware_protocol_hint,
+            "firmware_protocol_matches_selected": (
+                firmware_protocol_hint == coordinator.client.protocol_name
+                if firmware_protocol_hint is not None
+                else None
             ),
         },
         "communication": coordinator.diagnostic_summary,

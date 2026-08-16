@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0-beta.3] - 2026-08-16
+
+### Added
+
+- firmware-guided protocol selection for logger firmware names containing `1511`, `02B0`, or `1097`;
+- a manual **Force protocol probing** mode plus direct `1511`, `1097`, and `02B0` choices for controlled compatibility testing;
+- diagnostics showing the firmware protocol hint and whether it matches the selected adapter.
+
+### Changed
+
+- automatic network discovery now filters generic port-8899 devices and proposes only candidates whose local logger firmware contains a supported TSUN protocol token;
+- 1511 PV inputs are added progressively from observed live or accumulated telemetry instead of assuming six inputs for every TITAN device;
+- 1097 PV detection keeps the highest observed input and no longer defaults an all-zero device to six PV inputs;
+- manual setup remains available when a logger firmware is unknown or its local web page is unavailable.
+
+### Safety
+
+- discovery and firmware identification use read-only HTTP GET requests only;
+- no inverter control or configuration write has been added.
+
 ## [1.3.3] - 2026-08-12
 
 ### Changed

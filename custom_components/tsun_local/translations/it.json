@@ -23,7 +23,8 @@
         "data": {
           "host": "Indirizzo IP",
           "port": "Porta",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "Rilevamento protocollo"
         }
       },
       "discover": {
@@ -49,7 +50,8 @@
       "cannot_detect_logger_sn": "Il rilevamento automatico non è riuscito. Inserisci il SN numerico mostrato come Device serial number nella pagina di stato locale o sull'etichetta del dispositivo.",
       "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32",
       "invalid_response": "Il dispositivo ha restituito una risposta non valida",
-      "no_devices_found": "Nessun dispositivo con connessione locale è stato trovato in questa sottorete e porta"
+      "no_devices_found": "Nessun dispositivo con connessione locale è stato trovato in questa sottorete e porta",
+      "unknown_firmware": "Il firmware del logger è sconosciuto. Scegli il rilevamento forzato del protocollo nella configurazione manuale per provare esplicitamente i protocolli supportati."
     },
     "abort": {
       "already_configured": "Questo microinverter è già configurato",
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "SN del microinverter"},
-      "logger_firmware_version": {"name": "Versione firmware del logger"},
-      "logger_mac_address": {"name": "Indirizzo MAC del logger"},
-      "alarm_global_0_raw": {"name": "Allarme globale (valore grezzo) 0"}, "alarm_global_1_raw": {"name": "Allarme globale (valore grezzo) 1"}, "alarm_global_2_raw": {"name": "Allarme globale (valore grezzo) 2"}, "alarm_global_3_raw": {"name": "Allarme globale (valore grezzo) 3"},
-      "alarm_secondary_0_raw": {"name": "Allarme secondario (valore grezzo) 0"}, "alarm_secondary_1_raw": {"name": "Allarme secondario (valore grezzo) 1"}, "alarm_secondary_2_raw": {"name": "Allarme secondario (valore grezzo) 2"}, "alarm_secondary_3_raw": {"name": "Allarme secondario (valore grezzo) 3"},
-      "alarm_code_1_raw": {"name": "Codice allarme (valore grezzo) 1"}, "alarm_code_2_raw": {"name": "Codice allarme (valore grezzo) 2"}, "alarm_code_3_raw": {"name": "Codice allarme (valore grezzo) 3"}, "alarm_code_4_raw": {"name": "Codice allarme (valore grezzo) 4"},
-      "pv1_alarm_raw": {"name": "Allarme PV1 (valore grezzo)"}, "pv2_alarm_raw": {"name": "Allarme PV2 (valore grezzo)"}, "pv3_alarm_raw": {"name": "Allarme PV3 (valore grezzo)"}, "pv4_alarm_raw": {"name": "Allarme PV4 (valore grezzo)"}, "pv5_alarm_raw": {"name": "Allarme PV5 (valore grezzo)"}, "pv6_alarm_raw": {"name": "Allarme PV6 (valore grezzo)"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN del microinverter"
+      },
+      "logger_firmware_version": {
+        "name": "Versione firmware del logger"
+      },
+      "logger_mac_address": {
+        "name": "Indirizzo MAC del logger"
+      },
+      "alarm_global_0_raw": {
+        "name": "Allarme globale (valore grezzo) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Allarme globale (valore grezzo) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Allarme globale (valore grezzo) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Allarme globale (valore grezzo) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Allarme secondario (valore grezzo) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Allarme secondario (valore grezzo) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Allarme secondario (valore grezzo) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Allarme secondario (valore grezzo) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Codice allarme (valore grezzo) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Codice allarme (valore grezzo) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Codice allarme (valore grezzo) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Codice allarme (valore grezzo) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "Allarme PV1 (valore grezzo)"
+      },
+      "pv2_alarm_raw": {
+        "name": "Allarme PV2 (valore grezzo)"
+      },
+      "pv3_alarm_raw": {
+        "name": "Allarme PV3 (valore grezzo)"
+      },
+      "pv4_alarm_raw": {
+        "name": "Allarme PV4 (valore grezzo)"
+      },
+      "pv5_alarm_raw": {
+        "name": "Allarme PV5 (valore grezzo)"
+      },
+      "pv6_alarm_raw": {
+        "name": "Allarme PV6 (valore grezzo)"
+      },
       "ac_voltage": {
         "name": "Tensione AC"
       },

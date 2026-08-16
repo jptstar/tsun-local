@@ -10,7 +10,7 @@ from ipaddress import IPv4Address, IPv4Network
 from pathlib import Path
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 
 PROTOCOLS_PATH = (
@@ -45,6 +45,9 @@ from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402
     decode_measurements as decode_02b0,
     detect_pv_count as detect_02b0_pv_count,
     parse_modbus_response,
+)
+from tsun_local_protocol_tests.protocol_1097 import (  # noqa: E402
+    detect_pv_count as detect_1097_pv_count,
 )
 from tsun_local_protocol_tests.protocol_1511 import (  # noqa: E402
     ALARM_BLOCKS as BLOCKS_1511_ALARM,
@@ -235,8 +238,9 @@ class Protocol1511Tests(unittest.TestCase):
     def test_exposes_only_1511_alarm_entities(self) -> None:
         client = Tsun1511Client("192.0.2.10", 8899, 123456)
         keys = client.measurement_keys
-        self.assertEqual(client.pv_count, 6)
-        self.assertIn("pv6_power", keys)
+        self.assertEqual(client.pv_count, 1)
+        self.assertIn("pv1_power", keys)
+        self.assertNotIn("pv6_power", keys)
         self.assertIn("alarm_global_0_raw", keys)
         self.assertIn("alarm_secondary_0_raw", keys)
         self.assertIn("pv1_alarm_raw", keys)
@@ -247,6 +251,7 @@ class Protocol1511Tests(unittest.TestCase):
         self.assertEqual(detect_1511_pv_count({}), 1)
         self.assertEqual(detect_1511_pv_count({0x0EF2: 1}), 5)
         self.assertEqual(detect_1511_pv_count({0x0EF4: 0xFFFF}), 1)
+        self.assertEqual(detect_1511_pv_count({0x0EF4: 1}), 6)
 
     def test_exposes_raw_alarm_words_and_active_state(self) -> None:
         registers = {
@@ -339,9 +344,20 @@ class Protocol1511ClientTests(unittest.IsolatedAsyncioTestCase):
             result = await client.async_read_all()
 
         self.assertEqual(result.blocks_ok, 4)
-        self.assertEqual(client.pv_count, 6)
-        self.assertIn("pv6_power", result.measurements)
-        self.assertIn("pv6_energy_total", result.measurements)
+        self.assertEqual(client.pv_count, 1)
+        self.assertIn("pv1_power", result.measurements)
+        self.assertNotIn("pv6_power", result.measurements)
+
+
+class Protocol1097DetectionTests(unittest.TestCase):
+    """Verify 1097 PV detection never invents six inputs."""
+
+    def test_zero_registers_do_not_default_to_six(self) -> None:
+        self.assertEqual(detect_1097_pv_count({}), 0)
+
+    def test_detects_highest_observed_channel(self) -> None:
+        self.assertEqual(detect_1097_pv_count({0x1302 + (3 * 7): 1}), 4)
+        self.assertEqual(detect_1097_pv_count({0x1302 + (5 * 7): 0xFFFF}), 0)
 
 
 class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
@@ -383,21 +399,60 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
 
         def create_client(protocol_name: str, *_args):
             attempts.append(protocol_name)
-            if protocol_name == "1511":
-                return FakeClient("1511", False)
+            if protocol_name in {"1511", "1097"}:
+                return FakeClient(protocol_name, False)
             return working_client
 
-        with patch.object(
-            PROTOCOLS, "_create_specific_client", new=create_client
+        with (
+            patch.object(
+                PROTOCOLS,
+                "async_detect_protocol_from_firmware",
+                new=AsyncMock(return_value=None),
+            ),
+            patch.object(
+                PROTOCOLS, "_create_specific_client", new=create_client
+            ),
         ):
             client = PROTOCOLS.TsunAutoClient("192.0.2.10", 8899, 123456)
             await client.async_read_all()
             await client.async_read_all()
 
-        self.assertEqual(attempts, ["1511", "02b0"])
+        self.assertEqual(attempts, ["1511", "1097", "02b0"])
         self.assertEqual(client.protocol_name, "02b0")
         self.assertEqual(working_client.reads, 2)
         self.assertEqual(client.diagnostic_trace[0]["protocol"], "1511")
+
+    def test_extracts_protocol_from_known_firmware_names(self) -> None:
+        self.assertEqual(PROTOCOLS.protocol_from_firmware("LSW5_SSL_1511_1.03"), "1511")
+        self.assertEqual(PROTOCOLS.protocol_from_firmware("LSW5BLE_17_02B0_1.08-D1"), "02b0")
+        self.assertEqual(PROTOCOLS.protocol_from_firmware("LOGGER_1097_TEST"), "1097")
+        self.assertIsNone(PROTOCOLS.protocol_from_firmware("LSW3_15_FFFF_1.0.9E"))
+
+    async def test_firmware_hint_prevents_blind_protocol_probing(self) -> None:
+        attempts: list[str] = []
+
+        class FakeClient:
+            model = "Test"
+            protocol_name = "02b0"
+            pv_count = 1
+            measurement_keys = frozenset({"ac_power"})
+            diagnostic_trace = ()
+
+            async def async_read_all(self):
+                return PROTOCOLS.TsunReadResult(measurements={"ac_power": 1}, duration_ms=1, blocks_ok=1)
+
+        def create_client(protocol_name: str, *_args):
+            attempts.append(protocol_name)
+            return FakeClient()
+
+        with (
+            patch.object(PROTOCOLS, "async_detect_protocol_from_firmware", new=AsyncMock(return_value="02b0")),
+            patch.object(PROTOCOLS, "_create_specific_client", new=create_client),
+        ):
+            client = PROTOCOLS.TsunAutoClient("192.0.2.10", 8899, 123456)
+            await client.async_read_all()
+
+        self.assertEqual(attempts, ["02b0"])
 
 
 class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
@@ -451,16 +506,26 @@ class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(hosts, [IPv4Address("198.51.100.7")])
             return ["198.51.100.7"]
 
+        async def identify_firmware(host: str) -> str | None:
+            return "1511" if host == "192.0.2.10" else None
+
         with (
             patch.object(DISCOVERY, "async_discover_udp", new=discover_udp),
             patch.object(DISCOVERY, "async_scan_networks", new=scan_networks),
             patch.object(DISCOVERY, "async_scan_hosts", new=scan_hosts),
+            patch.object(DISCOVERY, "async_identify_tsun_firmware", new=identify_firmware),
         ):
             hosts = await DISCOVERY.async_discover_devices(
                 [IPv4Network("192.0.2.0/24")], 8899
             )
 
-        self.assertEqual(hosts, ["192.0.2.10", "198.51.100.7"])
+        self.assertEqual(hosts, ["192.0.2.10"])
+
+    def test_rejects_non_tsun_firmware_token(self) -> None:
+        self.assertEqual(DISCOVERY.protocol_from_firmware("LSW5_SSL_1511_1.03"), "1511")
+        self.assertEqual(DISCOVERY.protocol_from_firmware("LSW5BLE_17_02B0_1.08-D1"), "02b0")
+        self.assertIsNone(DISCOVERY.protocol_from_firmware("MW3_16U_5406_1.59"))
+        self.assertIsNone(DISCOVERY.protocol_from_firmware("LSW3_15_FFFF_1.0.9E"))
 
     async def test_finds_only_host_with_open_port(self) -> None:
         class FakeWriter:

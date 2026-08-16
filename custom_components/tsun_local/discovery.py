@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv4Network, ip_network
+import re
 
 
 DISCOVERY_CONCURRENCY = 128
@@ -20,6 +22,100 @@ UDP_DISCOVERY_MESSAGES = (
     b"devicelinkfind",
 )
 MIN_DISCOVERY_PREFIX = 24
+FIRMWARE_HTTP_TIMEOUT = 1.5
+FIRMWARE_PAGE_LIMIT = 256 * 1024
+FIRMWARE_STATUS_PATHS = ("/status.html", "/index_cn.html", "/index.html", "/")
+_FIRMWARE_VALUE_PATTERNS = (
+    re.compile(
+        r"\b(?:webdata|cover)[_-]ver\s*[:=]\s*[\"']"
+        r"([A-Za-z0-9][A-Za-z0-9._-]{1,79})",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"firmware\s*version[^A-Za-z0-9]+"
+        r"([A-Za-z0-9][A-Za-z0-9._-]{1,79})",
+        re.IGNORECASE,
+    ),
+)
+_FIRMWARE_PROTOCOL_TOKEN = re.compile(
+    r"(?:^|[_-])(1511|1097|02b0)(?=[_-]|$)",
+    re.IGNORECASE,
+)
+
+
+def protocol_from_firmware(firmware_version: str | None) -> str | None:
+    """Return a supported TSUN protocol token from a firmware version."""
+    if not firmware_version:
+        return None
+    match = _FIRMWARE_PROTOCOL_TOKEN.search(firmware_version)
+    if match is None:
+        return None
+    return match.group(1).lower()
+
+
+def _firmware_version_from_document(document: str) -> str | None:
+    """Extract the firmware version from a logger status document."""
+    for pattern in _FIRMWARE_VALUE_PATTERNS:
+        if match := pattern.search(document):
+            return match.group(1)
+    return None
+
+
+async def _async_read_status_document(
+    host: str, path: str, *, authenticated: bool
+) -> str | None:
+    """Read a local logger page using GET only."""
+    writer: asyncio.StreamWriter | None = None
+    try:
+        async with asyncio.timeout(FIRMWARE_HTTP_TIMEOUT):
+            reader, writer = await asyncio.open_connection(host, 80)
+            headers = [
+                f"GET {path} HTTP/1.1",
+                f"Host: {host}",
+                "Connection: close",
+                "User-Agent: TSUN-Local-Discovery",
+            ]
+            if authenticated:
+                token = base64.b64encode(b"admin:admin").decode("ascii")
+                headers.append(f"Authorization: Basic {token}")
+            writer.write(
+                ("\r\n".join(headers) + "\r\n\r\n").encode("ascii")
+            )
+            await writer.drain()
+            response = await reader.read(FIRMWARE_PAGE_LIMIT + 1)
+    except (OSError, TimeoutError, asyncio.IncompleteReadError):
+        return None
+    finally:
+        if writer is not None:
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
+
+    if len(response) > FIRMWARE_PAGE_LIMIT:
+        return None
+    header, separator, body = response.partition(b"\r\n\r\n")
+    if not separator:
+        return None
+    if b" 200 " not in header.split(b"\r\n", 1)[0]:
+        return None
+    return body.decode("utf-8", errors="replace")
+
+
+async def async_identify_tsun_firmware(host: str) -> str | None:
+    """Return the firmware-selected protocol for a recognized TSUN candidate."""
+    for path in FIRMWARE_STATUS_PATHS:
+        for authenticated in (False, True):
+            document = await _async_read_status_document(
+                host, path, authenticated=authenticated
+            )
+            if document is None:
+                continue
+            firmware_version = _firmware_version_from_document(document)
+            if protocol_name := protocol_from_firmware(firmware_version):
+                return protocol_name
+    return None
 
 
 def bounded_ipv4_network(
@@ -195,4 +291,17 @@ async def async_discover_devices(
     ]
     if unvalidated:
         tcp_hosts.update(await async_scan_hosts(unvalidated, port))
-    return sorted(tcp_hosts, key=IPv4Address)
+
+    # Other Solarman-based equipment can expose the same TCP port. Automatic
+    # discovery proposes only candidates with a supported protocol token in
+    # the local logger firmware. Unknown devices remain available to manual
+    # setup, where the user can explicitly force protocol probing.
+    candidates = sorted(tcp_hosts, key=IPv4Address)
+    identified_protocols = await asyncio.gather(
+        *(async_identify_tsun_firmware(host) for host in candidates)
+    )
+    return [
+        host
+        for host, protocol_name in zip(candidates, identified_protocols)
+        if protocol_name is not None
+    ]

@@ -61,7 +61,12 @@ from .discovery import (
     parse_discovery_network,
 )
 from .logger_web import async_read_logger_web_data
-from .protocols import DEFAULT_PROTOCOL, create_protocol_client
+from .protocols import (
+    DEFAULT_PROTOCOL,
+    SUPPORTED_PROTOCOLS,
+    create_protocol_client,
+    protocol_from_firmware,
+)
 
 
 _CONTEXT_CONTINUE_DISCOVERY = "tsun_continue_discovery"
@@ -69,6 +74,7 @@ _CONTEXT_DISCOVERY_NETWORKS = "tsun_discovery_networks"
 _CONTEXT_DISCOVERY_PORT = "tsun_discovery_port"
 _CONTEXT_EXCLUDED_HOSTS = "tsun_excluded_hosts"
 _SOURCE_CONTINUE_DISCOVERY = "tsun_continue_discovery"
+_FORCE_PROTOCOL_DETECTION = "force"
 
 
 async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
@@ -88,6 +94,7 @@ def _connection_schema(
     port: int = DEFAULT_PORT,
     *,
     request_logger_sn: bool = False,
+    protocol_selector: bool = False,
 ) -> vol.Schema:
     """Build a manual or discovery-assisted connection form."""
     host_field: Any = str
@@ -107,6 +114,31 @@ def _connection_schema(
             vol.Coerce(int), vol.Range(min=1, max=65535)
         ),
     }
+    if protocol_selector:
+        schema[vol.Required(CONF_PROTOCOL, default=DEFAULT_PROTOCOL)] = (
+            SelectSelector(
+                SelectSelectorConfig(
+                    options=[
+                        SelectOptionDict(
+                            value=DEFAULT_PROTOCOL,
+                            label="Automatic (firmware)",
+                        ),
+                        SelectOptionDict(
+                            value=_FORCE_PROTOCOL_DETECTION,
+                            label="Force protocol probing",
+                        ),
+                        *(
+                            SelectOptionDict(
+                                value=protocol_name,
+                                label=protocol_name.upper(),
+                            )
+                            for protocol_name in SUPPORTED_PROTOCOLS
+                        ),
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            )
+        )
     if request_logger_sn:
         schema[vol.Required(CONF_LOGGER_SN)] = vol.All(
             vol.Coerce(int), vol.Range(min=1, max=0xFFFFFFFF)
@@ -293,6 +325,9 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult | str:
         """Validate a device and return an entry or a translated error key."""
         entry_input = dict(user_input)
+        detection_mode = str(
+            entry_input.pop(CONF_PROTOCOL, DEFAULT_PROTOCOL)
+        ).lower()
         automatically_detected = CONF_LOGGER_SN not in entry_input
         if automatically_detected:
             logger_data = await async_read_logger_web_data(
@@ -309,6 +344,18 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return "cannot_detect_logger_sn"
             entry_input[CONF_LOGGER_SN] = logger_sn
             self._detected_logger_sn = logger_sn
+
+        if detection_mode == _FORCE_PROTOCOL_DETECTION:
+            entry_input[CONF_PROTOCOL] = DEFAULT_PROTOCOL
+        elif detection_mode in SUPPORTED_PROTOCOLS:
+            entry_input[CONF_PROTOCOL] = detection_mode
+        else:
+            firmware_protocol = protocol_from_firmware(
+                self._logger_firmware_version
+            )
+            if firmware_protocol is None:
+                return "unknown_firmware"
+            entry_input[CONF_PROTOCOL] = firmware_protocol
 
         try:
             detected_protocol = await _validate_input(self.hass, entry_input)
@@ -404,7 +451,8 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="manual",
             data_schema=self.add_suggested_values_to_schema(
                 _connection_schema(
-                    request_logger_sn=self._logger_sn_required
+                    request_logger_sn=self._logger_sn_required,
+                    protocol_selector=True,
                 ),
                 {
                     **(

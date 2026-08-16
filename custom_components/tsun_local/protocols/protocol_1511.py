@@ -20,7 +20,7 @@ from .ap import (
 
 PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
-PV_COUNT = 6
+MAX_PV_COUNT = 6
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ def detect_pv_count(registers: dict[int, int]) -> int:
 
 
 def decode_measurements(
-    registers: dict[int, int], pv_count: int = 6
+    registers: dict[int, int], pv_count: int = 1
 ) -> dict[str, float | int]:
     """Decode the validated AC and PV register map."""
     data: dict[str, float | int] = {
@@ -215,10 +215,9 @@ class Tsun1511Client:
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
-        # The validated TITAN register map always defines PV1 through PV6.
-        # Expose all six inputs even when their live values are zero or the
-        # inverter is first loaded while unpowered at night.
-        self._pv_count = PV_COUNT
+        # Start conservatively with PV1. Additional inputs are added after
+        # they are observed in live or accumulated telemetry and never removed.
+        self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
 
     @property
@@ -335,6 +334,7 @@ class Tsun1511Client:
                 )
             else:
                 blocks_ok += 1
+        self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
         measurements.update(decode_alarms(registers, self._pv_count))
         return TsunReadResult(

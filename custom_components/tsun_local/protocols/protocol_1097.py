@@ -112,26 +112,17 @@ def _u32(registers: dict[int, int], high_address: int) -> int:
 
 
 def detect_pv_count(registers: dict[int, int]) -> int:
-    """Determine the number of available PV inputs for the 1097 map."""
-    # Register 0x1009 has been observed with value 6 on six-input hardware.
-    # Treat it as a useful hint rather than a mandatory protocol invariant.
-    count_hint = registers.get(0x1009, 0)
-    if 1 <= count_hint <= MAX_PV_COUNT:
-        return count_hint
-
-    # Fall back to the highest channel exposing any telemetry or accumulated
-    # energy. This keeps detection useful even when instantaneous PV values
-    # are zero.
+    """Return the highest PV input observed in 1097 telemetry."""
     detected = 0
     for number in range(1, MAX_PV_COUNT + 1):
         base = 0x1302 + (number - 1) * 7
         addresses = range(base, base + 7)
-        if any(registers.get(address, 0) for address in addresses):
+        if any(
+            0 < registers.get(address, 0) < 0xFFFF
+            for address in addresses
+        ):
             detected = number
-
-    # A valid 1097 response can be entirely zero at commissioning or at night.
-    # In that case expose the complete six-input map instead of rejecting it.
-    return detected or MAX_PV_COUNT
+    return detected
 
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
@@ -320,8 +311,10 @@ class Tsun1097Client:
         for block in BLOCKS:
             registers.update(await self._read_block(block))
 
-        # This is also a positive sanity check that the 1097 map answered.
-        self._pv_count = detect_pv_count(registers)
+        # Keep the highest input ever observed so entities never disappear.
+        detected_pv_count = detect_pv_count(registers)
+        if detected_pv_count:
+            self._pv_count = max(self._pv_count, detected_pv_count)
 
         measurements = decode_measurements(registers, self._pv_count)
         measurements.update(decode_alarms(registers))

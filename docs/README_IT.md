@@ -12,7 +12,7 @@
 
 **TSUN Local** integra direttamente in Home Assistant i microinverter TSUN compatibili **attraverso la rete locale, senza proxy né servizi cloud**.
 
-La versione 1.3.3 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
+La versione 1.4.0-beta.3 supporta **TSOL-MP3000** e **MX500**, convalidati su hardware reale, oltre ad altri modelli **TITAN**, **GEN3** e **GEN3 PLUS** in attesa di convalida.
 
 **Autore: Jean-Philippe TESTART (jptstar)**
 
