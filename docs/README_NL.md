@@ -59,6 +59,8 @@ TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
 | 🛡️ **Geavanceerd** | Netbeveiliging · Omvormerdiagnostiek · Standaard uitgeschakeld |
 | 🔒 **Veiligheid** | Alleen-lezen · Geen configuratieschrijfbewerkingen naar de omvormer |
 
+📚 **[Volledige entiteitenreferentie per protocol](ENTITIES.md)** — sensoren, binaire sensoren en knoppen voor **1511, 02B0 en 1097**.
+
 ---
 
 ## Compatibiliteit
@@ -114,8 +116,6 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 
 > [!NOTE]
 > Publiek GEN3-onderzoek koppelt deze apparaten doorgaans aan de serienummerfamilie **R17 / R47**. Compatibiliteit met TSUN Local-protocol **1097** blijft experimenteel totdat deze op meer echte hardware is bevestigd.
-
-> **Communitybijdrage:** **TheSmartGerman** heeft bijgedragen aan de 1097-ondersteuning met tests op echte hardware en compatibiliteitsfeedback.
 
 | | Beschikbare data |
 |---|---|
@@ -218,9 +218,16 @@ Versie 1.4 brengt TSUN Local van afzonderlijke bekende modellen naar **compatibi
 
 De 1511- en 02B0-implementaties worden ontwikkeld via **onafhankelijke lokale protocolanalyse, observatie van echte apparaten en hardwarevalidatie**.
 
-De experimentele 1097-mapping is mede gebaseerd op openbaar protocolonderzoek van **Stefan Allius / `s-allius/tsun-gen3-proxy`** en vervolgens aangepast voor direct lokaal gebruik in TSUN Local.
-
 Compatibiliteitskandidaten worden bewust apart aangeduid van daadwerkelijk gevalideerde hardware.
+
+---
+
+## Bijdragen
+
+De experimentele **1097**-ondersteuning profiteert ook van bijdragen uit de community:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — openbaar 1097-protocolonderzoek dat de experimentele mapping van TSUN Local heeft ondersteund.
+- **TheSmartGerman** — tests op echte apparaten en compatibiliteitsfeedback voor 1097-ondersteuning.
 
 ---
 
