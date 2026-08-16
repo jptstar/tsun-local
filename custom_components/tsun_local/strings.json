@@ -282,6 +282,93 @@
       },
       "logger_wifi_signal": {
         "name": "Logger Wi-Fi signal"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "Grid overvoltage recovery voltage"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "Grid undervoltage recovery voltage"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "Grid overfrequency recovery frequency"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "Grid underfrequency recovery frequency"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "Grid undervoltage level 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "Grid undervoltage level 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "Grid undervoltage level 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "Grid undervoltage time 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "Grid undervoltage time 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "Grid undervoltage time 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "Grid overvoltage level 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "Grid overvoltage level 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "Grid overvoltage time 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "Grid overvoltage time 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "Grid underfrequency level 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "Grid underfrequency level 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "Grid underfrequency time 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "Grid underfrequency time 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "Grid overfrequency level 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "Grid overfrequency level 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "Grid overfrequency time 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "Grid overfrequency time 2"
+      },
+      "output_coefficient": {
+        "name": "Output coefficient"
+      },
+      "protocol_version": {
+        "name": "Protocol version"
+      },
+      "inverter_version": {
+        "name": "Inverter version"
+      },
+      "insulation_impedance_rx": {
+        "name": "Insulation impedance RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "Insulation impedance RY"
+      },
+      "inverter_temperature": {
+        "name": "Inverter temperature"
+      },
+      "country_profile_raw": {
+        "name": "Country/profile code"
       }
     },
     "binary_sensor": {

@@ -40,7 +40,8 @@ BLOCKS = (
 )
 
 DIAGNOSTIC_BLOCKS = (
-    # Public 1097 mapping: maximum designed power.
+    # Public 1097 mapping: country/profile code and maximum designed power.
+    (0x03, 0x1400, 0x1400),
     (0x03, 0x1437, 0x1437),
 )
 
@@ -63,6 +64,18 @@ AC_MEASUREMENT_KEYS = frozenset(
 DEVICE_DIAGNOSTIC_KEYS = frozenset(
     {"inverter_status_raw", "rated_power", "max_designed_power"}
 )
+
+ADVANCED_DIAGNOSTIC_KEYS = frozenset(
+    {
+        "protocol_version",
+        "inverter_version",
+        "insulation_impedance_rx",
+        "insulation_impedance_ry",
+        "inverter_temperature",
+        "country_profile_raw",
+    }
+)
+
 
 PV_MEASUREMENT_NAMES = (
     "voltage",
@@ -142,6 +155,7 @@ def _measurement_keys(pv_count: int) -> frozenset[str]:
     return (
         AC_MEASUREMENT_KEYS
         | DEVICE_DIAGNOSTIC_KEYS
+        | ADVANCED_DIAGNOSTIC_KEYS
         | ALARM_MEASUREMENT_KEYS
         | frozenset(
             f"pv{number}_{measurement}"
@@ -149,6 +163,34 @@ def _measurement_keys(pv_count: int) -> frozenset[str]:
             for measurement in PV_MEASUREMENT_NAMES
         )
     )
+
+
+def _decode_version(value: int) -> str:
+    """Decode the packed inverter version format."""
+    return (
+        f"V{value >> 12}.{(value >> 8) & 0xF}."
+        f"{(value >> 4) & 0xF}{value & 0xF:X}"
+    )
+
+
+def decode_advanced_diagnostics(
+    registers: dict[int, int],
+) -> dict[str, float | int | str]:
+    """Decode known experimental 1097 diagnostics."""
+    data: dict[str, float | int | str] = {}
+    if 0x100A in registers:
+        data["protocol_version"] = _decode_version(registers[0x100A])
+    if 0x100C in registers:
+        data["inverter_version"] = _decode_version(registers[0x100C])
+    if 0x1216 in registers:
+        data["insulation_impedance_rx"] = round(registers[0x1216] * 0.01, 2)
+    if 0x1217 in registers:
+        data["insulation_impedance_ry"] = round(registers[0x1217] * 0.01, 2)
+    if 0x1218 in registers:
+        data["inverter_temperature"] = registers[0x1218] - 40
+    if 0x1400 in registers:
+        data["country_profile_raw"] = registers[0x1400]
+    return data
 
 
 def decode_measurements(
@@ -358,6 +400,7 @@ class Tsun1097Client:
             self._pv_count = max(self._pv_count, detected_pv_count)
 
         measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers))
 
         return TsunReadResult(

@@ -35,8 +35,9 @@ ALARM_BLOCKS = (
 )
 
 DIAGNOSTIC_BLOCKS = (
-    # Public TSUN community mapping: maximum designed power.
     (0x03, 0x2007, 0x2007),
+    # Advanced read-only grid parameters and output coefficient.
+    (0x03, 0x2014, 0x202C),
 )
 
 ALARM_REGISTERS = (0x3003, 0x3004, 0x3005, 0x3006)
@@ -58,6 +59,61 @@ AC_MEASUREMENT_KEYS = frozenset(
 DEVICE_DIAGNOSTIC_KEYS = frozenset(
     {"inverter_status_raw", "rated_power", "max_designed_power"}
 )
+ADVANCED_GRID_KEYS = frozenset(
+    {
+        "grid_overvoltage_recovery_voltage",
+        "grid_undervoltage_recovery_voltage",
+        "grid_overfrequency_recovery_frequency",
+        "grid_underfrequency_recovery_frequency",
+        "grid_undervoltage_level_1",
+        "grid_undervoltage_level_2",
+        "grid_undervoltage_time_1",
+        "grid_undervoltage_time_2",
+        "grid_overvoltage_level_1",
+        "grid_overvoltage_level_2",
+        "grid_overvoltage_time_1",
+        "grid_overvoltage_time_2",
+        "grid_underfrequency_level_1",
+        "grid_underfrequency_level_2",
+        "grid_underfrequency_time_1",
+        "grid_underfrequency_time_2",
+        "grid_overfrequency_level_1",
+        "grid_overfrequency_level_2",
+        "grid_overfrequency_time_1",
+        "grid_overfrequency_time_2",
+        "grid_undervoltage_level_3",
+        "grid_undervoltage_time_3",
+        "output_coefficient",
+    }
+)
+
+ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
+    "grid_overvoltage_recovery_voltage": (0x2014, 0.1),
+    "grid_undervoltage_recovery_voltage": (0x2015, 0.1),
+    "grid_overfrequency_recovery_frequency": (0x2016, 0.01),
+    "grid_underfrequency_recovery_frequency": (0x2017, 0.01),
+    "grid_undervoltage_level_1": (0x2019, 0.1),
+    "grid_undervoltage_level_2": (0x201A, 0.1),
+    "grid_undervoltage_time_1": (0x201B, 0.02),
+    "grid_undervoltage_time_2": (0x201C, 0.02),
+    "grid_overvoltage_level_1": (0x201D, 0.1),
+    "grid_overvoltage_level_2": (0x201E, 0.1),
+    "grid_overvoltage_time_1": (0x201F, 0.02),
+    "grid_overvoltage_time_2": (0x2020, 0.02),
+    "grid_underfrequency_level_1": (0x2022, 0.01),
+    "grid_underfrequency_level_2": (0x2023, 0.01),
+    "grid_underfrequency_time_1": (0x2024, 0.02),
+    "grid_underfrequency_time_2": (0x2025, 0.02),
+    "grid_overfrequency_level_1": (0x2026, 0.01),
+    "grid_overfrequency_level_2": (0x2027, 0.01),
+    "grid_overfrequency_time_1": (0x2028, 0.02),
+    "grid_overfrequency_time_2": (0x2029, 0.02),
+    "grid_undervoltage_level_3": (0x202A, 0.1),
+    "grid_undervoltage_time_3": (0x202B, 0.02),
+    "output_coefficient": (0x202C, 1.0),
+}
+
+
 PV_MEASUREMENT_NAMES = (
     "voltage",
     "current",
@@ -137,6 +193,7 @@ def _measurement_keys(pv_count: int) -> frozenset[str]:
     return (
         AC_MEASUREMENT_KEYS
         | DEVICE_DIAGNOSTIC_KEYS
+        | ADVANCED_GRID_KEYS
         | ALARM_MEASUREMENT_KEYS
         | frozenset(
             f"pv{number}_{measurement}"
@@ -178,6 +235,15 @@ def decode_measurements(
         1,
     )
     return data
+
+
+def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float]:
+    """Decode read-only grid protection diagnostics."""
+    return {
+        key: round(registers[address] * factor, 2)
+        for key, (address, factor) in ADVANCED_GRID_REGISTERS.items()
+        if address in registers
+    }
 
 
 def decode_alarms(registers: dict[int, int]) -> dict[str, float | int]:
@@ -344,6 +410,7 @@ class Tsun02b0Client:
 
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers))
         return TsunReadResult(
             measurements=measurements,

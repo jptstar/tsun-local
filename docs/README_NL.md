@@ -1,144 +1,46 @@
-# TSUN Local — Lokale Home Assistant-integratie
+# TSUN Local 1.4.0
 
-[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
+<p align="center">[English](../README.md) · [Français](README_FR.md) · [Deutsch](README_DE.md) · [Nederlands](README_NL.md) · [Italiano](README_IT.md) · [Español](README_ES.md) · [Polski](README_PL.md) · [简体中文](README_ZH.md)</p>
 
-[![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
+### Jouw omvormer. Jouw netwerk. Jouw data.
+## Lokaal. Alleen-lezen. Geen cloud. Geen proxy.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Onafhankelijk TSUN Local-pictogram">
-</p>
+> **Jouw TSUN-omvormer werkt mogelijk al**  
+> Niet vermeld betekent niet automatisch niet ondersteund.
 
-> **Onofficieel project** — Deze onafhankelijke community-integratie is niet ontwikkeld, goedgekeurd of onderhouden door TSUN en is op geen enkele wijze aan TSUN verbonden. TSUN en zijn productnamen blijven eigendom van hun respectieve rechthebbenden. Ondersteuningsverzoeken voor deze integratie moeten aan de auteur worden gericht, niet aan TSUN.
+| Protocol | Hardware / family | Status |
+|---|---|:---:|
+| **1511** | TITAN · **TSOL-MP3000** | ✅ Gevalideerd op echte hardware |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ Gevalideerd op echte hardware |
+| **1097** | GEN3 family | 🧪 Experimenteel |
 
-**TSUN Local** integreert compatibele TSUN-micro-omvormers rechtstreeks in Home Assistant **via het lokale netwerk, zonder proxy of cloudservice**.
+[![Add TSUN Local to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
 
-Versie 1.4.0-beta.6 ondersteunt de op echte hardware gevalideerde **TSOL-MP3000** en **MX500**, plus andere **TITAN**-, **GEN3**- en **GEN3 PLUS**-modellen die nog op validatie wachten.
+**Installeer TSUN Local, laat het protocol herkennen en bekijk welke gegevens je omvormer aanbiedt.**
 
-**Auteur: Jean-Philippe TESTART (jptstar)**
+## Geavanceerde diagnostiek
 
-## Projectstatus en ondersteuning
+Alleen-lezen net- en omvormerparameters zijn standaard uitgeschakeld en kunnen afzonderlijk in Home Assistant worden ingeschakeld.
 
-TSUN Local is een Home Assistant-integratie die ik oorspronkelijk voor mijn plezier en voor persoonlijk gebruik heb ontwikkeld. Omdat veel gebruikers moeite hebben om een lokale verbinding met TITAN-micro-omvormers tot stand te brengen, stel ik de integratie beschikbaar zodat zoveel mogelijk mensen ervan kunnen profiteren.
-
-Als ik feedback en diagnostische informatie over bepaalde modellen ontvang, wil ik graag wat tijd besteden aan het verbeteren van de compatibiliteit en het oplossen van fouten. TSUN Local blijft echter een hobby en een nevenactiviteit, niet mijn hoofdactiviteit. Het kan daarom soms wat tijd kosten voordat ik reageer of een correctie uitbreng.
-
-## Versies
-
-Gepubliceerde versies volgen `MAJOR.MINOR.PATCH`. HACS gebruikt GitHub Releases om updates aan te bieden. Zie het [wijzigingslogboek](../CHANGELOG.md) voor details.
+- **1511:** grid protection diagnostics
+- **02B0:** grid protection diagnostics + output coefficient
+- **1097:** protocol/inverter versions, temperature, insulation impedance RX/RY, country/profile code and designed power
 
 ## Compatibiliteit
 
-**Home Assistant 2026.3.0 of nieuwer**
+### ✅ Gevalideerd op echte hardware
+- **TSOL-MP3000** — 1511 — 6 PV inputs
+- **TSOL-MX500** — 02B0 — 1 PV input
 
-### Legenda
+### 🔎 Het proberen waard
+MP2250 · MS3000 · MX400 · MX450 · MX800 · MX900 · MX1000 · MX2250 · MS300 · MS350 · MS400 · MS600 · MS700 · MS800 · MS1600 · MS1800 · MS2000 and corresponding `-D` variants where applicable.
 
-- ✅ Compatibel en gevalideerd op echte hardware
-- 🧪 Klaar voor praktijktests — adapter beschikbaar; feedback is welkom
-- 🔎 Hardwaregegevens gezocht — compatibiliteit nog niet bevestigd
+### 🧪 1097 — Experimenteel
 
-### Micro-omvormers
+Heb je een ander TSUN-model? Probeer het: jouw apparaat kan het volgende gevalideerde model worden.
 
-#### TITAN
+---
 
-| Configuratie | Modellen | Status |
-|---|---|---|
-| 6-in-1 | **TSOL-MP3000** | ✅ Gevalideerd |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Testers gezocht |
-| Ingangen nog te bepalen | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Hardwaregegevens gezocht |
+**Jean-Philippe TESTART (`jptstar`)** · Unofficial independent community project · GPL-3.0-or-later
 
-#### GEN3 / GEN3 PLUS — MX-serie
-
-| Configuratie | Modellen | Status |
-|---|---|---|
-| 1-in-1 | **MX500** | ✅ Gevalideerd |
-| 1-in-1 | **MX450, MX400** | 🧪 Testers gezocht |
-| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Testers gezocht |
-| 4-in-1 | **MX2250** | 🧪 Testers gezocht |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Hardwaregegevens gezocht |
-
-#### GEN3 / GEN3 PLUS — MS-serie
-
-| Configuratie | Modellen | Status |
-|---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Testers gezocht |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Testers gezocht |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Testers gezocht |
-
-De PV-detectie is voor TITAN dynamisch tot **6 ingangen**. Voor GEN3 / GEN3 PLUS omvat de huidige kaart **1, 2 of 4 PV-ingangen**; PV5 en PV6 worden nog niet gedetecteerd.
-
-> **Hebt u een van deze modellen?** Modellen met 🧪 zijn klaar voor tests door de community. [Open een compatibiliteitsrapport](https://github.com/jptstar/tsun-local/issues/new) met het exacte model, de firmwareversie en het testresultaat. Maak volledige serienummers en privé-netwerkgegevens onleesbaar.
-
-## Installatie
-
-### Met HACS
-
-[![TSUN Local aan HACS toevoegen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
-
-Of handmatig toevoegen:
-
-1. Open in HACS het menu **⋮** rechtsboven en kies **Aangepaste opslagplaatsen**.
-2. Voeg `https://github.com/jptstar/tsun-local` toe met type **Integratie**.
-3. Selecteer **Toevoegen** en open daarna **TSUN Local**.
-4. Selecteer **Downloaden** en kies de nieuwste beschikbare versie.
-5. Start Home Assistant opnieuw op.
-
-Als de nieuwste versie niet verschijnt, open dan het menu van de opslagplaats en kies **Informatie bijwerken**.
-
-### Handmatige installatie
-
-1. Kopieer `custom_components/tsun_local` naar `/config/custom_components/`.
-2. Start Home Assistant opnieuw op.
-3. Open **Instellingen → Apparaten & diensten → Integratie toevoegen**.
-4. Zoek naar **TSUN Local**.
-
-## Een apparaat toevoegen
-
-TSUN Local kan op het lokale netwerk naar micro-omvormers zoeken. Het IP-adres kan ook handmatig worden ingevoerd. TCP-poort `8899` wordt standaard voorgesteld en blijft aanpasbaar.
-
-Het lokale protocol en de numerieke **SN** worden automatisch gedetecteerd. Indien nodig kan de SN handmatig worden ingevoerd vanaf de lokale pagina of het apparaatlabel. Deze verschilt van de alfanumerieke **SN van de micro-omvormer**.
-
-Als het apparaat zich op een ander VLAN bevindt en niet wordt gevonden, voer dan het subnet in CIDR-notatie in of gebruik de handmatige configuratie.
-
-Er kunnen meerdere micro-omvormers worden toegevoegd. Elk apparaat heeft eigen entiteiten en pollinginstellingen.
-
-## Instellingen in Home Assistant
-
-Open onder **Instellingen → Apparaten & diensten → TSUN Local** het menu van het betreffende apparaat:
-
-- **Configureren** stelt het normale interval in van 10 seconden tot 5 minuten (standaard 20 seconden), de herhaling na een fout van 10 seconden tot 5 minuten (standaard 20 seconden), het offline-/nachtinterval van 1 tot 60 minuten (standaard 5 minuten) en de drempel van 1 tot 20 opeenvolgende fouten (standaard 3);
-- **Opnieuw configureren** wijzigt het IP-adres en de TCP-poort zonder entiteiten te verwijderen;
-- elk apparaat heeft onafhankelijke pollingintervallen.
-
-## Lokale werking en cloudisolatie
-
-TSUN Local communiceert uitsluitend via het lokale netwerk en gebruikt geen cloudservice. De integratie wijzigt de cloudinstellingen van de firmware niet.
-
-Om te voorkomen dat de micro-omvormer internet bereikt, maakt u in de router of firewall een regel die WAN-toegang blokkeert maar toegang tot het lokale netwerk en DHCP behoudt. Home Assistant moet het IP-adres van de micro-omvormer via TCP-poort **8899** kunnen blijven bereiken. Na installatie heeft HACS alleen internet nodig om updates te controleren en te downloaden.
-
-## Nachtwerking
-
-Wanneer de micro-omvormer niet meer wordt gevoed, markeert de integratie hem als offline zonder bij elke polling opnieuw een fout te melden:
-
-Tot de instelbare foutdrempel is bereikt, blijven de laatste waarden beschikbaar en gebruiken herhalingen het foutinterval. Bij het bereiken van de drempel (standaard 3 fouten) gaat het apparaat offline en gebruikt het offline-/nachtinterval. De eerste geslaagde reactie zet de teller op nul en herstelt het normale interval.
-
-- actuele metingen (spanning, stroom, vermogen en frequentie) worden niet beschikbaar zodat geen verouderde waarden worden getoond;
-- dagelijkse en totale energietellers blijven beschikbaar met hun laatst bekende waarde;
-- de binaire sensor **Micro-omvormer online** meldt offline;
-- de teller voor opeenvolgende communicatiefouten keert terug naar nul wanneer de communicatie wordt hervat;
-- het tijdstip van de laatste geslaagde communicatie blijft beschikbaar;
-- nieuwe pogingen gebruiken het ingestelde offline-/nachtinterval;
-- na het eerste geslaagde antwoord in de ochtend wordt het normale interval hersteld.
-
-## Sensoren
-
-De integratie maakt één apparaat met AC-metingen, 5 metingen voor elke gedetecteerde PV-ingang, de som van de gedetecteerde DC-vermogens, 4 communicatiediagnoses, diagnosesensoren voor **SN**, **SN van de micro-omvormer**, loggerfirmware en MAC-adres en de binaire verbindingssensor **Micro-omvormer online**.
-
-Het aantal PV-ingangen is dynamisch: PV1 is na de eerste uitlezing beschikbaar; PV2 tot PV6 voor TITAN of PV2 tot PV4 voor GEN3/GEN3 PLUS worden toegevoegd zodra een geldige meting of energieteller wordt waargenomen. Een eenmaal gedetecteerde ingang blijft in Home Assistant geregistreerd.
-
-## Licentie
-
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
-
-Dit project wordt verspreid onder de **GNU General Public License v3.0 of later** (GPL-3.0-or-later). Gewijzigde of opnieuw verspreide versies moeten aan deze licentie voldoen en de auteursrecht- en licentievermeldingen behouden. Zie [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
-
-De licentie dekt uitsluitend deze onafhankelijke implementatie. Zij verleent geen rechten op handelsmerken, logo’s, software of producten van TSUN. Dit project blijft onofficieel en niet verbonden aan TSUN.
+De experimentele 1097-mapping is gebaseerd op openbaar protocolonderzoek van Stefan Allius / s-allius/tsun-gen3-proxy en aangepast voor TSUN Local.

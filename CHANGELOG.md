@@ -2,6 +2,32 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0-beta.8] - 2026-08-17
+
+### Added
+
+- complete read-only advanced grid-protection diagnostics for the 1511 and 02B0 protocol families;
+- read-only 02B0 output coefficient diagnostic;
+- experimental 1097 diagnostics for protocol/inverter versions, inverter temperature, insulation impedance RX/RY and raw country/profile code;
+- advanced diagnostic entity names in English, French, German, Dutch, Italian, Spanish, Polish and Simplified Chinese;
+- a concise 1.4-ready README focused on local access and protocol-family compatibility.
+
+### Fixed
+
+- correct 1511 per-PV daily-energy register offsets from `base + 4` to `base + 5` for PV1 through PV6;
+- use the corrected daily-energy positions when detecting populated 1511 PV inputs.
+
+### Changed
+
+- advanced diagnostics are categorized as diagnostic entities and disabled by default so normal installations stay uncluttered;
+- the experimental 1097 diagnostics continue to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
+
+### Safety
+
+- all newly added diagnostics are read-only;
+- the 02B0 output coefficient is read but never written;
+- no inverter configuration or control write has been added.
+
 ## [1.4.0-beta.7] - 2026-08-16
 
 ### Added

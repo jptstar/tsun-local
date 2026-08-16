@@ -1,36 +1,398 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Dodaj urządzenie TSUN", "description": "Automatycznie wyszukaj zgodne urządzenia TSUN w sieci lub dodaj urządzenie ręcznie.", "menu_options": {"discover": "Wyszukaj urządzenia TSUN", "manual": "Dodaj ręcznie"}},
-      "reconfigure": {"title": "Zmień połączenie", "description": "Zmień adres IP lub port TCP. Numeryczny SN pozostaje stałym identyfikatorem połączenia.", "data": {"host": "Adres IP", "port": "Port"}},
-      "manual": {"title": "Dodaj urządzenie ręcznie", "description": "Wprowadź adres IP urządzenia. W większości przypadków pozostaw wybór protokołu na «Automatycznie — na podstawie firmware». TSUN Local spróbuje również automatycznie odczytać SN loggera.", "data": {"host": "Adres IP", "port": "Port", "logger_sn": "SN", "protocol": "Metoda wyboru protokołu"}},
-      "discover": {"title": "Wykryte urządzenia TSUN", "description": "Wybierz urządzenie TSUN, które chcesz dodać. TSUN Local sprawdza firmware i pokazuje tylko urządzenia korzystające z obsługiwanych protokołów.", "data": {"host": "Wykryty adres", "port": "Port", "logger_sn": "SN"}},
-      "discover_network": {"title": "Przeszukaj inną podsieć", "description": "Nie wykryto automatycznie żadnego zgodnego urządzenia TSUN. Wprowadź podsieć IPv4 do przeskanowania, na przykład 192.168.1.0/24. Wyszukiwanie jest ograniczone do 254 adresów.", "data": {"discovery_network": "Podsieć IPv4", "port": "Port"}}
+      "user": {
+        "title": "Dodaj urządzenie TSUN",
+        "description": "Automatycznie wyszukaj zgodne urządzenia TSUN w sieci lub dodaj urządzenie ręcznie.",
+        "menu_options": {
+          "discover": "Wyszukaj urządzenia TSUN",
+          "manual": "Dodaj ręcznie"
+        }
+      },
+      "reconfigure": {
+        "title": "Zmień połączenie",
+        "description": "Zmień adres IP lub port TCP. Numeryczny SN pozostaje stałym identyfikatorem połączenia.",
+        "data": {
+          "host": "Adres IP",
+          "port": "Port"
+        }
+      },
+      "manual": {
+        "title": "Dodaj urządzenie ręcznie",
+        "description": "Wprowadź adres IP urządzenia. W większości przypadków pozostaw wybór protokołu na «Automatycznie — na podstawie firmware». TSUN Local spróbuje również automatycznie odczytać SN loggera.",
+        "data": {
+          "host": "Adres IP",
+          "port": "Port",
+          "logger_sn": "SN",
+          "protocol": "Metoda wyboru protokołu"
+        }
+      },
+      "discover": {
+        "title": "Wykryte urządzenia TSUN",
+        "description": "Wybierz urządzenie TSUN, które chcesz dodać. TSUN Local sprawdza firmware i pokazuje tylko urządzenia korzystające z obsługiwanych protokołów.",
+        "data": {
+          "host": "Wykryty adres",
+          "port": "Port",
+          "logger_sn": "SN"
+        }
+      },
+      "discover_network": {
+        "title": "Przeszukaj inną podsieć",
+        "description": "Nie wykryto automatycznie żadnego zgodnego urządzenia TSUN. Wprowadź podsieć IPv4 do przeskanowania, na przykład 192.168.1.0/24. Wyszukiwanie jest ograniczone do 254 adresów.",
+        "data": {
+          "discovery_network": "Podsieć IPv4",
+          "port": "Port"
+        }
+      }
     },
-    "error": {"cannot_connect": "Nie można komunikować się z urządzeniem. Sprawdź, czy jest online i dostępne z Home Assistant.", "cannot_detect_logger_sn": "Nie udało się automatycznie wykryć SN loggera. Wprowadź numer widoczny jako Device serial number na lokalnej stronie stanu lub na etykiecie urządzenia.", "invalid_network": "Wprowadź prawidłową podsieć IPv4 od /24 do /32", "invalid_response": "Urządzenie odpowiedziało, ale odebrane dane nie są rozpoznawane.", "no_devices_found": "W tej podsieci nie wykryto żadnego zgodnego urządzenia TSUN.", "unknown_firmware": "Firmware tego urządzenia nie jest rozpoznawane automatycznie. Wróć do konfiguracji ręcznej i wybierz «Wymuszone wykrywanie — testuj protokoły» albo wybierz protokół ręcznie."},
-    "abort": {"already_configured": "Ten mikrofalownik jest już skonfigurowany", "all_devices_configured": "Wszystkie wykryte mikrofalowniki są już skonfigurowane", "no_devices_found": "W przeskanowanych sieciach nie wykryto żadnego zgodnego urządzenia TSUN."}
+    "error": {
+      "cannot_connect": "Nie można komunikować się z urządzeniem. Sprawdź, czy jest online i dostępne z Home Assistant.",
+      "cannot_detect_logger_sn": "Nie udało się automatycznie wykryć SN loggera. Wprowadź numer widoczny jako Device serial number na lokalnej stronie stanu lub na etykiecie urządzenia.",
+      "invalid_network": "Wprowadź prawidłową podsieć IPv4 od /24 do /32",
+      "invalid_response": "Urządzenie odpowiedziało, ale odebrane dane nie są rozpoznawane.",
+      "no_devices_found": "W tej podsieci nie wykryto żadnego zgodnego urządzenia TSUN.",
+      "unknown_firmware": "Firmware tego urządzenia nie jest rozpoznawane automatycznie. Wróć do konfiguracji ręcznej i wybierz «Wymuszone wykrywanie — testuj protokoły» albo wybierz protokół ręcznie."
+    },
+    "abort": {
+      "already_configured": "Ten mikrofalownik jest już skonfigurowany",
+      "all_devices_configured": "Wszystkie wykryte mikrofalowniki są już skonfigurowane",
+      "no_devices_found": "W przeskanowanych sieciach nie wykryto żadnego zgodnego urządzenia TSUN."
+    }
   },
-  "options": {"step": {"init": {"title": "Ustawienia odpytywania", "description": "Ustaw normalny interwał, ponowienie po błędzie, interwał offline/noc oraz liczbę kolejnych błędów przed przejściem offline.", "data": {"scan_interval": "Normalny interwał odpytywania", "error_scan_interval": "Interwał ponowienia po błędzie", "offline_scan_interval": "Interwał odpytywania offline/noc", "failure_threshold": "Błędy przed przejściem offline"}}}},
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ustawienia odpytywania",
+        "description": "Ustaw normalny interwał, ponowienie po błędzie, interwał offline/noc oraz liczbę kolejnych błędów przed przejściem offline.",
+        "data": {
+          "scan_interval": "Normalny interwał odpytywania",
+          "error_scan_interval": "Interwał ponowienia po błędzie",
+          "offline_scan_interval": "Interwał odpytywania offline/noc",
+          "failure_threshold": "Błędy przed przejściem offline"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"}, "inverter_serial_number": {"name": "SN mikrofalownika"}, "logger_firmware_version": {"name": "Wersja oprogramowania loggera"}, "logger_mac_address": {"name": "Adres MAC loggera"},
-      "alarm_global_0_raw": {"name": "Alarm globalny (wartość surowa) 0"}, "alarm_global_1_raw": {"name": "Alarm globalny (wartość surowa) 1"}, "alarm_global_2_raw": {"name": "Alarm globalny (wartość surowa) 2"}, "alarm_global_3_raw": {"name": "Alarm globalny (wartość surowa) 3"},
-      "alarm_secondary_0_raw": {"name": "Alarm dodatkowy (wartość surowa) 0"}, "alarm_secondary_1_raw": {"name": "Alarm dodatkowy (wartość surowa) 1"}, "alarm_secondary_2_raw": {"name": "Alarm dodatkowy (wartość surowa) 2"}, "alarm_secondary_3_raw": {"name": "Alarm dodatkowy (wartość surowa) 3"},
-      "alarm_code_1_raw": {"name": "Kod alarmu (wartość surowa) 1"}, "alarm_code_2_raw": {"name": "Kod alarmu (wartość surowa) 2"}, "alarm_code_3_raw": {"name": "Kod alarmu (wartość surowa) 3"}, "alarm_code_4_raw": {"name": "Kod alarmu (wartość surowa) 4"},
-      "pv1_alarm_raw": {"name": "Alarm PV1 (wartość surowa)"}, "pv2_alarm_raw": {"name": "Alarm PV2 (wartość surowa)"}, "pv3_alarm_raw": {"name": "Alarm PV3 (wartość surowa)"}, "pv4_alarm_raw": {"name": "Alarm PV4 (wartość surowa)"}, "pv5_alarm_raw": {"name": "Alarm PV5 (wartość surowa)"}, "pv6_alarm_raw": {"name": "Alarm PV6 (wartość surowa)"},
-      "ac_voltage": {"name": "Napięcie AC"}, "ac_current": {"name": "Prąd AC"}, "ac_frequency": {"name": "Częstotliwość AC"}, "ac_power": {"name": "Moc AC"}, "ac_energy_today": {"name": "Dzisiejsza energia AC"}, "ac_energy_total": {"name": "Całkowita energia AC"}, "dc_power_total": {"name": "Całkowita moc DC"},
-      "inverter_status_raw": {"name": "Surowy stan falownika"}, "rated_power": {"name": "Moc znamionowa falownika"}, "max_designed_power": {"name": "Maksymalna moc projektowa"}, "register_3017_raw": {"name": "Surowy rejestr 3017 (znaczenie niepotwierdzone)"}, "register_3028_raw": {"name": "Surowy rejestr 3028 (znaczenie niepotwierdzone)"},
-      "communication_last_success": {"name": "Ostatnia udana komunikacja"}, "communication_duration": {"name": "Czas komunikacji"}, "communication_blocks": {"name": "Odebrane bloki"}, "communication_failures": {"name": "Kolejne błędy komunikacji"},
-      "pv1_voltage": {"name": "Napięcie PV1"}, "pv1_current": {"name": "Prąd PV1"}, "pv1_power": {"name": "Moc PV1"}, "pv1_energy_today": {"name": "Dzisiejsza energia PV1"}, "pv1_energy_total": {"name": "Całkowita energia PV1"},
-      "pv2_voltage": {"name": "Napięcie PV2"}, "pv2_current": {"name": "Prąd PV2"}, "pv2_power": {"name": "Moc PV2"}, "pv2_energy_today": {"name": "Dzisiejsza energia PV2"}, "pv2_energy_total": {"name": "Całkowita energia PV2"},
-      "pv3_voltage": {"name": "Napięcie PV3"}, "pv3_current": {"name": "Prąd PV3"}, "pv3_power": {"name": "Moc PV3"}, "pv3_energy_today": {"name": "Dzisiejsza energia PV3"}, "pv3_energy_total": {"name": "Całkowita energia PV3"},
-      "pv4_voltage": {"name": "Napięcie PV4"}, "pv4_current": {"name": "Prąd PV4"}, "pv4_power": {"name": "Moc PV4"}, "pv4_energy_today": {"name": "Dzisiejsza energia PV4"}, "pv4_energy_total": {"name": "Całkowita energia PV4"},
-      "pv5_voltage": {"name": "Napięcie PV5"}, "pv5_current": {"name": "Prąd PV5"}, "pv5_power": {"name": "Moc PV5"}, "pv5_energy_today": {"name": "Dzisiejsza energia PV5"}, "pv5_energy_total": {"name": "Całkowita energia PV5"},
-      "pv6_voltage": {"name": "Napięcie PV6"}, "pv6_current": {"name": "Prąd PV6"}, "pv6_power": {"name": "Moc PV6"}, "pv6_energy_today": {"name": "Dzisiejsza energia PV6"}, "pv6_energy_total": {"name": "Całkowita energia PV6"},
-      "logger_wifi_signal": {"name": "Sygnał Wi-Fi loggera"}
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN mikrofalownika"
+      },
+      "logger_firmware_version": {
+        "name": "Wersja oprogramowania loggera"
+      },
+      "logger_mac_address": {
+        "name": "Adres MAC loggera"
+      },
+      "alarm_global_0_raw": {
+        "name": "Alarm globalny (wartość surowa) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Alarm globalny (wartość surowa) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Alarm globalny (wartość surowa) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Alarm globalny (wartość surowa) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Alarm dodatkowy (wartość surowa) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Alarm dodatkowy (wartość surowa) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Alarm dodatkowy (wartość surowa) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Alarm dodatkowy (wartość surowa) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Kod alarmu (wartość surowa) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Kod alarmu (wartość surowa) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Kod alarmu (wartość surowa) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Kod alarmu (wartość surowa) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "Alarm PV1 (wartość surowa)"
+      },
+      "pv2_alarm_raw": {
+        "name": "Alarm PV2 (wartość surowa)"
+      },
+      "pv3_alarm_raw": {
+        "name": "Alarm PV3 (wartość surowa)"
+      },
+      "pv4_alarm_raw": {
+        "name": "Alarm PV4 (wartość surowa)"
+      },
+      "pv5_alarm_raw": {
+        "name": "Alarm PV5 (wartość surowa)"
+      },
+      "pv6_alarm_raw": {
+        "name": "Alarm PV6 (wartość surowa)"
+      },
+      "ac_voltage": {
+        "name": "Napięcie AC"
+      },
+      "ac_current": {
+        "name": "Prąd AC"
+      },
+      "ac_frequency": {
+        "name": "Częstotliwość AC"
+      },
+      "ac_power": {
+        "name": "Moc AC"
+      },
+      "ac_energy_today": {
+        "name": "Dzisiejsza energia AC"
+      },
+      "ac_energy_total": {
+        "name": "Całkowita energia AC"
+      },
+      "dc_power_total": {
+        "name": "Całkowita moc DC"
+      },
+      "inverter_status_raw": {
+        "name": "Surowy stan falownika"
+      },
+      "rated_power": {
+        "name": "Moc znamionowa falownika"
+      },
+      "max_designed_power": {
+        "name": "Maksymalna moc projektowa"
+      },
+      "register_3017_raw": {
+        "name": "Surowy rejestr 3017 (znaczenie niepotwierdzone)"
+      },
+      "register_3028_raw": {
+        "name": "Surowy rejestr 3028 (znaczenie niepotwierdzone)"
+      },
+      "communication_last_success": {
+        "name": "Ostatnia udana komunikacja"
+      },
+      "communication_duration": {
+        "name": "Czas komunikacji"
+      },
+      "communication_blocks": {
+        "name": "Odebrane bloki"
+      },
+      "communication_failures": {
+        "name": "Kolejne błędy komunikacji"
+      },
+      "pv1_voltage": {
+        "name": "Napięcie PV1"
+      },
+      "pv1_current": {
+        "name": "Prąd PV1"
+      },
+      "pv1_power": {
+        "name": "Moc PV1"
+      },
+      "pv1_energy_today": {
+        "name": "Dzisiejsza energia PV1"
+      },
+      "pv1_energy_total": {
+        "name": "Całkowita energia PV1"
+      },
+      "pv2_voltage": {
+        "name": "Napięcie PV2"
+      },
+      "pv2_current": {
+        "name": "Prąd PV2"
+      },
+      "pv2_power": {
+        "name": "Moc PV2"
+      },
+      "pv2_energy_today": {
+        "name": "Dzisiejsza energia PV2"
+      },
+      "pv2_energy_total": {
+        "name": "Całkowita energia PV2"
+      },
+      "pv3_voltage": {
+        "name": "Napięcie PV3"
+      },
+      "pv3_current": {
+        "name": "Prąd PV3"
+      },
+      "pv3_power": {
+        "name": "Moc PV3"
+      },
+      "pv3_energy_today": {
+        "name": "Dzisiejsza energia PV3"
+      },
+      "pv3_energy_total": {
+        "name": "Całkowita energia PV3"
+      },
+      "pv4_voltage": {
+        "name": "Napięcie PV4"
+      },
+      "pv4_current": {
+        "name": "Prąd PV4"
+      },
+      "pv4_power": {
+        "name": "Moc PV4"
+      },
+      "pv4_energy_today": {
+        "name": "Dzisiejsza energia PV4"
+      },
+      "pv4_energy_total": {
+        "name": "Całkowita energia PV4"
+      },
+      "pv5_voltage": {
+        "name": "Napięcie PV5"
+      },
+      "pv5_current": {
+        "name": "Prąd PV5"
+      },
+      "pv5_power": {
+        "name": "Moc PV5"
+      },
+      "pv5_energy_today": {
+        "name": "Dzisiejsza energia PV5"
+      },
+      "pv5_energy_total": {
+        "name": "Całkowita energia PV5"
+      },
+      "pv6_voltage": {
+        "name": "Napięcie PV6"
+      },
+      "pv6_current": {
+        "name": "Prąd PV6"
+      },
+      "pv6_power": {
+        "name": "Moc PV6"
+      },
+      "pv6_energy_today": {
+        "name": "Dzisiejsza energia PV6"
+      },
+      "pv6_energy_total": {
+        "name": "Całkowita energia PV6"
+      },
+      "logger_wifi_signal": {
+        "name": "Sygnał Wi-Fi loggera"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "Napięcie powrotu po przepięciu sieci"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "Napięcie powrotu po zbyt niskim napięciu sieci"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "Częstotliwość powrotu po zbyt wysokiej częstotliwości sieci"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "Częstotliwość powrotu po zbyt niskiej częstotliwości sieci"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "Próg podnapięciowy sieci poziom 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "Próg podnapięciowy sieci poziom 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "Próg podnapięciowy sieci poziom 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "Czas podnapięcia sieci poziom 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "Czas podnapięcia sieci poziom 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "Czas podnapięcia sieci poziom 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "Próg przepięciowy sieci poziom 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "Próg przepięciowy sieci poziom 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "Czas przepięcia sieci poziom 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "Czas przepięcia sieci poziom 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "Próg zbyt niskiej częstotliwości poziom 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "Próg zbyt niskiej częstotliwości poziom 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "Czas zbyt niskiej częstotliwości poziom 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "Czas zbyt niskiej częstotliwości poziom 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "Próg zbyt wysokiej częstotliwości poziom 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "Próg zbyt wysokiej częstotliwości poziom 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "Czas zbyt wysokiej częstotliwości poziom 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "Czas zbyt wysokiej częstotliwości poziom 2"
+      },
+      "output_coefficient": {
+        "name": "Współczynnik wyjściowy"
+      },
+      "protocol_version": {
+        "name": "Wersja protokołu"
+      },
+      "inverter_version": {
+        "name": "Wersja falownika"
+      },
+      "insulation_impedance_rx": {
+        "name": "Impedancja izolacji RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "Impedancja izolacji RY"
+      },
+      "inverter_temperature": {
+        "name": "Temperatura falownika"
+      },
+      "country_profile_raw": {
+        "name": "Kod kraju/profilu"
+      }
     },
-    "binary_sensor": {"communication_online": {"name": "Mikrofalownik online"}, "inverter_alarm": {"name": "Alarm falownika"}},
-    "button": {"refresh_data": {"name": "Odśwież dane"}}
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Mikrofalownik online"
+      },
+      "inverter_alarm": {
+        "name": "Alarm falownika"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Odśwież dane"
+      }
+    }
   },
-  "selector": {"protocol": {"options": {"auto": "Automatycznie — na podstawie firmware", "force": "Wymuszone wykrywanie — testuj protokoły", "1511": "Użyj protokołu 1511", "1097": "Użyj protokołu 1097 — eksperymentalny", "02b0": "Użyj protokołu 02B0"}}}
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatycznie — na podstawie firmware",
+        "force": "Wymuszone wykrywanie — testuj protokoły",
+        "1511": "Użyj protokołu 1511",
+        "1097": "Użyj protokołu 1097 — eksperymentalny",
+        "02b0": "Użyj protokołu 02B0"
+      }
+    }
+  }
 }

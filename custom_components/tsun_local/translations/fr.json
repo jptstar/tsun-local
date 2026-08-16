@@ -281,6 +281,93 @@
       },
       "logger_wifi_signal": {
         "name": "Signal Wi-Fi du logger"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "Tension de rétablissement après surtension réseau"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "Tension de rétablissement après sous-tension réseau"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "Fréquence de rétablissement après surfréquence réseau"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "Fréquence de rétablissement après sous-fréquence réseau"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "Seuil de sous-tension réseau niveau 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "Seuil de sous-tension réseau niveau 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "Seuil de sous-tension réseau niveau 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "Temps de sous-tension réseau niveau 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "Temps de sous-tension réseau niveau 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "Temps de sous-tension réseau niveau 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "Seuil de surtension réseau niveau 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "Seuil de surtension réseau niveau 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "Temps de surtension réseau niveau 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "Temps de surtension réseau niveau 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "Seuil de sous-fréquence réseau niveau 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "Seuil de sous-fréquence réseau niveau 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "Temps de sous-fréquence réseau niveau 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "Temps de sous-fréquence réseau niveau 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "Seuil de surfréquence réseau niveau 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "Seuil de surfréquence réseau niveau 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "Temps de surfréquence réseau niveau 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "Temps de surfréquence réseau niveau 2"
+      },
+      "output_coefficient": {
+        "name": "Coefficient de sortie"
+      },
+      "protocol_version": {
+        "name": "Version du protocole"
+      },
+      "inverter_version": {
+        "name": "Version de l’onduleur"
+      },
+      "insulation_impedance_rx": {
+        "name": "Impédance d’isolement RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "Impédance d’isolement RY"
+      },
+      "inverter_temperature": {
+        "name": "Température de l’onduleur"
+      },
+      "country_profile_raw": {
+        "name": "Code pays/profil"
       }
     },
     "binary_sensor": {

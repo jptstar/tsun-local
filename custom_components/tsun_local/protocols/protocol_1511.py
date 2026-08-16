@@ -76,6 +76,59 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
     }
 )
 
+ADVANCED_GRID_KEYS = frozenset(
+    {
+        "grid_overvoltage_recovery_voltage",
+        "grid_undervoltage_recovery_voltage",
+        "grid_overfrequency_recovery_frequency",
+        "grid_underfrequency_recovery_frequency",
+        "grid_undervoltage_level_1",
+        "grid_undervoltage_level_2",
+        "grid_undervoltage_time_1",
+        "grid_undervoltage_time_2",
+        "grid_overvoltage_level_1",
+        "grid_overvoltage_level_2",
+        "grid_overvoltage_time_1",
+        "grid_overvoltage_time_2",
+        "grid_underfrequency_level_1",
+        "grid_underfrequency_level_2",
+        "grid_underfrequency_time_1",
+        "grid_underfrequency_time_2",
+        "grid_overfrequency_level_1",
+        "grid_overfrequency_level_2",
+        "grid_overfrequency_time_1",
+        "grid_overfrequency_time_2",
+        "grid_undervoltage_level_3",
+        "grid_undervoltage_time_3",
+    }
+)
+
+ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
+    "grid_overvoltage_recovery_voltage": (0x07D4, 0.1),
+    "grid_undervoltage_recovery_voltage": (0x07D5, 0.1),
+    "grid_overfrequency_recovery_frequency": (0x07D6, 0.01),
+    "grid_underfrequency_recovery_frequency": (0x07D7, 0.01),
+    "grid_undervoltage_level_1": (0x07D9, 0.1),
+    "grid_undervoltage_level_2": (0x07DA, 0.1),
+    "grid_undervoltage_time_1": (0x07DB, 0.02),
+    "grid_undervoltage_time_2": (0x07DC, 0.02),
+    "grid_overvoltage_level_1": (0x07DD, 0.1),
+    "grid_overvoltage_level_2": (0x07DE, 0.1),
+    "grid_overvoltage_time_1": (0x07DF, 0.02),
+    "grid_overvoltage_time_2": (0x07E0, 0.02),
+    "grid_underfrequency_level_1": (0x07E2, 0.01),
+    "grid_underfrequency_level_2": (0x07E3, 0.01),
+    "grid_underfrequency_time_1": (0x07E4, 0.02),
+    "grid_underfrequency_time_2": (0x07E5, 0.02),
+    "grid_overfrequency_level_1": (0x07E6, 0.01),
+    "grid_overfrequency_level_2": (0x07E7, 0.01),
+    "grid_overfrequency_time_1": (0x07E8, 0.02),
+    "grid_overfrequency_time_2": (0x07E9, 0.02),
+    "grid_undervoltage_level_3": (0x07EA, 0.1),
+    "grid_undervoltage_time_3": (0x07EB, 0.02),
+}
+
+
 PV_MEASUREMENT_NAMES = (
     "voltage",
     "current",
@@ -138,6 +191,7 @@ def _measurement_keys(pv_count: int) -> frozenset[str]:
     return (
         AC_MEASUREMENT_KEYS
         | TITAN_DIAGNOSTIC_KEYS
+        | ADVANCED_GRID_KEYS
         | ALARM_MEASUREMENT_KEYS
         | frozenset(
             f"pv{number}_{measurement}"
@@ -154,7 +208,7 @@ def detect_pv_count(registers: dict[int, int]) -> int:
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
     detected = 1
     for number, (base, total_pair) in enumerate(zip(pv_bases, pv_total_pairs), 1):
-        addresses = (base, base + 1, base + 2, base + 4, total_pair, total_pair + 1)
+        addresses = (base, base + 1, base + 2, base + 5, total_pair, total_pair + 1)
         if any(0 < registers.get(address, 0) < 0xFFFF for address in addresses):
             detected = number
     return detected
@@ -189,12 +243,21 @@ def decode_measurements(
         data[f"{prefix}_voltage"] = registers[base] * 0.1
         data[f"{prefix}_current"] = registers[base + 1] * 0.01
         data[f"{prefix}_power"] = registers[base + 2] * 0.1
-        data[f"{prefix}_energy_today"] = registers[base + 4] * 0.01
+        data[f"{prefix}_energy_today"] = registers.get(base + 5, 0) * 0.01
         data[f"{prefix}_energy_total"] = _u32_type5(registers, total_pair) * 0.01
     data["dc_power_total"] = round(
         sum(float(data[f"pv{number}_power"]) for number in range(1, pv_count + 1)), 1
     )
     return data
+
+
+def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float]:
+    """Decode read-only grid protection diagnostics."""
+    return {
+        key: round(registers[address] * factor, 2)
+        for key, (address, factor) in ADVANCED_GRID_REGISTERS.items()
+        if address in registers
+    }
 
 
 def decode_alarms(
@@ -390,6 +453,7 @@ class Tsun1511Client:
 
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers, self._pv_count))
         return TsunReadResult(
             measurements=measurements,
