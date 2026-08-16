@@ -74,6 +74,33 @@ def _raw_alarm(
     )
 
 
+def _raw_register(
+    key: str, translation_key: str, register_address: str
+) -> TsunSensorDescription:
+    """Describe one read-only raw diagnostic register."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        register_address=register_address,
+    )
+
+
+def _diagnostic_power(key: str, translation_key: str) -> TsunSensorDescription:
+    """Describe one read-only power rating diagnostic."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    )
+
+
 COMMUNICATION_SENSOR_KEYS = frozenset(
     {
         "communication_last_success",
@@ -140,6 +167,23 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         UnitOfPower.WATT,
         1,
     ),
+    _raw_register(
+        "inverter_status_raw",
+        "inverter_status_raw",
+        "3000 (0x0BB8)",
+    ),
+    _raw_register(
+        "register_3017_raw",
+        "register_3017_raw",
+        "3017 (0x0BC9)",
+    ),
+    _raw_register(
+        "register_3028_raw",
+        "register_3028_raw",
+        "3028 (0x0BD4)",
+    ),
+    _diagnostic_power("rated_power", "rated_power"),
+    _diagnostic_power("max_designed_power", "max_designed_power"),
     TsunSensorDescription(
         key="communication_last_success",
         suggested_object_id="communication_last_success",
@@ -369,7 +413,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, str] | None:
-        """Expose the source address and hexadecimal value for raw alarms."""
+        """Expose the source address and hexadecimal value for raw registers."""
         address = self.entity_description.register_address
         value = self.native_value
         if address is None or not isinstance(value, int):
