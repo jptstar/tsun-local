@@ -2,6 +2,35 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-08-16
+
+### Added
+
+- firmware-guided automatic protocol selection using the protocol identifier reported by the TSUN logger firmware;
+- experimental 1097 protocol adapter and explicit forced protocol probing for compatibility testing;
+- automatic filtering of network discovery results using supported firmware protocol identifiers;
+- progressive PV-input detection based on actual device telemetry;
+- logger Wi-Fi signal diagnostic with an independent five-minute refresh;
+- raw logger inverter profile in Home Assistant device information;
+- read-only access to the TITAN native A1/21 diagnostic block (decimal registers 2000-2095), collected at a slow diagnostic cadence;
+- TITAN diagnostic entities for raw inverter status, rated inverter power and maximum designed power;
+- raw diagnostic entities for TITAN registers 3017 and 3028, whose physical meaning and scaling remain unconfirmed.
+
+### Changed
+
+- automatic protocol selection is now driven by the firmware token instead of guessing from inverter characteristics;
+- detected PV inputs are retained and never removed after discovery;
+- logger metadata refresh is independent from inverter telemetry polling and freshly retrieved metadata is preserved across later inverter polling failures;
+- raw logger profile discovery is retried until available and the profile is stored as the Home Assistant device model identifier;
+- registers 3017 and 3028 are exposed without an offset, temperature unit, or temperature device class, and their entity names explicitly state that their meaning is unconfirmed;
+- credit to Stefan Allius and the public `s-allius/tsun-gen3-proxy` research is retained for the experimental 1097 protocol work.
+
+### Fixed
+
+- remove the obsolete **Raw logger profile** diagnostic entity left in the Home Assistant entity registry by earlier beta releases;
+- remove the unused raw-profile entity translation key;
+- preserve logger metadata correctly across failed inverter polls.
+
 ## [1.4.0-beta.6] - 2026-08-16
 
 ### Fixed
@@ -198,6 +227,9 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
+[1.4.0-beta.6]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.6
+[1.4.0-beta.5]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.5
 [1.4.0-beta.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.4
 [1.4.0-beta.3]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.3
 [1.3.3]: https://github.com/jptstar/tsun-local/releases/tag/v1.3.3
