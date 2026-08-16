@@ -1,0 +1,49 @@
+name: Refresh beta 1.4.0-beta.7
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".retag-beta7-trigger"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Refresh prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: 8ae5a4912aace8dc74ce740430124060da32b250
+        run: |
+          version=$(git show "${TARGET_SHA}:custom_components/tsun_local/manifest.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
+          test "${version}" = "1.4.0-beta.7"
+
+          gh release delete "v1.4.0-beta.7" --yes --cleanup-tag
+
+          cat > /tmp/release-notes.md <<'EOF'
+          ### Added
+          - cross-protocol diagnostic entities for raw inverter status, rated inverter power and maximum designed power on 1511, 02B0 and 1097;
+          - 02B0 raw inverter status from `0x3000`, rated power from `0x300E`, and maximum designed power from `0x2007`;
+          - 1097 raw inverter status from `0x1100`, rated power from `0x1210`, and maximum designed power from `0x1437`;
+          - raw diagnostic entities for TITAN registers 3017 and 3028.
+
+          ### Changed
+          - optional inverter diagnostic blocks are read on the first poll and then refreshed every five minutes;
+          - TITAN registers 3017 and 3028 remain unscaled raw values without a temperature unit or temperature device class because their physical meaning and scaling are unconfirmed;
+          - diagnostic register-address attributes now follow the active protocol.
+          EOF
+
+          gh release create "v1.4.0-beta.7" \
+            --target "${TARGET_SHA}" \
+            --prerelease \
+            --title "Version 1.4.0-beta.7" \
+            --notes-file /tmp/release-notes.md
