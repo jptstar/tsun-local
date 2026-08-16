@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
-## [1.4.0] - 2026-08-16
+## [1.4.0-beta.7] - 2026-08-16
 
 ### Added
 
@@ -227,7 +227,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
-[1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
+[1.4.0-beta.7]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.7
 [1.4.0-beta.6]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.6
 [1.4.0-beta.5]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.5
 [1.4.0-beta.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.4
