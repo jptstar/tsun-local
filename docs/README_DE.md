@@ -10,7 +10,7 @@
 
 > **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
 
-**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.4.0-beta.4** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
+**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.4.0-beta.5** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
 
 ## Über dieses Projekt
 

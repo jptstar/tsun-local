@@ -335,10 +335,12 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         self._attr_unique_id = f"{logger_sn}_{description.key}"
         firmware_version = coordinator.data.get("logger_firmware_version")
         inverter_serial_number = coordinator.data.get("inverter_serial_number")
+        raw_profile = coordinator.data.get("logger_raw_profile")
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
             model=coordinator.client.model,
+            model_id=(str(raw_profile) if raw_profile is not None else None),
             name=f"TSUN Local {logger_sn}",
             serial_number=(
                 str(inverter_serial_number)

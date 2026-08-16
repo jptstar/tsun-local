@@ -42,6 +42,10 @@ class _DataUpdateCoordinator:
     ) -> None:
         self.data: dict[str, object] = {}
         self.update_interval = update_interval
+        self.listener_updates = 0
+
+    def async_update_listeners(self) -> None:
+        self.listener_updates += 1
 
 
 class _ReadResult:
@@ -158,6 +162,44 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
                 data["logger_raw_profile"], "5393:Tengsheng_titan"
             )
             self.assertEqual(data["logger_wifi_signal"], 57)
+
+    async def test_refreshed_logger_metadata_survives_failed_poll(self) -> None:
+        client = _Client([OSError("one")])
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            client,
+            20,
+            25,
+            300,
+            3,
+            asyncio.Lock(),
+            logger_wifi_signal=40,
+        )
+        coordinator._online = True
+        coordinator.data = {
+            "logger_wifi_signal": 40,
+            "communication_online": True,
+        }
+
+        changed = coordinator.async_update_logger_metadata(
+            {
+                "logger_wifi_signal": 63,
+                "logger_raw_profile": "688:Tengsheng_G3",
+            }
+        )
+        self.assertTrue(changed)
+        self.assertEqual(coordinator.data["logger_wifi_signal"], 63)
+        self.assertEqual(
+            coordinator.data["logger_raw_profile"], "688:Tengsheng_G3"
+        )
+        self.assertEqual(coordinator.listener_updates, 1)
+
+        failed = await coordinator._async_update_data()
+        self.assertEqual(failed["logger_wifi_signal"], 63)
+        self.assertEqual(
+            failed["logger_raw_profile"], "688:Tengsheng_G3"
+        )
 
     async def test_marks_device_offline_on_third_consecutive_failure(self) -> None:
         client = _Client([OSError("one"), OSError("two"), OSError("three")])

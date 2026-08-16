@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0-beta.5] - 2026-08-16
+
+### Fixed
+
+- refresh logger Wi-Fi signal with a true independent five-minute timer, including while inverter TCP polling is offline;
+- preserve freshly refreshed logger metadata when a subsequent inverter poll fails;
+- retry raw logger profile discovery every five minutes until it becomes available, then update Home Assistant device information immediately;
+- include the raw logger profile in entity `DeviceInfo` so normal entity registration also carries the profile into the device registry.
+
+### Changed
+
+- credit Stefan Allius and the public `s-allius/tsun-gen3-proxy` research directly in the experimental 1097 protocol source.
+
 ## [1.4.0-beta.4] - 2026-08-16
 
 ### Added

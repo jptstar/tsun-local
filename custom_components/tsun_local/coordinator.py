@@ -21,7 +21,6 @@ from .protocols.ap import safe_error_details
 
 _LOGGER = logging.getLogger(__name__)
 POLL_LOCK = "poll_lock"
-LOGGER_WIFI_REFRESH_INTERVAL = timedelta(minutes=5)
 
 
 def get_poll_lock(hass: HomeAssistant) -> asyncio.Lock:
@@ -50,7 +49,6 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         inverter_serial_number: str | None = None,
         logger_raw_profile: str | None = None,
         logger_wifi_signal: int | None = None,
-        logger_host: str | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -80,13 +78,6 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             }.items()
             if value is not None
         }
-        self._hass = hass
-        self._logger_host = logger_host
-        self._next_logger_wifi_refresh = (
-            dt_util.utcnow() + LOGGER_WIFI_REFRESH_INTERVAL
-            if logger_host is not None
-            else None
-        )
 
     @property
     def diagnostic_summary(self) -> dict[str, Any]:
@@ -112,37 +103,35 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "last_error": self._last_error,
         }
         if self.data:
-            summary["last_duration_ms"] = self.data.get("communication_duration")
-            summary["last_blocks_ok"] = self.data.get("communication_blocks")
+            summary["last_duration_ms"] = self.data.get(
+                "communication_duration"
+            )
+            summary["last_blocks_ok"] = self.data.get(
+                "communication_blocks"
+            )
         return summary
 
-    async def _async_refresh_logger_wifi_signal(self) -> None:
-        """Refresh dynamic logger Wi-Fi telemetry at a low frequency."""
-        if (
-            self._logger_host is None
-            or self._next_logger_wifi_refresh is None
-        ):
-            return
-        now = dt_util.utcnow()
-        if now < self._next_logger_wifi_refresh:
-            return
-        self._next_logger_wifi_refresh = now + LOGGER_WIFI_REFRESH_INTERVAL
-        try:
-            from .logger_web import async_read_logger_wifi_signal
+    def async_update_logger_metadata(
+        self, updates: dict[str, Any]
+    ) -> bool:
+        """Update logger metadata without resetting inverter polling."""
+        changed = False
+        for key, value in updates.items():
+            if value is None or self._logger_metadata.get(key) == value:
+                continue
+            self._logger_metadata[key] = value
+            changed = True
+        if not changed:
+            return False
 
-            signal = await async_read_logger_wifi_signal(
-                self._hass, self._logger_host
-            )
-        except Exception:  # Best-effort diagnostic refresh only.
-            _LOGGER.debug(
-                "Unable to refresh logger Wi-Fi signal", exc_info=True
-            )
-            return
-        if signal is not None:
-            self._logger_metadata["logger_wifi_signal"] = signal
+        self.data = {
+            **dict(self.data or {}),
+            **self._logger_metadata,
+        }
+        self.async_update_listeners()
+        return True
 
     async def _async_update_data(self) -> dict[str, Any]:
-        await self._async_refresh_logger_wifi_signal()
         try:
             # Some local loggers accept only one active protocol exchange.
             # Serialize complete polls across all configured TSUN devices.
@@ -153,8 +142,12 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._last_error = safe_error_details(err)
             trace = self.client.diagnostic_trace
             if trace:
-                self._last_error["protocol"] = str(trace[-1].get("protocol", "unknown"))
-                self._last_error["stage"] = str(trace[-1].get("stage", "unknown"))
+                self._last_error["protocol"] = str(
+                    trace[-1].get("protocol", "unknown")
+                )
+                self._last_error["stage"] = str(
+                    trace[-1].get("stage", "unknown")
+                )
             threshold_reached = (
                 self._consecutive_failures >= self._failure_threshold
             )
@@ -181,8 +174,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 self.update_interval = self._error_update_interval
             previous_data = {
-                **self._logger_metadata,
                 **dict(self.data or {}),
+                **self._logger_metadata,
             }
             previous_data.update(
                 {

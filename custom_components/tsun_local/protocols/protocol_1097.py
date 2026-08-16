@@ -3,6 +3,9 @@
 
 """Local TSUN 1097 Modbus transport and decoder."""
 
+# The experimental 1097 register mapping was informed by publicly available
+# protocol research from Stefan Allius (s-allius/tsun-gen3-proxy).
+
 from __future__ import annotations
 
 import asyncio
