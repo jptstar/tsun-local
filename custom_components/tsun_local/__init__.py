@@ -8,6 +8,7 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
 from .const import (
     CONF_ERROR_SCAN_INTERVAL,
@@ -24,6 +25,8 @@ from .const import (
     DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_OFFLINE_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    MANUFACTURER,
     PLATFORMS,
 )
 from .coordinator import TsunCoordinator, get_poll_lock
@@ -101,6 +104,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool
         str(entry.data[CONF_HOST]),
     )
     await coordinator.async_config_entry_first_refresh()
+
+    logger_sn = str(entry.data[CONF_LOGGER_SN])
+    raw_profile = coordinator.data.get("logger_raw_profile")
+    inverter_serial_number = coordinator.data.get("inverter_serial_number")
+    firmware_version = coordinator.data.get("logger_firmware_version")
+    dr.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, logger_sn)},
+        manufacturer=MANUFACTURER,
+        model=coordinator.client.model,
+        model_id=(str(raw_profile) if raw_profile is not None else None),
+        name=f"TSUN Local {logger_sn}",
+        serial_number=(
+            str(inverter_serial_number)
+            if inverter_serial_number is not None
+            else None
+        ),
+        sw_version=(
+            str(firmware_version) if firmware_version is not None else None
+        ),
+    )
+
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

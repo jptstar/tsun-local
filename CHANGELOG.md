@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The project follows [Se
 
 ### Added
 
-- expose the raw logger inverter profile reported by `inv_tp` as a diagnostic entity;
+- show the raw logger inverter profile reported by `inv_tp` in Home Assistant device information;
 - expose the logger Wi-Fi signal as a percentage diagnostic entity and refresh it every five minutes independently of inverter polling.
 
 ### Fixed

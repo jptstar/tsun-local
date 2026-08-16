@@ -88,7 +88,6 @@ LOGGER_METADATA_SENSOR_KEYS = frozenset(
         "inverter_serial_number",
         "logger_firmware_version",
         "logger_mac_address",
-        "logger_raw_profile",
         "logger_wifi_signal",
     }
 )
@@ -194,12 +193,6 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         key="logger_mac_address",
         suggested_object_id="logger_mac_address",
         translation_key="logger_mac_address",
-        entity_category=EntityCategory.DIAGNOSTIC,
-    ),
-    TsunSensorDescription(
-        key="logger_raw_profile",
-        suggested_object_id="logger_raw_profile",
-        translation_key="logger_raw_profile",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(
