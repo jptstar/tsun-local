@@ -1,0 +1,232 @@
+name: Patch beta.7 diagnostics
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".patch-beta7-trigger"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+
+      - name: Apply diagnostic register patch
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              text = file.read_text()
+              if text.count(old) != 1:
+                  raise SystemExit(f"Expected one match in {path}: {old[:80]!r}, got {text.count(old)}")
+              file.write_text(text.replace(old, new, 1))
+
+          # 1511: collect optional diagnostics immediately on first poll, then every 5 minutes.
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1511.py",
+              "        # Keep the normal startup poll unchanged; extra diagnostic blocks are\n        # collected later at a slow cadence and never make telemetry fail.\n        self._last_diagnostic_read = time.monotonic()",
+              "        # Collect optional diagnostics on the first poll, then at a slow cadence.\n        # A diagnostic failure never makes normal telemetry fail.\n        self._last_diagnostic_read = 0.0",
+          )
+
+          # 02B0: expose status/rated/max-designed power and collect max power slowly.
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              'PROTOCOL_NAME = "02b0"\nMODEL = "GEN3 / GEN3 PLUS"',
+              'PROTOCOL_NAME = "02b0"\nMODEL = "GEN3 / GEN3 PLUS"\nDIAGNOSTIC_INTERVAL = 300.0',
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              "ALARM_BLOCKS = (\n    (0x03, 0x3003, 0x3006),\n)\n",
+              "ALARM_BLOCKS = (\n    # Include 0x3000 so raw inverter status is collected with the alarm words.\n    (0x03, 0x3000, 0x3006),\n)\n\nDIAGNOSTIC_BLOCKS = (\n    # Public TSUN community mapping: maximum designed power.\n    (0x03, 0x2007, 0x2007),\n)\n",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              "AC_MEASUREMENT_KEYS = frozenset(\n    {\n        \"ac_voltage\",\n        \"ac_current\",\n        \"ac_frequency\",\n        \"ac_power\",\n        \"ac_energy_today\",\n        \"ac_energy_total\",\n        \"dc_power_total\",\n    }\n)\n",
+              "AC_MEASUREMENT_KEYS = frozenset(\n    {\n        \"ac_voltage\",\n        \"ac_current\",\n        \"ac_frequency\",\n        \"ac_power\",\n        \"ac_energy_today\",\n        \"ac_energy_total\",\n        \"dc_power_total\",\n    }\n)\nDEVICE_DIAGNOSTIC_KEYS = frozenset(\n    {\"inverter_status_raw\", \"rated_power\", \"max_designed_power\"}\n)\n",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              "    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(\n        f\"pv{number}_{measurement}\"\n        for number in range(1, pv_count + 1)\n        for measurement in PV_MEASUREMENT_NAMES\n    )",
+              "    return (\n        AC_MEASUREMENT_KEYS\n        | DEVICE_DIAGNOSTIC_KEYS\n        | ALARM_MEASUREMENT_KEYS\n        | frozenset(\n            f\"pv{number}_{measurement}\"\n            for number in range(1, pv_count + 1)\n            for measurement in PV_MEASUREMENT_NAMES\n        )\n    )",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              '        "ac_frequency": registers[0x300B] * 0.01,\n        "ac_power": registers[0x300F] * 0.1,',
+              '        "ac_frequency": registers[0x300B] * 0.01,\n        "rated_power": registers[0x300E],\n        "ac_power": registers[0x300F] * 0.1,',
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              "    }\n    for number in range(1, pv_count + 1):",
+              "    }\n    if 0x3000 in registers:\n        data[\"inverter_status_raw\"] = registers[0x3000]\n    if 0x2007 in registers:\n        data[\"max_designed_power\"] = registers[0x2007]\n\n    for number in range(1, pv_count + 1):",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              "        self._pv_count = 1\n        self._trace = ProtocolTrace(PROTOCOL_NAME)",
+              "        self._pv_count = 1\n        self._trace = ProtocolTrace(PROTOCOL_NAME)\n        self._diagnostic_registers: dict[int, int] = {}\n        self._last_diagnostic_read = 0.0",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_02b0.py",
+              "            else:\n                blocks_ok += 1\n        self._pv_count = max(self._pv_count, detect_pv_count(registers))",
+              "            else:\n                blocks_ok += 1\n\n        now = time.monotonic()\n        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:\n            self._last_diagnostic_read = now\n            for block in DIAGNOSTIC_BLOCKS:\n                try:\n                    self._diagnostic_registers.update(await self._read_block(block))\n                except Exception as err:\n                    _LOGGER.debug(\n                        \"02B0 diagnostic block 0x%04X-0x%04X is unavailable: %s\",\n                        block[1],\n                        block[2],\n                        type(err).__name__,\n                    )\n                else:\n                    blocks_ok += 1\n        registers.update(self._diagnostic_registers)\n\n        self._pv_count = max(self._pv_count, detect_pv_count(registers))",
+          )
+
+          # 1097: status/rated are already in normal blocks; collect 0x1437 slowly.
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "MAX_PV_COUNT = 6\n",
+              "MAX_PV_COUNT = 6\nDIAGNOSTIC_INTERVAL = 300.0\n",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "BLOCKS = (\n    (0x03, 0x1000, 0x100F),\n    (0x03, 0x1100, 0x110F),\n    (0x03, 0x1200, 0x120F),\n    (0x03, 0x1210, 0x121F),\n    (0x03, 0x1300, 0x130F),\n    (0x03, 0x1310, 0x131F),\n    (0x03, 0x1320, 0x132F),\n)\n",
+              "BLOCKS = (\n    (0x03, 0x1000, 0x100F),\n    (0x03, 0x1100, 0x110F),\n    (0x03, 0x1200, 0x120F),\n    (0x03, 0x1210, 0x121F),\n    (0x03, 0x1300, 0x130F),\n    (0x03, 0x1310, 0x131F),\n    (0x03, 0x1320, 0x132F),\n)\n\nDIAGNOSTIC_BLOCKS = (\n    # Public 1097 mapping: maximum designed power.\n    (0x03, 0x1437, 0x1437),\n)\n",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "AC_MEASUREMENT_KEYS = frozenset(\n    {\n        \"ac_voltage\",\n        \"ac_current\",\n        \"ac_frequency\",\n        \"ac_power\",\n        \"ac_energy_today\",\n        \"ac_energy_total\",\n        \"dc_power_total\",\n    }\n)\n",
+              "AC_MEASUREMENT_KEYS = frozenset(\n    {\n        \"ac_voltage\",\n        \"ac_current\",\n        \"ac_frequency\",\n        \"ac_power\",\n        \"ac_energy_today\",\n        \"ac_energy_total\",\n        \"dc_power_total\",\n    }\n)\nDEVICE_DIAGNOSTIC_KEYS = frozenset(\n    {\"inverter_status_raw\", \"rated_power\", \"max_designed_power\"}\n)\n",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(\n        f\"pv{number}_{measurement}\"\n        for number in range(1, pv_count + 1)\n        for measurement in PV_MEASUREMENT_NAMES\n    )",
+              "    return (\n        AC_MEASUREMENT_KEYS\n        | DEVICE_DIAGNOSTIC_KEYS\n        | ALARM_MEASUREMENT_KEYS\n        | frozenset(\n            f\"pv{number}_{measurement}\"\n            for number in range(1, pv_count + 1)\n            for measurement in PV_MEASUREMENT_NAMES\n        )\n    )",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              '    data: dict[str, float | int] = {\n        "ac_voltage": registers[0x1200] * 0.1,',
+              '    data: dict[str, float | int] = {\n        "inverter_status_raw": registers[0x1100],\n        "ac_voltage": registers[0x1200] * 0.1,',
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              '        "ac_frequency": registers[0x1209] * 0.01,\n        "ac_energy_today": registers[0x1212] * 0.01,',
+              '        "ac_frequency": registers[0x1209] * 0.01,\n        "rated_power": registers[0x1210],\n        "ac_energy_today": registers[0x1212] * 0.01,',
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "    }\n\n    # PV1 begins at 0x1302; every PV channel spans seven registers:",
+              "    }\n    if 0x1437 in registers:\n        data[\"max_designed_power\"] = registers[0x1437]\n\n    # PV1 begins at 0x1302; every PV channel spans seven registers:",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "        self._pv_count = 1\n        self._trace = ProtocolTrace(PROTOCOL_NAME)",
+              "        self._pv_count = 1\n        self._trace = ProtocolTrace(PROTOCOL_NAME)\n        self._diagnostic_registers: dict[int, int] = {}\n        self._last_diagnostic_read = 0.0",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "        for block in BLOCKS:\n            registers.update(await self._read_block(block))\n\n        # Keep the highest input ever observed so entities never disappear.",
+              "        for block in BLOCKS:\n            registers.update(await self._read_block(block))\n        blocks_ok = len(BLOCKS)\n\n        now = time.monotonic()\n        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:\n            self._last_diagnostic_read = now\n            for block in DIAGNOSTIC_BLOCKS:\n                try:\n                    self._diagnostic_registers.update(await self._read_block(block))\n                except Exception as err:\n                    _LOGGER.debug(\n                        \"1097 diagnostic block 0x%04X-0x%04X is unavailable: %s\",\n                        block[1],\n                        block[2],\n                        type(err).__name__,\n                    )\n                else:\n                    blocks_ok += 1\n        registers.update(self._diagnostic_registers)\n\n        # Keep the highest input ever observed so entities never disappear.",
+          )
+          replace_once(
+              "custom_components/tsun_local/protocols/protocol_1097.py",
+              "            blocks_ok=len(BLOCKS),",
+              "            blocks_ok=blocks_ok,",
+          )
+
+          # Register-address attributes must match the active protocol.
+          replace_once(
+              "custom_components/tsun_local/sensor.py",
+              "DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS\n\n\nSENSORS:",
+              "DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS\n\nPROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {\n    \"1511\": {\n        \"inverter_status_raw\": \"3000 (0x0BB8)\",\n        \"rated_power\": \"3020 (0x0BCC)\",\n        \"max_designed_power\": \"2042 (0x07FA)\",\n    },\n    \"02b0\": {\n        \"inverter_status_raw\": \"0x3000\",\n        \"rated_power\": \"0x300E\",\n        \"max_designed_power\": \"0x2007\",\n    },\n    \"1097\": {\n        \"inverter_status_raw\": \"0x1100\",\n        \"rated_power\": \"0x1210\",\n        \"max_designed_power\": \"0x1437\",\n    },\n}\n\n\nSENSORS:",
+          )
+          replace_once(
+              "custom_components/tsun_local/sensor.py",
+              "    @property\n    def extra_state_attributes(self) -> dict[str, str] | None:\n        \"\"\"Expose the source address and hexadecimal value for raw registers.\"\"\"\n        address = self.entity_description.register_address\n        value = self.native_value",
+              "    def _source_register_address(self) -> str | None:\n        \"\"\"Return the register address used by the active protocol.\"\"\"\n        protocol_name = str(getattr(self.coordinator.client, \"protocol_name\", \"\"))\n        return PROTOCOL_REGISTER_ADDRESSES.get(protocol_name, {}).get(\n            self.entity_description.key, self.entity_description.register_address\n        )\n\n    @property\n    def extra_state_attributes(self) -> dict[str, str] | None:\n        \"\"\"Expose the source address and hexadecimal value for raw registers.\"\"\"\n        address = self._source_register_address()\n        value = self.native_value",
+          )
+          replace_once(
+              "custom_components/tsun_local/sensor.py",
+              "        if self.entity_description.register_address is not None:\n            return (",
+              "        if self._source_register_address() is not None:\n            return (",
+          )
+
+          # Tests: protect the new mappings and immediate first diagnostic read.
+          replace_once(
+              "tests/test_protocols.py",
+              "from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402\n    Tsun02b0Client,",
+              "from tsun_local_protocol_tests.protocol_02b0 import (  # noqa: E402\n    DIAGNOSTIC_BLOCKS as BLOCKS_02B0_DIAGNOSTIC,\n    Tsun02b0Client,",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "from tsun_local_protocol_tests.protocol_1097 import (  # noqa: E402\n    detect_pv_count as detect_1097_pv_count,\n)",
+              "from tsun_local_protocol_tests.protocol_1097 import (  # noqa: E402\n    DIAGNOSTIC_BLOCKS as BLOCKS_1097_DIAGNOSTIC,\n    Tsun1097Client,\n    decode_measurements as decode_1097,\n    detect_pv_count as detect_1097_pv_count,\n)",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "    def test_builds_official_alarm_request(self) -> None:\n        self.assertEqual(\n            build_modbus_request(0x03, 0x3003, 0x3006),\n            bytes.fromhex(\"01 03 30 03 00 04 BB 09\"),\n        )",
+              "    def test_builds_official_alarm_and_status_request(self) -> None:\n        self.assertEqual(\n            build_modbus_request(0x03, 0x3000, 0x3006),\n            bytes.fromhex(\"01 03 30 00 00 07 0B 08\"),\n        )\n\n    def test_builds_max_designed_power_request(self) -> None:\n        self.assertIn((0x03, 0x2007, 0x2007), BLOCKS_02B0_DIAGNOSTIC)\n        self.assertEqual(\n            build_modbus_request(0x03, 0x2007, 0x2007),\n            bytes.fromhex(\"01 03 20 07 00 01 3E 0B\"),\n        )",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "        self.assertIn(\"alarm_active\", keys)\n        self.assertNotIn(\"alarm_global_0_raw\", keys)",
+              "        self.assertIn(\"alarm_active\", keys)\n        self.assertIn(\"inverter_status_raw\", keys)\n        self.assertIn(\"rated_power\", keys)\n        self.assertIn(\"max_designed_power\", keys)\n        self.assertNotIn(\"alarm_global_0_raw\", keys)",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "        registers.update(\n            {\n                0x3009: 2301,",
+              "        registers.update(\n            {\n                0x2007: 2000,\n                0x3000: 1,\n                0x3009: 2301,",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "                0x300B: 5000,\n                0x300F: 4567,",
+              "                0x300B: 5000,\n                0x300E: 800,\n                0x300F: 4567,",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "        self.assertAlmostEqual(data[\"ac_energy_total\"], 678.81)\n        self.assertAlmostEqual(data[\"pv1_energy_total\"], 123.45)",
+              "        self.assertAlmostEqual(data[\"ac_energy_total\"], 678.81)\n        self.assertEqual(data[\"inverter_status_raw\"], 1)\n        self.assertEqual(data[\"rated_power\"], 800)\n        self.assertEqual(data[\"max_designed_power\"], 2000)\n        self.assertAlmostEqual(data[\"pv1_energy_total\"], 123.45)",
+          )
+          replace_once(
+              "tests/test_protocols.py",
+              "class Protocol1097DetectionTests(unittest.TestCase):\n    \"\"\"Verify 1097 PV detection never invents six inputs.\"\"\"\n",
+              "class Protocol1097DetectionTests(unittest.TestCase):\n    \"\"\"Verify 1097 PV detection and device diagnostics.\"\"\"\n\n    def test_exposes_device_diagnostics(self) -> None:\n        client = Tsun1097Client(\"192.0.2.10\", 8899, 123456)\n        self.assertIn(\"inverter_status_raw\", client.measurement_keys)\n        self.assertIn(\"rated_power\", client.measurement_keys)\n        self.assertIn(\"max_designed_power\", client.measurement_keys)\n        self.assertIn((0x03, 0x1437, 0x1437), BLOCKS_1097_DIAGNOSTIC)\n        self.assertEqual(\n            build_modbus_request(0x03, 0x1437, 0x1437),\n            bytes.fromhex(\"01 03 14 37 00 01 30 34\"),\n        )\n\n        registers = {\n            0x1100: 2,\n            0x1200: 2300,\n            0x1201: 100,\n            0x1202: 500,\n            0x1209: 5000,\n            0x1210: 3000,\n            0x1212: 50,\n            0x1213: 0,\n            0x1214: 1259,\n            0x1437: 3000,\n        }\n        data = decode_1097(registers, 0)\n        self.assertEqual(data[\"inverter_status_raw\"], 2)\n        self.assertEqual(data[\"rated_power\"], 3000)\n        self.assertEqual(data[\"max_designed_power\"], 3000)\n",
+          )
+          replace_once(
+              "tests/test_protocol_1511_diagnostics.py",
+              "    DIAGNOSTIC_BLOCKS,\n    build_1511_request,",
+              "    DIAGNOSTIC_BLOCKS,\n    Tsun1511Client,\n    build_1511_request,",
+          )
+          replace_once(
+              "tests/test_protocol_1511_diagnostics.py",
+              "    def test_builds_validated_a1_21_2000_block_request(self) -> None:\n",
+              "    def test_slow_diagnostics_are_due_on_first_poll(self) -> None:\n        client = Tsun1511Client(\"192.0.2.10\", 8899, 123456)\n        self.assertEqual(client._last_diagnostic_read, 0.0)\n\n    def test_builds_validated_a1_21_2000_block_request(self) -> None:\n",
+          )
+
+          # Changelog: beta.7 now aligns these diagnostics across protocols.
+          replace_once(
+              "CHANGELOG.md",
+              "- TITAN diagnostic entities for raw inverter status, rated inverter power and maximum designed power;",
+              "- cross-protocol diagnostic entities for raw inverter status, rated inverter power and maximum designed power on 1511, 02B0 and 1097;\n- read-only slow diagnostic reads for 02B0 register `0x2007` and 1097 register `0x1437`;",
+          )
+          replace_once(
+              "CHANGELOG.md",
+              "- registers 3017 and 3028 are exposed without an offset, temperature unit, or temperature device class, and their entity names explicitly state that their meaning is unconfirmed;",
+              "- registers 3017 and 3028 are exposed without an offset, temperature unit, or temperature device class, and their entity names explicitly state that their meaning is unconfirmed;\n- optional inverter diagnostic blocks are read on the first poll and then refreshed every five minutes;",
+          )
+          PY
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add custom_components/tsun_local/protocols/protocol_1511.py \
+                  custom_components/tsun_local/protocols/protocol_02b0.py \
+                  custom_components/tsun_local/protocols/protocol_1097.py \
+                  custom_components/tsun_local/sensor.py \
+                  tests/test_protocols.py \
+                  tests/test_protocol_1511_diagnostics.py \
+                  CHANGELOG.md
+          git commit -m "fix: align beta.7 inverter diagnostics across protocols"
+          git push origin HEAD:beta-1097
