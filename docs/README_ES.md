@@ -224,10 +224,10 @@ Los candidatos de compatibilidad se etiquetan de forma intencionadamente separad
 
 ## Contribuciones
 
-El soporte experimental **1097** también se beneficia del trabajo de la comunidad:
+TSUN Local también se beneficia de contribuciones de la comunidad:
 
 - **Stefan Allius / `s-allius/tsun-gen3-proxy`** — investigación pública del protocolo 1097 que contribuyó al mapeo experimental utilizado por TSUN Local.
-- **TheSmartGerman** — pruebas en dispositivos reales y comentarios de compatibilidad para el soporte 1097.
+- **TheSmartGerman** — pruebas en hardware real y comentarios de compatibilidad para el **TSOL-MP3000 con 1511**, durante las cuales se detectó involuntariamente el protocolo **1097**.
 
 ---
 
