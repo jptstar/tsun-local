@@ -264,9 +264,6 @@
       "pv6_energy_total": {
         "name": "Energía PV6 total"
       },
-      "logger_raw_profile": {
-        "name": "Perfil bruto del logger"
-      },
       "logger_wifi_signal": {
         "name": "Señal Wi-Fi del logger"
       }

@@ -88,6 +88,20 @@ class MetadataTests(unittest.TestCase):
         self.assertNotIn("CONNECTION_NETWORK_MAC", sensor_source)
         self.assertNotIn("connections=", sensor_source)
 
+    def test_raw_logger_profile_is_device_info_only(self) -> None:
+        """Keep the raw profile out of entities and clean the beta.4 orphan."""
+        strings = _load_json(INTEGRATION / "strings.json")
+        self.assertNotIn(
+            "logger_raw_profile", strings["entity"]["sensor"]
+        )
+        init_source = (INTEGRATION / "__init__.py").read_text(encoding="utf-8")
+        self.assertIn(
+            'legacy_unique_id = f"{logger_sn}_logger_raw_profile"',
+            init_source,
+        )
+        sensor_source = (INTEGRATION / "sensor.py").read_text(encoding="utf-8")
+        self.assertNotIn('key="logger_raw_profile"', sensor_source)
+
     def test_documentation_language_layout(self) -> None:
         self.assertTrue((ROOT / "README.md").is_file())
         self.assertFalse((ROOT / "README_EN.md").exists())

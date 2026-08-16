@@ -11,7 +11,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.event import async_track_time_interval
 
 from .const import (
@@ -73,10 +73,24 @@ def _async_sync_device_info(
     )
 
 
+def _async_remove_legacy_raw_profile_entity(
+    hass: HomeAssistant, logger_sn: str
+) -> None:
+    """Remove the obsolete raw-profile diagnostic entity from beta.4."""
+    entity_registry = er.async_get(hass)
+    legacy_unique_id = f"{logger_sn}_logger_raw_profile"
+    if entity_id := entity_registry.async_get_entity_id(
+        "sensor", DOMAIN, legacy_unique_id
+    ):
+        entity_registry.async_remove(entity_id)
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: TsunConfigEntry
 ) -> bool:
     """Set up one locally connected TSUN device from a config entry."""
+    logger_sn = str(entry.data[CONF_LOGGER_SN])
+    _async_remove_legacy_raw_profile_entity(hass, logger_sn)
     logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
     logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
     logger_raw_profile = entry.data.get(CONF_LOGGER_RAW_PROFILE)

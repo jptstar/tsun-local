@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0-beta.6] - 2026-08-16
+
+### Fixed
+
+- remove the obsolete **Raw logger profile** diagnostic entity left in the Home Assistant entity registry by beta.4; the raw profile is now shown only in device information as the model identifier;
+- remove the unused raw-profile entity translation key from every supported language.
+
 ## [1.4.0-beta.5] - 2026-08-16
 
 ### Fixed
