@@ -59,6 +59,8 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 | 🛡️ **Avanzado** | Protección de red · Diagnóstico del inversor · Desactivado por defecto |
 | 🔒 **Seguridad** | Solo lectura · Sin escrituras de configuración en el inversor |
 
+📚 **[Referencia completa de entidades por protocolo](ENTITIES.md)** — sensores, sensores binarios y botones para **1511, 02B0 y 1097**.
+
 ---
 
 ## Compatibilidad
@@ -114,8 +116,6 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 
 > [!NOTE]
 > La investigación pública sobre GEN3 asocia generalmente estos dispositivos con la familia de números de serie **R17 / R47**. La compatibilidad con el protocolo **1097** de TSUN Local sigue siendo experimental hasta confirmarse en más hardware real.
-
-> **Contribución de la comunidad:** **TheSmartGerman** ha contribuido al soporte 1097 mediante pruebas en hardware real y comentarios sobre compatibilidad.
 
 | | Datos disponibles |
 |---|---|
@@ -218,9 +218,16 @@ La versión 1.4 lleva TSUN Local desde modelos conocidos individuales hacia la *
 
 Las implementaciones 1511 y 02B0 se desarrollan mediante **análisis independiente del protocolo local, observación de dispositivos reales y validación de hardware**.
 
-El mapeo experimental 1097 se apoyó en la investigación pública del protocolo de **Stefan Allius / `s-allius/tsun-gen3-proxy`** y después se adaptó para el uso local directo en TSUN Local.
-
 Los candidatos de compatibilidad se etiquetan de forma intencionadamente separada del hardware realmente validado.
+
+---
+
+## Contribuciones
+
+El soporte experimental **1097** también se beneficia del trabajo de la comunidad:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — investigación pública del protocolo 1097 que contribuyó al mapeo experimental utilizado por TSUN Local.
+- **TheSmartGerman** — pruebas en dispositivos reales y comentarios de compatibilidad para el soporte 1097.
 
 ---
 
