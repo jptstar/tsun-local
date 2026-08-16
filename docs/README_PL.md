@@ -59,6 +59,8 @@ TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 | 🛡️ **Zaawansowane** | Ochrona sieci · Diagnostyka falownika · Domyślnie wyłączone |
 | 🔒 **Bezpieczeństwo** | Tylko odczyt · Brak zapisu konfiguracji do falownika |
 
+📚 **[Pełna lista encji według protokołu](ENTITIES.md)** — sensory, sensory binarne i przyciski dla **1511, 02B0 i 1097**.
+
 ---
 
 ## Kompatybilność
@@ -114,8 +116,6 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 
 > [!NOTE]
 > Publiczne badania GEN3 zwykle wiążą te urządzenia z rodziną numerów seryjnych **R17 / R47**. Kompatybilność z protokołem **1097** w TSUN Local pozostaje eksperymentalna do czasu potwierdzenia na większej liczbie rzeczywistych urządzeń.
-
-> **Wkład społeczności:** **TheSmartGerman** przyczynił się do obsługi 1097 poprzez testy na rzeczywistym sprzęcie i informacje zwrotne dotyczące kompatybilności.
 
 | | Dostępne dane |
 |---|---|
@@ -218,9 +218,16 @@ Wersja 1.4 przenosi TSUN Local z obsługi pojedynczych znanych modeli w stronę 
 
 Implementacje 1511 i 02B0 są rozwijane poprzez **niezależną analizę lokalnego protokołu, obserwację rzeczywistych urządzeń i walidację sprzętową**.
 
-Eksperymentalne mapowanie 1097 wykorzystuje publicznie dostępne badania protokołu **Stefana Alliusa / `s-allius/tsun-gen3-proxy`**, a następnie zostało dostosowane do bezpośredniego lokalnego użycia w TSUN Local.
-
 Kandydaci do kompatybilności są celowo oznaczani oddzielnie od faktycznie zweryfikowanego sprzętu.
+
+---
+
+## Wkład społeczności
+
+Eksperymentalna obsługa **1097** korzysta również z pracy społeczności:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — publiczne badania protokołu 1097, które przyczyniły się do eksperymentalnego mapowania używanego przez TSUN Local.
+- **TheSmartGerman** — testy na rzeczywistych urządzeniach i informacje zwrotne dotyczące kompatybilności obsługi 1097.
 
 ---
 
