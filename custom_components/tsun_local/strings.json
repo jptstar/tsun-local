@@ -151,6 +151,21 @@
       "dc_power_total": {
         "name": "Total DC power"
       },
+      "inverter_status_raw": {
+        "name": "Raw inverter status"
+      },
+      "rated_power": {
+        "name": "Rated inverter power"
+      },
+      "max_designed_power": {
+        "name": "Maximum designed power"
+      },
+      "register_3017_raw": {
+        "name": "Raw register 3017 (meaning unconfirmed)"
+      },
+      "register_3028_raw": {
+        "name": "Raw register 3028 (meaning unconfirmed)"
+      },
       "communication_last_success": {
         "name": "Last successful communication"
       },
