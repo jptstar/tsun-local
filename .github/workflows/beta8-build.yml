@@ -26,7 +26,9 @@ jobs:
           python-version: "3.13"
 
       - name: Apply beta.8 changes
-        run: python .github/scripts/prepare_beta8.py
+        run: |
+          python .github/scripts/prepare_beta8.py
+          python .github/scripts/fix_beta8.py
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
@@ -45,7 +47,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          rm .github/workflows/beta8-build.yml .github/scripts/prepare_beta8.py
+          rm .github/workflows/beta8-build.yml .github/scripts/prepare_beta8.py .github/scripts/fix_beta8.py
           git add -A
           git commit -m "feat: prepare TSUN Local 1.4.0 beta.8"
           git push origin HEAD:beta-1097
