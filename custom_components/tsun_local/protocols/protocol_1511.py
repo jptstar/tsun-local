@@ -25,13 +25,18 @@ MAX_PV_COUNT = 6
 _LOGGER = logging.getLogger(__name__)
 
 BLOCKS = (
-    (0xA1, 0x01, 0x0BB8, 0x0BD0),
+    (0xA1, 0x01, 0x0BB8, 0x0BD7),
     (0xA3, 0x03, 0x0E10, 0x0E2D),
     (0xA4, 0x04, 0x0ED8, 0x0EF5),
 )
 
 ALARM_BLOCKS = (
     (0xA2, 0x02, 0x0CE4, 0x0CE7),
+)
+
+DIAGNOSTIC_BLOCKS = (
+    # Native TITAN A1/21 block: decimal registers 2000-2095.
+    (0xA1, 0x21, 0x07D0, 0x082F),
 )
 
 GLOBAL_ALARM_REGISTERS = (0x0BBB, 0x0BBC, 0x0BBD, 0x0BBE)
@@ -57,6 +62,17 @@ AC_MEASUREMENT_KEYS = frozenset(
         "dc_power_total",
     }
 )
+
+TITAN_DIAGNOSTIC_KEYS = frozenset(
+    {
+        "inverter_status_raw",
+        "rated_power",
+        "max_designed_power",
+        "register_3017_raw",
+        "register_3028_raw",
+    }
+)
+
 PV_MEASUREMENT_NAMES = (
     "voltage",
     "current",
@@ -116,12 +132,16 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
-    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(
-        f"pv{number}_{measurement}"
-        for number in range(1, pv_count + 1)
-        for measurement in PV_MEASUREMENT_NAMES
-    ) | frozenset(
-        f"pv{number}_alarm_raw" for number in range(1, pv_count + 1)
+    return (
+        AC_MEASUREMENT_KEYS
+        | TITAN_DIAGNOSTIC_KEYS
+        | ALARM_MEASUREMENT_KEYS
+        | frozenset(
+            f"pv{number}_{measurement}"
+            for number in range(1, pv_count + 1)
+            for measurement in PV_MEASUREMENT_NAMES
+        )
+        | frozenset(f"pv{number}_alarm_raw" for number in range(1, pv_count + 1))
     )
 
 
@@ -142,13 +162,20 @@ def decode_measurements(
 ) -> dict[str, float | int]:
     """Decode the validated AC and PV register map."""
     data: dict[str, float | int] = {
+        "inverter_status_raw": registers[0x0BB8],
         "ac_voltage": registers[0x0BC4] * 0.1,
         "ac_current": registers[0x0BC5] * 0.01,
         "ac_frequency": registers[0x0BC7] * 0.01,
+        "register_3017_raw": registers[0x0BC9],
+        "rated_power": registers[0x0BCC],
         "ac_power": registers[0x0BCD] * 0.1,
         "ac_energy_today": registers[0x0BCE] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x0BCF) * 0.01,
+        "register_3028_raw": registers[0x0BD4],
     }
+    if 0x07FA in registers:
+        data["max_designed_power"] = registers[0x07FA]
+
     pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
     for number, (base, total_pair) in enumerate(
@@ -316,12 +343,13 @@ class Tsun1511Client:
                 await writer.wait_closed()
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read telemetry and the additional alarm block sequentially."""
+        """Read telemetry plus optional alarm and diagnostic blocks sequentially."""
         started = time.monotonic()
         registers: dict[int, int] = {}
         for block in BLOCKS:
             registers.update(await self._read_block(block))
         blocks_ok = len(BLOCKS)
+
         for block in ALARM_BLOCKS:
             try:
                 registers.update(await self._read_block(block))
@@ -334,6 +362,20 @@ class Tsun1511Client:
                 )
             else:
                 blocks_ok += 1
+
+        for block in DIAGNOSTIC_BLOCKS:
+            try:
+                registers.update(await self._read_block(block))
+            except Exception as err:
+                _LOGGER.debug(
+                    "1511 diagnostic block %d-%d is unavailable: %s",
+                    block[2],
+                    block[3],
+                    type(err).__name__,
+                )
+            else:
+                blocks_ok += 1
+
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
         measurements.update(decode_alarms(registers, self._pv_count))
