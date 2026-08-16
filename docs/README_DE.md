@@ -224,10 +224,10 @@ Kompatibilitätskandidaten werden bewusst getrennt von tatsächlich validierter 
 
 ## Beiträge
 
-Die experimentelle **1097**-Unterstützung profitiert auch von Community-Beiträgen:
+TSUN Local profitiert auch von Beiträgen aus der Community:
 
 - **Stefan Allius / `s-allius/tsun-gen3-proxy`** — öffentliche 1097-Protokollforschung, die in die experimentelle Zuordnung von TSUN Local eingeflossen ist.
-- **TheSmartGerman** — Tests an realen Geräten und Kompatibilitätsrückmeldungen für die 1097-Unterstützung.
+- **TheSmartGerman** — Tests an realer Hardware und Kompatibilitätsrückmeldungen für den **TSOL-MP3000 mit 1511**, bei denen das Protokoll **1097** unbeabsichtigt erkannt wurde.
 
 ---
 
