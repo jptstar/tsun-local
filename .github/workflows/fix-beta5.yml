@@ -1,0 +1,683 @@
+name: Fix and publish beta5
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".github/workflows/fix-beta5.yml"
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  fix-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Apply beta5 fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          init_source = '''# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
+          # SPDX-License-Identifier: GPL-3.0-or-later
+
+          """TSUN Local integration."""
+
+          from __future__ import annotations
+
+          from datetime import datetime, timedelta
+          import logging
+
+          from homeassistant.config_entries import ConfigEntry
+          from homeassistant.const import CONF_HOST, CONF_PORT
+          from homeassistant.core import HomeAssistant
+          from homeassistant.helpers import device_registry as dr
+          from homeassistant.helpers.event import async_track_time_interval
+
+          from .const import (
+              CONF_ERROR_SCAN_INTERVAL,
+              CONF_FAILURE_THRESHOLD,
+              CONF_INVERTER_SERIAL_NUMBER,
+              CONF_LOGGER_FIRMWARE_VERSION,
+              CONF_LOGGER_MAC_ADDRESS,
+              CONF_LOGGER_RAW_PROFILE,
+              CONF_LOGGER_SN,
+              CONF_OFFLINE_SCAN_INTERVAL,
+              CONF_PROTOCOL,
+              CONF_SCAN_INTERVAL,
+              DEFAULT_ERROR_SCAN_INTERVAL,
+              DEFAULT_FAILURE_THRESHOLD,
+              DEFAULT_OFFLINE_SCAN_INTERVAL,
+              DEFAULT_SCAN_INTERVAL,
+              DOMAIN,
+              MANUFACTURER,
+              PLATFORMS,
+          )
+          from .coordinator import TsunCoordinator, get_poll_lock
+          from .logger_web import (
+              async_read_logger_web_data,
+              async_read_logger_wifi_signal,
+          )
+          from .protocols import DEFAULT_PROTOCOL, create_protocol_client
+
+          type TsunConfigEntry = ConfigEntry[TsunCoordinator]
+
+          _LOGGER = logging.getLogger(__name__)
+          LOGGER_METADATA_REFRESH_INTERVAL = timedelta(minutes=5)
+
+
+          def _async_sync_device_info(
+              hass: HomeAssistant,
+              entry: TsunConfigEntry,
+              coordinator: TsunCoordinator,
+          ) -> None:
+              """Create or update Home Assistant device information."""
+              logger_sn = str(entry.data[CONF_LOGGER_SN])
+              raw_profile = coordinator.data.get("logger_raw_profile")
+              inverter_serial_number = coordinator.data.get("inverter_serial_number")
+              firmware_version = coordinator.data.get("logger_firmware_version")
+              dr.async_get(hass).async_get_or_create(
+                  config_entry_id=entry.entry_id,
+                  identifiers={(DOMAIN, logger_sn)},
+                  manufacturer=MANUFACTURER,
+                  model=coordinator.client.model,
+                  model_id=(str(raw_profile) if raw_profile is not None else None),
+                  name=f"TSUN Local {logger_sn}",
+                  serial_number=(
+                      str(inverter_serial_number)
+                      if inverter_serial_number is not None
+                      else None
+                  ),
+                  sw_version=(
+                      str(firmware_version) if firmware_version is not None else None
+                  ),
+              )
+
+
+          async def async_setup_entry(hass: HomeAssistant, entry: TsunConfigEntry) -> bool:
+              """Set up one locally connected TSUN device from a config entry."""
+              logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
+              logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
+              logger_raw_profile = entry.data.get(CONF_LOGGER_RAW_PROFILE)
+              inverter_serial_number = entry.data.get(CONF_INVERTER_SERIAL_NUMBER)
+              host = str(entry.data[CONF_HOST])
+              logger_data = await async_read_logger_web_data(hass, host)
+              logger_firmware_version = (
+                  logger_data.firmware_version or logger_firmware_version
+              )
+              logger_mac_address = logger_data.mac_address or logger_mac_address
+              logger_raw_profile = logger_data.raw_profile or logger_raw_profile
+              inverter_serial_number = (
+                  logger_data.inverter_serial_number or inverter_serial_number
+              )
+              data_updates = dict(entry.data)
+              if logger_firmware_version is not None:
+                  data_updates[CONF_LOGGER_FIRMWARE_VERSION] = logger_firmware_version
+              if logger_mac_address is not None:
+                  data_updates[CONF_LOGGER_MAC_ADDRESS] = logger_mac_address
+              if logger_raw_profile is not None:
+                  data_updates[CONF_LOGGER_RAW_PROFILE] = logger_raw_profile
+              if inverter_serial_number is not None:
+                  data_updates[CONF_INVERTER_SERIAL_NUMBER] = inverter_serial_number
+              if data_updates != entry.data:
+                  hass.config_entries.async_update_entry(entry, data=data_updates)
+
+              client = create_protocol_client(
+                  entry.data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
+                  entry.data[CONF_HOST],
+                  entry.data[CONF_PORT],
+                  entry.data[CONF_LOGGER_SN],
+              )
+              interval = int(
+                  entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+              )
+              error_interval = int(
+                  entry.options.get(CONF_ERROR_SCAN_INTERVAL, DEFAULT_ERROR_SCAN_INTERVAL)
+              )
+              offline_interval = int(
+                  entry.options.get(
+                      CONF_OFFLINE_SCAN_INTERVAL, DEFAULT_OFFLINE_SCAN_INTERVAL
+                  )
+              )
+              failure_threshold = int(
+                  entry.options.get(CONF_FAILURE_THRESHOLD, DEFAULT_FAILURE_THRESHOLD)
+              )
+              coordinator = TsunCoordinator(
+                  hass,
+                  entry,
+                  client,
+                  interval,
+                  error_interval,
+                  offline_interval,
+                  failure_threshold,
+                  get_poll_lock(hass),
+                  logger_firmware_version,
+                  logger_mac_address,
+                  inverter_serial_number,
+                  logger_raw_profile,
+                  logger_data.wifi_signal,
+              )
+              await coordinator.async_config_entry_first_refresh()
+              _async_sync_device_info(hass, entry, coordinator)
+
+              async def _async_refresh_logger_metadata(_now: datetime) -> None:
+                  """Refresh web-only logger metadata independently of inverter polling."""
+                  updates: dict[str, object] = {}
+                  if coordinator.data.get("logger_raw_profile") is None:
+                      refreshed = await async_read_logger_web_data(hass, host)
+                      for key, value in (
+                          ("logger_firmware_version", refreshed.firmware_version),
+                          ("logger_mac_address", refreshed.mac_address),
+                          ("inverter_serial_number", refreshed.inverter_serial_number),
+                          ("logger_raw_profile", refreshed.raw_profile),
+                          ("logger_wifi_signal", refreshed.wifi_signal),
+                      ):
+                          if value is not None:
+                              updates[key] = value
+                  else:
+                      signal = await async_read_logger_wifi_signal(hass, host)
+                      if signal is not None:
+                          updates["logger_wifi_signal"] = signal
+
+                  if not updates or not coordinator.async_update_logger_metadata(updates):
+                      return
+
+                  config_updates = dict(entry.data)
+                  for key, config_key in (
+                      ("logger_firmware_version", CONF_LOGGER_FIRMWARE_VERSION),
+                      ("logger_mac_address", CONF_LOGGER_MAC_ADDRESS),
+                      ("inverter_serial_number", CONF_INVERTER_SERIAL_NUMBER),
+                      ("logger_raw_profile", CONF_LOGGER_RAW_PROFILE),
+                  ):
+                      value = updates.get(key)
+                      if value is not None:
+                          config_updates[config_key] = value
+                  if config_updates != entry.data:
+                      hass.config_entries.async_update_entry(entry, data=config_updates)
+
+                  if updates.get("logger_raw_profile") is not None:
+                      _async_sync_device_info(hass, entry, coordinator)
+
+              entry.runtime_data = coordinator
+              await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+              entry.async_on_unload(
+                  async_track_time_interval(
+                      hass,
+                      _async_refresh_logger_metadata,
+                      LOGGER_METADATA_REFRESH_INTERVAL,
+                  )
+              )
+              return True
+
+
+          async def async_unload_entry(
+              hass: HomeAssistant, entry: TsunConfigEntry
+          ) -> bool:
+              """Unload a config entry."""
+              return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+          '''
+          # Remove YAML indentation from the embedded source.
+          init_source = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in init_source.splitlines()
+          ) + "\n"
+          Path("custom_components/tsun_local/__init__.py").write_text(
+              init_source, encoding="utf-8"
+          )
+
+          coordinator_source = '''# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
+          # SPDX-License-Identifier: GPL-3.0-or-later
+
+          """Protocol-independent data coordinator for TSUN Local."""
+
+          from __future__ import annotations
+
+          import asyncio
+          from datetime import datetime, timedelta
+          import logging
+          from typing import Any
+
+          from homeassistant.config_entries import ConfigEntry
+          from homeassistant.core import HomeAssistant
+          from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+          from homeassistant.util import dt as dt_util
+
+          from .const import DOMAIN
+          from .protocols import TsunProtocolClient, TsunReadResult
+          from .protocols.ap import safe_error_details
+
+          _LOGGER = logging.getLogger(__name__)
+          POLL_LOCK = "poll_lock"
+
+
+          def get_poll_lock(hass: HomeAssistant) -> asyncio.Lock:
+              """Return the lock shared by setup validation and every device poll."""
+              domain_data = hass.data.setdefault(DOMAIN, {})
+              return domain_data.setdefault(POLL_LOCK, asyncio.Lock())
+
+
+          class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+              """Coordinate polling of one locally connected TSUN device."""
+
+              config_entry: ConfigEntry
+
+              def __init__(
+                  self,
+                  hass: HomeAssistant,
+                  entry: ConfigEntry,
+                  client: TsunProtocolClient,
+                  interval: int,
+                  error_interval: int,
+                  offline_interval: int,
+                  failure_threshold: int,
+                  poll_lock: asyncio.Lock,
+                  logger_firmware_version: str | None = None,
+                  logger_mac_address: str | None = None,
+                  inverter_serial_number: str | None = None,
+                  logger_raw_profile: str | None = None,
+                  logger_wifi_signal: int | None = None,
+              ) -> None:
+                  super().__init__(
+                      hass,
+                      _LOGGER,
+                      name=DOMAIN,
+                      config_entry=entry,
+                      update_interval=timedelta(seconds=interval),
+                  )
+                  self.client = client
+                  self._poll_lock = poll_lock
+                  self._normal_update_interval = timedelta(seconds=interval)
+                  self._error_update_interval = timedelta(seconds=error_interval)
+                  self._offline_update_interval = timedelta(seconds=offline_interval)
+                  self._failure_threshold = failure_threshold
+                  self._last_success: datetime | None = None
+                  self._consecutive_failures = 0
+                  self._online: bool | None = None
+                  self._last_error: dict[str, str] | None = None
+                  self._logger_metadata = {
+                      key: value
+                      for key, value in {
+                          "logger_firmware_version": logger_firmware_version,
+                          "logger_mac_address": logger_mac_address,
+                          "inverter_serial_number": inverter_serial_number,
+                          "logger_raw_profile": logger_raw_profile,
+                          "logger_wifi_signal": logger_wifi_signal,
+                      }.items()
+                      if value is not None
+                  }
+
+              @property
+              def diagnostic_summary(self) -> dict[str, Any]:
+                  """Return communication state without connection identifiers."""
+                  summary: dict[str, Any] = {
+                      "online": self._online,
+                      "last_success": (
+                          self._last_success.isoformat()
+                          if self._last_success is not None
+                          else None
+                      ),
+                      "consecutive_failures": self._consecutive_failures,
+                      "failure_threshold": self._failure_threshold,
+                      "normal_polling_seconds": int(
+                          self._normal_update_interval.total_seconds()
+                      ),
+                      "error_polling_seconds": int(
+                          self._error_update_interval.total_seconds()
+                      ),
+                      "offline_polling_seconds": int(
+                          self._offline_update_interval.total_seconds()
+                      ),
+                      "last_error": self._last_error,
+                  }
+                  if self.data:
+                      summary["last_duration_ms"] = self.data.get(
+                          "communication_duration"
+                      )
+                      summary["last_blocks_ok"] = self.data.get(
+                          "communication_blocks"
+                      )
+                  return summary
+
+              def async_update_logger_metadata(self, updates: dict[str, Any]) -> bool:
+                  """Update web-only metadata without resetting the inverter poll timer."""
+                  changed = False
+                  for key, value in updates.items():
+                      if value is None or self._logger_metadata.get(key) == value:
+                          continue
+                      self._logger_metadata[key] = value
+                      changed = True
+                  if not changed:
+                      return False
+
+                  self.data = {
+                      **dict(self.data or {}),
+                      **self._logger_metadata,
+                  }
+                  self.async_update_listeners()
+                  return True
+
+              async def _async_update_data(self) -> dict[str, Any]:
+                  try:
+                      # Some local loggers accept only one active protocol exchange.
+                      # Serialize complete polls across all configured TSUN devices.
+                      async with self._poll_lock:
+                          result: TsunReadResult = await self.client.async_read_all()
+                  except Exception as err:
+                      self._consecutive_failures += 1
+                      self._last_error = safe_error_details(err)
+                      trace = self.client.diagnostic_trace
+                      if trace:
+                          self._last_error["protocol"] = str(
+                              trace[-1].get("protocol", "unknown")
+                          )
+                          self._last_error["stage"] = str(
+                              trace[-1].get("stage", "unknown")
+                          )
+                      threshold_reached = (
+                          self._consecutive_failures >= self._failure_threshold
+                      )
+                      if threshold_reached:
+                          if self._online is not False:
+                              _LOGGER.warning(
+                                  "TSUN device is unavailable after %s consecutive "
+                                  "communication failures (%s); polling reduced to every "
+                                  "%s seconds",
+                                  self._consecutive_failures,
+                                  type(err).__name__,
+                                  int(self._offline_update_interval.total_seconds()),
+                              )
+                          self._online = False
+                          self.update_interval = self._offline_update_interval
+                      else:
+                          _LOGGER.debug(
+                              "TSUN communication attempt failed (%s/%s, %s); keeping "
+                              "the device available and retrying in %s seconds",
+                              self._consecutive_failures,
+                              self._failure_threshold,
+                              type(err).__name__,
+                              int(self._error_update_interval.total_seconds()),
+                          )
+                          self.update_interval = self._error_update_interval
+                      previous_data = {
+                          **dict(self.data or {}),
+                          **self._logger_metadata,
+                      }
+                      previous_data.update(
+                          {
+                              "communication_online": self._online is True,
+                              "communication_duration": 0,
+                              "communication_blocks": 0,
+                              "communication_failures": self._consecutive_failures,
+                              "communication_last_success": self._last_success,
+                          }
+                      )
+                      return previous_data
+
+                  if self._online is False:
+                      _LOGGER.info(
+                          "TSUN device communication restored; normal polling resumed"
+                      )
+                  self._online = True
+                  self._consecutive_failures = 0
+                  self._last_error = None
+                  self.update_interval = self._normal_update_interval
+                  self._last_success = dt_util.utcnow()
+                  return {
+                      **self._logger_metadata,
+                      **result.measurements,
+                      "communication_online": True,
+                      "communication_last_success": self._last_success,
+                      "communication_duration": result.duration_ms,
+                      "communication_blocks": result.blocks_ok,
+                      "communication_failures": self._consecutive_failures,
+                  }
+          '''
+          coordinator_source = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in coordinator_source.splitlines()
+          ) + "\n"
+          Path("custom_components/tsun_local/coordinator.py").write_text(
+              coordinator_source, encoding="utf-8"
+          )
+
+          sensor_path = Path("custom_components/tsun_local/sensor.py")
+          sensor = sensor_path.read_text(encoding="utf-8")
+          old = '''        firmware_version = coordinator.data.get("logger_firmware_version")
+          inverter_serial_number = coordinator.data.get("inverter_serial_number")
+          self._attr_device_info = DeviceInfo(
+              identifiers={(DOMAIN, logger_sn)},
+              manufacturer=MANUFACTURER,
+              model=coordinator.client.model,
+          '''
+          old = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in old.splitlines()
+          ) + "\n"
+          new = '''        firmware_version = coordinator.data.get("logger_firmware_version")
+          inverter_serial_number = coordinator.data.get("inverter_serial_number")
+          raw_profile = coordinator.data.get("logger_raw_profile")
+          self._attr_device_info = DeviceInfo(
+              identifiers={(DOMAIN, logger_sn)},
+              manufacturer=MANUFACTURER,
+              model=coordinator.client.model,
+              model_id=(str(raw_profile) if raw_profile is not None else None),
+          '''
+          new = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in new.splitlines()
+          ) + "\n"
+          if old not in sensor:
+              raise SystemExit("sensor DeviceInfo anchor not found")
+          sensor_path.write_text(sensor.replace(old, new, 1), encoding="utf-8")
+
+          protocol_path = Path(
+              "custom_components/tsun_local/protocols/protocol_1097.py"
+          )
+          protocol = protocol_path.read_text(encoding="utf-8")
+          provenance = (
+              "# The experimental 1097 register mapping was informed by publicly "
+              "available\n# protocol research from Stefan Allius "
+              "(s-allius/tsun-gen3-proxy).\n\n"
+          )
+          anchor = '"""Local TSUN 1097 Modbus transport and decoder."""\n\n'
+          if provenance not in protocol:
+              if anchor not in protocol:
+                  raise SystemExit("1097 provenance anchor not found")
+              protocol = protocol.replace(anchor, anchor + provenance, 1)
+              protocol_path.write_text(protocol, encoding="utf-8")
+
+          test_path = Path("tests/test_coordinator_failures.py")
+          tests = test_path.read_text(encoding="utf-8")
+          old = '''        self.data: dict[str, object] = {}
+          self.update_interval = update_interval
+          '''
+          old = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in old.splitlines()
+          ) + "\n"
+          new = '''        self.data: dict[str, object] = {}
+          self.update_interval = update_interval
+          self.listener_updates = 0
+
+          def async_update_listeners(self) -> None:
+              self.listener_updates += 1
+          '''
+          new = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in new.splitlines()
+          ) + "\n"
+          if old not in tests:
+              raise SystemExit("coordinator test stub anchor not found")
+          tests = tests.replace(old, new, 1)
+
+          anchor = '''    async def test_marks_device_offline_on_third_consecutive_failure(self) -> None:
+          '''
+          anchor = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in anchor.splitlines()
+          ) + "\n"
+          new_test = '''    async def test_refreshed_logger_metadata_survives_failed_poll(self) -> None:
+              client = _Client([OSError("one")])
+              coordinator = COORDINATOR.TsunCoordinator(
+                  object(),
+                  object(),
+                  client,
+                  20,
+                  25,
+                  300,
+                  3,
+                  asyncio.Lock(),
+                  logger_wifi_signal=40,
+              )
+              coordinator._online = True
+              coordinator.data = {
+                  "logger_wifi_signal": 40,
+                  "communication_online": True,
+              }
+
+              changed = coordinator.async_update_logger_metadata(
+                  {
+                      "logger_wifi_signal": 63,
+                      "logger_raw_profile": "688:Tengsheng_G3",
+                  }
+              )
+              self.assertTrue(changed)
+              self.assertEqual(coordinator.data["logger_wifi_signal"], 63)
+              self.assertEqual(
+                  coordinator.data["logger_raw_profile"], "688:Tengsheng_G3"
+              )
+              self.assertEqual(coordinator.listener_updates, 1)
+
+              failed = await coordinator._async_update_data()
+              self.assertEqual(failed["logger_wifi_signal"], 63)
+              self.assertEqual(
+                  failed["logger_raw_profile"], "688:Tengsheng_G3"
+              )
+
+          '''
+          new_test = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in new_test.splitlines()
+          ) + "\n"
+          if anchor not in tests:
+              raise SystemExit("coordinator test insertion anchor not found")
+          test_path.write_text(
+              tests.replace(anchor, new_test + anchor, 1), encoding="utf-8"
+          )
+
+          manifest_path = Path("custom_components/tsun_local/manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if manifest.get("version") != "1.4.0-beta.4":
+              raise SystemExit(f"unexpected manifest version {manifest.get('version')}")
+          manifest["version"] = "1.4.0-beta.5"
+          manifest_path.write_text(
+              json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+              encoding="utf-8",
+          )
+
+          readmes = [
+              Path("README.md"),
+              Path("docs/README_FR.md"),
+              Path("docs/README_DE.md"),
+              Path("docs/README_ES.md"),
+              Path("docs/README_IT.md"),
+              Path("docs/README_NL.md"),
+              Path("docs/README_PL.md"),
+              Path("docs/README_ZH.md"),
+          ]
+          for path in readmes:
+              text = path.read_text(encoding="utf-8")
+              if "1.4.0-beta.4" not in text:
+                  raise SystemExit(f"beta4 version missing from {path}")
+              path.write_text(
+                  text.replace("1.4.0-beta.4", "1.4.0-beta.5"),
+                  encoding="utf-8",
+              )
+
+          changelog_path = Path("CHANGELOG.md")
+          changelog = changelog_path.read_text(encoding="utf-8")
+          marker = "## [1.4.0-beta.4] - 2026-08-16\n"
+          beta5 = '''## [1.4.0-beta.5] - 2026-08-16
+
+          ### Fixed
+
+          - refresh logger Wi-Fi signal with a true independent five-minute timer, including while inverter TCP polling is offline;
+          - preserve freshly refreshed logger metadata when a subsequent inverter poll fails;
+          - retry raw logger profile discovery every five minutes until it becomes available, then update Home Assistant device information immediately;
+          - include the raw logger profile in entity `DeviceInfo` so normal entity registration also carries the profile into the device registry.
+
+          ### Changed
+
+          - credit Stefan Allius and the public `s-allius/tsun-gen3-proxy` research directly in the experimental 1097 protocol source.
+
+          '''
+          beta5 = "\n".join(
+              line[10:] if line.startswith("          ") else line
+              for line in beta5.splitlines()
+          ) + "\n"
+          if marker not in changelog:
+              raise SystemExit("beta4 changelog marker not found")
+          changelog_path.write_text(
+              changelog.replace(marker, beta5 + marker, 1), encoding="utf-8"
+          )
+
+          workflow = Path(".github/workflows/fix-beta5.yml")
+          workflow.unlink()
+          PY
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check source formatting
+        run: |
+          git diff --check
+          python -m compileall -q custom_components/tsun_local tests
+
+      - name: Commit final beta5 tree
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Fix logger metadata refresh for beta5"
+          git push origin HEAD:beta-1097
+
+      - name: Wait for repository validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA="$(git rev-parse HEAD)"
+          RUN_ID=""
+          for _ in $(seq 1 60); do
+            RUN_ID="$(gh run list --workflow Validate --commit "$SHA" --event push --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+            if [ -n "$RUN_ID" ]; then
+              break
+            fi
+            sleep 5
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "Validate workflow did not start for $SHA" >&2
+            exit 1
+          fi
+          gh run watch "$RUN_ID" --exit-status
+
+      - name: Publish beta5 prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v1.4.0-beta.5"
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            --verify-tag \
+            --prerelease \
+            --title "Version 1.4.0-beta.5" \
+            --notes $'### Fixed\n- Logger Wi-Fi signal now refreshes on an independent five-minute timer, even while inverter polling is offline.\n- Fresh logger metadata is no longer overwritten by stale coordinator data after a failed inverter poll.\n- The raw logger profile is retried every five minutes until available and is pushed into Home Assistant device information immediately.\n- Entity DeviceInfo also carries the raw logger profile for reliable device-registry registration.\n\n### Changed\n- The experimental 1097 source now directly credits Stefan Allius and the public s-allius/tsun-gen3-proxy research.\n\n### Safety\n- Logger metadata remains read-only and uses local HTTP GET requests only.\n- No inverter control or configuration write has been added.'
