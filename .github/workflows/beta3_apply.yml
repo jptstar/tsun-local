@@ -40,12 +40,33 @@ jobs:
           replacement = (
               '        DEFAULT_PROTOCOL="auto",\n'
               '        SUPPORTED_PROTOCOLS=("1511", "1097", "02b0"),\n'
-              '        protocol_from_firmware=lambda firmware: None,\n'
+              '        protocol_from_firmware=lambda firmware: next(\n'
+              '            (protocol for protocol in ("1511", "1097", "02b0") if protocol in str(firmware).lower()),\n'
+              '            None,\n'
+              '        ),\n'
               '        create_protocol_client=lambda *args: None,'
           )
           if needle not in text:
               raise SystemExit("config-flow protocol test stub not found")
-          test_flow.write_text(text.replace(needle, replacement, 1), encoding="utf-8")
+          text = text.replace(needle, replacement, 1)
+          text = text.replace('firmware_version="LSW_TEST_1.0"', 'firmware_version="LSW_TEST_1511_1.0"', 1)
+          text = text.replace(
+              'result["data"]["logger_firmware_version"], "LSW_TEST_1.0"',
+              'result["data"]["logger_firmware_version"], "LSW_TEST_1511_1.0"',
+              1,
+          )
+          needle = '''                        logger_sn=1234567890,
+                        inverter_serial_number=None,
+                        firmware_version=None,
+                        mac_address=None,'''
+          replacement = '''                        logger_sn=1234567890,
+                        inverter_serial_number=None,
+                        firmware_version="LSW_TEST_1511_1.0",
+                        mac_address=None,'''
+          if needle not in text:
+              raise SystemExit("invalid-response logger fixture not found")
+          text = text.replace(needle, replacement, 1)
+          test_flow.write_text(text, encoding="utf-8")
 
           test_protocols = Path("tests/test_protocols.py")
           text = test_protocols.read_text(encoding="utf-8")
