@@ -1,0 +1,62 @@
+name: Republish beta.3 discovery hotfix
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".github/workflows/republish_beta3_hotfix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  republish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Replace beta.3 tag and prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TARGET_SHA="$(git rev-parse HEAD^)"
+          test "$TARGET_SHA" = "dee398554f68c84585e5d0cb7f53e4681dc02827"
+
+          gh release delete v1.4.0-beta.3 --yes --cleanup-tag || true
+          git tag -f v1.4.0-beta.3 "$TARGET_SHA"
+          git push origin refs/tags/v1.4.0-beta.3 --force
+
+          cat > /tmp/release-notes.md <<'EOF'
+          ## TSUN Local v1.4.0-beta.3
+
+          Experimental compatibility beta focused on safer protocol and PV-input detection.
+
+          ### Discovery hotfix
+          - fixes **Search the local network** for embedded TSUN loggers that return a valid HTTP body but keep the TCP connection open;
+          - reads `Content-Length` and chunked HTTP responses without waiting for the logger to close the connection;
+          - aligns firmware-page timeout and size limits with the existing logger metadata reader;
+          - keeps strict firmware filtering, so unrelated Solarman/Deye devices without a supported TSUN protocol token are not proposed automatically.
+
+          ### Changes
+          - selects `1511`, `02B0`, or `1097` from the local logger firmware when available;
+          - manual setup provides **Automatic (firmware)**, **Force protocol probing**, and direct `1511`, `1097`, `02B0` choices;
+          - **Force protocol probing** deliberately ignores firmware hints and tries the supported adapters;
+          - 1511 no longer assumes six PV inputs for every device; inputs are added progressively from observed telemetry;
+          - 1097 no longer defaults an all-zero device to six PV inputs and keeps the highest input observed over time;
+          - diagnostics include protocol-selection and PV-count information while IP, logger SN, inverter SN, and MAC address remain redacted.
+
+          ### Safety
+          - discovery and firmware identification are read-only;
+          - no inverter configuration or control writes are added.
+          EOF
+
+          gh release create v1.4.0-beta.3 \
+            --verify-tag \
+            --prerelease \
+            --title "v1.4.0-beta.3" \
+            --notes-file /tmp/release-notes.md
