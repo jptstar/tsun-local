@@ -61,6 +61,8 @@ TSUN Local supports **three local TSUN protocol families**.
 | 🛡️ **Advanced** | Grid protection · Inverter diagnostics · Disabled by default |
 | 🔒 **Safety** | Read-only · No inverter configuration writes |
 
+📚 **[Full entity reference by protocol](docs/ENTITIES.md)** — complete list of sensors, binary sensors and buttons exposed by **1511, 02B0 and 1097**.
+
 ---
 
 ## Compatibility
@@ -116,8 +118,6 @@ Corresponding `-D` variants may also be compatible where applicable.
 
 > [!NOTE]
 > Public GEN3 research generally associates these devices with the **R17 / R47** serial-number family. Compatibility with TSUN Local protocol **1097** remains experimental until confirmed on more real hardware.
-
-> **Community contribution:** **TheSmartGerman** contributed to 1097 support through real-device testing and compatibility feedback.
 
 | | Available data |
 |---|---|
@@ -220,9 +220,16 @@ Version 1.4 moves TSUN Local from individual known models toward **protocol-fami
 
 The 1511 and 02B0 implementations are developed through **independent local protocol analysis, real-device observation and hardware validation**.
 
-The experimental 1097 mapping was informed by publicly available protocol research from **Stefan Allius / `s-allius/tsun-gen3-proxy`**, then adapted to TSUN Local for direct local use.
-
 Compatibility candidates are intentionally labelled separately from validated hardware.
+
+---
+
+## Contributions
+
+The experimental **1097** support also benefits from community work:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — public 1097 protocol research that informed the experimental mapping used by TSUN Local.
+- **TheSmartGerman** — real-device testing and compatibility feedback for 1097 support.
 
 ---
 
