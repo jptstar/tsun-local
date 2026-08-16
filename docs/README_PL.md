@@ -224,10 +224,10 @@ Kandydaci do kompatybilności są celowo oznaczani oddzielnie od faktycznie zwer
 
 ## Wkład społeczności
 
-Eksperymentalna obsługa **1097** korzysta również z pracy społeczności:
+TSUN Local korzysta również z wkładu społeczności:
 
 - **Stefan Allius / `s-allius/tsun-gen3-proxy`** — publiczne badania protokołu 1097, które przyczyniły się do eksperymentalnego mapowania używanego przez TSUN Local.
-- **TheSmartGerman** — testy na rzeczywistych urządzeniach i informacje zwrotne dotyczące kompatybilności obsługi 1097.
+- **TheSmartGerman** — testy na rzeczywistym sprzęcie i informacje zwrotne dotyczące kompatybilności **TSOL-MP3000 z 1511**, podczas których protokół **1097** został wykryty nieumyślnie.
 
 ---
 
