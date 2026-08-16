@@ -1,0 +1,59 @@
+name: Apply beta.3
+
+on:
+  push:
+    branches:
+      - beta3-work
+    paths:
+      - ".github/beta3_apply.py.gz.b64"
+      - ".github/workflows/beta3_apply.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  beta3:
+    name: Build and publish beta.3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta3-work
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Apply beta.3 patch
+        run: base64 -d .github/beta3_apply.py.gz.b64 | gzip -d > /tmp/beta3_apply.py && python3 /tmp/beta3_apply.py
+
+      - name: Compile Python sources
+        run: python3 -m compileall -q custom_components tests
+
+      - name: Run unit tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Commit beta.3
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Prepare v1.4.0-beta.3"
+          git push origin HEAD:beta3-work HEAD:beta-1097
+
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v1.4.0-beta.3"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; nothing to do."
+            exit 0
+          fi
+          gh release create "$tag" \
+            --target beta-1097 \
+            --prerelease \
+            --title "$tag" \
+            --notes "Firmware-guided TSUN protocol detection, strict automatic discovery to avoid unrelated Solarman devices, controlled manual probing, progressive 1511/1097 PV detection, and richer privacy-safe diagnostics."
