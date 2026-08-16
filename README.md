@@ -1,14 +1,10 @@
+[English](https://github.com/jptstar/tsun-local/blob/beta-1097/README.md) · [Français](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_FR.md) · [Deutsch](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_DE.md) · [Nederlands](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_NL.md) · [Italiano](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_IT.md) · [Español](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ES.md) · [Polski](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_PL.md) · [简体中文](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ZH.md)
+
 <p align="center">
   <img src="custom_components/tsun_local/brand/icon@2x.png" width="170" alt="TSUN Local">
 </p>
 
 <h1 align="center">TSUN Local</h1>
-
-<p align="center">
-
-[English](README.md) · [Français](docs/README_FR.md) · [Deutsch](docs/README_DE.md) · [Nederlands](docs/README_NL.md) · [Italiano](docs/README_IT.md) · [Español](docs/README_ES.md) · [Polski](docs/README_PL.md) · [简体中文](docs/README_ZH.md)
-
-</p>
 
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <h2 align="center">Local. Read-only. No cloud. No proxy.</h2>
