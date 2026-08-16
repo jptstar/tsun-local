@@ -115,6 +115,8 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 > [!NOTE]
 > Publiek GEN3-onderzoek koppelt deze apparaten doorgaans aan de serienummerfamilie **R17 / R47**. Compatibiliteit met TSUN Local-protocol **1097** blijft experimenteel totdat deze op meer echte hardware is bevestigd.
 
+> **Communitybijdrage:** **TheSmartGerman** heeft bijgedragen aan de 1097-ondersteuning met tests op echte hardware en compatibiliteitsfeedback.
+
 | | Beschikbare data |
 |---|---|
 | ☀️ **PV** | Standaard PV-telemetrie |
