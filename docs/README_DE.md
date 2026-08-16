@@ -59,6 +59,8 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 | 🛡️ **Erweitert** | Netzschutz · Wechselrichterdiagnose · Standardmäßig deaktiviert |
 | 🔒 **Sicherheit** | Nur lesen · Keine Konfigurationsschreibzugriffe auf den Wechselrichter |
 
+📚 **[Vollständige Entitätsreferenz nach Protokoll](ENTITIES.md)** — Sensoren, Binärsensoren und Schaltflächen für **1511, 02B0 und 1097**.
+
 ---
 
 ## Kompatibilität
@@ -114,8 +116,6 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 
 > [!NOTE]
 > Öffentliche GEN3-Forschung ordnet diese Geräte im Allgemeinen der Seriennummernfamilie **R17 / R47** zu. Die Kompatibilität mit dem TSUN-Local-Protokoll **1097** bleibt experimentell, bis sie auf mehr echter Hardware bestätigt wurde.
-
-> **Community-Beitrag:** **TheSmartGerman** hat zur 1097-Unterstützung durch Tests auf realer Hardware und Kompatibilitätsfeedback beigetragen.
 
 | | Verfügbare Daten |
 |---|---|
@@ -218,9 +218,16 @@ Version 1.4 entwickelt TSUN Local von einzelnen bekannten Modellen hin zu **Komp
 
 Die Implementierungen 1511 und 02B0 entstehen durch **unabhängige lokale Protokollanalyse, Beobachtungen an realen Geräten und Hardwarevalidierung**.
 
-Die experimentelle 1097-Zuordnung wurde durch öffentlich verfügbare Protokollforschung von **Stefan Allius / `s-allius/tsun-gen3-proxy`** unterstützt und anschließend für den direkten lokalen Einsatz in TSUN Local angepasst.
-
 Kompatibilitätskandidaten werden bewusst getrennt von tatsächlich validierter Hardware gekennzeichnet.
+
+---
+
+## Beiträge
+
+Die experimentelle **1097**-Unterstützung profitiert auch von Community-Beiträgen:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — öffentliche 1097-Protokollforschung, die in die experimentelle Zuordnung von TSUN Local eingeflossen ist.
+- **TheSmartGerman** — Tests an realen Geräten und Kompatibilitätsrückmeldungen für die 1097-Unterstützung.
 
 ---
 
