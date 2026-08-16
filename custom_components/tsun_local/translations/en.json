@@ -2,26 +2,26 @@
   "config": {
     "step": {
       "user": {
-        "title": "Add a TSUN Local device",
-        "description": "Choose automatic network search or manual configuration.",
+        "title": "Add a TSUN device",
+        "description": "Search automatically for compatible TSUN devices on the network or add one manually.",
         "menu_options": {
-          "discover": "Search the local network",
-          "manual": "Enter connection details manually"
+          "discover": "Search for TSUN devices",
+          "manual": "Add manually"
         }
       },
       "manual": {
-        "title": "Manual configuration",
-        "description": "Enter the IP address and port. Home Assistant first tries to read the numeric SN automatically from the logger's local status page. If it cannot be read, this form will ask you to enter it manually.",
+        "title": "Add a device manually",
+        "description": "Enter the device IP address. In most cases, leave protocol selection on ‘Automatic — based on firmware’. TSUN Local will also try to read the logger SN automatically.",
         "data": {
           "host": "IP address",
           "port": "Port",
           "logger_sn": "SN",
-          "protocol": "Protocol detection"
+          "protocol": "Protocol selection method"
         }
       },
       "discover": {
-        "title": "Devices found",
-        "description": "Select an address found on the configured TCP port. Home Assistant first tries to read the numeric SN automatically from the logger's local status page. If it cannot be read, this form will ask you to enter it manually.",
+        "title": "TSUN devices found",
+        "description": "Select the TSUN device you want to add. TSUN Local checks the firmware so that only devices using supported protocols are offered.",
         "data": {
           "host": "Discovered address",
           "port": "Port",
@@ -29,8 +29,8 @@
         }
       },
       "discover_network": {
-        "title": "Network to scan",
-        "description": "No device was found on the networks detected by Home Assistant. Enter the micro-inverter IPv4 subnet in CIDR notation (for example 192.168.1.0/24). The scan is limited to 254 addresses.",
+        "title": "Search another subnet",
+        "description": "No compatible TSUN device was detected automatically. Enter the IPv4 subnet to scan, for example 192.168.1.0/24. The scan is limited to 254 addresses.",
         "data": {
           "discovery_network": "IPv4 subnet",
           "port": "Port"
@@ -46,17 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "Unable to connect to the device",
-      "cannot_detect_logger_sn": "Automatic detection failed. Enter the numeric SN shown as Device serial number on the local status page or printed on the device label.",
+      "cannot_connect": "Unable to communicate with the device. Check that it is online and reachable from Home Assistant.",
+      "cannot_detect_logger_sn": "The logger SN could not be detected automatically. Enter the number shown as Device serial number on the local status page or printed on the device label.",
       "invalid_network": "Enter a valid IPv4 subnet between /24 and /32",
-      "invalid_response": "The device returned an invalid response",
-      "no_devices_found": "No device accepting local connections was found on this subnet and port",
-      "unknown_firmware": "The logger firmware is unknown. Choose Force protocol probing in manual setup to test the supported protocols explicitly."
+      "invalid_response": "The device responded, but the received data is not recognized.",
+      "no_devices_found": "No compatible TSUN device was detected on this subnet.",
+      "unknown_firmware": "This device firmware is not recognized automatically. Return to manual setup and choose ‘Forced detection — test protocols’, or select a protocol manually."
     },
     "abort": {
       "already_configured": "This micro-inverter is already configured",
       "all_devices_configured": "All detected micro-inverters are already configured",
-      "no_devices_found": "No device accepting local connections on port 8899 was found"
+      "no_devices_found": "No compatible TSUN device was detected on the scanned networks."
     }
   },
   "options": {
@@ -276,6 +276,17 @@
     "button": {
       "refresh_data": {
         "name": "Refresh data"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatic — based on firmware",
+        "force": "Forced detection — test protocols",
+        "1511": "Use protocol 1511",
+        "1097": "Use protocol 1097 — experimental",
+        "02b0": "Use protocol 02B0"
       }
     }
   }

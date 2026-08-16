@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "Aggiungi un dispositivo TSUN Local",
-        "description": "Scegli la ricerca automatica in rete o la configurazione manuale.",
+        "title": "Aggiungi un dispositivo TSUN",
+        "description": "Cerca automaticamente i dispositivi TSUN compatibili sulla rete oppure aggiungine uno manualmente.",
         "menu_options": {
-          "discover": "Cerca nella rete locale",
-          "manual": "Inserisci manualmente i dati di connessione"
+          "discover": "Cerca dispositivi TSUN",
+          "manual": "Aggiungi manualmente"
         }
       },
       "reconfigure": {
@@ -18,18 +18,18 @@
         }
       },
       "manual": {
-        "title": "Configurazione manuale",
-        "description": "Inserisci l'indirizzo IP e la porta. Home Assistant prova prima a leggere automaticamente il SN numerico dalla pagina di stato locale del logger. Se non è leggibile, il modulo ne richiederà l'inserimento manuale.",
+        "title": "Aggiungi un dispositivo manualmente",
+        "description": "Inserisci l’indirizzo IP del dispositivo. Nella maggior parte dei casi, lascia la selezione del protocollo su «Automatico — in base al firmware». TSUN Local proverà anche a leggere automaticamente il SN del logger.",
         "data": {
           "host": "Indirizzo IP",
           "port": "Porta",
           "logger_sn": "SN",
-          "protocol": "Rilevamento protocollo"
+          "protocol": "Metodo di selezione del protocollo"
         }
       },
       "discover": {
-        "title": "Dispositivi trovati",
-        "description": "Seleziona un indirizzo trovato sulla porta TCP configurata. Home Assistant prova prima a leggere automaticamente il SN numerico dalla pagina di stato locale del logger. Se non è leggibile, il modulo ne richiederà l'inserimento manuale.",
+        "title": "Dispositivi TSUN rilevati",
+        "description": "Seleziona il dispositivo TSUN da aggiungere. TSUN Local verifica il firmware e mostra solo i dispositivi che utilizzano protocolli supportati.",
         "data": {
           "host": "Indirizzo rilevato",
           "port": "Porta",
@@ -37,8 +37,8 @@
         }
       },
       "discover_network": {
-        "title": "Rete da analizzare",
-        "description": "Non è stato trovato alcun dispositivo nelle reti rilevate da Home Assistant. Inserisci la sottorete IPv4 dei microinverter in notazione CIDR (ad esempio 192.168.1.0/24). La ricerca è limitata a 254 indirizzi.",
+        "title": "Cerca in un’altra sottorete",
+        "description": "Non è stato rilevato automaticamente alcun dispositivo TSUN compatibile. Inserisci la sottorete IPv4 da analizzare, ad esempio 192.168.1.0/24. La ricerca è limitata a 254 indirizzi.",
         "data": {
           "discovery_network": "Sottorete IPv4",
           "port": "Porta"
@@ -46,17 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossibile connettersi al dispositivo",
-      "cannot_detect_logger_sn": "Il rilevamento automatico non è riuscito. Inserisci il SN numerico mostrato come Device serial number nella pagina di stato locale o sull'etichetta del dispositivo.",
+      "cannot_connect": "Impossibile comunicare con il dispositivo. Verifica che sia online e raggiungibile da Home Assistant.",
+      "cannot_detect_logger_sn": "Non è stato possibile rilevare automaticamente il SN del logger. Inserisci il numero indicato come Device serial number nella pagina di stato locale o sull’etichetta del dispositivo.",
       "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32",
-      "invalid_response": "Il dispositivo ha restituito una risposta non valida",
-      "no_devices_found": "Nessun dispositivo con connessione locale è stato trovato in questa sottorete e porta",
-      "unknown_firmware": "Il firmware del logger è sconosciuto. Scegli il rilevamento forzato del protocollo nella configurazione manuale per provare esplicitamente i protocolli supportati."
+      "invalid_response": "Il dispositivo ha risposto, ma i dati ricevuti non sono riconosciuti.",
+      "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile in questa sottorete.",
+      "unknown_firmware": "Il firmware di questo dispositivo non viene riconosciuto automaticamente. Torna alla configurazione manuale e scegli «Rilevamento forzato — prova i protocolli», oppure seleziona manualmente un protocollo."
     },
     "abort": {
       "already_configured": "Questo microinverter è già configurato",
       "all_devices_configured": "Tutti i microinverter rilevati sono già configurati",
-      "no_devices_found": "Non è stato trovato alcun dispositivo che accetti connessioni locali sulla porta 8899"
+      "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile nelle reti analizzate."
     }
   },
   "options": {
@@ -276,6 +276,17 @@
     "button": {
       "refresh_data": {
         "name": "Aggiorna dati"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatico — in base al firmware",
+        "force": "Rilevamento forzato — prova i protocolli",
+        "1511": "Usa il protocollo 1511",
+        "1097": "Usa il protocollo 1097 — sperimentale",
+        "02b0": "Usa il protocollo 02B0"
       }
     }
   }

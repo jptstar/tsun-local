@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "Dodaj urządzenie TSUN Local",
-        "description": "Wybierz automatyczne wyszukiwanie w sieci lub konfigurację ręczną.",
+        "title": "Dodaj urządzenie TSUN",
+        "description": "Automatycznie wyszukaj zgodne urządzenia TSUN w sieci lub dodaj urządzenie ręcznie.",
         "menu_options": {
-          "discover": "Przeszukaj sieć lokalną",
-          "manual": "Wprowadź dane połączenia ręcznie"
+          "discover": "Wyszukaj urządzenia TSUN",
+          "manual": "Dodaj ręcznie"
         }
       },
       "reconfigure": {
@@ -18,18 +18,18 @@
         }
       },
       "manual": {
-        "title": "Konfiguracja ręczna",
-        "description": "Wprowadź adres IP i port. Home Assistant najpierw spróbuje automatycznie odczytać numeryczny SN z lokalnej strony stanu loggera. Jeśli odczyt się nie powiedzie, formularz poprosi o ręczne wprowadzenie numeru.",
+        "title": "Dodaj urządzenie ręcznie",
+        "description": "Wprowadź adres IP urządzenia. W większości przypadków pozostaw wybór protokołu na «Automatycznie — na podstawie firmware». TSUN Local spróbuje również automatycznie odczytać SN loggera.",
         "data": {
           "host": "Adres IP",
           "port": "Port",
           "logger_sn": "SN",
-          "protocol": "Wykrywanie protokołu"
+          "protocol": "Metoda wyboru protokołu"
         }
       },
       "discover": {
-        "title": "Znalezione urządzenia",
-        "description": "Wybierz adres znaleziony na skonfigurowanym porcie TCP. Home Assistant najpierw spróbuje automatycznie odczytać numeryczny SN z lokalnej strony stanu loggera. Jeśli odczyt się nie powiedzie, formularz poprosi o ręczne wprowadzenie numeru.",
+        "title": "Wykryte urządzenia TSUN",
+        "description": "Wybierz urządzenie TSUN, które chcesz dodać. TSUN Local sprawdza firmware i pokazuje tylko urządzenia korzystające z obsługiwanych protokołów.",
         "data": {
           "host": "Wykryty adres",
           "port": "Port",
@@ -37,8 +37,8 @@
         }
       },
       "discover_network": {
-        "title": "Sieć do przeskanowania",
-        "description": "Nie znaleziono urządzenia w sieciach wykrytych przez Home Assistant. Wprowadź podsieć IPv4 mikrofalowników w notacji CIDR (na przykład 192.168.1.0/24). Wyszukiwanie jest ograniczone do 254 adresów.",
+        "title": "Przeszukaj inną podsieć",
+        "description": "Nie wykryto automatycznie żadnego zgodnego urządzenia TSUN. Wprowadź podsieć IPv4 do przeskanowania, na przykład 192.168.1.0/24. Wyszukiwanie jest ograniczone do 254 adresów.",
         "data": {
           "discovery_network": "Podsieć IPv4",
           "port": "Port"
@@ -46,17 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "Nie można połączyć się z urządzeniem",
-      "cannot_detect_logger_sn": "Automatyczne wykrywanie nie powiodło się. Wprowadź numeryczny SN widoczny jako Device serial number na lokalnej stronie stanu lub na etykiecie urządzenia.",
+      "cannot_connect": "Nie można komunikować się z urządzeniem. Sprawdź, czy jest online i dostępne z Home Assistant.",
+      "cannot_detect_logger_sn": "Nie udało się automatycznie wykryć SN loggera. Wprowadź numer widoczny jako Device serial number na lokalnej stronie stanu lub na etykiecie urządzenia.",
       "invalid_network": "Wprowadź prawidłową podsieć IPv4 od /24 do /32",
-      "invalid_response": "Urządzenie zwróciło nieprawidłową odpowiedź",
-      "no_devices_found": "W tej podsieci i na tym porcie nie znaleziono urządzenia z połączeniem lokalnym",
-      "unknown_firmware": "Oprogramowanie loggera jest nieznane. Wybierz wymuszone wykrywanie protokołu w konfiguracji ręcznej, aby jawnie przetestować obsługiwane protokoły."
+      "invalid_response": "Urządzenie odpowiedziało, ale odebrane dane nie są rozpoznawane.",
+      "no_devices_found": "W tej podsieci nie wykryto żadnego zgodnego urządzenia TSUN.",
+      "unknown_firmware": "Firmware tego urządzenia nie jest rozpoznawane automatycznie. Wróć do konfiguracji ręcznej i wybierz «Wymuszone wykrywanie — testuj protokoły» albo wybierz protokół ręcznie."
     },
     "abort": {
       "already_configured": "Ten mikrofalownik jest już skonfigurowany",
       "all_devices_configured": "Wszystkie wykryte mikrofalowniki są już skonfigurowane",
-      "no_devices_found": "Nie znaleziono urządzenia przyjmującego połączenia lokalne na porcie 8899"
+      "no_devices_found": "W przeskanowanych sieciach nie wykryto żadnego zgodnego urządzenia TSUN."
     }
   },
   "options": {
@@ -276,6 +276,17 @@
     "button": {
       "refresh_data": {
         "name": "Odśwież dane"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatycznie — na podstawie firmware",
+        "force": "Wymuszone wykrywanie — testuj protokoły",
+        "1511": "Użyj protokołu 1511",
+        "1097": "Użyj protokołu 1097 — eksperymentalny",
+        "02b0": "Użyj protokołu 02B0"
       }
     }
   }

@@ -119,22 +119,11 @@ def _connection_schema(
         schema[vol.Required(CONF_PROTOCOL, default=DEFAULT_PROTOCOL)] = (
             SelectSelector(
                 SelectSelectorConfig(
+                    translation_key="protocol",
                     options=[
-                        SelectOptionDict(
-                            value=DEFAULT_PROTOCOL,
-                            label="Automatic (firmware)",
-                        ),
-                        SelectOptionDict(
-                            value=_FORCE_PROTOCOL_DETECTION,
-                            label="Force protocol probing",
-                        ),
-                        *(
-                            SelectOptionDict(
-                                value=protocol_name,
-                                label=protocol_name.upper(),
-                            )
-                            for protocol_name in SUPPORTED_PROTOCOLS
-                        ),
+                        DEFAULT_PROTOCOL,
+                        _FORCE_PROTOCOL_DETECTION,
+                        *SUPPORTED_PROTOCOLS,
                     ],
                     mode=SelectSelectorMode.DROPDOWN,
                 )

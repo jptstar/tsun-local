@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "Gerät zu TSUN Local hinzufügen",
-        "description": "Wähle die automatische Netzwerksuche oder die manuelle Konfiguration.",
+        "title": "TSUN-Gerät hinzufügen",
+        "description": "Suche automatisch nach kompatiblen TSUN-Geräten im Netzwerk oder füge ein Gerät manuell hinzu.",
         "menu_options": {
-          "discover": "Lokales Netzwerk durchsuchen",
-          "manual": "Verbindungsdaten manuell eingeben"
+          "discover": "TSUN-Geräte suchen",
+          "manual": "Manuell hinzufügen"
         }
       },
       "reconfigure": {
@@ -18,18 +18,18 @@
         }
       },
       "manual": {
-        "title": "Manuelle Konfiguration",
-        "description": "Gib IP-Adresse und Port ein. Home Assistant versucht zuerst, die numerische SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
+        "title": "Gerät manuell hinzufügen",
+        "description": "Gib die IP-Adresse des Geräts ein. In den meisten Fällen sollte die Protokollauswahl auf „Automatisch — anhand der Firmware“ bleiben. TSUN Local versucht außerdem, die Logger-SN automatisch auszulesen.",
         "data": {
           "host": "IP-Adresse",
           "port": "Port",
           "logger_sn": "SN",
-          "protocol": "Protokollerkennung"
+          "protocol": "Methode zur Protokollauswahl"
         }
       },
       "discover": {
-        "title": "Gefundene Geräte",
-        "description": "Wähle eine am konfigurierten TCP-Port gefundene Adresse. Home Assistant versucht zuerst, die numerische SN automatisch von der lokalen Statusseite des Loggers zu lesen. Ist sie nicht lesbar, fordert das Formular zur manuellen Eingabe auf.",
+        "title": "Gefundene TSUN-Geräte",
+        "description": "Wähle das TSUN-Gerät aus, das du hinzufügen möchtest. TSUN Local prüft die Firmware und zeigt nur Geräte mit unterstützten Protokollen an.",
         "data": {
           "host": "Gefundene Adresse",
           "port": "Port",
@@ -37,8 +37,8 @@
         }
       },
       "discover_network": {
-        "title": "Zu durchsuchendes Netzwerk",
-        "description": "In den von Home Assistant erkannten Netzwerken wurde kein Gerät gefunden. Gib das IPv4-Subnetz der Mikrowechselrichter in CIDR-Schreibweise ein (zum Beispiel 192.168.1.0/24). Die Suche ist auf 254 Adressen begrenzt.",
+        "title": "Anderes Subnetz durchsuchen",
+        "description": "Es wurde automatisch kein kompatibles TSUN-Gerät erkannt. Gib das zu durchsuchende IPv4-Subnetz ein, zum Beispiel 192.168.1.0/24. Die Suche ist auf 254 Adressen begrenzt.",
         "data": {
           "discovery_network": "IPv4-Subnetz",
           "port": "Port"
@@ -46,17 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "Verbindung zum Wechselrichter nicht möglich",
-      "cannot_detect_logger_sn": "Die automatische Erkennung ist fehlgeschlagen. Gib die numerische SN ein, die auf der lokalen Statusseite als Device serial number angezeigt wird oder auf dem Gerät steht.",
+      "cannot_connect": "Kommunikation mit dem Gerät nicht möglich. Prüfe, ob es online und von Home Assistant aus erreichbar ist.",
+      "cannot_detect_logger_sn": "Die Logger-SN konnte nicht automatisch erkannt werden. Gib die Nummer ein, die auf der lokalen Statusseite als Device serial number angezeigt wird oder auf dem Geräteetikett steht.",
       "invalid_network": "Gib ein gültiges IPv4-Subnetz zwischen /24 und /32 ein",
-      "invalid_response": "Der Wechselrichter hat eine ungültige Antwort gesendet",
-      "no_devices_found": "In diesem Subnetz und an diesem Port wurde kein Gerät mit lokaler Verbindung gefunden",
-      "unknown_firmware": "Die Logger-Firmware ist unbekannt. Wählen Sie in der manuellen Einrichtung die erzwungene Protokollerkennung, um die unterstützten Protokolle gezielt zu testen."
+      "invalid_response": "Das Gerät hat geantwortet, aber die empfangenen Daten werden nicht erkannt.",
+      "no_devices_found": "In diesem Subnetz wurde kein kompatibles TSUN-Gerät erkannt.",
+      "unknown_firmware": "Die Firmware dieses Geräts wird nicht automatisch erkannt. Kehre zur manuellen Einrichtung zurück und wähle „Erzwungene Erkennung — Protokolle testen“ oder wähle ein Protokoll manuell."
     },
     "abort": {
       "already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert",
       "all_devices_configured": "Alle erkannten Mikrowechselrichter sind bereits konfiguriert",
-      "no_devices_found": "Es wurde kein Gerät gefunden, das lokale Verbindungen auf Port 8899 annimmt"
+      "no_devices_found": "In den durchsuchten Netzwerken wurde kein kompatibles TSUN-Gerät erkannt."
     }
   },
   "options": {
@@ -276,6 +276,17 @@
     "button": {
       "refresh_data": {
         "name": "Daten aktualisieren"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatisch — anhand der Firmware",
+        "force": "Erzwungene Erkennung — Protokolle testen",
+        "1511": "Protokoll 1511 verwenden",
+        "1097": "Protokoll 1097 verwenden — experimentell",
+        "02b0": "Protokoll 02B0 verwenden"
       }
     }
   }

@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "Een TSUN Local-apparaat toevoegen",
-        "description": "Kies automatisch zoeken op het netwerk of handmatige configuratie.",
+        "title": "Een TSUN-apparaat toevoegen",
+        "description": "Zoek automatisch naar compatibele TSUN-apparaten op het netwerk of voeg er handmatig een toe.",
         "menu_options": {
-          "discover": "Lokaal netwerk doorzoeken",
-          "manual": "Verbindingsgegevens handmatig invoeren"
+          "discover": "TSUN-apparaten zoeken",
+          "manual": "Handmatig toevoegen"
         }
       },
       "reconfigure": {
@@ -18,18 +18,18 @@
         }
       },
       "manual": {
-        "title": "Handmatige configuratie",
-        "description": "Voer het IP-adres en de poort in. Home Assistant probeert eerst de numerieke SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
+        "title": "Een apparaat handmatig toevoegen",
+        "description": "Voer het IP-adres van het apparaat in. Laat de protocolselectie in de meeste gevallen op ‘Automatisch — op basis van firmware’ staan. TSUN Local probeert ook automatisch de SN van de logger te lezen.",
         "data": {
           "host": "IP-adres",
           "port": "Poort",
           "logger_sn": "SN",
-          "protocol": "Protocoldetectie"
+          "protocol": "Methode voor protocolselectie"
         }
       },
       "discover": {
-        "title": "Gevonden apparaten",
-        "description": "Selecteer een adres dat op de ingestelde TCP-poort is gevonden. Home Assistant probeert eerst de numerieke SN automatisch van de lokale statuspagina van de logger te lezen. Als dit niet lukt, vraagt het formulier om handmatige invoer.",
+        "title": "Gevonden TSUN-apparaten",
+        "description": "Selecteer het TSUN-apparaat dat je wilt toevoegen. TSUN Local controleert de firmware en toont alleen apparaten die ondersteunde protocollen gebruiken.",
         "data": {
           "host": "Gevonden adres",
           "port": "Poort",
@@ -37,8 +37,8 @@
         }
       },
       "discover_network": {
-        "title": "Te doorzoeken netwerk",
-        "description": "Er is geen apparaat gevonden op de door Home Assistant gedetecteerde netwerken. Voer het IPv4-subnet van de micro-omvormers in CIDR-notatie in (bijvoorbeeld 192.168.1.0/24). De zoekopdracht is beperkt tot 254 adressen.",
+        "title": "Een ander subnet doorzoeken",
+        "description": "Er is automatisch geen compatibel TSUN-apparaat gevonden. Voer het IPv4-subnet in dat moet worden doorzocht, bijvoorbeeld 192.168.1.0/24. De zoekopdracht is beperkt tot 254 adressen.",
         "data": {
           "discovery_network": "IPv4-subnet",
           "port": "Poort"
@@ -46,17 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "Kan geen verbinding maken met het apparaat",
-      "cannot_detect_logger_sn": "Automatische detectie is mislukt. Voer de numerieke SN in die als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
+      "cannot_connect": "Kan niet communiceren met het apparaat. Controleer of het online en bereikbaar is vanuit Home Assistant.",
+      "cannot_detect_logger_sn": "De SN van de logger kon niet automatisch worden gedetecteerd. Voer het nummer in dat als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
       "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in",
-      "invalid_response": "Het apparaat heeft een ongeldig antwoord verzonden",
-      "no_devices_found": "Er is geen apparaat met lokale verbinding gevonden op dit subnet en deze poort",
-      "unknown_firmware": "De loggerfirmware is onbekend. Kies geforceerde protocoldetectie in de handmatige configuratie om de ondersteunde protocollen expliciet te testen."
+      "invalid_response": "Het apparaat heeft geantwoord, maar de ontvangen gegevens worden niet herkend.",
+      "no_devices_found": "Er is op dit subnet geen compatibel TSUN-apparaat gedetecteerd.",
+      "unknown_firmware": "De firmware van dit apparaat wordt niet automatisch herkend. Ga terug naar de handmatige configuratie en kies ‘Geforceerde detectie — protocollen testen’, of selecteer handmatig een protocol."
     },
     "abort": {
       "already_configured": "Deze micro-omvormer is al geconfigureerd",
       "all_devices_configured": "Alle gevonden micro-omvormers zijn al geconfigureerd",
-      "no_devices_found": "Er is geen apparaat gevonden dat lokale verbindingen op poort 8899 accepteert"
+      "no_devices_found": "Er is op de doorzochte netwerken geen compatibel TSUN-apparaat gedetecteerd."
     }
   },
   "options": {
@@ -276,6 +276,17 @@
     "button": {
       "refresh_data": {
         "name": "Gegevens vernieuwen"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatisch — op basis van firmware",
+        "force": "Geforceerde detectie — protocollen testen",
+        "1511": "Protocol 1511 gebruiken",
+        "1097": "Protocol 1097 gebruiken — experimenteel",
+        "02b0": "Protocol 02B0 gebruiken"
       }
     }
   }
