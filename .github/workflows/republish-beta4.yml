@@ -1,0 +1,90 @@
+name: Validate and republish beta4
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".github/workflows/republish-beta4.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: python -m unittest discover -s tests -v
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+      - uses: hacs/action@main
+        with:
+          category: integration
+
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+      - uses: home-assistant/actions/hassfest@master
+
+  republish:
+    name: Republish beta4
+    needs: [unit-tests, hacs, hassfest]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Remove temporary workflow and commit final beta tree
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/republish-beta4.yml
+          git commit -m "Finalize republished beta4"
+          git push origin HEAD:beta-1097
+
+      - name: Move beta4 tag to final commit
+        run: |
+          git tag -f v1.4.0-beta.4 HEAD
+          git push origin refs/tags/v1.4.0-beta.4 --force
+
+      - name: Refresh beta4 release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/beta4-notes.md <<'EOF'
+          ### Added
+          - Raw logger profile from `inv_tp` is shown in Home Assistant device information instead of being exposed as a separate entity.
+          - Logger Wi-Fi signal as a percentage diagnostic entity.
+          - Wi-Fi signal refresh every five minutes, independently of the inverter polling interval.
+
+          ### Fixed
+          - Localized setup and protocol-selector strings are published under beta.4 so Home Assistant/HACS reload them cleanly.
+
+          ### Safety
+          - Logger metadata is read-only and collected through local HTTP GET requests only.
+          - No inverter control or configuration write has been added.
+          EOF
+          gh release edit v1.4.0-beta.4 \
+            --title "Version 1.4.0-beta.4" \
+            --notes-file /tmp/beta4-notes.md \
+            --prerelease
