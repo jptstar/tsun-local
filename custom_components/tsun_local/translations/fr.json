@@ -150,6 +150,21 @@
       "dc_power_total": {
         "name": "Puissance DC totale"
       },
+      "inverter_status_raw": {
+        "name": "État brut de l’onduleur"
+      },
+      "rated_power": {
+        "name": "Puissance nominale de l’onduleur"
+      },
+      "max_designed_power": {
+        "name": "Puissance maximale prévue"
+      },
+      "register_3017_raw": {
+        "name": "Registre brut 3017 (signification non confirmée)"
+      },
+      "register_3028_raw": {
+        "name": "Registre brut 3028 (signification non confirmée)"
+      },
       "communication_last_success": {
         "name": "Dernière communication réussie"
       },
