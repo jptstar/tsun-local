@@ -36,35 +36,29 @@ jobs:
 
           test_flow = Path("tests/test_config_flow_continuation.py")
           text = test_flow.read_text(encoding="utf-8")
-          old = '''    _module(
-              f"{PACKAGE}.protocols",
-              DEFAULT_PROTOCOL="auto",
-              create_protocol_client=lambda *args: None,
-          )'''
-          new = '''    _module(
-              f"{PACKAGE}.protocols",
-              DEFAULT_PROTOCOL="auto",
-              SUPPORTED_PROTOCOLS=("1511", "1097", "02b0"),
-              protocol_from_firmware=lambda firmware: None,
-              create_protocol_client=lambda *args: None,
-          )'''
-          if old not in text:
+          needle = '        DEFAULT_PROTOCOL="auto",\n        create_protocol_client=lambda *args: None,'
+          replacement = (
+              '        DEFAULT_PROTOCOL="auto",\n'
+              '        SUPPORTED_PROTOCOLS=("1511", "1097", "02b0"),\n'
+              '        protocol_from_firmware=lambda firmware: None,\n'
+              '        create_protocol_client=lambda *args: None,'
+          )
+          if needle not in text:
               raise SystemExit("config-flow protocol test stub not found")
-          test_flow.write_text(text.replace(old, new, 1), encoding="utf-8")
+          test_flow.write_text(text.replace(needle, replacement, 1), encoding="utf-8")
 
           test_protocols = Path("tests/test_protocols.py")
           text = test_protocols.read_text(encoding="utf-8")
-          old = '''            if protocol_name == "1511":
-                  return FakeClient("1511", False)
-              return working_client'''
-          new = '''            if protocol_name in {"1511", "1097"}:
-                  return FakeClient(protocol_name, False)
-              return working_client'''
-          if old not in text:
+          needle = '            if protocol_name == "1511":\n                return FakeClient("1511", False)'
+          replacement = '            if protocol_name in {"1511", "1097"}:\n                return FakeClient(protocol_name, False)'
+          if needle not in text:
               raise SystemExit("automatic protocol test factory not found")
-          text = text.replace(old, new, 1)
+          text = text.replace(needle, replacement, 1)
+          expected = 'self.assertEqual(attempts, ["1511", "02b0"])'
+          if expected not in text:
+              raise SystemExit("automatic protocol test assertion not found")
           text = text.replace(
-              'self.assertEqual(attempts, ["1511", "02b0"])',
+              expected,
               'self.assertEqual(attempts, ["1511", "1097", "02b0"])',
               1,
           )
