@@ -162,6 +162,21 @@
       "dc_power_total": {
         "name": "Potencia CC total"
       },
+      "inverter_status_raw": {
+        "name": "Estado bruto del inversor"
+      },
+      "rated_power": {
+        "name": "Potencia nominal del inversor"
+      },
+      "max_designed_power": {
+        "name": "Potencia máxima de diseño"
+      },
+      "register_3017_raw": {
+        "name": "Registro bruto 3017 (significado no confirmado)"
+      },
+      "register_3028_raw": {
+        "name": "Registro bruto 3028 (significado no confirmado)"
+      },
       "communication_last_success": {
         "name": "Última comunicación correcta"
       },
