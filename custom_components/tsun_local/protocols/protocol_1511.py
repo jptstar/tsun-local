@@ -21,11 +21,12 @@ from .ap import (
 PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
 MAX_PV_COUNT = 6
+DIAGNOSTIC_INTERVAL = 300.0
 
 _LOGGER = logging.getLogger(__name__)
 
 BLOCKS = (
-    (0xA1, 0x01, 0x0BB8, 0x0BD7),
+    (0xA1, 0x01, 0x0BB8, 0x0BD0),
     (0xA3, 0x03, 0x0E10, 0x0E2D),
     (0xA4, 0x04, 0x0ED8, 0x0EF5),
 )
@@ -35,6 +36,8 @@ ALARM_BLOCKS = (
 )
 
 DIAGNOSTIC_BLOCKS = (
+    # Full native A1/01 3000-3031 block, validated on MP3000 firmware 1.03.
+    (0xA1, 0x01, 0x0BB8, 0x0BD7),
     # Native TITAN A1/21 block: decimal registers 2000-2095.
     (0xA1, 0x21, 0x07D0, 0x082F),
 )
@@ -171,8 +174,9 @@ def decode_measurements(
         "ac_power": registers[0x0BCD] * 0.1,
         "ac_energy_today": registers[0x0BCE] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x0BCF) * 0.01,
-        "register_3028_raw": registers[0x0BD4],
     }
+    if 0x0BD4 in registers:
+        data["register_3028_raw"] = registers[0x0BD4]
     if 0x07FA in registers:
         data["max_designed_power"] = registers[0x07FA]
 
@@ -246,6 +250,8 @@ class Tsun1511Client:
         # they are observed in live or accumulated telemetry and never removed.
         self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
+        self._diagnostic_registers: dict[int, int] = {}
+        self._last_diagnostic_read = 0.0
 
     @property
     def pv_count(self) -> int:
@@ -363,18 +369,22 @@ class Tsun1511Client:
             else:
                 blocks_ok += 1
 
-        for block in DIAGNOSTIC_BLOCKS:
-            try:
-                registers.update(await self._read_block(block))
-            except Exception as err:
-                _LOGGER.debug(
-                    "1511 diagnostic block %d-%d is unavailable: %s",
-                    block[2],
-                    block[3],
-                    type(err).__name__,
-                )
-            else:
-                blocks_ok += 1
+        now = time.monotonic()
+        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+            self._last_diagnostic_read = now
+            for block in DIAGNOSTIC_BLOCKS:
+                try:
+                    self._diagnostic_registers.update(await self._read_block(block))
+                except Exception as err:
+                    _LOGGER.debug(
+                        "1511 diagnostic block %d-%d is unavailable: %s",
+                        block[2],
+                        block[3],
+                        type(err).__name__,
+                    )
+                else:
+                    blocks_ok += 1
+        registers.update(self._diagnostic_registers)
 
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
