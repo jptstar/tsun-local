@@ -1,44 +1,45 @@
-[English](https://github.com/jptstar/tsun-local/blob/beta-1097/README.md) · [Français](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_FR.md) · [Deutsch](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_DE.md) · [Nederlands](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_NL.md) · [Italiano](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_IT.md) · [Español](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ES.md) · [Polski](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_PL.md) · [简体中文](https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ZH.md)
+<p align="center">
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/README.md">English</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_FR.md">Français</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_DE.md">Deutsch</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_NL.md">Nederlands</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_IT.md">Italiano</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ES.md">Español</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_PL.md">Polski</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ZH.md">简体中文</a>
+</p>
+
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.0-beta.8** -->
 
 <p align="center">
-  <img src="custom_components/tsun_local/brand/icon@2x.png" width="170" alt="TSUN Local">
+  <img src="custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local">
 </p>
 
 <h1 align="center">TSUN Local</h1>
-
 <h3 align="center">Your inverter. Your network. Your data.</h3>
-<h2 align="center">Local. Read-only. No cloud. No proxy.</h2>
-
-<p align="center"><strong>Direct local access for compatible TSUN micro-inverters in Home Assistant.</strong><br><strong>1.4.0-beta.8</strong><!-- **1.4.0-beta.8** --></p>
+<p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
+<p align="center">Direct local access for compatible TSUN micro-inverters in Home Assistant.<br><strong>1.4.0-beta.8</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
-  <a href="https://github.com/hacs/integration"><img alt="HACS Custom" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
   <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
-
-<p align="center">Created and maintained by <strong>Jean-Philippe TESTART · <code>jptstar</code></strong><br><em>Built and shared for fun, technical curiosity and the Home Assistant community.</em></p>
-
-> [!IMPORTANT]
-> **Unofficial community project.** TSUN Local is independent and is not developed, approved, endorsed or maintained by TSUN.
 
 ---
 
 ## Your TSUN inverter may already work
 
-TSUN Local communicates directly with compatible TSUN micro-inverters on your LAN and supports several local protocol families.
+TSUN Local supports **three local TSUN protocol families**.
 
-**Your exact model does not need to be listed to be compatible.**
+| Protocol | Family / validated reference | Status |
+|:---:|---|:---:|
+| **1511** | TITAN · **TSOL-MP3000** | ✅ **Validated** |
+| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Validated** |
+| **1097** | GEN3 | 🧪 **Experimental** |
 
-| Protocol | Known hardware / family | Status |
-|---|---|:---:|
-| **1511** | TITAN · **TSOL-MP3000** | ✅ Validated |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ Validated |
-| **1097** | Compatible GEN3-family devices | 🧪 Experimental |
-
-> **Not listed does not mean unsupported.**
-
-If your inverter uses **1511, 02B0 or 1097**, try it.
+> [!TIP]
+> **Not listed does not mean unsupported.** If your inverter uses **1511, 02B0 or 1097**, it may already work.
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
@@ -50,25 +51,15 @@ If your inverter uses **1511, 02B0 or 1097**, try it.
 
 ---
 
-## What you get
+## At a glance
 
-### ☀️ PV
-Voltage · Current · Power · Daily energy · Total energy
-
-### ⚡ AC
-Voltage · Current · Frequency · Power · Daily energy · Total energy
-
-### 🚨 Diagnostics
-Alarms · Logger information · Communication state
-
-### 🛡️ Advanced diagnostics
-Read-only grid and inverter parameters are exposed where supported. Advanced entities are **disabled by default** and can be enabled individually in Home Assistant.
-
-- **1511:** complete grid-protection diagnostic map.
-- **02B0:** complete grid-protection diagnostic map plus output coefficient.
-- **1097:** protocol/inverter versions, inverter temperature, insulation impedance RX/RY, country/profile code and designed power where available.
-
-**No inverter configuration writes are implemented.**
+| | What TSUN Local exposes |
+|---|---|
+| ☀️ **PV** | Voltage · Current · Power · Daily energy · Total energy |
+| ⚡ **AC** | Voltage · Current · Frequency · Power · Daily energy · Total energy |
+| 🚨 **Diagnostics** | Alarms · Communication · Logger information |
+| 🛡️ **Advanced** | Grid protection · Inverter diagnostics · Disabled by default |
+| 🔒 **Safety** | Read-only · No inverter configuration writes |
 
 ---
 
@@ -76,65 +67,150 @@ Read-only grid and inverter parameters are exposed where supported. Advanced ent
 
 **Home Assistant 2026.3.0 or later.**
 
-### ✅ Validated on real hardware
+> [!NOTE]
+> **✅ Validated** = confirmed on real TSUN Local hardware.  
+> **🔎 Likely compatible** = the protocol family is supported, but this exact model has not yet been validated with TSUN Local.  
+> **🧪 Experimental** = protocol support exists, but broader real-device validation is still needed.
 
-| Model | Protocol | PV inputs |
-|---|---|---:|
-| **TSOL-MP3000** | 1511 | 6 |
-| **TSOL-MX500** | 02B0 | 1 |
+### 1511 · TITAN — ✅ Validated
 
-### 🔎 Worth trying
+**✅ Validated**  
+`TSOL-MP3000`
 
-**1511 / TITAN**
-- TSOL-MP2250
-- TSOL-MS3000
+**🔎 Likely compatible**  
+`TSOL-MP2250` · `TSOL-MS3000` *(TITAN generation)*
 
-**02B0 / GEN3 / GEN3 PLUS**
-- MX400 / MX450
-- MX800 / MX900 / MX1000
-- MX2250
-- MS300 / MS350 / MS400
-- MS600 / MS700 / MS800
-- MS1600 / MS1800 / MS2000
-- corresponding `-D` variants where applicable
+| | Available data |
+|---|---|
+| ☀️ **PV** | Up to 6 inputs · Voltage · Current · Power · Daily & total energy |
+| ⚡ **AC** | Voltage · Current · Frequency · Power · Daily & total energy |
+| 🚨 **Diagnostics** | Inverter alarms |
+| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics |
 
-### 🧪 Experimental
+### 02B0 · GEN3 PLUS — ✅ Validated
 
-**1097** support is available for testing and needs additional real-hardware validation.
+**✅ Validated**  
+`TSOL-MX500`
 
-> **Have another TSUN model? Try it. Your feedback can turn it into the next validated device.**
+**🔎 Likely compatible**  
+`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+Corresponding `-D` variants may also be compatible where applicable.
+
+> [!NOTE]
+> Public GEN3 PLUS research generally associates these devices with the **Y17 / Y47** serial-number family. This is useful for distinguishing models whose names also exist in older GEN3 variants.
+
+| | Available data |
+|---|---|
+| ☀️ **PV** | Dynamic PV-input detection · Voltage · Current · Power · Energy |
+| ⚡ **AC** | Voltage · Current · Frequency · Power · Energy |
+| 🚨 **Diagnostics** | Inverter alarms |
+| 🛡️ **Advanced** | Grid-protection diagnostics · Output coefficient |
+
+### 1097 · GEN3 — 🧪 Experimental
+
+**🔎 Likely compatible**  
+`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
+`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
+`TSOL-MS3000`
+
+> [!NOTE]
+> Public GEN3 research generally associates these devices with the **R17 / R47** serial-number family. Compatibility with TSUN Local protocol **1097** remains experimental until confirmed on more real hardware.
+
+| | Available data |
+|---|---|
+| ☀️ **PV** | Standard PV telemetry |
+| ⚡ **AC** | Standard inverter / AC telemetry |
+| 🚨 **Diagnostics** | Available inverter diagnostics |
+| 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Country/profile raw value · Designed power |
+
+> **🔎 Likely compatible does not mean validated.** It means TSUN Local already implements the relevant protocol family, making the device a strong compatibility candidate.
+
+---
+
+## 🛡️ Advanced diagnostics
+
+Advanced entities are intentionally **disabled by default**. This keeps the normal Home Assistant device page simple while still making deeper inverter information available when needed.
+
+To enable one:
+
+**Settings → Devices & services → TSUN Local → Device → Entities → Disabled entities**
+
+No inverter configuration writes are implemented.
 
 ---
 
 ## Installation
 
 ### HACS
-Use the button above, or add `https://github.com/jptstar/tsun-local` as a **Custom repository → Integration** in HACS, download **TSUN Local**, then restart Home Assistant.
+
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
+
+Or add `https://github.com/jptstar/tsun-local` as **HACS → Custom repositories → Integration**, install **TSUN Local**, then restart Home Assistant.
 
 ### Manual
+
 Copy `custom_components/tsun_local` to `/config/custom_components/`, restart Home Assistant, then add **TSUN Local** from **Settings → Devices & services**.
 
 ---
 
 ## How it works
 
-- direct local polling;
-- no external proxy;
-- no TSUN cloud required for telemetry;
-- no remote runtime service;
-- read-only communication;
-- automatic protocol identification where firmware provides a known protocol token;
-- forced protocol probing available for compatibility testing.
+```text
+TSUN inverter
+     │
+     │ Local network
+     ▼
+ TSUN Local
+     │
+     ▼
+Home Assistant
+```
+
+**No cloud in the data path. No proxy. No remote runtime service. No inverter configuration writes.**
+
+Direct local polling only.
+
+---
+
+## Test another TSUN model
+
+Your inverter does not have to be listed above.
+
+If TSUN Local identifies one of these protocols:
+
+```text
+1511
+02B0
+1097
+```
+
+let it run and check what entities are discovered.
+
+> [!TIP]
+> **Your inverter could become the next validated model.** Useful feedback includes the exact model, detected protocol, number of PV inputs, firmware version and which entities return plausible values.
 
 ---
 
 ## TSUN Local 1.4
 
-Version 1.4 broadens TSUN Local from individual tested models toward **protocol-family compatibility**.
+### A wider TSUN Local
 
-**1511 · 02B0 · 1097**
+Version 1.4 moves TSUN Local from individual known models toward **protocol-family compatibility**.
 
-It brings automatic protocol identification, progressive PV-input detection, expanded local telemetry, advanced read-only diagnostics, multilingual entity names and easier testing of new TSUN models.
+| | |
+|---|---|
+| 🔌 | **1511 · 02B0 · 1097** |
+| 🔍 | Automatic protocol identification |
+| ☀️ | Progressive / dynamic PV-input detection |
+| 📊 | Expanded local telemetry |
+| 🛡️ | Advanced read-only diagnostics |
+| 🌍 | 8 languages |
+| 🧪 | Easier testing of new TSUN models |
 
 ---
 
@@ -143,6 +219,18 @@ It brings automatic protocol identification, progressive PV-input detection, exp
 The 1511 and 02B0 implementations are developed through **independent local protocol analysis, real-device observation and hardware validation**.
 
 The experimental 1097 mapping was informed by publicly available protocol research from **Stefan Allius / `s-allius/tsun-gen3-proxy`**, then adapted to TSUN Local for direct local use.
+
+Compatibility candidates are intentionally labelled separately from validated hardware.
+
+---
+
+## Project
+
+> [!IMPORTANT]
+> **Unofficial community project.** TSUN Local is independent and is not developed, approved, endorsed or maintained by TSUN.
+
+Created and maintained by **Jean-Philippe TESTART · `jptstar`**  
+*Built and shared for fun, technical curiosity and the Home Assistant community.*
 
 ---
 
