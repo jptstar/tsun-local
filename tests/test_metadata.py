@@ -123,9 +123,10 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("[Deutsch](docs/README_DE.md)", root_readme)
         version = _load_json(INTEGRATION / "manifest.json")["version"]
         self.assertIn(f"**{version}**", root_readme)
+        documentation_version = version.split("-beta.", 1)[0]
         for name in localized:
             self.assertIn(
-                version,
+                documentation_version,
                 (ROOT / "docs" / name).read_text(encoding="utf-8"),
             )
 
