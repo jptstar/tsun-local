@@ -85,7 +85,7 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 | ☀️ **PV** | Bis zu 6 Eingänge · Spannung · Strom · Leistung · Tages- & Gesamtenergie |
 | ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tages- & Gesamtenergie |
 | 🚨 **Diagnose** | Wechselrichteralarme |
-| 🛡️ **Erweitert** | Netzschutz-Grenzwerte und Zeitdiagnosen |
+| 🛡️ **Erweitert** | Netzschutz-Schwellenwerte und Zeitdiagnosen · Wechselrichtertemperatur · Umgebungstemperatur des Wechselrichters · Leistungsniveau (Kandidat) |
 
 ### 02B0 · GEN3 PLUS — ✅ Validiert
 
@@ -105,16 +105,14 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 | ☀️ **PV** | Dynamische PV-Eingangserkennung · Spannung · Strom · Leistung · Energie |
 | ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Energie |
 | 🚨 **Diagnose** | Wechselrichteralarme |
-| 🛡️ **Erweitert** | Netzschutzdiagnose · Ausgangskoeffizient |
+| 🛡️ **Erweitert** | Netzschutzdiagnosen · Leistungsniveau (%) |
 
 ### 1097 · GEN3 — 🧪 Experimentell
-
-`TSOL-MX3000D`
 
 **🔎 Wahrscheinlich kompatibel**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > Öffentliche GEN3-Forschung ordnet diese Geräte im Allgemeinen der Seriennummernfamilie **R17 / R47** zu. Die Kompatibilität mit dem TSUN-Local-Protokoll **1097** bleibt experimentell, bis sie auf mehr echter Hardware bestätigt wurde.
@@ -124,7 +122,7 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 | ☀️ **PV** | Standard-PV-Telemetrie |
 | ⚡ **AC** | Standard-Wechselrichter-/AC-Telemetrie |
 | 🚨 **Diagnose** | Verfügbare Wechselrichterdiagnosen |
-| 🛡️ **Erweitert** | Protokollversion · Wechselrichterversion · Temperatur · Isolation RX/RY · Rohwert Land/Profil · Auslegungsleistung |
+| 🛡️ **Erweitert** | Protokollversion · Wechselrichterversion · Temperatur · Isolationswiderstand RX/RY · Leistungsniveau (experimentell) · Rohwert Land/Profil · Auslegungsleistung |
 
 > **🔎 Wahrscheinlich kompatibel bedeutet nicht validiert.** Es bedeutet, dass TSUN Local die passende Protokollfamilie bereits implementiert und das Gerät damit ein guter Kompatibilitätskandidat ist.
 
@@ -136,8 +134,8 @@ Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der e
 
 - Netzschutz-Zeitwerte bleiben nativ in **Sekunden**; automatisch gespeicherte `ms`-Anzeigeeinheiten aus älteren Betas werden auf `s` migriert;
 - beim validierten MP3000 bleibt das bei Dämmerung und sehr geringer Einstrahlung beobachtete Rohbit `0x2000` (`8192`) sichtbar, löst allein aber keinen Fehler mehr aus; der Betriebszustand zeigt **Standby — geringe PV-Eingangsleistung**;
-- TITAN-Register **3017** und **3028** bleiben unskalierte dezimale Rohwerte mit numerischer Historie, bis die Temperaturabbildung sicher validiert ist; es wird noch kein Temperatur-Offset angewendet;
-- 02B0-Register `0x202C` wird bis zur Bestätigung seiner Kodierung als **roher Ausgangskoeffizient** und nicht als Prozentwert angezeigt.
+- die TITAN-Register **3017** und **3028** werden jetzt als **Wechselrichtertemperatur** bzw. **Umgebungstemperatur des Wechselrichters** mit `raw - 40 °C` dekodiert; die Rohwerte bleiben zur Prüfung erhalten;
+- das 02B0-Register `0x202C` wird jetzt als **Leistungsniveau** mit der bestätigten Skalierung `raw × 100 / 1024` (`1024 = 100 %`) angezeigt;
 
 ---
 

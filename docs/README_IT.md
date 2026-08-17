@@ -85,7 +85,7 @@ TSUN Local supporta **tre famiglie di protocolli locali TSUN**.
 | ☀️ **PV** | Fino a 6 ingressi · Tensione · Corrente · Potenza · Energia giornaliera e totale |
 | ⚡ **AC** | Tensione · Corrente · Frequenza · Potenza · Energia giornaliera e totale |
 | 🚨 **Diagnostica** | Allarmi inverter |
-| 🛡️ **Avanzata** | Soglie di protezione rete e diagnostica dei tempi |
+| 🛡️ **Avanzato** | Soglie di protezione rete e temporizzazioni · Temperatura inverter · Temperatura ambiente inverter · Livello di potenza (candidato) |
 
 ### 02B0 · GEN3 PLUS — ✅ Validato
 
@@ -105,16 +105,14 @@ Le corrispondenti varianti `-D` possono essere compatibili dove previste.
 | ☀️ **PV** | Rilevamento dinamico degli ingressi PV · Tensione · Corrente · Potenza · Energia |
 | ⚡ **AC** | Tensione · Corrente · Frequenza · Potenza · Energia |
 | 🚨 **Diagnostica** | Allarmi inverter |
-| 🛡️ **Avanzata** | Diagnostica protezione rete · Coefficiente di uscita |
+| 🛡️ **Avanzato** | Diagnostica protezione rete · Livello di potenza (%) |
 
 ### 1097 · GEN3 — 🧪 Sperimentale
-
-`TSOL-MX3000D`
 
 **🔎 Probabilmente compatibile**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > La ricerca pubblica su GEN3 associa generalmente questi dispositivi alla famiglia di numeri di serie **R17 / R47**. La compatibilità con il protocollo **1097** di TSUN Local resta sperimentale finché non viene confermata su più hardware reale.
@@ -124,7 +122,7 @@ Le corrispondenti varianti `-D` possono essere compatibili dove previste.
 | ☀️ **PV** | Telemetria PV standard |
 | ⚡ **AC** | Telemetria standard inverter / AC |
 | 🚨 **Diagnostica** | Diagnostica inverter disponibile |
-| 🛡️ **Avanzata** | Versione protocollo · Versione inverter · Temperatura · Isolamento RX/RY · Valore grezzo paese/profilo · Potenza di progetto |
+| 🛡️ **Avanzato** | Versione protocollo · Versione inverter · Temperatura · Isolamento RX/RY · Livello di potenza (sperimentale) · Valore grezzo paese/profilo · Potenza di progetto |
 
 > **🔎 Probabilmente compatibile non significa validato.** Significa che TSUN Local implementa già la famiglia di protocollo pertinente, rendendo il dispositivo un buon candidato alla compatibilità.
 
@@ -136,8 +134,8 @@ La validazione su hardware reale MP3000 / 1511 e MX500 / 02B0 ha affinato alcuni
 
 - i tempi di protezione rete restano nativamente in **secondi**; le vecchie unità automatiche `ms` memorizzate dalle beta vengono migrate a `s`;
 - sul MP3000 validato, il bit grezzo `0x2000` (`8192`) osservato all’alba, al tramonto e con irraggiamento molto basso resta visibile ma da solo non segnala più un guasto; lo stato operativo mostra **Standby — bassa potenza solare in ingresso**;
-- i registri TITAN **3017** e **3028** restano valori decimali grezzi, numerici e storicizzabili finché la mappatura della temperatura non sarà validata; non viene ancora applicato alcun offset;
-- il registro 02B0 `0x202C` viene mostrato come **coefficiente di uscita grezzo** finché la codifica non sarà confermata, non come percentuale.
+- i registri TITAN **3017** e **3028** vengono ora decodificati come **Temperatura inverter** e **Temperatura ambiente inverter** con `raw - 40 °C`; i valori grezzi restano disponibili per la verifica;
+- il registro 02B0 `0x202C` viene ora mostrato come **Livello di potenza** con la scala confermata `raw × 100 / 1024` (`1024 = 100 %`);
 
 ---
 
