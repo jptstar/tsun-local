@@ -4,19 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk" />
-  <title>TSUN Local 1.4 — Home Assistant integration for TSUN micro-inverters</title>
-  <meta name="description" content="TSUN Local 1.4 is an open-source HACS integration for Home Assistant and compatible TSUN solar micro-inverters. Local read-only monitoring over LAN with 1511, 02B0 and experimental 1097 support, no cloud dependency and no proxy.">
+  <title>TSUN Local 1.4.1 — Home Assistant integration for TSUN micro-inverters</title>
+  <meta name="description" content="TSUN Local 1.4.1 is an open-source HACS integration for Home Assistant and compatible TSUN solar micro-inverters. Local read-only monitoring over LAN with 1511, 02B0 and experimental 1097 support, no cloud dependency and no proxy.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
+  <link rel="icon" type="image/png" href="/tsun-local/icon.png">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="TSUN Local 1.4 — Home Assistant integration for TSUN micro-inverters">
+  <meta property="og:title" content="TSUN Local 1.4.1 — Home Assistant integration for TSUN micro-inverters">
   <meta property="og:description" content="Local, read-only Home Assistant monitoring for compatible TSUN solar micro-inverters. 1511, 02B0 and experimental 1097 support. No cloud dependency. No proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TSUN Local 1.4 — Home Assistant integration for TSUN micro-inverters">
+  <meta name="twitter:title" content="TSUN Local 1.4.1 — Home Assistant integration for TSUN micro-inverters">
   <meta name="twitter:description" content="Direct local Home Assistant monitoring for compatible TSUN micro-inverters with 1511, 02B0 and experimental 1097 support.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
 
@@ -87,10 +88,10 @@
 </head>
 <body>
   <header class="wrap">
-    <img class="icon" src="./icon.png" alt="TSUN Local Home Assistant integration icon" width="108" height="108">
+    <img class="icon" src="/tsun-local/icon.png" alt="TSUN Local Home Assistant integration icon" width="108" height="108">
     <div class="release">CURRENT RELEASE · 1.4.1</div>
-    <h1>TSUN Local 1.4 — Home Assistant integration for TSUN micro-inverters</h1>
-    <p class="lead"><strong>TSUN Local</strong> connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network. Version 1.4 expands compatibility around three local protocol families: <strong>1511</strong>, <strong>02B0</strong> and experimental <strong>1097</strong>.</p>
+    <h1>TSUN Local 1.4.1 — Home Assistant integration for TSUN micro-inverters</h1>
+    <p class="lead"><strong>TSUN Local</strong> connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network. Version 1.4.1 expands compatibility around three local protocol families: <strong>1511</strong>, <strong>02B0</strong> and experimental <strong>1097</strong>.</p>
     <p class="strap">Your inverter. Your network. Your data.<br>Local. Read-only. No cloud. No proxy.</p>
     <div class="actions">
       <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Add TSUN Local to HACS</a>
@@ -101,7 +102,7 @@
 
   <main class="wrap">
     <section>
-      <h2>TSUN Local 1.4 at a glance</h2>
+      <h2>TSUN Local 1.4.1 at a glance</h2>
       <div class="grid">
         <div class="card"><strong>🔌 1511 · 02B0 · 1097</strong><span class="muted">Three local TSUN protocol families in one Home Assistant integration.</span></div>
         <div class="card"><strong>🔍 Automatic protocol identification</strong><span class="muted">TSUN Local identifies the supported local protocol from the logger firmware where available.</span></div>
@@ -143,23 +144,9 @@
       </div>
     </section>
 
-    <section class="notice">
-      <h2>Field refinements in 1.4.1</h2>
-      <p>Additional protocol cross-checking and real-device observation refine several advanced diagnostics in 1.4.1.</p>
-      <ul>
-        <li>Grid-protection timing values remain native <strong>seconds</strong>, with legacy beta-era automatic <code>ms</code> display choices migrated back to <code>s</code>.</li>
-        <li>On validated MP3000 hardware, raw alarm bit <code>0x2000</code> (<code>8192</code>) observed at dawn, dusk and very low irradiance remains visible but no longer reports a fault by itself; the operating state reports <strong>Standby — low solar input</strong>.</li>
-        <li>TITAN register <strong>3017</strong> is exposed as <strong>Inverter temperature</strong> and register <strong>3028</strong> as <strong>Inverter ambient temperature</strong>, both using <code>raw - 40 °C</code>. Their raw diagnostic values remain available.</li>
-        <li>TITAN decimal register <strong>2028</strong> (<code>0x07EC</code>) is exposed as <strong>Power level (candidate)</strong> until field validation confirms the mapping; register <strong>3018</strong> remains raw and unconfirmed.</li>
-        <li>02B0 register <code>0x202C</code> is exposed as <strong>Power level</strong> using <code>raw × 100 / 1024</code>, so <code>1024 = 100%</code>.</li>
-        <li>The experimental 1097 adapter exposes the same <strong>Power level</strong> terminology while its advanced mapping remains experimental.</li>
-      </ul>
-      <p class="muted">TSUN Local keeps the original raw diagnostics where useful so semantic decoding can still be checked against real protocol values.</p>
-    </section>
-
     <section class="experimental">
       <h2>1097 remains experimental</h2>
-      <p>The 1097 adapter is included in 1.4 for community validation. It can expose standard inverter/PV telemetry plus advanced diagnostics such as protocol version, inverter version, temperature, insulation RX/RY, power level, country/profile raw value and designed power where available.</p>
+      <p>The 1097 adapter is included in 1.4.1 for community validation. It can expose standard inverter/PV telemetry plus advanced diagnostics such as protocol version, inverter version, temperature, insulation RX/RY, power level, country/profile raw value and designed power where available.</p>
     </section>
 
     <section>

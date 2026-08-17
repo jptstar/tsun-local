@@ -12,7 +12,7 @@
 <!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.1** -->
 
 <p align="center">
-  <img src="custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
+  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
 </p>
 
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
@@ -101,9 +101,6 @@ TSUN Local supports **three local TSUN protocol families**.
 `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
 Corresponding `-D` variants may also be compatible where applicable.
 
-> [!NOTE]
-> Public GEN3 PLUS research generally associates these devices with the **Y17 / Y47** serial-number family. This is useful for distinguishing models whose names also exist in older GEN3 variants.
-
 | | Available data |
 |---|---|
 | ☀️ **PV** | Dynamic PV-input detection · Voltage · Current · Power · Energy |
@@ -129,22 +126,6 @@ Corresponding `-D` variants may also be compatible where applicable.
 | 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Power level (experimental) · Country/profile raw value · Designed power |
 
 > **🔎 Likely compatible does not mean validated.** It means TSUN Local already implements the relevant protocol family, making the device a strong compatibility candidate.
-
----
-
-## Field refinements in 1.4.1
-
-Version **1.4.1** keeps the 1.4 protocol-family foundation and refines fields that now have stronger protocol and real-device evidence:
-
-- **02B0 power level** is now decoded as a percentage using the confirmed 1024 full-scale representation (`1024 → 100%`, `512 → 50%`);
-- **1511 register 3017** is exposed as **Inverter temperature** with `raw - 40 °C`;
-- **1511 register 3028** is exposed as **Inverter ambient temperature** with `raw - 40 °C`;
-- **1511 register 3018** remains a raw diagnostic because its meaning is still unconfirmed;
-- **1511 decimal register 2028 (`0x07EC`)** is exposed as **Power level (candidate)** so field data can validate the mapping without presenting it as confirmed;
-- **1097** exposes the same user-facing **Power level** in its experimental diagnostics while the whole 1097 mapping continues to require broader hardware validation;
-- raw diagnostic values remain available for protocol verification.
-
-The existing 1.4.0 low-solar alarm handling and seconds-based grid-protection timing behavior are retained unchanged.
 
 ---
 
@@ -216,11 +197,11 @@ let it run and check what entities are discovered.
 
 ---
 
-## TSUN Local 1.4
+## TSUN Local 1.4.1
 
 ### A wider TSUN Local
 
-Version 1.4 moves TSUN Local from individual known models toward **protocol-family compatibility**.
+Version 1.4.1 moves TSUN Local from individual known models toward **protocol-family compatibility**.
 
 | | |
 |---|---|
