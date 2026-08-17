@@ -12,19 +12,21 @@
 <!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.0-beta.8** -->
 
 <p align="center">
-  <img src="custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local">
+  <img src="custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
 </p>
 
-<h1 align="center">TSUN Local</h1>
+<h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Direct local access for compatible TSUN micro-inverters in Home Assistant.<br><strong>1.4.0-beta.8</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.4.0-beta.8</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
   <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
+
+<p align="center"><a href="https://jptstar.github.io/tsun-local/"><strong>Project website</strong></a></p>
 
 ---
 
