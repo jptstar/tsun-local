@@ -172,13 +172,13 @@
         "name": "Maximaal ontwerpvermogen"
       },
       "register_3017_raw": {
-        "name": "Ruw register 3017 (temperatuurkandidaat)"
+        "name": "Ruw register 3017 (omvormertemperatuur)"
       },
       "register_3018_raw": {
-        "name": "Ruw register 3018 (betekenis niet bevestigd)"
+        "name": "Ruw register 3018 (betekenis onbevestigd)"
       },
       "register_3028_raw": {
-        "name": "Ruw register 3028 (temperatuurkandidaat)"
+        "name": "Ruw register 3028 (omgevingstemperatuur omvormer)"
       },
       "communication_last_success": {
         "name": "Laatste geslaagde communicatie"
@@ -352,7 +352,7 @@
         "name": "Netoverfrequentietijd 2"
       },
       "output_coefficient": {
-        "name": "Ruwe uitgangscoëfficiënt (codering onbevestigd)"
+        "name": "Vermogensniveau"
       },
       "protocol_version": {
         "name": "Protocolversie"
@@ -380,6 +380,12 @@
           "standby_low_solar": "Stand-by — lage zonne-invoer",
           "fault": "Storing"
         }
+      },
+      "output_coefficient_candidate": {
+        "name": "Vermogensniveau (kandidaat)"
+      },
+      "ambient_temperature": {
+        "name": "Omgevingstemperatuur omvormer"
       }
     },
     "binary_sensor": {

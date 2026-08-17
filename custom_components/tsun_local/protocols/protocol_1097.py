@@ -42,6 +42,8 @@ BLOCKS = (
 DIAGNOSTIC_BLOCKS = (
     # Public 1097 mapping: country/profile code and maximum designed power.
     (0x03, 0x1400, 0x1400),
+    # Experimental 1097 power-level field observed in the configuration block.
+    (0x03, 0x1423, 0x1423),
     (0x03, 0x1437, 0x1437),
 )
 
@@ -73,6 +75,7 @@ ADVANCED_DIAGNOSTIC_KEYS = frozenset(
         "insulation_impedance_ry",
         "inverter_temperature",
         "country_profile_raw",
+        "output_coefficient",
     }
 )
 
@@ -190,6 +193,10 @@ def decode_advanced_diagnostics(
         data["inverter_temperature"] = registers[0x1218] - 40
     if 0x1400 in registers:
         data["country_profile_raw"] = registers[0x1400]
+    if 0x1423 in registers:
+        # The entire 1097 adapter is experimental; keep this mapping under
+        # field validation while exposing the same user-facing power level.
+        data["output_coefficient"] = round(registers[0x1423] * 100 / 1024, 2)
     return data
 
 

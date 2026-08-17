@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
-<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.4.0</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.4.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -109,6 +109,8 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 
 ### 1097 · GEN3 — 🧪 Eksperymentalny
 
+`TSOL-MX3000D`
+
 **🔎 Prawdopodobnie kompatybilny**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
@@ -128,9 +130,9 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 
 ---
 
-## Korekty wynikające z walidacji sprzętowej w 1.4.0
+## Korekty wynikające z walidacji sprzętowej w 1.4.1
 
-Walidacja na rzeczywistych urządzeniach MP3000 / 1511 i MX500 / 02B0 doprecyzowała kilka diagnostyk przed ponowną publikacją 1.4.0:
+Walidacja na rzeczywistych urządzeniach MP3000 / 1511 i MX500 / 02B0 doprecyzowała kilka diagnostyk przed ponowną publikacją 1.4.1:
 
 - czasy zabezpieczeń sieci pozostają natywnie w **sekundach**; automatyczne jednostki `ms` zapamiętane przez wcześniejsze wersje beta są migrowane do `s`;
 - w zweryfikowanym MP3000 surowy bit `0x2000` (`8192`), obserwowany o świcie, zmierzchu i przy bardzo niskim nasłonecznieniu, pozostaje widoczny, ale sam nie wywołuje już stanu usterki; stan pracy pokazuje **Czuwanie — niski poziom energii słonecznej**;

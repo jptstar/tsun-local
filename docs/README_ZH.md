@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">你的逆变器。你的网络。你的数据。</h3>
 <p align="center"><strong>本地。只读。无需云端。无需代理。</strong></p>
-<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.4.0</strong></p>
+<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.4.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -109,6 +109,8 @@ TSUN Local 支持 **三种 TSUN 本地协议系列**。
 
 ### 1097 · GEN3 — 🧪 实验性
 
+`TSOL-MX3000D`
+
 **🔎 很可能兼容**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
@@ -128,9 +130,9 @@ TSUN Local 支持 **三种 TSUN 本地协议系列**。
 
 ---
 
-## 1.4.0 中基于实机验证的修正
+## 1.4.1 中基于实机验证的修正
 
-在 MP3000 / 1511 与 MX500 / 02B0 实机上验证后，1.4.0 重新发布前进一步修正了以下诊断项：
+在 MP3000 / 1511 与 MX500 / 02B0 实机上验证后，1.4.1 重新发布前进一步修正了以下诊断项：
 
 - 电网保护时间原生继续使用**秒**；早期 beta 版本自动保存的 `ms` 显示单位会迁移回 `s`；
 - 在已验证的 MP3000 上，日出、日落以及光照极低时反复观察到的原始位 `0x2000`（`8192`）仍保留在诊断数据中，但它单独出现时不再被判定为故障；运行状态显示为**待机 — 光照输入不足**；

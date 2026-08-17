@@ -62,7 +62,7 @@ class Release140FieldCorrectionTests(unittest.TestCase):
         self.assertEqual(active["inverter_operating_state"], "active")
         self.assertEqual(standby["inverter_operating_state"], "standby")
 
-    def test_sensor_metadata_keeps_uncertain_values_raw(self) -> None:
+    def test_sensor_metadata_retains_raw_values_and_confirmed_percentage(self) -> None:
         source = (
             Path(__file__).parents[1]
             / "custom_components"
@@ -75,7 +75,7 @@ class Release140FieldCorrectionTests(unittest.TestCase):
 
         start = source.index('        "output_coefficient",')
         block = source[start : start + 180]
-        self.assertNotIn("unit=PERCENTAGE", block)
+        self.assertIn("unit=PERCENTAGE", block)
 
         self.assertIn('"standby_low_solar"', source)
         self.assertIn("GRID_TIMING_SENSOR_KEYS", source)

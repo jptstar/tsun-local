@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.4.0</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.4.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -109,6 +109,8 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 
 ### 1097 · GEN3 — 🧪 Expérimental
 
+`TSOL-MX3000D`
+
 **🔎 Probablement compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
@@ -128,9 +130,9 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 
 ---
 
-## Corrections issues de la validation terrain incluses dans la 1.4.0
+## Corrections issues de la validation terrain incluses dans la 1.4.1
 
-La validation sur matériel réel MP3000 / 1511 et MX500 / 02B0 a permis d’affiner plusieurs diagnostics avant la republication de la version stable 1.4.0 :
+La validation sur matériel réel MP3000 / 1511 et MX500 / 02B0 a permis d’affiner plusieurs diagnostics avant la republication de la version stable 1.4.1 :
 
 - les temporisations de protection réseau restent exprimées nativement en **secondes** et les anciens choix automatiques `ms` hérités des bêta sont migrés vers `s` ;
 - sur le MP3000 validé, le bit brut `0x2000` (`8192`), observé au lever, au coucher du soleil et lorsque l’irradiance est très faible, reste visible dans les diagnostics mais ne déclenche plus à lui seul une panne ; l’état de fonctionnement indique **Veille — faible entrée solaire** ;
