@@ -18,8 +18,8 @@ if actual != expected:
 
 source_text = gzip.decompress(base64.b64decode(payload)).decode("utf-8")
 
-# The existing protocol test contains the same short expected-dict suffix twice.
-# Make this one patch explicitly first-match-only before executing the generator.
+# The original one-shot generator used a short expected-dict suffix that occurs
+# in both the 02B0 and 1511 alarm tests. Target the 1511 class explicitly.
 buggy = r'''    replace_once(
         "tests/test_protocols.py",
         '                "alarm_active": 1,\n            },\n',
@@ -28,11 +28,14 @@ buggy = r'''    replace_once(
 '''
 fixed = r'''    path = ROOT / "tests/test_protocols.py"
     text = path.read_text(encoding="utf-8")
+    class_marker = "class Protocol1511Tests(unittest.TestCase):"
+    before, section = text.split(class_marker, 1)
     old = '                "alarm_active": 1,\n            },\n'
     new = '                "alarm_active": 1,\n                "inverter_operating_state": "fault",\n            },\n'
-    if old not in text:
-        raise RuntimeError("tests/test_protocols.py: alarm expectation not found")
-    path.write_text(text.replace(old, new, 1), encoding="utf-8")
+    if old not in section:
+        raise RuntimeError("tests/test_protocols.py: 1511 alarm expectation not found")
+    section = section.replace(old, new, 1)
+    path.write_text(before + class_marker + section, encoding="utf-8")
 '''
 if buggy not in source_text:
     raise SystemExit("Republish source patch target not found")
