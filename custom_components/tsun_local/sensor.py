@@ -193,6 +193,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_overfrequency_time_2": "0x07E9",
         "grid_undervoltage_level_3": "0x07EA",
         "grid_undervoltage_time_3": "0x07EB",
+        "output_coefficient_candidate": "2028 (0x07EC) — candidate",
     },
     "02b0": {
         "inverter_status_raw": "0x3000",
@@ -232,6 +233,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "insulation_impedance_ry": "0x1217",
         "inverter_temperature": "0x1218",
         "country_profile_raw": "0x1400",
+        "output_coefficient": "0x1423 — experimental",
     },
 }
 
@@ -394,33 +396,47 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "output_coefficient",
         "output_coefficient",
+        unit=PERCENTAGE,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "output_coefficient_candidate",
+        "output_coefficient_candidate",
+        unit=PERCENTAGE,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "protocol_version",
+        "protocol_version",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "inverter_version",
+        "inverter_version",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "insulation_impedance_rx",
+        "insulation_impedance_rx",
+        unit="MΩ",
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "insulation_impedance_ry",
+        "insulation_impedance_ry",
+        unit="MΩ",
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "inverter_temperature",
+        "inverter_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        unit=UnitOfTemperature.CELSIUS,
         precision=0,
     ),
     _advanced_diagnostic(
-        "protocol_version",
-        "protocol_version",
-        state_class=None,
-    ),
-    _advanced_diagnostic(
-        "inverter_version",
-        "inverter_version",
-        state_class=None,
-    ),
-    _advanced_diagnostic(
-        "insulation_impedance_rx",
-        "insulation_impedance_rx",
-        unit="MΩ",
-        precision=2,
-    ),
-    _advanced_diagnostic(
-        "insulation_impedance_ry",
-        "insulation_impedance_ry",
-        unit="MΩ",
-        precision=2,
-    ),
-    _advanced_diagnostic(
-        "inverter_temperature",
-        "inverter_temperature",
+        "ambient_temperature",
+        "ambient_temperature",
         device_class=SensorDeviceClass.TEMPERATURE,
         unit=UnitOfTemperature.CELSIUS,
         precision=0,

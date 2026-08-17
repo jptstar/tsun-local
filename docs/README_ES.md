@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Tu inversor. Tu red. Tus datos.</h3>
 <p align="center"><strong>Local. Solo lectura. Sin nube. Sin proxy.</strong></p>
-<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.4.0</strong></p>
+<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.4.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -109,6 +109,8 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 
 ### 1097 · GEN3 — 🧪 Experimental
 
+`TSOL-MX3000D`
+
 **🔎 Probablemente compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
@@ -128,9 +130,9 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 
 ---
 
-## Correcciones de validación en campo incluidas en 1.4.0
+## Correcciones de validación en campo incluidas en 1.4.1
 
-La validación con hardware real MP3000 / 1511 y MX500 / 02B0 permitió afinar varios diagnósticos antes de volver a publicar la versión 1.4.0:
+La validación con hardware real MP3000 / 1511 y MX500 / 02B0 permitió afinar varios diagnósticos antes de volver a publicar la versión 1.4.1:
 
 - los tiempos de protección de red permanecen nativamente en **segundos**; las unidades automáticas `ms` heredadas de versiones beta se migran a `s`;
 - en el MP3000 validado, el bit bruto `0x2000` (`8192`) observado al amanecer, al anochecer y con irradiancia muy baja sigue visible, pero por sí solo ya no provoca un fallo; el estado de funcionamiento muestra **En espera — baja entrada solar**;

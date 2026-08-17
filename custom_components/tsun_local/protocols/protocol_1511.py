@@ -82,6 +82,8 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
         "register_3017_raw",
         "register_3018_raw",
         "register_3028_raw",
+        "inverter_temperature",
+        "ambient_temperature",
     }
 )
 
@@ -109,6 +111,7 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overfrequency_time_2",
         "grid_undervoltage_level_3",
         "grid_undervoltage_time_3",
+        "output_coefficient_candidate",
     }
 )
 
@@ -135,6 +138,9 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overfrequency_time_2": (0x07E9, 0.02),
     "grid_undervoltage_level_3": (0x07EA, 0.1),
     "grid_undervoltage_time_3": (0x07EB, 0.02),
+    # Candidate inferred from the adjacent protocol layout; keep the
+    # candidate label until confirmed independently on 1511 hardware.
+    "output_coefficient_candidate": (0x07EC, 100 / 1024),
 }
 
 
@@ -233,6 +239,7 @@ def decode_measurements(
         "ac_current": registers[0x0BC5] * 0.01,
         "ac_frequency": registers[0x0BC7] * 0.01,
         "register_3017_raw": registers[0x0BC9],
+        "inverter_temperature": registers[0x0BC9] - 40,
         "rated_power": registers[0x0BCC],
         "ac_power": registers[0x0BCD] * 0.1,
         "ac_energy_today": registers[0x0BCE] * 0.01,
@@ -242,6 +249,7 @@ def decode_measurements(
         data["register_3018_raw"] = registers[0x0BCA]
     if 0x0BD4 in registers:
         data["register_3028_raw"] = registers[0x0BD4]
+        data["ambient_temperature"] = registers[0x0BD4] - 40
     if 0x07FA in registers:
         data["max_designed_power"] = registers[0x07FA]
 

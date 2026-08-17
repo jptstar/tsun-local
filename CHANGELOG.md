@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.1] - 2026-08-17
+
+### Changed
+
+- Rename the user-facing output coefficient to **Power level** across supported protocol families.
+- Decode the confirmed 02B0 `0x202C` 1024 full-scale value as a percentage.
+- Decode 1511 registers 3017 and 3028 as inverter and inverter-ambient temperatures using the `-40 °C` offset while retaining their raw diagnostic values.
+- Keep 1511 register 3018 raw because its meaning remains unconfirmed.
+- Expose 1511 decimal register 2028 (`0x07EC`) as **Power level (candidate)** for field validation.
+- Expose the 1097 power-level diagnostic as part of the experimental 1097 mapping.
+- Refresh entity documentation, translations and project pages for the new field semantics.
+
 ## [1.4.0] - 2026-08-17
 
 ### Added

@@ -172,13 +172,13 @@
         "name": "Potenza massima di progetto"
       },
       "register_3017_raw": {
-        "name": "Registro grezzo 3017 (candidato temperatura)"
+        "name": "Registro grezzo 3017 (temperatura inverter)"
       },
       "register_3018_raw": {
         "name": "Registro grezzo 3018 (significato non confermato)"
       },
       "register_3028_raw": {
-        "name": "Registro grezzo 3028 (candidato temperatura)"
+        "name": "Registro grezzo 3028 (temperatura ambiente inverter)"
       },
       "communication_last_success": {
         "name": "Ultima comunicazione riuscita"
@@ -352,7 +352,7 @@
         "name": "Tempo sovrafrequenza rete livello 2"
       },
       "output_coefficient": {
-        "name": "Coefficiente di uscita grezzo (codifica non confermata)"
+        "name": "Livello di potenza"
       },
       "protocol_version": {
         "name": "Versione protocollo"
@@ -380,6 +380,12 @@
           "standby_low_solar": "Standby — bassa potenza solare in ingresso",
           "fault": "Guasto"
         }
+      },
+      "output_coefficient_candidate": {
+        "name": "Livello di potenza (candidato)"
+      },
+      "ambient_temperature": {
+        "name": "Temperatura ambiente inverter"
       }
     },
     "binary_sensor": {

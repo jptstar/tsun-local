@@ -25,7 +25,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
     "name": "TSUN Local",
-    "softwareVersion": "1.4.0",
+    "softwareVersion": "1.4.1",
     "description": "Open-source HACS integration for Home Assistant and compatible TSUN solar micro-inverters using direct local read-only network polling with 1511, 02B0 and experimental 1097 protocol support.",
     "url": "https://jptstar.github.io/tsun-local/",
     "codeRepository": "https://github.com/jptstar/tsun-local",
@@ -88,14 +88,14 @@
 <body>
   <header class="wrap">
     <img class="icon" src="./icon.png" alt="TSUN Local Home Assistant integration icon" width="108" height="108">
-    <div class="release">CURRENT RELEASE · 1.4.0</div>
+    <div class="release">CURRENT RELEASE · 1.4.1</div>
     <h1>TSUN Local 1.4 — Home Assistant integration for TSUN micro-inverters</h1>
     <p class="lead"><strong>TSUN Local</strong> connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network. Version 1.4 expands compatibility around three local protocol families: <strong>1511</strong>, <strong>02B0</strong> and experimental <strong>1097</strong>.</p>
     <p class="strap">Your inverter. Your network. Your data.<br>Local. Read-only. No cloud. No proxy.</p>
     <div class="actions">
       <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Add TSUN Local to HACS</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local">Source &amp; README</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.4.0">Version 1.4.0</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.4.1">Version 1.4.1</a>
     </div>
   </header>
 
@@ -129,7 +129,7 @@
       <h2>Compatibility candidates in 1.4</h2>
       <p><strong>1511 · TITAN:</strong> validated on TSOL-MP3000; TSOL-MP2250 and TSOL-MS3000 are strong compatibility candidates.</p>
       <p><strong>02B0 · GEN3 PLUS:</strong> validated on TSOL-MX500. Likely candidates include TSOL-MX450, TSOL-MX800, TSOL-MX1000, TSOL-MX3000, TSOL-MS800, TSOL-MS1600, TSOL-MS1800 and TSOL-MS2000, with applicable <code>-D</code> variants.</p>
-      <p><strong>1097 · GEN3:</strong> experimental candidates include TSOL-MS300, TSOL-MS350, TSOL-MS400, TSOL-MS600, TSOL-MS700, TSOL-MS800 and TSOL-MS3000.</p>
+      <p><strong>1097 · GEN3:</strong> experimental candidates include TSOL-MS300, TSOL-MS350, TSOL-MS400, TSOL-MS600, TSOL-MS700, TSOL-MS800 and TSOL-MS3000 and TSOL-MX3000D.</p>
       <p class="muted">Validated means confirmed on real hardware. Compatibility candidates still require broader real-device feedback.</p>
     </section>
 
@@ -144,8 +144,8 @@
     </section>
 
     <section class="notice">
-      <h2>Field-validation corrections in 1.4.0</h2>
-      <p>Real-device validation on MP3000 / 1511 and MX500 / 02B0 refined several diagnostics in the republished stable 1.4.0 release.</p>
+      <h2>Field-validation corrections in 1.4.1</h2>
+      <p>Real-device validation on MP3000 / 1511 and MX500 / 02B0 refined several diagnostics in the republished stable 1.4.1 release.</p>
       <ul>
         <li>Grid-protection timing values remain native <strong>seconds</strong>, with legacy beta-era automatic <code>ms</code> display choices migrated back to <code>s</code>.</li>
         <li>On validated MP3000 hardware, raw alarm bit <code>0x2000</code> (<code>8192</code>) observed at dawn, dusk and very low irradiance remains visible but no longer reports a fault by itself; the operating state reports <strong>Standby — low solar input</strong>.</li>
@@ -184,7 +184,7 @@
   </main>
 
   <footer class="wrap">
-    <p>TSUN Local 1.4.0 · GPL-3.0-or-later · <a href="https://github.com/jptstar/tsun-local">Source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a></p>
+    <p>TSUN Local 1.4.1 · GPL-3.0-or-later · <a href="https://github.com/jptstar/tsun-local">Source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a></p>
   </footer>
 </body>
 </html>

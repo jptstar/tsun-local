@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
 <p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
-<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.4.0</strong></p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.4.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -109,6 +109,8 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 
 ### 1097 · GEN3 — 🧪 Experimentell
 
+`TSOL-MX3000D`
+
 **🔎 Wahrscheinlich kompatibel**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
@@ -128,9 +130,9 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 
 ---
 
-## Feldvalidierungs-Korrekturen in 1.4.0
+## Feldvalidierungs-Korrekturen in 1.4.1
 
-Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der erneuten Veröffentlichung von 1.4.0 einige Diagnosewerte präzisiert:
+Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der erneuten Veröffentlichung von 1.4.1 einige Diagnosewerte präzisiert:
 
 - Netzschutz-Zeitwerte bleiben nativ in **Sekunden**; automatisch gespeicherte `ms`-Anzeigeeinheiten aus älteren Betas werden auf `s` migriert;
 - beim validierten MP3000 bleibt das bei Dämmerung und sehr geringer Einstrahlung beobachtete Rohbit `0x2000` (`8192`) sichtbar, löst allein aber keinen Fehler mehr aus; der Betriebszustand zeigt **Standby — geringe PV-Eingangsleistung**;

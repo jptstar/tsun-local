@@ -110,7 +110,7 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overfrequency_time_2": (0x2029, 0.02),
     "grid_undervoltage_level_3": (0x202A, 0.1),
     "grid_undervoltage_time_3": (0x202B, 0.02),
-    "output_coefficient": (0x202C, 1.0),
+    "output_coefficient": (0x202C, 100 / 1024),
 }
 
 

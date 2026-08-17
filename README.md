@@ -9,7 +9,7 @@
   <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.0** -->
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.1** -->
 
 <p align="center">
   <img src="custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
@@ -18,7 +18,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.4.0</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.4.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -89,7 +89,7 @@ TSUN Local supports **three local TSUN protocol families**.
 | ☀️ **PV** | Up to 6 inputs · Voltage · Current · Power · Daily & total energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Daily & total energy |
 | 🚨 **Diagnostics** | Inverter alarms |
-| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics |
+| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · Inverter temperature · Inverter ambient temperature · Power level (candidate) |
 
 ### 02B0 · GEN3 PLUS — ✅ Validated
 
@@ -109,14 +109,14 @@ Corresponding `-D` variants may also be compatible where applicable.
 | ☀️ **PV** | Dynamic PV-input detection · Voltage · Current · Power · Energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Energy |
 | 🚨 **Diagnostics** | Inverter alarms |
-| 🛡️ **Advanced** | Grid-protection diagnostics · Raw output coefficient (encoding unconfirmed) |
+| 🛡️ **Advanced** | Grid-protection diagnostics · Power level (%) |
 
 ### 1097 · GEN3 — 🧪 Experimental
 
 **🔎 Likely compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > Public GEN3 research generally associates these devices with the **R17 / R47** serial-number family. Compatibility with TSUN Local protocol **1097** remains experimental until confirmed on more real hardware.
@@ -126,22 +126,25 @@ Corresponding `-D` variants may also be compatible where applicable.
 | ☀️ **PV** | Standard PV telemetry |
 | ⚡ **AC** | Standard inverter / AC telemetry |
 | 🚨 **Diagnostics** | Available inverter diagnostics |
-| 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Country/profile raw value · Designed power |
+| 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Power level (experimental) · Country/profile raw value · Designed power |
 
 > **🔎 Likely compatible does not mean validated.** It means TSUN Local already implements the relevant protocol family, making the device a strong compatibility candidate.
 
 ---
 
-## Field-validation corrections included in 1.4.0
+## Field refinements in 1.4.1
 
-Real-device validation on MP3000 / 1511 and MX500 / 02B0 refined a few diagnostics before republishing the stable 1.4.0 tag:
+Version **1.4.1** keeps the 1.4 protocol-family foundation and refines fields that now have stronger protocol and real-device evidence:
 
-- grid-protection timing values remain native **seconds**, and legacy beta-era automatic `ms` display choices are migrated back to `s`;
-- on validated MP3000 hardware, raw alarm bit `0x2000` (`8192`) observed during dawn, dusk and very low irradiance is preserved for diagnostics but no longer reports a fault by itself; the operating state shows **Standby — low solar input** instead;
-- TITAN registers **3017** and **3028** remain unscaled raw decimal measurement sensors so their history can be charted while the temperature mapping is validated; no temperature offset is applied yet;
-- the 02B0 register `0x202C` is exposed as a **raw output coefficient** until its encoding is confirmed, rather than being labelled as a percentage.
+- **02B0 power level** is now decoded as a percentage using the confirmed 1024 full-scale representation (`1024 → 100%`, `512 → 50%`);
+- **1511 register 3017** is exposed as **Inverter temperature** with `raw - 40 °C`;
+- **1511 register 3028** is exposed as **Inverter ambient temperature** with `raw - 40 °C`;
+- **1511 register 3018** remains a raw diagnostic because its meaning is still unconfirmed;
+- **1511 decimal register 2028 (`0x07EC`)** is exposed as **Power level (candidate)** so field data can validate the mapping without presenting it as confirmed;
+- **1097** exposes the same user-facing **Power level** in its experimental diagnostics while the whole 1097 mapping continues to require broader hardware validation;
+- raw diagnostic values remain available for protocol verification.
 
-The exact vendor meaning of the MP3000 `0x2000` bit and the temperature scaling of 3017/3028 are intentionally not claimed beyond what real-device observation currently supports.
+The existing 1.4.0 low-solar alarm handling and seconds-based grid-protection timing behavior are retained unchanged.
 
 ---
 

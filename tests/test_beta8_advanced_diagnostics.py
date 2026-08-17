@@ -43,10 +43,10 @@ class Beta8AdvancedDiagnosticsTests(unittest.TestCase):
 
     def test_02b0_grid_diagnostics_and_output_coefficient(self) -> None:
         self.assertIn((0x03, 0x2014, 0x202C), BLOCKS_02B0_DIAGNOSTIC)
-        data = decode_02b0_advanced({0x2014: 2510, 0x2028: 16, 0x202C: 80})
+        data = decode_02b0_advanced({0x2014: 2510, 0x2028: 16, 0x202C: 1024})
         self.assertEqual(data["grid_overvoltage_recovery_voltage"], 251.0)
         self.assertEqual(data["grid_overfrequency_time_1"], 0.32)
-        self.assertEqual(data["output_coefficient"], 80.0)
+        self.assertEqual(data["output_coefficient"], 100.0)
 
     def test_1097_advanced_diagnostics(self) -> None:
         self.assertIn((0x03, 0x1400, 0x1400), BLOCKS_1097_DIAGNOSTIC)

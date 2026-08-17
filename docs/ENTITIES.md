@@ -70,9 +70,9 @@ These entities are available across all three supported protocol families.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
-| `register_3017_raw` | Raw register 3017 (temperature candidate) | ✅ |
+| `register_3017_raw` | Raw register 3017 (inverter temperature) | ✅ |
 | `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
-| `register_3028_raw` | Raw register 3028 (temperature candidate) | ✅ |
+| `register_3028_raw` | Raw register 3028 (inverter ambient temperature) | ✅ |
 | `inverter_operating_state` | Inverter operating state | ✅ |
 | `alarm_global_0_raw` | Raw global alarm 0 | ✅ |
 | `alarm_global_1_raw` | Raw global alarm 1 | ✅ |
@@ -188,7 +188,7 @@ All entities below are **🛡️ disabled by default**.
 | `grid_overfrequency_time_2` | Grid overfrequency time 2 | s |
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
 | `grid_undervoltage_time_3` | Grid undervoltage time 3 | s |
-| `output_coefficient` | Raw output coefficient (encoding unconfirmed) | raw |
+| `output_coefficient` | Power level | raw |
 
 ---
 
@@ -255,3 +255,21 @@ Enable only the diagnostics you want to expose.
 ---
 
 *Entity reference for TSUN Local 1.4.0.*
+
+
+---
+
+## 1.4.1 field semantics
+
+| Protocol | Entity | Register | Decode | Unit | Confidence |
+|---|---|---:|---|:---:|---|
+| 02B0 | **Power level** | `0x202C` | `raw × 100 / 1024` | `%` | Confirmed scaling |
+| 1511 | **Inverter temperature** | `3017` (`0x0BC9`) | `raw - 40` | `°C` | Mapped temperature |
+| 1511 | **Inverter ambient temperature** | `3028` (`0x0BD4`) | `raw - 40` | `°C` | Mapped temperature |
+| 1511 | **Power level (candidate)** | `2028` (`0x07EC`) | `raw × 100 / 1024` | `%` | Candidate — field validation required |
+| 1511 | Raw register 3018 | `3018` (`0x0BCA`) | raw | — | Meaning unconfirmed |
+| 1097 | **Power level** | `0x1423` | `raw × 100 / 1024` | `%` | Experimental 1097 mapping |
+
+For 1511, the raw 3017/3018/3028 diagnostic registers remain available alongside the semantic temperature entities. This makes it possible to verify the decoded values without losing the original protocol data.
+
+The 1097 adapter remains experimental as a whole; its advanced fields should be treated accordingly until validated on additional real hardware.
