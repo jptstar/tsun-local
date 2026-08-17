@@ -249,6 +249,10 @@ async def async_setup_entry(
 
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Sensor setup still contains the legacy 1.4.0 unit migration. Re-apply
+    # the final 1.4.1 registry semantics afterwards so Power level is `%` and
+    # the temporary 3017/3028 raw entities cannot survive an upgrade.
+    _async_migrate_141_entity_registry(hass, logger_sn)
     entry.async_on_unload(
         async_track_time_interval(
             hass,
