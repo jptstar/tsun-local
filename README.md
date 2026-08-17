@@ -37,8 +37,8 @@ TSUN Local supports **three local TSUN protocol families**.
 | Protocol | Family / validated reference | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validated** |
-| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Validated** |
-| **1097** | GEN3 | 🧪 **Experimental** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validated** |
+| **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimental** |
 
 > [!TIP]
 > **Not listed does not mean unsupported.** If your inverter uses **1511, 02B0 or 1097**, it may already work.
@@ -91,7 +91,7 @@ TSUN Local supports **three local TSUN protocol families**.
 | 🚨 **Diagnostics** | Inverter alarms |
 | 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · Inverter temperature · Inverter ambient temperature · Power level (candidate) |
 
-### 02B0 · GEN3 PLUS — ✅ Validated
+### 02B0 · GEN3 / GEN3 PLUS — ✅ Validated
 
 **✅ Validated**  
 `TSOL-MX500`
@@ -108,7 +108,7 @@ Corresponding `-D` variants may also be compatible where applicable.
 | 🚨 **Diagnostics** | Inverter alarms |
 | 🛡️ **Advanced** | Grid-protection diagnostics · Power level (%) |
 
-### 1097 · GEN3 — 🧪 Experimental
+### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 
 **🔎 Likely compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
