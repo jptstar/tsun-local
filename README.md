@@ -132,21 +132,6 @@ Corresponding `-D` variants may also be compatible where applicable.
 
 ---
 
-## Field refinements in 1.4.1
-
-Version **1.4.1** keeps the 1.4 protocol-family foundation and refines fields that now have stronger protocol and real-device evidence:
-
-- **02B0 power level** is now decoded as a percentage using the confirmed 1024 full-scale representation (`1024 → 100%`, `512 → 50%`);
-- **1511 register 3017** is exposed as **Inverter temperature** with `raw - 40 °C`;
-- **1511 register 3028** is exposed as **Inverter ambient temperature** with `raw - 40 °C`;
-- **1511 register 3018** remains a raw diagnostic because its meaning is still unconfirmed;
-- **1511 decimal register 2028 (`0x07EC`)** is exposed as **Power level (candidate)** so field data can validate the mapping without presenting it as confirmed;
-- **1097** exposes the same user-facing **Power level** in its experimental diagnostics while the whole 1097 mapping continues to require broader hardware validation;
-- raw diagnostic values remain available for protocol verification.
-
-The existing 1.4.0 low-solar alarm handling and seconds-based grid-protection timing behavior are retained unchanged.
-
----
 
 ## 🛡️ Advanced diagnostics
 
