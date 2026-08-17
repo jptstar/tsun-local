@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TSUN Local — Home Assistant integration for TSUN micro-inverters</title>
-  <meta name="description" content="TSUN Local is an open-source Home Assistant integration for TSUN solar micro-inverters. Direct local LAN polling via HACS, with no cloud dependency and no proxy.">
+  <title>TSUN Local 1.4 Beta — Home Assistant integration for TSUN micro-inverters</title>
+  <meta name="description" content="TSUN Local 1.4 beta is an open-source HACS integration for Home Assistant and compatible TSUN solar micro-inverters. Local read-only monitoring over LAN with 1511, 02B0 and experimental 1097 support, no cloud dependency and no proxy.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="TSUN Local — Home Assistant integration for TSUN micro-inverters">
-  <meta property="og:description" content="Local Home Assistant monitoring for compatible TSUN solar micro-inverters. No cloud dependency. No proxy. Read-only by design.">
+  <meta property="og:title" content="TSUN Local 1.4 Beta — Home Assistant integration for TSUN micro-inverters">
+  <meta property="og:description" content="Local, read-only Home Assistant monitoring for compatible TSUN solar micro-inverters. 1511, 02B0 and experimental 1097 support. No cloud dependency. No proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TSUN Local — Home Assistant integration for TSUN micro-inverters">
-  <meta name="twitter:description" content="Direct local Home Assistant monitoring for compatible TSUN solar micro-inverters.">
+  <meta name="twitter:title" content="TSUN Local 1.4 Beta — Home Assistant integration for TSUN micro-inverters">
+  <meta name="twitter:description" content="Direct local Home Assistant monitoring for compatible TSUN micro-inverters with 1511, 02B0 and experimental 1097 support.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png">
 
   <script type="application/ld+json">
@@ -24,9 +24,10 @@
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
     "name": "TSUN Local",
-    "description": "Open-source Home Assistant integration for compatible TSUN solar micro-inverters using direct local network polling without a cloud dependency or proxy.",
+    "softwareVersion": "1.4.0-beta.8",
+    "description": "Open-source HACS integration for Home Assistant and compatible TSUN solar micro-inverters using direct local read-only network polling with 1511, 02B0 and experimental 1097 protocol support.",
     "url": "https://jptstar.github.io/tsun-local/",
-    "codeRepository": "https://github.com/jptstar/tsun-local",
+    "codeRepository": "https://github.com/jptstar/tsun-local/tree/beta-1097",
     "programmingLanguage": "Python",
     "license": "https://www.gnu.org/licenses/gpl-3.0.html",
     "author": {
@@ -36,12 +37,19 @@
     },
     "keywords": [
       "Home Assistant",
-      "TSUN",
-      "micro-inverter",
-      "solar energy",
       "HACS",
-      "local integration",
-      "photovoltaic monitoring"
+      "TSUN",
+      "TSUN Local",
+      "TSUN micro-inverter",
+      "TSOL-MP3000",
+      "TSOL-MX500",
+      "1511",
+      "02B0",
+      "1097",
+      "solar inverter",
+      "solar monitoring",
+      "photovoltaic monitoring",
+      "local integration"
     ]
   }
   </script>
@@ -55,6 +63,7 @@
       --muted: #aebbd4;
       --accent: #62d6ff;
       --accent2: #8cf0b3;
+      --warning: #ffd166;
       --border: #273654;
       --max: 1060px;
     }
@@ -69,13 +78,14 @@
     }
     a { color: var(--accent); }
     .wrap { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
-    header { padding: 72px 0 44px; text-align: center; }
+    header { padding: 68px 0 42px; text-align: center; }
     .icon { width: 108px; height: 108px; border-radius: 24px; }
     h1 { font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.05; margin: 24px auto 18px; max-width: 920px; }
     h2 { font-size: clamp(1.45rem, 4vw, 2rem); margin: 0 0 14px; }
-    .lead { max-width: 780px; margin: 0 auto; color: var(--muted); font-size: 1.15rem; }
+    .lead { max-width: 800px; margin: 0 auto; color: var(--muted); font-size: 1.15rem; }
     .strap { margin-top: 14px; font-weight: 750; letter-spacing: .02em; }
-    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 30px; }
+    .beta { display: inline-block; margin-top: 18px; padding: 6px 11px; border: 1px solid var(--warning); color: var(--warning); border-radius: 999px; font-weight: 800; font-size: .9rem; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
     .button { display: inline-block; padding: 11px 17px; border-radius: 10px; text-decoration: none; font-weight: 700; border: 1px solid var(--border); }
     .primary { background: var(--accent); color: #071018; border-color: transparent; }
     .secondary { background: var(--panel); color: var(--text); }
@@ -89,9 +99,10 @@
     th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
     code { background: #080d18; padding: 2px 6px; border-radius: 6px; }
     .notice { border-left: 4px solid var(--accent2); padding-left: 16px; }
+    .experimental { border-left: 4px solid var(--warning); padding-left: 16px; }
     footer { color: var(--muted); text-align: center; padding: 20px 0 48px; font-size: .94rem; }
     @media (prefers-color-scheme: light) {
-      :root { --bg: #f6f8fc; --panel: #ffffff; --text: #172033; --muted: #55647e; --accent: #006fa8; --accent2: #15804a; --border: #dbe2ee; }
+      :root { --bg: #f6f8fc; --panel: #ffffff; --text: #172033; --muted: #55647e; --accent: #006fa8; --accent2: #15804a; --warning: #a56700; --border: #dbe2ee; }
       code { background: #eef2f8; }
       .primary { color: #fff; }
     }
@@ -100,50 +111,80 @@
 <body>
   <header class="wrap">
     <img class="icon" src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" alt="TSUN Local Home Assistant integration icon" width="108" height="108">
-    <h1>TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
-    <p class="lead"><strong>TSUN Local</strong> connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network for local photovoltaic monitoring without a proxy or cloud dependency.</p>
-    <p class="strap">Local. Read-only. No cloud dependency. No proxy.</p>
+    <div class="beta">CURRENT BETA · 1.4.0-beta.8</div>
+    <h1>TSUN Local 1.4 Beta — Home Assistant integration for TSUN micro-inverters</h1>
+    <p class="lead"><strong>TSUN Local</strong> connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network. The 1.4 beta expands compatibility around three local protocol families: <strong>1511</strong>, <strong>02B0</strong> and experimental <strong>1097</strong>.</p>
+    <p class="strap">Your inverter. Your network. Your data.<br>Local. Read-only. No cloud. No proxy.</p>
     <div class="actions">
       <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Add TSUN Local to HACS</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local">View on GitHub</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases">Releases</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/tree/beta-1097">Current beta branch</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.8">Beta release</a>
     </div>
   </header>
 
   <main class="wrap">
     <section>
-      <h2>Local solar monitoring in Home Assistant</h2>
-      <p>TSUN Local is an independent open-source integration focused on direct LAN access to compatible TSUN micro-inverters. Telemetry is read locally and presented as native Home Assistant entities.</p>
+      <h2>TSUN Local 1.4 at a glance</h2>
       <div class="grid">
-        <div class="card"><strong>☀️ PV telemetry</strong><span class="muted">Voltage, current, power, daily energy and total energy for detected PV inputs.</span></div>
-        <div class="card"><strong>⚡ AC telemetry</strong><span class="muted">Voltage, current, frequency, power and energy counters.</span></div>
-        <div class="card"><strong>🚨 Diagnostics</strong><span class="muted">Local communication status, alarms and device/logger information.</span></div>
+        <div class="card"><strong>🔌 1511 · 02B0 · 1097</strong><span class="muted">Three local TSUN protocol families in one Home Assistant integration.</span></div>
+        <div class="card"><strong>🔍 Automatic protocol identification</strong><span class="muted">TSUN Local identifies the supported local protocol for the device.</span></div>
+        <div class="card"><strong>☀️ Dynamic PV detection</strong><span class="muted">PV inputs are discovered progressively within supported register maps.</span></div>
+        <div class="card"><strong>🛡️ Advanced diagnostics</strong><span class="muted">Read-only inverter and grid diagnostics are disabled by default to keep normal views clean.</span></div>
+        <div class="card"><strong>🌍 8 languages</strong><span class="muted">Home Assistant entity translations for English, French, German, Dutch, Italian, Spanish, Polish and Simplified Chinese.</span></div>
         <div class="card"><strong>🔒 Read-only</strong><span class="muted">No inverter configuration writes are implemented.</span></div>
       </div>
     </section>
 
     <section>
-      <h2>TSUN micro-inverter compatibility</h2>
-      <p>Compatibility is organized by local protocol family and validated on real hardware where stated. The project evolves as additional devices and firmware versions are tested.</p>
+      <h2>Your TSUN inverter may already work</h2>
       <table>
-        <thead><tr><th>Family</th><th>Validated reference</th><th>Notes</th></tr></thead>
+        <thead><tr><th>Protocol</th><th>Family / validated reference</th><th>Status</th></tr></thead>
         <tbody>
-          <tr><td>TITAN / 1511</td><td><strong>TSOL-MP3000</strong></td><td>Validated on real hardware; up to six PV inputs in the current map.</td></tr>
-          <tr><td>GEN3 PLUS / 02B0</td><td><strong>TSOL-MX500</strong></td><td>Validated on real hardware; protocol-family support covers additional compatibility candidates.</td></tr>
-          <tr><td>GEN3 / 1097</td><td>Experimental</td><td>Experimental protocol support is available on the current development branch and requires broader real-device validation.</td></tr>
+          <tr><td><strong>1511</strong></td><td>TITAN · <strong>TSOL-MP3000</strong></td><td>✅ Validated</td></tr>
+          <tr><td><strong>02B0</strong></td><td>GEN3 PLUS · <strong>TSOL-MX500</strong></td><td>✅ Validated</td></tr>
+          <tr><td><strong>1097</strong></td><td>GEN3</td><td>🧪 Experimental</td></tr>
         </tbody>
       </table>
-      <p class="muted">A model not listed here is not automatically unsupported. See the repository README for the current compatibility matrix and protocol status.</p>
+      <p><strong>Not listed does not mean unsupported.</strong> If a TSUN micro-inverter uses 1511, 02B0 or 1097, it may already be compatible with TSUN Local.</p>
     </section>
 
     <section>
-      <h2>Install with HACS</h2>
-      <p>TSUN Local can be installed as a custom Home Assistant integration through HACS. Add the repository, install the latest release, restart Home Assistant, then add <strong>TSUN Local</strong> from Devices &amp; services.</p>
-      <p><code>https://github.com/jptstar/tsun-local</code></p>
+      <h2>Compatibility candidates in the beta</h2>
+      <p><strong>1511 · TITAN:</strong> validated on TSOL-MP3000; TSOL-MP2250 and TSOL-MS3000 are strong compatibility candidates.</p>
+      <p><strong>02B0 · GEN3 PLUS:</strong> validated on TSOL-MX500. Likely candidates include TSOL-MX450, TSOL-MX800, TSOL-MX1000, TSOL-MX3000, TSOL-MS800, TSOL-MS1600, TSOL-MS1800 and TSOL-MS2000, with applicable <code>-D</code> variants.</p>
+      <p><strong>1097 · GEN3:</strong> experimental candidates include TSOL-MS300, TSOL-MS350, TSOL-MS400, TSOL-MS600, TSOL-MS700, TSOL-MS800 and TSOL-MS3000.</p>
+      <p class="muted">Validated means confirmed on real hardware. Compatibility candidates still require broader real-device feedback.</p>
+    </section>
+
+    <section>
+      <h2>Local telemetry exposed to Home Assistant</h2>
+      <div class="grid">
+        <div class="card"><strong>☀️ PV</strong><span class="muted">Voltage, current, power, daily energy and total energy for detected PV inputs.</span></div>
+        <div class="card"><strong>⚡ AC</strong><span class="muted">Voltage, current, frequency, power, daily energy and total energy.</span></div>
+        <div class="card"><strong>🚨 Diagnostics</strong><span class="muted">Alarms, communication status and logger information.</span></div>
+        <div class="card"><strong>🛡️ Advanced</strong><span class="muted">Grid protection and inverter diagnostics, disabled by default.</span></div>
+      </div>
+    </section>
+
+    <section class="experimental">
+      <h2>1097 is experimental</h2>
+      <p>The 1097 adapter is available in the 1.4 beta for community validation. It can expose standard inverter/PV telemetry plus advanced diagnostics such as protocol version, inverter version, temperature, insulation RX/RY, country/profile raw value and designed power where available.</p>
+    </section>
+
+    <section>
+      <h2>Install and test the beta</h2>
+      <p>Install TSUN Local through HACS, restart Home Assistant, then add <strong>TSUN Local</strong> from <strong>Settings → Devices &amp; services</strong>. The current beta source and documentation live on the <code>beta-1097</code> branch.</p>
       <div class="actions" style="justify-content:flex-start">
         <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Open HACS repository</a>
-        <a class="button secondary" href="https://github.com/jptstar/tsun-local#installation">Installation guide</a>
+        <a class="button secondary" href="https://github.com/jptstar/tsun-local/tree/beta-1097">Beta README</a>
+        <a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/ENTITIES.md">Entity reference</a>
       </div>
+    </section>
+
+    <section>
+      <h2>Community research and validation</h2>
+      <p>The 1511 and 02B0 implementations are developed through independent local protocol analysis, real-device observation and hardware validation.</p>
+      <p>TSUN Local also benefits from public 1097 protocol research by <strong>Stefan Allius / s-allius/tsun-gen3-proxy</strong> and from real-device compatibility feedback by <strong>TheSmartGerman</strong>.</p>
     </section>
 
     <section class="notice">
@@ -154,7 +195,7 @@
   </main>
 
   <footer class="wrap">
-    <p>TSUN Local · GPL-3.0-or-later · <a href="https://github.com/jptstar/tsun-local">Source code</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a></p>
+    <p>TSUN Local 1.4 Beta · GPL-3.0-or-later · <a href="https://github.com/jptstar/tsun-local/tree/beta-1097">Beta source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a></p>
   </footer>
 </body>
 </html>
