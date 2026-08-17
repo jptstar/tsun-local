@@ -3,7 +3,7 @@ import unittest
 
 
 class Beta8SensorMetadataTests(unittest.TestCase):
-    def test_advanced_timing_entities_are_durations(self) -> None:
+    def test_advanced_timing_entities_are_durations_in_seconds(self) -> None:
         source = Path("custom_components/tsun_local/sensor.py").read_text(encoding="utf-8")
         keys = (
             "grid_undervoltage_time_1", "grid_undervoltage_time_2",
@@ -16,7 +16,7 @@ class Beta8SensorMetadataTests(unittest.TestCase):
             start = source.index(f'        "{key}",')
             block = source[start:start + 280]
             self.assertIn("SensorDeviceClass.DURATION", block)
-            self.assertIn("UnitOfTime.MILLISECONDS", block)
+            self.assertIn("UnitOfTime.SECONDS", block)
 
     def test_advanced_entities_are_disabled_by_default(self) -> None:
         source = Path("custom_components/tsun_local/sensor.py").read_text(encoding="utf-8")
