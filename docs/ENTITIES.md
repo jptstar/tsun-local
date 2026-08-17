@@ -72,6 +72,7 @@ These entities are available across all three supported protocol families.
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
 | `register_3017_raw` | Raw register 3017 (meaning unconfirmed) | ✅ |
+| `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
 | `register_3028_raw` | Raw register 3028 (meaning unconfirmed) | ✅ |
 | `alarm_global_0_raw` | Raw global alarm 0 | ✅ |
 | `alarm_global_1_raw` | Raw global alarm 1 | ✅ |
@@ -109,22 +110,22 @@ All entities below are **🛡️ disabled by default**.
 | `grid_underfrequency_recovery_frequency` | Grid underfrequency recovery frequency | Hz |
 | `grid_undervoltage_level_1` | Grid undervoltage level 1 | V |
 | `grid_undervoltage_level_2` | Grid undervoltage level 2 | V |
-| `grid_undervoltage_time_1` | Grid undervoltage time 1 | ms* |
-| `grid_undervoltage_time_2` | Grid undervoltage time 2 | ms* |
+| `grid_undervoltage_time_1` | Grid undervoltage time 1 | s* |
+| `grid_undervoltage_time_2` | Grid undervoltage time 2 | s* |
 | `grid_overvoltage_level_1` | Grid overvoltage level 1 | V |
 | `grid_overvoltage_level_2` | Grid overvoltage level 2 | V |
-| `grid_overvoltage_time_1` | Grid overvoltage time 1 | ms* |
-| `grid_overvoltage_time_2` | Grid overvoltage time 2 | ms* |
+| `grid_overvoltage_time_1` | Grid overvoltage time 1 | s* |
+| `grid_overvoltage_time_2` | Grid overvoltage time 2 | s* |
 | `grid_underfrequency_level_1` | Grid underfrequency level 1 | Hz |
 | `grid_underfrequency_level_2` | Grid underfrequency level 2 | Hz |
-| `grid_underfrequency_time_1` | Grid underfrequency time 1 | ms* |
-| `grid_underfrequency_time_2` | Grid underfrequency time 2 | ms* |
+| `grid_underfrequency_time_1` | Grid underfrequency time 1 | s* |
+| `grid_underfrequency_time_2` | Grid underfrequency time 2 | s* |
 | `grid_overfrequency_level_1` | Grid overfrequency level 1 | Hz |
 | `grid_overfrequency_level_2` | Grid overfrequency level 2 | Hz |
-| `grid_overfrequency_time_1` | Grid overfrequency time 1 | ms* |
-| `grid_overfrequency_time_2` | Grid overfrequency time 2 | ms* |
+| `grid_overfrequency_time_1` | Grid overfrequency time 1 | s* |
+| `grid_overfrequency_time_2` | Grid overfrequency time 2 | s* |
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
-| `grid_undervoltage_time_3` | Grid undervoltage time 3 | ms* |
+| `grid_undervoltage_time_3` | Grid undervoltage time 3 | s* |
 
 > `*` The physical unit / scaling of these grid-protection timing values still needs confirmation on additional real hardware.
 
@@ -167,22 +168,22 @@ All entities below are **🛡️ disabled by default**.
 | `grid_underfrequency_recovery_frequency` | Grid underfrequency recovery frequency | Hz |
 | `grid_undervoltage_level_1` | Grid undervoltage level 1 | V |
 | `grid_undervoltage_level_2` | Grid undervoltage level 2 | V |
-| `grid_undervoltage_time_1` | Grid undervoltage time 1 | ms* |
-| `grid_undervoltage_time_2` | Grid undervoltage time 2 | ms* |
+| `grid_undervoltage_time_1` | Grid undervoltage time 1 | s* |
+| `grid_undervoltage_time_2` | Grid undervoltage time 2 | s* |
 | `grid_overvoltage_level_1` | Grid overvoltage level 1 | V |
 | `grid_overvoltage_level_2` | Grid overvoltage level 2 | V |
-| `grid_overvoltage_time_1` | Grid overvoltage time 1 | ms* |
-| `grid_overvoltage_time_2` | Grid overvoltage time 2 | ms* |
+| `grid_overvoltage_time_1` | Grid overvoltage time 1 | s* |
+| `grid_overvoltage_time_2` | Grid overvoltage time 2 | s* |
 | `grid_underfrequency_level_1` | Grid underfrequency level 1 | Hz |
 | `grid_underfrequency_level_2` | Grid underfrequency level 2 | Hz |
-| `grid_underfrequency_time_1` | Grid underfrequency time 1 | ms* |
-| `grid_underfrequency_time_2` | Grid underfrequency time 2 | ms* |
+| `grid_underfrequency_time_1` | Grid underfrequency time 1 | s* |
+| `grid_underfrequency_time_2` | Grid underfrequency time 2 | s* |
 | `grid_overfrequency_level_1` | Grid overfrequency level 1 | Hz |
 | `grid_overfrequency_level_2` | Grid overfrequency level 2 | Hz |
-| `grid_overfrequency_time_1` | Grid overfrequency time 1 | ms* |
-| `grid_overfrequency_time_2` | Grid overfrequency time 2 | ms* |
+| `grid_overfrequency_time_1` | Grid overfrequency time 1 | s* |
+| `grid_overfrequency_time_2` | Grid overfrequency time 2 | s* |
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
-| `grid_undervoltage_time_3` | Grid undervoltage time 3 | ms* |
+| `grid_undervoltage_time_3` | Grid undervoltage time 3 | s* |
 | `output_coefficient` | Output coefficient | % |
 
 > `*` The physical unit / scaling of these grid-protection timing values still needs confirmation on additional real hardware.
