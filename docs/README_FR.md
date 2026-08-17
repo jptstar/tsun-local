@@ -105,7 +105,7 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 | ☀️ **PV** | Détection dynamique des entrées PV · Tension · Courant · Puissance · Énergie |
 | ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie |
 | 🚨 **Diagnostics** | Alarmes onduleur |
-| 🛡️ **Avancé** | Diagnostics de protection réseau · Coefficient de sortie |
+| 🛡️ **Avancé** | Diagnostics de protection réseau · Coefficient de sortie brut (encodage non confirmé) |
 
 ### 1097 · GEN3 — 🧪 Expérimental
 
@@ -125,6 +125,19 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 | 🛡️ **Avancé** | Version protocole · Version onduleur · Température · Isolation RX/RY · Valeur brute pays/profil · Puissance nominale de conception |
 
 > **🔎 Probablement compatible ne signifie pas validé.** Cela signifie que TSUN Local implémente déjà la famille de protocole correspondante, ce qui en fait un bon candidat à la compatibilité.
+
+---
+
+## Corrections issues de la validation terrain incluses dans la 1.4.0
+
+La validation sur matériel réel MP3000 / 1511 et MX500 / 02B0 a permis d’affiner plusieurs diagnostics avant la republication de la version stable 1.4.0 :
+
+- les temporisations de protection réseau restent exprimées nativement en **secondes** et les anciens choix automatiques `ms` hérités des bêta sont migrés vers `s` ;
+- sur le MP3000 validé, le bit brut `0x2000` (`8192`), observé au lever, au coucher du soleil et lorsque l’irradiance est très faible, reste visible dans les diagnostics mais ne déclenche plus à lui seul une panne ; l’état de fonctionnement indique **Veille — faible entrée solaire** ;
+- les registres TITAN **3017** et **3028** restent des valeurs décimales brutes, numériques et historisables afin de comparer leurs courbes pendant la validation du décodage température ; aucun offset de température n’est encore appliqué ;
+- le registre 02B0 `0x202C` est affiché comme **coefficient de sortie brut** tant que son encodage n’est pas confirmé, et non plus comme un pourcentage.
+
+La signification constructeur exacte du bit MP3000 `0x2000` et l’échelle température de 3017/3028 ne sont volontairement pas affirmées au-delà de ce que les observations réelles permettent de démontrer.
 
 ---
 

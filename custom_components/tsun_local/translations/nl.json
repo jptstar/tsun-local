@@ -172,13 +172,13 @@
         "name": "Maximaal ontwerpvermogen"
       },
       "register_3017_raw": {
-        "name": "Ruw register 3017 (betekenis niet bevestigd)"
+        "name": "Ruw register 3017 (temperatuurkandidaat)"
       },
       "register_3018_raw": {
         "name": "Ruw register 3018 (betekenis niet bevestigd)"
       },
       "register_3028_raw": {
-        "name": "Ruw register 3028 (betekenis niet bevestigd)"
+        "name": "Ruw register 3028 (temperatuurkandidaat)"
       },
       "communication_last_success": {
         "name": "Laatste geslaagde communicatie"
@@ -352,7 +352,7 @@
         "name": "Netoverfrequentietijd 2"
       },
       "output_coefficient": {
-        "name": "Uitgangscoëfficiënt"
+        "name": "Ruwe uitgangscoëfficiënt (codering onbevestigd)"
       },
       "protocol_version": {
         "name": "Protocolversie"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Land-/profielcode"
+      },
+      "inverter_operating_state": {
+        "name": "Bedrijfstoestand omvormer",
+        "state": {
+          "active": "Actief",
+          "standby": "Stand-by",
+          "standby_low_solar": "Stand-by — lage zonne-invoer",
+          "fault": "Storing"
+        }
       }
     },
     "binary_sensor": {

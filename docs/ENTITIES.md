@@ -70,9 +70,10 @@ These entities are available across all three supported protocol families.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
-| `register_3017_raw` | Raw register 3017 (meaning unconfirmed) | ✅ |
+| `register_3017_raw` | Raw register 3017 (temperature candidate) | ✅ |
 | `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
-| `register_3028_raw` | Raw register 3028 (meaning unconfirmed) | ✅ |
+| `register_3028_raw` | Raw register 3028 (temperature candidate) | ✅ |
+| `inverter_operating_state` | Inverter operating state | ✅ |
 | `alarm_global_0_raw` | Raw global alarm 0 | ✅ |
 | `alarm_global_1_raw` | Raw global alarm 1 | ✅ |
 | `alarm_global_2_raw` | Raw global alarm 2 | ✅ |
@@ -81,6 +82,12 @@ These entities are available across all three supported protocol families.
 | `alarm_secondary_1_raw` | Raw secondary alarm 1 | ✅ |
 | `alarm_secondary_2_raw` | Raw secondary alarm 2 | ✅ |
 | `alarm_secondary_3_raw` | Raw secondary alarm 3 | ✅ |
+
+### Field-observation notes
+
+- `register_3017_raw` and `register_3028_raw` stay **unscaled raw decimal values**. They are numeric measurement sensors so Home Assistant can chart their history while the temperature mapping and offset are being validated. No `-40` or `-50` offset is applied.
+- `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
+- On validated MP3000 hardware, bit `0x2000` in `alarm_global_1_raw` is repeatedly observed during dawn, dusk and very low irradiance. TSUN Local preserves the raw `8192` value but does not treat that bit alone as a fault. The operating-state entity reports **Standby — low solar input** instead. The exact vendor bit-name remains unconfirmed.
 
 ## 1511 PV entities
 
@@ -181,7 +188,7 @@ All entities below are **🛡️ disabled by default**.
 | `grid_overfrequency_time_2` | Grid overfrequency time 2 | s |
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
 | `grid_undervoltage_time_3` | Grid undervoltage time 3 | s |
-| `output_coefficient` | Output coefficient | % |
+| `output_coefficient` | Raw output coefficient (encoding unconfirmed) | raw |
 
 ---
 
@@ -224,6 +231,14 @@ All entities below are **🛡️ disabled by default**.
 | `insulation_impedance_ry` | Insulation impedance RY | MΩ |
 | `inverter_temperature` | Inverter temperature | °C |
 | `country_profile_raw` | Country/profile code | raw |
+
+---
+
+## Display-unit migration in 1.4.0
+
+Grid-protection timing values are native **seconds**. If an earlier beta caused Home Assistant to remember `ms` as the automatic display unit, TSUN Local 1.4.0 migrates that legacy automatic choice back to `s` without replacing an explicit user-selected unit.
+
+For 02B0, register `0x202C` is retained as a **raw output-coefficient value** until its encoding is confirmed. A value such as `1024` is therefore no longer presented as `1024 %`.
 
 ---
 

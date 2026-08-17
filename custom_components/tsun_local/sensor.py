@@ -15,6 +15,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    CONF_UNIT_OF_MEASUREMENT,
     EntityCategory,
     PERCENTAGE,
     UnitOfElectricCurrent,
@@ -26,6 +27,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -76,13 +78,19 @@ def _raw_alarm(
 
 
 def _raw_register(
-    key: str, translation_key: str, register_address: str
+    key: str,
+    translation_key: str,
+    register_address: str,
+    *,
+    chartable: bool = False,
 ) -> TsunSensorDescription:
     """Describe one read-only raw diagnostic register."""
     return TsunSensorDescription(
         key=key,
         suggested_object_id=key,
         translation_key=translation_key,
+        state_class=SensorStateClass.MEASUREMENT if chartable else None,
+        suggested_display_precision=0 if chartable else None,
         entity_category=EntityCategory.DIAGNOSTIC,
         register_address=register_address,
     )
@@ -143,6 +151,20 @@ LOGGER_METADATA_SENSOR_KEYS = frozenset(
     }
 )
 DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
+
+GRID_TIMING_SENSOR_KEYS = frozenset(
+    {
+        "grid_undervoltage_time_1",
+        "grid_undervoltage_time_2",
+        "grid_undervoltage_time_3",
+        "grid_overvoltage_time_1",
+        "grid_overvoltage_time_2",
+        "grid_underfrequency_time_1",
+        "grid_underfrequency_time_2",
+        "grid_overfrequency_time_1",
+        "grid_overfrequency_time_2",
+    }
+)
 
 PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
     "1511": {
@@ -372,7 +394,6 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "output_coefficient",
         "output_coefficient",
-        unit=PERCENTAGE,
         precision=0,
     ),
     _advanced_diagnostic(
@@ -462,10 +483,19 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         "inverter_status_raw",
         "3000 (0x0BB8)",
     ),
+    TsunSensorDescription(
+        key="inverter_operating_state",
+        suggested_object_id="inverter_operating_state",
+        translation_key="inverter_operating_state",
+        device_class=SensorDeviceClass.ENUM,
+        options=["active", "standby", "standby_low_solar", "fault"],
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
     _raw_register(
         "register_3017_raw",
         "register_3017_raw",
         "3017 (0x0BC9)",
+        chartable=True,
     ),
     _raw_register(
         "register_3018_raw",
@@ -476,6 +506,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         "register_3028_raw",
         "register_3028_raw",
         "3028 (0x0BD4)",
+        chartable=True,
     ),
     _diagnostic_power("rated_power", "rated_power"),
     _diagnostic_power("max_designed_power", "max_designed_power"),
@@ -622,12 +653,70 @@ PV_SENSORS: tuple[TsunSensorDescription, ...] = tuple(
 )
 
 
+@callback
+def _migrate_legacy_sensor_units(
+    hass: HomeAssistant, entry: TsunConfigEntry
+) -> None:
+    """Migrate automatic beta-era display units without overriding user choices."""
+    registry = er.async_get(hass)
+    logger_sn = str(entry.data[CONF_LOGGER_SN])
+
+    def _registry_entry(key: str) -> er.RegistryEntry | None:
+        entity_id = registry.async_get_entity_id(
+            "sensor", DOMAIN, f"{logger_sn}_{key}"
+        )
+        return registry.async_get(entity_id) if entity_id is not None else None
+
+    for key in GRID_TIMING_SENSOR_KEYS:
+        registry_entry = _registry_entry(key)
+        if registry_entry is None:
+            continue
+        sensor_options = registry_entry.options.get("sensor", {})
+        if CONF_UNIT_OF_MEASUREMENT in sensor_options:
+            continue
+
+        if registry_entry.unit_of_measurement == UnitOfTime.MILLISECONDS:
+            registry_entry = registry.async_update_entity(
+                registry_entry.entity_id,
+                unit_of_measurement=UnitOfTime.SECONDS,
+            )
+
+        private_options = registry_entry.options.get("sensor.private", {})
+        if (
+            private_options.get("suggested_unit_of_measurement")
+            == UnitOfTime.MILLISECONDS
+        ):
+            registry.async_update_entity_options(
+                registry_entry.entity_id, "sensor.private", None
+            )
+
+    output_entry = _registry_entry("output_coefficient")
+    if output_entry is None:
+        return
+    sensor_options = output_entry.options.get("sensor", {})
+    if CONF_UNIT_OF_MEASUREMENT in sensor_options:
+        return
+
+    if output_entry.unit_of_measurement == PERCENTAGE:
+        output_entry = registry.async_update_entity(
+            output_entry.entity_id,
+            unit_of_measurement=None,
+        )
+
+    private_options = output_entry.options.get("sensor.private", {})
+    if private_options.get("suggested_unit_of_measurement") == PERCENTAGE:
+        registry.async_update_entity_options(
+            output_entry.entity_id, "sensor.private", None
+        )
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: TsunConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the sensors supported by this device protocol."""
+    _migrate_legacy_sensor_units(hass, entry)
     coordinator = entry.runtime_data
     added_keys: set[str] = set()
 

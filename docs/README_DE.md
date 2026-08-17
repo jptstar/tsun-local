@@ -128,6 +128,17 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 
 ---
 
+## Feldvalidierungs-Korrekturen in 1.4.0
+
+Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der erneuten Veröffentlichung von 1.4.0 einige Diagnosewerte präzisiert:
+
+- Netzschutz-Zeitwerte bleiben nativ in **Sekunden**; automatisch gespeicherte `ms`-Anzeigeeinheiten aus älteren Betas werden auf `s` migriert;
+- beim validierten MP3000 bleibt das bei Dämmerung und sehr geringer Einstrahlung beobachtete Rohbit `0x2000` (`8192`) sichtbar, löst allein aber keinen Fehler mehr aus; der Betriebszustand zeigt **Standby — geringe PV-Eingangsleistung**;
+- TITAN-Register **3017** und **3028** bleiben unskalierte dezimale Rohwerte mit numerischer Historie, bis die Temperaturabbildung sicher validiert ist; es wird noch kein Temperatur-Offset angewendet;
+- 02B0-Register `0x202C` wird bis zur Bestätigung seiner Kodierung als **roher Ausgangskoeffizient** und nicht als Prozentwert angezeigt.
+
+---
+
 ## 🛡️ Erweiterte Diagnose
 
 Erweiterte Entitäten sind absichtlich **standardmäßig deaktiviert**. Dadurch bleibt die normale Geräteseite übersichtlich, während technische Informationen bei Bedarf verfügbar bleiben.

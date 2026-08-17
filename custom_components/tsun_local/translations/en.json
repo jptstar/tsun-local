@@ -160,13 +160,13 @@
         "name": "Maximum designed power"
       },
       "register_3017_raw": {
-        "name": "Raw register 3017 (meaning unconfirmed)"
+        "name": "Raw register 3017 (temperature candidate)"
       },
       "register_3018_raw": {
         "name": "Raw register 3018 (meaning unconfirmed)"
       },
       "register_3028_raw": {
-        "name": "Raw register 3028 (meaning unconfirmed)"
+        "name": "Raw register 3028 (temperature candidate)"
       },
       "communication_last_success": {
         "name": "Last successful communication"
@@ -352,7 +352,7 @@
         "name": "Grid overfrequency time 2"
       },
       "output_coefficient": {
-        "name": "Output coefficient"
+        "name": "Raw output coefficient (encoding unconfirmed)"
       },
       "protocol_version": {
         "name": "Protocol version"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Country/profile code"
+      },
+      "inverter_operating_state": {
+        "name": "Inverter operating state",
+        "state": {
+          "active": "Active",
+          "standby": "Standby",
+          "standby_low_solar": "Standby — low solar input",
+          "fault": "Fault"
+        }
       }
     },
     "binary_sensor": {

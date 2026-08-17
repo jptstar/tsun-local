@@ -172,13 +172,13 @@
         "name": "Maximale Auslegungsleistung"
       },
       "register_3017_raw": {
-        "name": "Rohregister 3017 (Bedeutung nicht bestätigt)"
+        "name": "Rohregister 3017 (Temperaturkandidat)"
       },
       "register_3018_raw": {
         "name": "Rohregister 3018 (Bedeutung nicht bestätigt)"
       },
       "register_3028_raw": {
-        "name": "Rohregister 3028 (Bedeutung nicht bestätigt)"
+        "name": "Rohregister 3028 (Temperaturkandidat)"
       },
       "communication_last_success": {
         "name": "Letzte erfolgreiche Kommunikation"
@@ -352,7 +352,7 @@
         "name": "Netz-Überfrequenzzeit 2"
       },
       "output_coefficient": {
-        "name": "Ausgangskoeffizient"
+        "name": "Roher Ausgangskoeffizient (Kodierung unbestätigt)"
       },
       "protocol_version": {
         "name": "Protokollversion"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Länder-/Profilcode"
+      },
+      "inverter_operating_state": {
+        "name": "Betriebszustand des Wechselrichters",
+        "state": {
+          "active": "Aktiv",
+          "standby": "Standby",
+          "standby_low_solar": "Standby — geringe PV-Eingangsleistung",
+          "fault": "Fehler"
+        }
       }
     },
     "binary_sensor": {

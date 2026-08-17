@@ -172,13 +172,13 @@
         "name": "Maksymalna moc projektowa"
       },
       "register_3017_raw": {
-        "name": "Surowy rejestr 3017 (znaczenie niepotwierdzone)"
+        "name": "Surowy rejestr 3017 (kandydat temperatury)"
       },
       "register_3018_raw": {
         "name": "Surowy rejestr 3018 (znaczenie niepotwierdzone)"
       },
       "register_3028_raw": {
-        "name": "Surowy rejestr 3028 (znaczenie niepotwierdzone)"
+        "name": "Surowy rejestr 3028 (kandydat temperatury)"
       },
       "communication_last_success": {
         "name": "Ostatnia udana komunikacja"
@@ -352,7 +352,7 @@
         "name": "Czas zbyt wysokiej częstotliwości poziom 2"
       },
       "output_coefficient": {
-        "name": "Współczynnik wyjściowy"
+        "name": "Surowy współczynnik wyjściowy (kodowanie niepotwierdzone)"
       },
       "protocol_version": {
         "name": "Wersja protokołu"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Kod kraju/profilu"
+      },
+      "inverter_operating_state": {
+        "name": "Stan pracy falownika",
+        "state": {
+          "active": "Aktywny",
+          "standby": "Czuwanie",
+          "standby_low_solar": "Czuwanie — niski poziom energii słonecznej",
+          "fault": "Usterka"
+        }
       }
     },
     "binary_sensor": {
