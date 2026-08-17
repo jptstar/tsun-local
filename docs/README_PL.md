@@ -1,12 +1,12 @@
 <p align="center">
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/README.md">English</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_FR.md">Français</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_DE.md">Deutsch</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_NL.md">Nederlands</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_IT.md">Italiano</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ES.md">Español</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_PL.md">Polski</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/beta-1097/docs/README_ZH.md">简体中文</a>
+  <a href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
-<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.4.0-beta.8</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.4.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
