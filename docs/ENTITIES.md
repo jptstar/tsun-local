@@ -85,7 +85,7 @@ These entities are available across all three supported protocol families.
 
 ### Field-observation notes
 
-- `register_3017_raw` and `register_3028_raw` stay **unscaled raw decimal values**. They are numeric measurement sensors so Home Assistant can chart their history while the temperature mapping and offset are being validated. No `-40` or `-50` offset is applied.
+- `register_3017_raw` and `register_3028_raw` stay **unscaled raw decimal values**. They are numeric measurement sensors so Home Assistant can chart their history while the temperature mapping and offset are being validated.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
 - On validated MP3000 hardware, bit `0x2000` in `alarm_global_1_raw` is repeatedly observed during dawn, dusk and very low irradiance. TSUN Local preserves the raw `8192` value but does not treat that bit alone as a fault. The operating-state entity reports **Standby — low solar input** instead. The exact vendor bit-name remains unconfirmed.
 
