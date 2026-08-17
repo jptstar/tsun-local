@@ -2,6 +2,37 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-08-17
+
+### Added
+
+- stable support for the 1511 and 02B0 protocol families, plus experimental 1097 support;
+- firmware-guided protocol identification with explicit protocol probing for compatibility testing;
+- progressive / dynamic PV-input detection across supported protocol families;
+- expanded read-only inverter, logger, alarm and advanced grid-protection diagnostics;
+- raw TITAN diagnostic registers 3017, 3018 and 3028 for continued hardware observation;
+- eight Home Assistant translation sets and a protocol-oriented entity reference.
+
+### Fixed
+
+- expose all advanced grid-protection timing diagnostics in **seconds** for both 1511 and 02B0, using the existing `0.02` register scaling;
+- align the entity reference with the seconds-based timing metadata and remove the provisional unit/scaling markers;
+- correct 1511 per-PV daily-energy register offsets and use the corrected positions for PV detection;
+- keep optional TITAN raw register 3018 from breaking devices or fixtures where that register is absent;
+- preserve logger metadata and device discovery state across temporary communication failures.
+
+### Changed
+
+- advanced diagnostics remain disabled by default so normal Home Assistant device pages stay uncluttered;
+- version 1.4 moves TSUN Local from individual known models toward protocol-family compatibility;
+- the experimental 1097 implementation continues to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
+
+### Safety
+
+- all inverter access remains read-only;
+- no inverter configuration, protection-setting or control write has been added;
+- no cloud or proxy is required in the local Home Assistant data path.
+
 ## [1.4.0-beta.8] - 2026-08-17
 
 ### Added
@@ -255,6 +286,8 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
+[1.4.0-beta.8]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.8
 [1.4.0-beta.7]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.7
 [1.4.0-beta.6]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.6
 [1.4.0-beta.5]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.5
