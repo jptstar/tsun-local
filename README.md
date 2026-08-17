@@ -1,207 +1,252 @@
-# TSUN Local — Home Assistant integration for TSUN micro-inverters
-
-[English](README.md) | [Français](docs/README_FR.md) | [Deutsch](docs/README_DE.md) | [Nederlands](docs/README_NL.md) | [Italiano](docs/README_IT.md) | [Español](docs/README_ES.md) | [Polski](docs/README_PL.md) | [简体中文](docs/README_ZH.md)
-
-[![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
-
-**Website:** [TSUN Local on GitHub Pages](https://jptstar.github.io/tsun-local/)
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Independent TSUN Local icon">
+  <a href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-> **Unofficial project** — This independent community integration is not developed, approved, or maintained by TSUN and is not affiliated with TSUN in any way. TSUN and its product names remain the property of their respective owners. Support requests for this integration must be directed to its author, not to TSUN.
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.0** -->
 
-**TSUN Local** is an open-source **HACS integration for Home Assistant** that connects compatible **TSUN solar micro-inverters** directly over the local network, with no proxy or cloud dependency. Version **1.3.3** supports the **TSOL-MP3000** and **TSOL-MX500**, both validated on real hardware, and provides test-ready adapters for other TITAN, GEN3, and GEN3 PLUS models.
+<p align="center">
+  <img src="custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
+</p>
 
-## About this project
+<h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
+<h3 align="center">Your inverter. Your network. Your data.</h3>
+<p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.4.0</strong></p>
 
-I originally developed this integration for fun and for my own Home Assistant installation. Because many owners have difficulty accessing their TSUN micro-inverters locally, I am making it available so others can benefit from it as well.
+<p align="center">
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
+  <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
+</p>
 
-Hardware feedback, diagnostic results, and focused bug reports are welcome. I can spend some time improving compatibility when users provide useful information, but this remains a personal hobby rather than my main activity, so replies and fixes may sometimes take time.
+<p align="center"><a href="https://jptstar.github.io/tsun-local/"><strong>Project website</strong></a></p>
 
-## Main features
+---
 
-- fully local polling over TCP, with no proxy and no cloud dependency;
-- automatic selection between the currently supported local protocol adapters;
-- combined native UDP discovery and bounded TCP network scanning;
-- automatic detection of the available PV inputs within the validated register maps;
-- AC voltage, current, frequency, power, daily energy, and total energy;
-- voltage, current, power, daily energy, and total energy for every detected PV input;
-- total DC power calculated from the detected PV powers;
-- raw inverter alarms and a global alarm status;
-- communication diagnostics with separate normal, error-retry, and offline/night polling intervals;
-- a per-device button for an immediate manual data refresh;
-- multiple micro-inverters in the same Home Assistant installation;
-- translated Home Assistant entities in English, French, German, Spanish, Italian, Dutch, Polish, and Simplified Chinese.
+## Your TSUN inverter may already work
+
+TSUN Local supports **three local TSUN protocol families**.
+
+| Protocol | Family / validated reference | Status |
+|:---:|---|:---:|
+| **1511** | TITAN · **TSOL-MP3000** | ✅ **Validated** |
+| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Validated** |
+| **1097** | GEN3 | 🧪 **Experimental** |
+
+> [!TIP]
+> **Not listed does not mean unsupported.** If your inverter uses **1511, 02B0 or 1097**, it may already work.
+
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
+
+<p align="center"><strong>Install it. Let TSUN Local identify the protocol. See what your inverter exposes.</strong></p>
+
+---
+
+## At a glance
+
+| | What TSUN Local exposes |
+|---|---|
+| ☀️ **PV** | Voltage · Current · Power · Daily energy · Total energy |
+| ⚡ **AC** | Voltage · Current · Frequency · Power · Daily energy · Total energy |
+| 🚨 **Diagnostics** | Alarms · Communication · Logger information |
+| 🛡️ **Advanced** | Grid protection · Inverter diagnostics · Disabled by default |
+| 🔒 **Safety** | Read-only · No inverter configuration writes |
+
+📚 **[Full entity reference by protocol](docs/ENTITIES.md)** — complete list of sensors, binary sensors and buttons exposed by **1511, 02B0 and 1097**.
+
+---
 
 ## Compatibility
 
-- **Home Assistant 2026.3.0 or later**.
+**Home Assistant 2026.3.0 or later.**
 
-**Legend:** ✅ validated on real hardware · 🧪 adapter ready for community testing · 🔎 additional register information or hardware captures required · ⏸️ currently out of scope.
+> [!NOTE]
+> **✅ Validated** = confirmed on real TSUN Local hardware.  
+> **🔎 Likely compatible** = the protocol family is supported, but this exact model has not yet been validated with TSUN Local.  
+> **🧪 Experimental** = protocol support exists, but broader real-device validation is still needed.
 
-### TITAN micro-inverters
+### 1511 · TITAN — ✅ Validated
 
-| PV inputs | Models | Status | Notes |
-|---:|---|:---:|---|
-| 6 | **TSOL-MP3000** | ✅ | Validated on real hardware |
-| 6 | TSOL-MP2250, TSOL-MS3000 | 🧪 | 1511 adapter ready for testing |
-| 6 | MP3680, MP3750, MP4000, MP4600, MP5000, MP6000 | 🔎 | Six-input hardware; local protocol and register map still require a hardware capture |
+**✅ Validated**  
+`TSOL-MP3000`
 
-### GEN3 and GEN3 PLUS micro-inverters
+**🔎 Likely compatible**  
+`TSOL-MP2250` · `TSOL-MS3000` *(TITAN generation)*
 
-| PV inputs | Models | Status | Notes |
-|---:|---|:---:|---|
-| 1 | **TSOL-MX500** | ✅ | Validated on real hardware |
-| 1 | MX400, MX450, MS300, MS350, MS400, MS400-D | 🧪 | 02B0 adapter ready for testing |
-| 2 | MX800, MX900, MX1000, MS600, MS700, MS800, MS600-D, MS700-D, MS800-D | 🧪 | 02B0 adapter ready for testing |
-| 4 | MX2250, MS1600, MS1800, MS2000, MS2000-D | 🧪 | 02B0 adapter ready for testing |
-| 6 | MS3000, MX2400, MX2500, MX2700, MX3000/MX3000D, MX3300 | 🔎 | The available 02B0 map currently ends at PV4 |
+| | Available data |
+|---|---|
+| ☀️ **PV** | Up to 6 inputs · Voltage · Current · Power · Daily & total energy |
+| ⚡ **AC** | Voltage · Current · Frequency · Power · Daily & total energy |
+| 🚨 **Diagnostics** | Inverter alarms |
+| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics |
+
+### 02B0 · GEN3 PLUS — ✅ Validated
+
+**✅ Validated**  
+`TSOL-MX500`
+
+**🔎 Likely compatible**  
+`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+Corresponding `-D` variants may also be compatible where applicable.
+
+> [!NOTE]
+> Public GEN3 PLUS research generally associates these devices with the **Y17 / Y47** serial-number family. This is useful for distinguishing models whose names also exist in older GEN3 variants.
+
+| | Available data |
+|---|---|
+| ☀️ **PV** | Dynamic PV-input detection · Voltage · Current · Power · Energy |
+| ⚡ **AC** | Voltage · Current · Frequency · Power · Energy |
+| 🚨 **Diagnostics** | Inverter alarms |
+| 🛡️ **Advanced** | Grid-protection diagnostics · Output coefficient |
+
+### 1097 · GEN3 — 🧪 Experimental
+
+**🔎 Likely compatible**  
+`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
+`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
+`TSOL-MS3000`
+
+> [!NOTE]
+> Public GEN3 research generally associates these devices with the **R17 / R47** serial-number family. Compatibility with TSUN Local protocol **1097** remains experimental until confirmed on more real hardware.
+
+| | Available data |
+|---|---|
+| ☀️ **PV** | Standard PV telemetry |
+| ⚡ **AC** | Standard inverter / AC telemetry |
+| 🚨 **Diagnostics** | Available inverter diagnostics |
+| 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Country/profile raw value · Designed power |
+
+> **🔎 Likely compatible does not mean validated.** It means TSUN Local already implements the relevant protocol family, making the device a strong compatibility candidate.
+
+---
+
+## 🛡️ Advanced diagnostics
+
+Advanced entities are intentionally **disabled by default**. This keeps the normal Home Assistant device page simple while still making deeper inverter information available when needed.
+
+To enable one:
+
+**Settings → Devices & services → TSUN Local → Device → Entities → Disabled entities**
+
+No inverter configuration writes are implemented.
+
+---
 
 ## Installation
 
-### With HACS
+### HACS
 
-[![Add TSUN Local to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
 
-Or add it manually:
+Or add `https://github.com/jptstar/tsun-local` as **HACS → Custom repositories → Integration**, install **TSUN Local**, then restart Home Assistant.
 
-1. In HACS, open the **⋮** menu and select **Custom repositories**.
-2. Add `https://github.com/jptstar/tsun-local` with type **Integration**.
-3. Open **TSUN Local**, select **Download**, and choose the latest release.
-4. Restart Home Assistant.
+### Manual
 
-If a new release does not appear, open the repository menu and select **Update information**.
+Copy `custom_components/tsun_local` to `/config/custom_components/`, restart Home Assistant, then add **TSUN Local** from **Settings → Devices & services**.
 
-### Manual installation
+---
 
-1. Copy `custom_components/tsun_local` into `/config/custom_components/`.
-2. Restart Home Assistant.
-3. Open **Settings → Devices & services → Add integration**.
-4. Search for **TSUN Local**.
+## How it works
 
-## Adding a device
-
-TSUN Local can search for micro-inverters on the local network, or you can enter their IP address manually. TCP port `8899` is proposed by default and remains editable.
-
-The local protocol and numeric **SN** are detected automatically. If necessary, the SN can be entered manually from the local status page or the device label. It is distinct from the alphanumeric **Micro-inverter SN**.
-
-If a device is on another VLAN and is not found, enter its subnet in CIDR notation or use manual configuration.
-
-Multiple micro-inverters can be added. Each device has its own entities and polling settings.
-
-## Polling settings
-
-Under **Settings → Devices & services → TSUN Local**, open **Configure** for the relevant device:
-
-- normal polling interval: 10 seconds to 5 minutes, 20 seconds by default;
-- retry interval after a communication error: 10 seconds to 5 minutes, 20 seconds by default;
-- offline/night polling interval: 1 to 60 minutes, 5 minutes by default;
-- consecutive failures before the device goes offline: 1 to 20, 3 by default.
-
-Use **Reconfigure** to change the IP address or TCP port without deleting the existing entities.
-
-The **Refresh data** button runs one immediate complete poll of its micro-inverter without changing the configured intervals. If another TSUN device is being read, the manual refresh waits for that poll to finish.
-
-## Entities
-
-The integration creates one Home Assistant device for each configured micro-inverter. Technical entity identifiers remain in English, while their displayed names are translated.
-
-New identifiers use stable English keys such as `ac_power`, `pv1_current`, and `pv1_energy_total`. An identifier already stored by Home Assistant from an older release is deliberately not renamed automatically because that could break dashboards and automations; it can be changed manually from the entity settings if desired.
-
-Available data includes:
-
-- AC instantaneous measurements and energy counters;
-- five measurements for every detected PV input;
-- calculated total DC power;
-- four communication diagnostics, plus **SN**, **Micro-inverter SN**, logger firmware, and MAC-address diagnostic sensors;
-- a **Micro-inverter online** connectivity binary sensor;
-- a global inverter alarm status and protocol-specific raw alarm registers;
-- a manual **Refresh data** button.
-
-PV detection is progressive. TITAN can expose PV1 to PV6 with the current 1511 map. GEN3/GEN3 PLUS can expose PV1 to PV4 with the current 02B0 map. Once an input is discovered, its entities remain registered in Home Assistant.
-
-### Inverter alarms
-
-Alarm information is read separately from communication failures:
-
-- TITAN/1511 exposes four global alarm words, four secondary words, and one raw alarm word for every detected PV input;
-- GEN3/GEN3 PLUS/02B0 exposes the four raw ERR1 to ERR4 registers;
-- every raw diagnostic shows its decimal value, hexadecimal value, and register address;
-- any non-zero raw value turns on the global **Inverter alarm** binary sensor;
-- if the complete alarm block cannot be read, the global alarm state becomes unavailable instead of reporting a false clear state.
-
-Published manuals describe fault categories, but no public document found so far defines a reliable register/bit mapping for every supported family. TSUN Local therefore keeps unknown values raw instead of displaying an unverified fault description.
-
-The documented categories include abnormal PV voltage or current, missing or abnormal grid voltage/frequency, overheating, ground-fault or insulation faults, and internal inverter faults. These categories are informative only until their relationship with each raw register has been confirmed.
-
-## Night and offline operation
-
-When a solar-powered micro-inverter stops answering at night:
-
-Until the configurable failure threshold is reached, the latest values remain available and retries use the error interval. When the threshold is reached (3 failures by default), the device goes offline and uses the offline/night interval. The first successful response immediately resets the counter to zero and restores normal polling.
-
-- instantaneous voltage, current, power, and frequency become unavailable;
-- alarm status and raw alarm registers become unavailable;
-- daily and total energy counters retain their last known value;
-- **Micro-inverter online** turns off and the failure counter increases;
-- the slower offline/night interval is used;
-- normal polling resumes after the first successful response.
-
-## Local operation and cloud access
-
-TSUN Local itself does not contact a TSUN cloud service. Once installed, its telemetry is read directly from the local device.
-
-The integration does not disable the micro-inverter’s own internet or cloud communication. If complete internet isolation is required, it must be configured on the router or firewall while preserving local access from Home Assistant to the device’s IP address and TCP port.
-
-## Community testing and diagnostics
-
-Models marked 🧪 are genuinely ready to be tried. Successful tests and failed attempts are both useful: differences between models or firmware versions can only be confirmed with real-hardware feedback.
-
-If the integration is already configured:
-
-1. Open **Settings → Devices & services → TSUN Local**.
-2. Enable debug logging from the integration menu, reproduce the problem once, then disable debug logging.
-3. Download the integration diagnostics from the same integration or device page.
-4. Open a [compatibility report](https://github.com/jptstar/tsun-local/issues/new/choose) with the exact model, firmware version, TSUN Local version, and the downloaded file.
-
-If setup cannot complete, run the standalone capture from a copy of this repository:
-
-```bash
-python3 tools/diagnose_device.py --host DEVICE_IP
+```text
+TSUN inverter
+     │
+     │ Local network
+     ▼
+ TSUN Local
+     │
+     ▼
+Home Assistant
 ```
 
-The numeric SN is requested interactively and is not stored in the command history. The generated `tsun_local_diagnostic.json` contains decoded measurements and a short circular trace of inner protocol requests and responses. It does **not** contain the device IP address, SN, logger MAC address, or AP envelope. Review the file before sharing it, as production and energy readings remain visible.
+**No cloud in the data path. No proxy. No remote runtime service. No inverter configuration writes.**
 
-The captured responses can be replayed locally without the physical device:
+Direct local polling only.
 
-```bash
-python3 tools/replay_diagnostic.py tsun_local_diagnostic.json
+---
+
+## Test another TSUN model
+
+Your inverter does not have to be listed above.
+
+If TSUN Local identifies one of these protocols:
+
+```text
+1511
+02B0
+1097
 ```
 
-Available register maps provide a solid starting point, but they cannot guarantee that every untested model or firmware behaves identically. This capture-and-replay path makes focused compatibility fixes possible without remote access to another user’s network.
+let it run and check what entities are discovered.
 
-## Possible next additions
+> [!TIP]
+> **Your inverter could become the next validated model.** Useful feedback includes the exact model, detected protocol, number of PV inputs, firmware version and which entities return plausible values.
 
-The following ideas are deliberately not enabled yet and require validation before implementation:
+---
 
-- grid-protection thresholds in read-only diagnostic entities;
-- the 02B0 output coefficient as a read-only percentage;
-- Home Assistant notifications or repairs for persistent inverter alarms;
-- translated fault descriptions after the raw register/bit mapping has been confirmed;
-- additional local protocol adapters for future TSUN micro-inverter families.
+## TSUN Local 1.4
 
-No control or write command will be added without explicit safeguards and real-hardware validation.
+### A wider TSUN Local
 
-## Author
+Version 1.4 moves TSUN Local from individual known models toward **protocol-family compatibility**.
 
-Jean-Philippe TESTART (`jptstar`)
+| | |
+|---|---|
+| 🔌 | **1511 · 02B0 · 1097** |
+| 🔍 | Automatic protocol identification |
+| ☀️ | Progressive / dynamic PV-input detection |
+| 📊 | Expanded local telemetry |
+| 🛡️ | Advanced read-only diagnostics |
+| 🌍 | 8 languages |
+| 🧪 | Easier testing of new TSUN models |
+
+---
+
+## Reverse engineering & validation
+
+The 1511 and 02B0 implementations are developed through **independent local protocol analysis, real-device observation and hardware validation**.
+
+Compatibility candidates are intentionally labelled separately from validated hardware.
+
+---
+
+## Contributions
+
+TSUN Local also benefits from community contributions:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — public 1097 protocol research that informed the experimental mapping used by TSUN Local.
+- **TheSmartGerman** — real-device testing and compatibility feedback for the **1511 TSOL-MP3000**, during which protocol **1097** was detected unintentionally.
+
+---
+
+## Project
+
+> [!IMPORTANT]
+> **Unofficial community project.** TSUN Local is independent and is not developed, approved, endorsed or maintained by TSUN.
+
+Created and maintained by **Jean-Philippe TESTART · `jptstar`**  
+*Built and shared for fun, technical curiosity and the Home Assistant community.*
+
+---
 
 ## License
 
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
+Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
 
-This project is distributed under the **GNU General Public License v3.0 or later** (`GPL-3.0-or-later`). Modified or redistributed versions must comply with this license and retain the copyright and license notices. See [LICENSE](LICENSE).
-
-The license covers only this independent implementation. It grants no rights to TSUN trademarks, logos, software, or products. This project remains unofficial and unaffiliated with TSUN.
+Distributed under the **GNU General Public License v3.0 or later**. See [LICENSE](LICENSE).

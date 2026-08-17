@@ -16,11 +16,13 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     EntityCategory,
+    PERCENTAGE,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfFrequency,
     UnitOfPower,
+    UnitOfTemperature,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -73,6 +75,56 @@ def _raw_alarm(
     )
 
 
+def _raw_register(
+    key: str, translation_key: str, register_address: str
+) -> TsunSensorDescription:
+    """Describe one read-only raw diagnostic register."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        register_address=register_address,
+    )
+
+
+def _diagnostic_power(key: str, translation_key: str) -> TsunSensorDescription:
+    """Describe one read-only power rating diagnostic."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    )
+
+
+def _advanced_diagnostic(
+    key: str,
+    translation_key: str,
+    *,
+    device_class: SensorDeviceClass | None = None,
+    unit: str | None = None,
+    precision: int | None = None,
+    state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
+) -> TsunSensorDescription:
+    """Describe an advanced read-only diagnostic disabled by default."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        device_class=device_class,
+        native_unit_of_measurement=unit,
+        state_class=state_class,
+        suggested_display_precision=precision,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    )
+
+
 COMMUNICATION_SENSOR_KEYS = frozenset(
     {
         "communication_last_success",
@@ -87,10 +139,277 @@ LOGGER_METADATA_SENSOR_KEYS = frozenset(
         "inverter_serial_number",
         "logger_firmware_version",
         "logger_mac_address",
+        "logger_wifi_signal",
     }
 )
 DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
 
+PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
+    "1511": {
+        "inverter_status_raw": "3000 (0x0BB8)",
+        "rated_power": "3020 (0x0BCC)",
+        "max_designed_power": "2042 (0x07FA)",
+        "grid_overvoltage_recovery_voltage": "0x07D4",
+        "grid_undervoltage_recovery_voltage": "0x07D5",
+        "grid_overfrequency_recovery_frequency": "0x07D6",
+        "grid_underfrequency_recovery_frequency": "0x07D7",
+        "grid_undervoltage_level_1": "0x07D9",
+        "grid_undervoltage_level_2": "0x07DA",
+        "grid_undervoltage_time_1": "0x07DB",
+        "grid_undervoltage_time_2": "0x07DC",
+        "grid_overvoltage_level_1": "0x07DD",
+        "grid_overvoltage_level_2": "0x07DE",
+        "grid_overvoltage_time_1": "0x07DF",
+        "grid_overvoltage_time_2": "0x07E0",
+        "grid_underfrequency_level_1": "0x07E2",
+        "grid_underfrequency_level_2": "0x07E3",
+        "grid_underfrequency_time_1": "0x07E4",
+        "grid_underfrequency_time_2": "0x07E5",
+        "grid_overfrequency_level_1": "0x07E6",
+        "grid_overfrequency_level_2": "0x07E7",
+        "grid_overfrequency_time_1": "0x07E8",
+        "grid_overfrequency_time_2": "0x07E9",
+        "grid_undervoltage_level_3": "0x07EA",
+        "grid_undervoltage_time_3": "0x07EB",
+    },
+    "02b0": {
+        "inverter_status_raw": "0x3000",
+        "rated_power": "0x300E",
+        "max_designed_power": "0x2007",
+        "grid_overvoltage_recovery_voltage": "0x2014",
+        "grid_undervoltage_recovery_voltage": "0x2015",
+        "grid_overfrequency_recovery_frequency": "0x2016",
+        "grid_underfrequency_recovery_frequency": "0x2017",
+        "grid_undervoltage_level_1": "0x2019",
+        "grid_undervoltage_level_2": "0x201A",
+        "grid_undervoltage_time_1": "0x201B",
+        "grid_undervoltage_time_2": "0x201C",
+        "grid_overvoltage_level_1": "0x201D",
+        "grid_overvoltage_level_2": "0x201E",
+        "grid_overvoltage_time_1": "0x201F",
+        "grid_overvoltage_time_2": "0x2020",
+        "grid_underfrequency_level_1": "0x2022",
+        "grid_underfrequency_level_2": "0x2023",
+        "grid_underfrequency_time_1": "0x2024",
+        "grid_underfrequency_time_2": "0x2025",
+        "grid_overfrequency_level_1": "0x2026",
+        "grid_overfrequency_level_2": "0x2027",
+        "grid_overfrequency_time_1": "0x2028",
+        "grid_overfrequency_time_2": "0x2029",
+        "grid_undervoltage_level_3": "0x202A",
+        "grid_undervoltage_time_3": "0x202B",
+        "output_coefficient": "0x202C",
+    },
+    "1097": {
+        "inverter_status_raw": "0x1100",
+        "rated_power": "0x1210",
+        "max_designed_power": "0x1437",
+        "protocol_version": "0x100A",
+        "inverter_version": "0x100C",
+        "insulation_impedance_rx": "0x1216",
+        "insulation_impedance_ry": "0x1217",
+        "inverter_temperature": "0x1218",
+        "country_profile_raw": "0x1400",
+    },
+}
+
+
+ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
+    _advanced_diagnostic(
+        "grid_overvoltage_recovery_voltage",
+        "grid_overvoltage_recovery_voltage",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_recovery_voltage",
+        "grid_undervoltage_recovery_voltage",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_overfrequency_recovery_frequency",
+        "grid_overfrequency_recovery_frequency",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_underfrequency_recovery_frequency",
+        "grid_underfrequency_recovery_frequency",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_level_1",
+        "grid_undervoltage_level_1",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_level_2",
+        "grid_undervoltage_level_2",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_time_1",
+        "grid_undervoltage_time_1",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_time_2",
+        "grid_undervoltage_time_2",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_overvoltage_level_1",
+        "grid_overvoltage_level_1",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_overvoltage_level_2",
+        "grid_overvoltage_level_2",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_overvoltage_time_1",
+        "grid_overvoltage_time_1",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_overvoltage_time_2",
+        "grid_overvoltage_time_2",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_underfrequency_level_1",
+        "grid_underfrequency_level_1",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_underfrequency_level_2",
+        "grid_underfrequency_level_2",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_underfrequency_time_1",
+        "grid_underfrequency_time_1",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_underfrequency_time_2",
+        "grid_underfrequency_time_2",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_overfrequency_level_1",
+        "grid_overfrequency_level_1",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_overfrequency_level_2",
+        "grid_overfrequency_level_2",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_overfrequency_time_1",
+        "grid_overfrequency_time_1",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_overfrequency_time_2",
+        "grid_overfrequency_time_2",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_level_3",
+        "grid_undervoltage_level_3",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_diagnostic(
+        "grid_undervoltage_time_3",
+        "grid_undervoltage_time_3",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "output_coefficient",
+        "output_coefficient",
+        unit=PERCENTAGE,
+        precision=0,
+    ),
+    _advanced_diagnostic(
+        "protocol_version",
+        "protocol_version",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "inverter_version",
+        "inverter_version",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "insulation_impedance_rx",
+        "insulation_impedance_rx",
+        unit="MΩ",
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "insulation_impedance_ry",
+        "insulation_impedance_ry",
+        unit="MΩ",
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "inverter_temperature",
+        "inverter_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        unit=UnitOfTemperature.CELSIUS,
+        precision=0,
+    ),
+    _advanced_diagnostic(
+        "country_profile_raw",
+        "country_profile_raw",
+        state_class=None,
+    ),
+)
 
 SENSORS: tuple[TsunSensorDescription, ...] = (
     _measurement(
@@ -138,6 +457,29 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         UnitOfPower.WATT,
         1,
     ),
+    _raw_register(
+        "inverter_status_raw",
+        "inverter_status_raw",
+        "3000 (0x0BB8)",
+    ),
+    _raw_register(
+        "register_3017_raw",
+        "register_3017_raw",
+        "3017 (0x0BC9)",
+    ),
+    _raw_register(
+        "register_3018_raw",
+        "register_3018_raw",
+        "3018 (0x0BCA)",
+    ),
+    _raw_register(
+        "register_3028_raw",
+        "register_3028_raw",
+        "3028 (0x0BD4)",
+    ),
+    _diagnostic_power("rated_power", "rated_power"),
+    _diagnostic_power("max_designed_power", "max_designed_power"),
+    *ADVANCED_DIAGNOSTIC_SENSORS,
     TsunSensorDescription(
         key="communication_last_success",
         suggested_object_id="communication_last_success",
@@ -191,6 +533,15 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         key="logger_mac_address",
         suggested_object_id="logger_mac_address",
         translation_key="logger_mac_address",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="logger_wifi_signal",
+        suggested_object_id="logger_wifi_signal",
+        translation_key="logger_wifi_signal",
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     *(
@@ -324,10 +675,12 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         self._attr_unique_id = f"{logger_sn}_{description.key}"
         firmware_version = coordinator.data.get("logger_firmware_version")
         inverter_serial_number = coordinator.data.get("inverter_serial_number")
+        raw_profile = coordinator.data.get("logger_raw_profile")
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, logger_sn)},
             manufacturer=MANUFACTURER,
             model=coordinator.client.model,
+            model_id=(str(raw_profile) if raw_profile is not None else None),
             name=f"TSUN Local {logger_sn}",
             serial_number=(
                 str(inverter_serial_number)
@@ -354,10 +707,17 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
             return self._label_serial_number
         return self.coordinator.data.get(self.entity_description.key)
 
+    def _source_register_address(self) -> str | None:
+        """Return the register address used by the active protocol."""
+        protocol_name = str(getattr(self.coordinator.client, "protocol_name", ""))
+        return PROTOCOL_REGISTER_ADDRESSES.get(protocol_name, {}).get(
+            self.entity_description.key, self.entity_description.register_address
+        )
+
     @property
     def extra_state_attributes(self) -> dict[str, str] | None:
-        """Expose the source address and hexadecimal value for raw alarms."""
-        address = self.entity_description.register_address
+        """Expose the source address and hexadecimal value for raw registers."""
+        address = self._source_register_address()
         value = self.native_value
         if address is None or not isinstance(value, int):
             return None
@@ -370,7 +730,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
     def available(self) -> bool:
         """Keep diagnostics and energy counters available while offline."""
         key = self.entity_description.key
-        if self.entity_description.register_address is not None:
+        if self._source_register_address() is not None:
             return (
                 super().available
                 and bool(self.coordinator.data.get("communication_online", False))

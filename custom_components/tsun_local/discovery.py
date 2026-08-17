@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv4Network, ip_network
+import re
 
 
 DISCOVERY_CONCURRENCY = 128
@@ -20,6 +22,159 @@ UDP_DISCOVERY_MESSAGES = (
     b"devicelinkfind",
 )
 MIN_DISCOVERY_PREFIX = 24
+FIRMWARE_HTTP_TIMEOUT = 4.0
+FIRMWARE_PAGE_LIMIT = 512 * 1024
+FIRMWARE_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
+_FIRMWARE_VALUE_PATTERNS = (
+    re.compile(
+        r"\b(?:webdata|cover)[_-]ver\s*[:=]\s*[\"']"
+        r"([A-Za-z0-9][A-Za-z0-9._-]{1,79})",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"firmware\s*version[^A-Za-z0-9]+"
+        r"([A-Za-z0-9][A-Za-z0-9._-]{1,79})",
+        re.IGNORECASE,
+    ),
+)
+_FIRMWARE_PROTOCOL_TOKEN = re.compile(
+    r"(?:^|[_-])(1511|1097|02b0)(?=[_-]|$)",
+    re.IGNORECASE,
+)
+
+
+def protocol_from_firmware(firmware_version: str | None) -> str | None:
+    """Return a supported TSUN protocol token from a firmware version."""
+    if not firmware_version:
+        return None
+    match = _FIRMWARE_PROTOCOL_TOKEN.search(firmware_version)
+    if match is None:
+        return None
+    return match.group(1).lower()
+
+
+def _firmware_version_from_document(document: str) -> str | None:
+    """Extract the firmware version from a logger status document."""
+    for pattern in _FIRMWARE_VALUE_PATTERNS:
+        if match := pattern.search(document):
+            return match.group(1)
+    return None
+
+
+async def _read_chunked_body(
+    reader: asyncio.StreamReader,
+) -> bytes | None:
+    """Read a small HTTP chunked body without waiting for connection close."""
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        line = await reader.readline()
+        if not line:
+            return None
+        size_text = line.split(b";", 1)[0].strip()
+        try:
+            size = int(size_text, 16)
+        except ValueError:
+            return None
+        if size == 0:
+            # Consume optional trailer headers up to the final empty line.
+            while True:
+                trailer = await reader.readline()
+                if trailer in {b"\r\n", b"\n", b""}:
+                    break
+            return b"".join(chunks)
+        total += size
+        if total > FIRMWARE_PAGE_LIMIT:
+            return None
+        chunk = await reader.readexactly(size)
+        chunks.append(chunk)
+        if await reader.readexactly(2) != b"\r\n":
+            return None
+
+
+async def _async_read_status_document(
+    host: str, path: str, *, authenticated: bool
+) -> str | None:
+    """Read a local logger page without depending on the server closing TCP."""
+    writer: asyncio.StreamWriter | None = None
+    try:
+        async with asyncio.timeout(FIRMWARE_HTTP_TIMEOUT):
+            reader, writer = await asyncio.open_connection(host, 80)
+            headers = [
+                f"GET {path} HTTP/1.1",
+                f"Host: {host}",
+                "Connection: close",
+                "User-Agent: TSUN-Local-Discovery",
+            ]
+            if authenticated:
+                token = base64.b64encode(b"admin:admin").decode("ascii")
+                headers.append(f"Authorization: Basic {token}")
+            writer.write(
+                ("\r\n".join(headers) + "\r\n\r\n").encode("ascii")
+            )
+            await writer.drain()
+
+            header = await reader.readuntil(b"\r\n\r\n")
+            header_lines = header[:-4].split(b"\r\n")
+            if not header_lines or b" 200 " not in header_lines[0]:
+                return None
+
+            response_headers: dict[bytes, bytes] = {}
+            for line in header_lines[1:]:
+                name, separator, value = line.partition(b":")
+                if separator:
+                    response_headers[name.strip().lower()] = value.strip()
+
+            transfer_encoding = response_headers.get(b"transfer-encoding", b"").lower()
+            content_length = response_headers.get(b"content-length")
+
+            if b"chunked" in transfer_encoding:
+                body = await _read_chunked_body(reader)
+            elif content_length is not None:
+                try:
+                    length = int(content_length)
+                except ValueError:
+                    return None
+                if length < 0 or length > FIRMWARE_PAGE_LIMIT:
+                    return None
+                body = await reader.readexactly(length)
+            else:
+                body = await reader.read(FIRMWARE_PAGE_LIMIT + 1)
+                if len(body) > FIRMWARE_PAGE_LIMIT:
+                    return None
+    except (
+        OSError,
+        TimeoutError,
+        asyncio.IncompleteReadError,
+        asyncio.LimitOverrunError,
+    ):
+        return None
+    finally:
+        if writer is not None:
+            writer.close()
+            try:
+                await writer.wait_closed()
+            except OSError:
+                pass
+
+    if body is None:
+        return None
+    return body.decode("utf-8", errors="replace")
+
+
+async def async_identify_tsun_firmware(host: str) -> str | None:
+    """Return the firmware-selected protocol for a recognized TSUN candidate."""
+    for path in FIRMWARE_STATUS_PATHS:
+        for authenticated in (False, True):
+            document = await _async_read_status_document(
+                host, path, authenticated=authenticated
+            )
+            if document is None:
+                continue
+            firmware_version = _firmware_version_from_document(document)
+            if protocol_name := protocol_from_firmware(firmware_version):
+                return protocol_name
+    return None
 
 
 def bounded_ipv4_network(
@@ -195,4 +350,18 @@ async def async_discover_devices(
     ]
     if unvalidated:
         tcp_hosts.update(await async_scan_hosts(unvalidated, port))
-    return sorted(tcp_hosts, key=IPv4Address)
+
+    # Other Solarman-based equipment can expose the same TCP port. Automatic
+    # discovery proposes only candidates with a supported protocol token in
+    # the local logger firmware. The HTTP reader intentionally handles
+    # Content-Length/chunked responses without requiring the embedded logger
+    # to close its TCP connection after serving the status page.
+    candidates = sorted(tcp_hosts, key=IPv4Address)
+    identified_protocols = await asyncio.gather(
+        *(async_identify_tsun_firmware(host) for host in candidates)
+    )
+    return [
+        host
+        for host, protocol_name in zip(candidates, identified_protocols)
+        if protocol_name is not None
+    ]

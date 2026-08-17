@@ -148,6 +148,12 @@ def _load_config_flow() -> ModuleType:
     _module(
         f"{PACKAGE}.protocols",
         DEFAULT_PROTOCOL="auto",
+        FORCE_PROTOCOL="force_probe",
+        SUPPORTED_PROTOCOLS=("1511", "1097", "02b0"),
+        protocol_from_firmware=lambda firmware: next(
+            (protocol for protocol in ("1511", "1097", "02b0") if protocol in str(firmware).lower()),
+            None,
+        ),
         create_protocol_client=lambda *args: None,
     )
 
@@ -277,7 +283,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
                     return_value=SimpleNamespace(
                         logger_sn=1234567890,
                         inverter_serial_number="TESTINVERTER0001",
-                        firmware_version="LSW_TEST_1.0",
+                        firmware_version="LSW_TEST_1511_1.0",
                         mac_address="02:00:00:00:00:01",
                     )
                 ),
@@ -296,7 +302,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["data"]["logger_sn"], 1234567890)
         self.assertEqual(result["data"]["protocol"], "1511")
         self.assertEqual(
-            result["data"]["logger_firmware_version"], "LSW_TEST_1.0"
+            result["data"]["logger_firmware_version"], "LSW_TEST_1511_1.0"
         )
         self.assertEqual(
             result["data"]["logger_mac_address"], "02:00:00:00:00:01"
@@ -318,7 +324,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
                 return_value=SimpleNamespace(
                     logger_sn=None,
                     inverter_serial_number=None,
-                    firmware_version=None,
+                    firmware_version="LSW_TEST_1511_1.0",
                     mac_address=None,
                 )
             ),
@@ -343,7 +349,7 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
                     return_value=SimpleNamespace(
                         logger_sn=1234567890,
                         inverter_serial_number=None,
-                        firmware_version=None,
+                        firmware_version="LSW_TEST_1511_1.0",
                         mac_address=None,
                     )
                 ),

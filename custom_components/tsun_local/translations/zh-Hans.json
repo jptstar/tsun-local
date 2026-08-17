@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "添加 TSUN Local 设备",
-        "description": "请选择自动搜索本地网络或手动配置。",
+        "title": "添加 TSUN 设备",
+        "description": "自动搜索网络中的兼容 TSUN 设备，或手动添加设备。",
         "menu_options": {
-          "discover": "搜索本地网络",
-          "manual": "手动输入连接信息"
+          "discover": "搜索 TSUN 设备",
+          "manual": "手动添加"
         }
       },
       "reconfigure": {
@@ -18,17 +18,18 @@
         }
       },
       "manual": {
-        "title": "手动配置",
-        "description": "请输入 IP 地址和端口。Home Assistant 会先尝试从 logger 的本地状态页面自动读取数字 SN；如果无法读取，表单将要求手动输入。",
+        "title": "手动添加设备",
+        "description": "请输入设备的 IP 地址。大多数情况下，请将协议选择保留为“自动 — 根据固件”。TSUN Local 也会尝试自动读取 logger SN。",
         "data": {
           "host": "IP 地址",
           "port": "端口",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "协议选择方式"
         }
       },
       "discover": {
-        "title": "已发现的设备",
-        "description": "请选择在已配置 TCP 端口上发现的地址。Home Assistant 会先尝试从 logger 的本地状态页面自动读取数字 SN；如果无法读取，表单将要求手动输入。",
+        "title": "已检测到的 TSUN 设备",
+        "description": "请选择要添加的 TSUN 设备。TSUN Local 会检查固件，仅显示使用受支持协议的设备。",
         "data": {
           "host": "已发现的地址",
           "port": "端口",
@@ -36,8 +37,8 @@
         }
       },
       "discover_network": {
-        "title": "要扫描的网络",
-        "description": "在 Home Assistant 检测到的网络中未找到设备。请用 CIDR 格式输入微型逆变器的 IPv4 子网（例如 192.168.1.0/24）。扫描最多包含 254 个地址。",
+        "title": "搜索其他子网",
+        "description": "未自动检测到兼容的 TSUN 设备。请输入要扫描的 IPv4 子网，例如 192.168.1.0/24。扫描最多包含 254 个地址。",
         "data": {
           "discovery_network": "IPv4 子网",
           "port": "端口"
@@ -45,16 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "无法连接到设备",
-      "cannot_detect_logger_sn": "自动检测失败。请输入本地状态页面上 Device serial number 字段显示的数字 SN，或设备铭牌上的编号。",
+      "cannot_connect": "无法与设备通信。请确认设备在线，并且 Home Assistant 可以访问它。",
+      "cannot_detect_logger_sn": "无法自动检测 logger SN。请输入本地状态页面中 Device serial number 显示的编号，或设备标签上的编号。",
       "invalid_network": "请输入 /24 到 /32 之间的有效 IPv4 子网",
-      "invalid_response": "设备返回了无效响应",
-      "no_devices_found": "在此子网和端口上未找到接受本地连接的设备"
+      "invalid_response": "设备已响应，但收到的数据无法识别。",
+      "no_devices_found": "此子网中未检测到兼容的 TSUN 设备。",
+      "unknown_firmware": "无法自动识别此设备的固件。请返回手动配置并选择“强制检测 — 测试协议”，或手动选择协议。"
     },
     "abort": {
       "already_configured": "此微型逆变器已配置",
       "all_devices_configured": "所有检测到的微型逆变器均已配置",
-      "no_devices_found": "未找到在端口 8899 上接受本地连接的设备"
+      "no_devices_found": "扫描的网络中未检测到兼容的 TSUN 设备。"
     }
   },
   "options": {
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "微型逆变器 SN"},
-      "logger_firmware_version": {"name": "Logger 固件版本"},
-      "logger_mac_address": {"name": "Logger MAC 地址"},
-      "alarm_global_0_raw": {"name": "全局报警原始值 0"}, "alarm_global_1_raw": {"name": "全局报警原始值 1"}, "alarm_global_2_raw": {"name": "全局报警原始值 2"}, "alarm_global_3_raw": {"name": "全局报警原始值 3"},
-      "alarm_secondary_0_raw": {"name": "次级报警原始值 0"}, "alarm_secondary_1_raw": {"name": "次级报警原始值 1"}, "alarm_secondary_2_raw": {"name": "次级报警原始值 2"}, "alarm_secondary_3_raw": {"name": "次级报警原始值 3"},
-      "alarm_code_1_raw": {"name": "报警代码原始值 1"}, "alarm_code_2_raw": {"name": "报警代码原始值 2"}, "alarm_code_3_raw": {"name": "报警代码原始值 3"}, "alarm_code_4_raw": {"name": "报警代码原始值 4"},
-      "pv1_alarm_raw": {"name": "PV1 报警原始值"}, "pv2_alarm_raw": {"name": "PV2 报警原始值"}, "pv3_alarm_raw": {"name": "PV3 报警原始值"}, "pv4_alarm_raw": {"name": "PV4 报警原始值"}, "pv5_alarm_raw": {"name": "PV5 报警原始值"}, "pv6_alarm_raw": {"name": "PV6 报警原始值"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "微型逆变器 SN"
+      },
+      "logger_firmware_version": {
+        "name": "Logger 固件版本"
+      },
+      "logger_mac_address": {
+        "name": "Logger MAC 地址"
+      },
+      "alarm_global_0_raw": {
+        "name": "全局报警原始值 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "全局报警原始值 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "全局报警原始值 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "全局报警原始值 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "次级报警原始值 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "次级报警原始值 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "次级报警原始值 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "次级报警原始值 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "报警代码原始值 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "报警代码原始值 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "报警代码原始值 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "报警代码原始值 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "PV1 报警原始值"
+      },
+      "pv2_alarm_raw": {
+        "name": "PV2 报警原始值"
+      },
+      "pv3_alarm_raw": {
+        "name": "PV3 报警原始值"
+      },
+      "pv4_alarm_raw": {
+        "name": "PV4 报警原始值"
+      },
+      "pv5_alarm_raw": {
+        "name": "PV5 报警原始值"
+      },
+      "pv6_alarm_raw": {
+        "name": "PV6 报警原始值"
+      },
       "ac_voltage": {
         "name": "交流电压"
       },
@@ -101,6 +161,24 @@
       },
       "dc_power_total": {
         "name": "直流总功率"
+      },
+      "inverter_status_raw": {
+        "name": "逆变器原始状态"
+      },
+      "rated_power": {
+        "name": "逆变器额定功率"
+      },
+      "max_designed_power": {
+        "name": "最大设计功率"
+      },
+      "register_3017_raw": {
+        "name": "原始寄存器 3017（含义尚未确认）"
+      },
+      "register_3018_raw": {
+        "name": "原始寄存器 3018（含义尚未确认）"
+      },
+      "register_3028_raw": {
+        "name": "原始寄存器 3028（含义尚未确认）"
       },
       "communication_last_success": {
         "name": "上次成功通信"
@@ -203,6 +281,96 @@
       },
       "pv6_energy_total": {
         "name": "PV6 总电量"
+      },
+      "logger_wifi_signal": {
+        "name": "记录器 Wi-Fi 信号"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "电网过压恢复电压"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "电网欠压恢复电压"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "电网过频恢复频率"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "电网欠频恢复频率"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "电网欠压阈值 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "电网欠压阈值 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "电网欠压阈值 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "电网欠压时间 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "电网欠压时间 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "电网欠压时间 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "电网过压阈值 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "电网过压阈值 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "电网过压时间 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "电网过压时间 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "电网欠频阈值 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "电网欠频阈值 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "电网欠频时间 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "电网欠频时间 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "电网过频阈值 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "电网过频阈值 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "电网过频时间 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "电网过频时间 2"
+      },
+      "output_coefficient": {
+        "name": "输出系数"
+      },
+      "protocol_version": {
+        "name": "协议版本"
+      },
+      "inverter_version": {
+        "name": "逆变器版本"
+      },
+      "insulation_impedance_rx": {
+        "name": "绝缘阻抗 RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "绝缘阻抗 RY"
+      },
+      "inverter_temperature": {
+        "name": "逆变器温度"
+      },
+      "country_profile_raw": {
+        "name": "国家/配置代码"
       }
     },
     "binary_sensor": {
@@ -216,6 +384,17 @@
     "button": {
       "refresh_data": {
         "name": "刷新数据"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "自动 — 根据固件",
+        "force": "强制检测 — 测试协议",
+        "1511": "使用 1511 协议",
+        "1097": "使用 1097 协议 — 实验性",
+        "02b0": "使用 02B0 协议"
       }
     }
   }

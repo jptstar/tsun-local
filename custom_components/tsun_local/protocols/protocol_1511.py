@@ -20,7 +20,8 @@ from .ap import (
 
 PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
-PV_COUNT = 6
+MAX_PV_COUNT = 6
+DIAGNOSTIC_INTERVAL = 300.0
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +33,13 @@ BLOCKS = (
 
 ALARM_BLOCKS = (
     (0xA2, 0x02, 0x0CE4, 0x0CE7),
+)
+
+DIAGNOSTIC_BLOCKS = (
+    # Full native A1/01 3000-3031 block, validated on MP3000 firmware 1.03.
+    (0xA1, 0x01, 0x0BB8, 0x0BD7),
+    # Native TITAN A1/21 block: decimal registers 2000-2095.
+    (0xA1, 0x21, 0x07D0, 0x082F),
 )
 
 GLOBAL_ALARM_REGISTERS = (0x0BBB, 0x0BBC, 0x0BBD, 0x0BBE)
@@ -57,6 +65,71 @@ AC_MEASUREMENT_KEYS = frozenset(
         "dc_power_total",
     }
 )
+
+TITAN_DIAGNOSTIC_KEYS = frozenset(
+    {
+        "inverter_status_raw",
+        "rated_power",
+        "max_designed_power",
+        "register_3017_raw",
+        "register_3018_raw",
+        "register_3028_raw",
+    }
+)
+
+ADVANCED_GRID_KEYS = frozenset(
+    {
+        "grid_overvoltage_recovery_voltage",
+        "grid_undervoltage_recovery_voltage",
+        "grid_overfrequency_recovery_frequency",
+        "grid_underfrequency_recovery_frequency",
+        "grid_undervoltage_level_1",
+        "grid_undervoltage_level_2",
+        "grid_undervoltage_time_1",
+        "grid_undervoltage_time_2",
+        "grid_overvoltage_level_1",
+        "grid_overvoltage_level_2",
+        "grid_overvoltage_time_1",
+        "grid_overvoltage_time_2",
+        "grid_underfrequency_level_1",
+        "grid_underfrequency_level_2",
+        "grid_underfrequency_time_1",
+        "grid_underfrequency_time_2",
+        "grid_overfrequency_level_1",
+        "grid_overfrequency_level_2",
+        "grid_overfrequency_time_1",
+        "grid_overfrequency_time_2",
+        "grid_undervoltage_level_3",
+        "grid_undervoltage_time_3",
+    }
+)
+
+ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
+    "grid_overvoltage_recovery_voltage": (0x07D4, 0.1),
+    "grid_undervoltage_recovery_voltage": (0x07D5, 0.1),
+    "grid_overfrequency_recovery_frequency": (0x07D6, 0.01),
+    "grid_underfrequency_recovery_frequency": (0x07D7, 0.01),
+    "grid_undervoltage_level_1": (0x07D9, 0.1),
+    "grid_undervoltage_level_2": (0x07DA, 0.1),
+    "grid_undervoltage_time_1": (0x07DB, 0.02),
+    "grid_undervoltage_time_2": (0x07DC, 0.02),
+    "grid_overvoltage_level_1": (0x07DD, 0.1),
+    "grid_overvoltage_level_2": (0x07DE, 0.1),
+    "grid_overvoltage_time_1": (0x07DF, 0.02),
+    "grid_overvoltage_time_2": (0x07E0, 0.02),
+    "grid_underfrequency_level_1": (0x07E2, 0.01),
+    "grid_underfrequency_level_2": (0x07E3, 0.01),
+    "grid_underfrequency_time_1": (0x07E4, 0.02),
+    "grid_underfrequency_time_2": (0x07E5, 0.02),
+    "grid_overfrequency_level_1": (0x07E6, 0.01),
+    "grid_overfrequency_level_2": (0x07E7, 0.01),
+    "grid_overfrequency_time_1": (0x07E8, 0.02),
+    "grid_overfrequency_time_2": (0x07E9, 0.02),
+    "grid_undervoltage_level_3": (0x07EA, 0.1),
+    "grid_undervoltage_time_3": (0x07EB, 0.02),
+}
+
+
 PV_MEASUREMENT_NAMES = (
     "voltage",
     "current",
@@ -116,12 +189,17 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
-    return AC_MEASUREMENT_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(
-        f"pv{number}_{measurement}"
-        for number in range(1, pv_count + 1)
-        for measurement in PV_MEASUREMENT_NAMES
-    ) | frozenset(
-        f"pv{number}_alarm_raw" for number in range(1, pv_count + 1)
+    return (
+        AC_MEASUREMENT_KEYS
+        | TITAN_DIAGNOSTIC_KEYS
+        | ADVANCED_GRID_KEYS
+        | ALARM_MEASUREMENT_KEYS
+        | frozenset(
+            f"pv{number}_{measurement}"
+            for number in range(1, pv_count + 1)
+            for measurement in PV_MEASUREMENT_NAMES
+        )
+        | frozenset(f"pv{number}_alarm_raw" for number in range(1, pv_count + 1))
     )
 
 
@@ -131,24 +209,34 @@ def detect_pv_count(registers: dict[int, int]) -> int:
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
     detected = 1
     for number, (base, total_pair) in enumerate(zip(pv_bases, pv_total_pairs), 1):
-        addresses = (base, base + 1, base + 2, base + 4, total_pair, total_pair + 1)
+        addresses = (base, base + 1, base + 2, base + 5, total_pair, total_pair + 1)
         if any(0 < registers.get(address, 0) < 0xFFFF for address in addresses):
             detected = number
     return detected
 
 
 def decode_measurements(
-    registers: dict[int, int], pv_count: int = 6
+    registers: dict[int, int], pv_count: int = 1
 ) -> dict[str, float | int]:
     """Decode the validated AC and PV register map."""
     data: dict[str, float | int] = {
+        "inverter_status_raw": registers[0x0BB8],
         "ac_voltage": registers[0x0BC4] * 0.1,
         "ac_current": registers[0x0BC5] * 0.01,
         "ac_frequency": registers[0x0BC7] * 0.01,
+        "register_3017_raw": registers[0x0BC9],
+        "rated_power": registers[0x0BCC],
         "ac_power": registers[0x0BCD] * 0.1,
         "ac_energy_today": registers[0x0BCE] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x0BCF) * 0.01,
     }
+    if 0x0BCA in registers:
+        data["register_3018_raw"] = registers[0x0BCA]
+    if 0x0BD4 in registers:
+        data["register_3028_raw"] = registers[0x0BD4]
+    if 0x07FA in registers:
+        data["max_designed_power"] = registers[0x07FA]
+
     pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
     for number, (base, total_pair) in enumerate(
@@ -158,12 +246,21 @@ def decode_measurements(
         data[f"{prefix}_voltage"] = registers[base] * 0.1
         data[f"{prefix}_current"] = registers[base + 1] * 0.01
         data[f"{prefix}_power"] = registers[base + 2] * 0.1
-        data[f"{prefix}_energy_today"] = registers[base + 4] * 0.01
+        data[f"{prefix}_energy_today"] = registers.get(base + 5, 0) * 0.01
         data[f"{prefix}_energy_total"] = _u32_type5(registers, total_pair) * 0.01
     data["dc_power_total"] = round(
         sum(float(data[f"pv{number}_power"]) for number in range(1, pv_count + 1)), 1
     )
     return data
+
+
+def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float]:
+    """Decode read-only grid protection diagnostics."""
+    return {
+        key: round(registers[address] * factor, 2)
+        for key, (address, factor) in ADVANCED_GRID_REGISTERS.items()
+        if address in registers
+    }
 
 
 def decode_alarms(
@@ -215,11 +312,14 @@ class Tsun1511Client:
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
-        # The validated TITAN register map always defines PV1 through PV6.
-        # Expose all six inputs even when their live values are zero or the
-        # inverter is first loaded while unpowered at night.
-        self._pv_count = PV_COUNT
+        # Start conservatively with PV1. Additional inputs are added after
+        # they are observed in live or accumulated telemetry and never removed.
+        self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
+        self._diagnostic_registers: dict[int, int] = {}
+        # Collect optional diagnostics on the first poll, then at a slow cadence.
+        # A diagnostic failure never makes normal telemetry fail.
+        self._last_diagnostic_read = 0.0
 
     @property
     def pv_count(self) -> int:
@@ -317,12 +417,13 @@ class Tsun1511Client:
                 await writer.wait_closed()
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read telemetry and the additional alarm block sequentially."""
+        """Read telemetry plus optional alarm and diagnostic blocks sequentially."""
         started = time.monotonic()
         registers: dict[int, int] = {}
         for block in BLOCKS:
             registers.update(await self._read_block(block))
         blocks_ok = len(BLOCKS)
+
         for block in ALARM_BLOCKS:
             try:
                 registers.update(await self._read_block(block))
@@ -335,7 +436,27 @@ class Tsun1511Client:
                 )
             else:
                 blocks_ok += 1
+
+        now = time.monotonic()
+        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+            self._last_diagnostic_read = now
+            for block in DIAGNOSTIC_BLOCKS:
+                try:
+                    self._diagnostic_registers.update(await self._read_block(block))
+                except Exception as err:
+                    _LOGGER.debug(
+                        "1511 diagnostic block %d-%d is unavailable: %s",
+                        block[2],
+                        block[3],
+                        type(err).__name__,
+                    )
+                else:
+                    blocks_ok += 1
+        registers.update(self._diagnostic_registers)
+
+        self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers, self._pv_count))
         return TsunReadResult(
             measurements=measurements,

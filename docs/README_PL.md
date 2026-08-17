@@ -1,144 +1,248 @@
-# TSUN Local — Lokalna integracja z Home Assistant
-
-[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
-
-[![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Niezależna ikona TSUN Local">
+  <a href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-> **Projekt nieoficjalny** — Ta niezależna integracja społecznościowa nie jest opracowywana, zatwierdzana ani utrzymywana przez TSUN i nie jest w żaden sposób powiązana z TSUN. TSUN oraz nazwy jego produktów pozostają własnością odpowiednich podmiotów. Prośby o pomoc dotyczącą tej integracji należy kierować do jej autora, a nie do TSUN.
+<p align="center">
+  <img src="../custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local">
+</p>
 
-**TSUN Local** integruje zgodne mikrofalowniki TSUN bezpośrednio z Home Assistant **przez sieć lokalną, bez serwera pośredniczącego i bez usługi chmurowej**.
+<h1 align="center">TSUN Local</h1>
+<h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
+<p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.4.0</strong></p>
 
-Wersja 1.3.3 obsługuje zweryfikowane na rzeczywistym sprzęcie modele **TSOL-MP3000** i **MX500** oraz inne modele **TITAN**, **GEN3** i **GEN3 PLUS**, które oczekują na weryfikację.
+<p align="center">
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
+  <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
+</p>
 
-**Autor: Jean-Philippe TESTART (jptstar)**
+---
 
-## Charakter projektu i wsparcie
+## Twój falownik TSUN może już działać
 
-TSUN Local to integracja Home Assistant, którą początkowo opracowałem dla przyjemności i na własny użytek. Ponieważ wielu użytkowników ma trudności z nawiązaniem lokalnego połączenia z mikrofalownikami TITAN, udostępniam ją, aby mogło z niej skorzystać jak najwięcej osób.
+TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 
-Jeśli otrzymam opinie i informacje diagnostyczne dotyczące konkretnych modeli, chętnie poświęcę trochę czasu na poprawę kompatybilności i usuwanie błędów. TSUN Local pozostaje jednak hobby i zajęciem dodatkowym, a nie moją główną działalnością. Dlatego odpowiedzi lub poprawki mogą czasami wymagać trochę czasu.
+| Protokół | Rodzina / zweryfikowany model referencyjny | Status |
+|:---:|---|:---:|
+| **1511** | TITAN · **TSOL-MP3000** | ✅ **Zweryfikowany** |
+| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Zweryfikowany** |
+| **1097** | GEN3 | 🧪 **Eksperymentalny** |
 
-## Wersje
+> [!TIP]
+> **Brak na liście nie oznacza braku obsługi.** Jeśli falownik korzysta z **1511, 02B0 lub 1097**, może już działać.
 
-Publikowane wersje mają format `MAJOR.MINOR.PATCH`. HACS korzysta z GitHub Releases do udostępniania aktualizacji. Szczegóły znajdują się w [rejestrze zmian](../CHANGELOG.md).
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="Dodaj TSUN Local do HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
 
-## Zgodność
+<p align="center"><strong>Zainstaluj. Pozwól TSUN Local rozpoznać protokół. Sprawdź, jakie dane udostępnia falownik.</strong></p>
 
-**Home Assistant 2026.3.0 lub nowszy**
+---
 
-### Legenda
+## W skrócie
 
-- ✅ Zgodny i zweryfikowany na rzeczywistym sprzęcie
-- 🧪 Gotowy do testów społeczności — adapter jest dostępny; opinie są mile widziane
-- 🔎 Poszukiwane dane sprzętowe — zgodność nie została jeszcze potwierdzona
+| | Dane udostępniane przez TSUN Local |
+|---|---|
+| ☀️ **PV** | Napięcie · Prąd · Moc · Energia dzienna · Energia całkowita |
+| ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia dzienna · Energia całkowita |
+| 🚨 **Diagnostyka** | Alarmy · Komunikacja · Informacje loggera |
+| 🛡️ **Zaawansowane** | Ochrona sieci · Diagnostyka falownika · Domyślnie wyłączone |
+| 🔒 **Bezpieczeństwo** | Tylko odczyt · Brak zapisu konfiguracji do falownika |
 
-### Mikrofalowniki
+📚 **[Pełna lista encji według protokołu](ENTITIES.md)** — sensory, sensory binarne i przyciski dla **1511, 02B0 i 1097**.
 
-#### TITAN
+---
 
-| Konfiguracja | Modele | Status |
-|---|---|---|
-| 6-in-1 | **TSOL-MP3000** | ✅ Zweryfikowany |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 Poszukiwani testerzy |
-| Liczba wejść do ustalenia | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 Poszukiwane dane sprzętowe |
+## Kompatybilność
 
-#### GEN3 / GEN3 PLUS — seria MX
+**Home Assistant 2026.3.0 lub nowszy.**
 
-| Konfiguracja | Modele | Status |
-|---|---|---|
-| 1-in-1 | **MX500** | ✅ Zweryfikowany |
-| 1-in-1 | **MX450, MX400** | 🧪 Poszukiwani testerzy |
-| 2-in-1 | **MX1000, MX900, MX800** | 🧪 Poszukiwani testerzy |
-| 4-in-1 | **MX2250** | 🧪 Poszukiwani testerzy |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 Poszukiwane dane sprzętowe |
+> [!NOTE]
+> **✅ Zweryfikowany** = potwierdzony na rzeczywistym sprzęcie z TSUN Local.  
+> **🔎 Prawdopodobnie kompatybilny** = rodzina protokołu jest obsługiwana, ale ten konkretny model nie został jeszcze zweryfikowany z TSUN Local.  
+> **🧪 Eksperymentalny** = obsługa protokołu istnieje, ale wymaga dalszej walidacji na rzeczywistych urządzeniach.
 
-#### GEN3 / GEN3 PLUS — seria MS
+### 1511 · TITAN — ✅ Zweryfikowany
 
-| Konfiguracja | Modele | Status |
-|---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 Poszukiwani testerzy |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 Poszukiwani testerzy |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 Poszukiwani testerzy |
+**✅ Zweryfikowany**  
+`TSOL-MP3000`
 
-Wykrywanie wejść PV jest dynamiczne do **6 wejść dla TITAN**. Dla GEN3 / GEN3 PLUS aktualna mapa obejmuje **1, 2 lub 4 wejścia PV**; PV5 i PV6 nie są jeszcze wykrywane.
+**🔎 Prawdopodobnie kompatybilny**  
+`TSOL-MP2250` · `TSOL-MS3000` *(generacja TITAN)*
 
-> **Masz jeden z tych modeli?** Modele oznaczone 🧪 są gotowe do testów społeczności. [Otwórz raport zgodności](https://github.com/jptstar/tsun-local/issues/new), podając dokładny model, wersję oprogramowania i wynik testu. Ukryj pełne numery seryjne oraz prywatne informacje sieciowe.
+| | Dostępne dane |
+|---|---|
+| ☀️ **PV** | Do 6 wejść · Napięcie · Prąd · Moc · Energia dzienna i całkowita |
+| ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia dzienna i całkowita |
+| 🚨 **Diagnostyka** | Alarmy falownika |
+| 🛡️ **Zaawansowane** | Progi ochrony sieci i diagnostyka czasów |
+
+### 02B0 · GEN3 PLUS — ✅ Zweryfikowany
+
+**✅ Zweryfikowany**  
+`TSOL-MX500`
+
+**🔎 Prawdopodobnie kompatybilny**  
+`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występują.
+
+> [!NOTE]
+> Publiczne badania GEN3 PLUS zwykle wiążą te urządzenia z rodziną numerów seryjnych **Y17 / Y47**. Pomaga to odróżnić modele, których nazwy występują również w starszych wariantach GEN3.
+
+| | Dostępne dane |
+|---|---|
+| ☀️ **PV** | Dynamiczne wykrywanie wejść PV · Napięcie · Prąd · Moc · Energia |
+| ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia |
+| 🚨 **Diagnostyka** | Alarmy falownika |
+| 🛡️ **Zaawansowane** | Diagnostyka ochrony sieci · Współczynnik wyjściowy |
+
+### 1097 · GEN3 — 🧪 Eksperymentalny
+
+**🔎 Prawdopodobnie kompatybilny**  
+`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
+`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
+`TSOL-MS3000`
+
+> [!NOTE]
+> Publiczne badania GEN3 zwykle wiążą te urządzenia z rodziną numerów seryjnych **R17 / R47**. Kompatybilność z protokołem **1097** w TSUN Local pozostaje eksperymentalna do czasu potwierdzenia na większej liczbie rzeczywistych urządzeń.
+
+| | Dostępne dane |
+|---|---|
+| ☀️ **PV** | Standardowa telemetria PV |
+| ⚡ **AC** | Standardowa telemetria falownika / AC |
+| 🚨 **Diagnostyka** | Dostępna diagnostyka falownika |
+| 🛡️ **Zaawansowane** | Wersja protokołu · Wersja falownika · Temperatura · Izolacja RX/RY · Surowa wartość kraju/profilu · Moc projektowa |
+
+> **🔎 Prawdopodobnie kompatybilny nie oznacza zweryfikowany.** Oznacza to, że TSUN Local implementuje już odpowiednią rodzinę protokołu, więc urządzenie jest dobrym kandydatem do kompatybilności.
+
+---
+
+## 🛡️ Zaawansowana diagnostyka
+
+Zaawansowane encje są celowo **domyślnie wyłączone**. Dzięki temu standardowa strona urządzenia pozostaje przejrzysta, a informacje techniczne są dostępne w razie potrzeby.
+
+Aby je włączyć:
+
+**Ustawienia → Urządzenia i usługi → TSUN Local → Urządzenie → Encje → Wyłączone encje**
+
+Nie zaimplementowano żadnych zapisów konfiguracji do falownika.
+
+---
 
 ## Instalacja
 
-### Za pomocą HACS
+### HACS
 
-[![Dodaj TSUN Local do HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="Dodaj TSUN Local do HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
 
-Lub dodaj ręcznie:
+Możesz też dodać `https://github.com/jptstar/tsun-local` przez **HACS → Niestandardowe repozytoria → Integracja**, zainstalować **TSUN Local** i ponownie uruchomić Home Assistant.
 
-1. W HACS otwórz menu **⋮** w prawym górnym rogu i wybierz **Repozytoria niestandardowe**.
-2. Dodaj `https://github.com/jptstar/tsun-local` jako typ **Integracja**.
-3. Wybierz **Dodaj**, a następnie otwórz **TSUN Local**.
-4. Wybierz **Pobierz** i najnowszą dostępną wersję.
-5. Uruchom ponownie Home Assistant.
+### Ręcznie
 
-Jeśli najnowsza wersja nie jest widoczna, otwórz menu repozytorium i wybierz **Aktualizuj informacje**.
+Skopiuj `custom_components/tsun_local` do `/config/custom_components/`, uruchom ponownie Home Assistant, a następnie dodaj **TSUN Local** w **Ustawienia → Urządzenia i usługi**.
 
-### Instalacja ręczna
+---
 
-1. Skopiuj `custom_components/tsun_local` do `/config/custom_components/`.
-2. Uruchom ponownie Home Assistant.
-3. Otwórz **Ustawienia → Urządzenia i usługi → Dodaj integrację**.
-4. Wyszukaj **TSUN Local**.
+## Jak to działa
 
-## Dodawanie urządzenia
+```text
+Falownik TSUN
+     │
+     │ Sieć lokalna
+     ▼
+ TSUN Local
+     │
+     ▼
+Home Assistant
+```
 
-TSUN Local może wyszukiwać mikrofalowniki w sieci lokalnej. Adres IP można także wprowadzić ręcznie. Port TCP `8899` jest proponowany domyślnie i można go zmienić.
+**Bez chmury w ścieżce danych. Bez proxy. Bez zdalnej usługi runtime. Bez zapisu konfiguracji do falownika.**
 
-Protokół lokalny i numeryczny **SN** są wykrywane automatycznie. W razie potrzeby SN można wprowadzić ręcznie ze strony lokalnej lub etykiety urządzenia. Różni się on od alfanumerycznego **SN mikrofalownika**.
+Wyłącznie bezpośrednie lokalne odpytywanie.
 
-Jeśli urządzenie znajduje się w innej sieci VLAN i nie zostanie znalezione, podaj jego podsieć w notacji CIDR lub użyj konfiguracji ręcznej.
+---
 
-Można dodać wiele mikrofalowników. Każde urządzenie ma własne encje i ustawienia odpytywania.
+## Przetestuj inny model TSUN
 
-## Ustawienia w Home Assistant
+Twój falownik nie musi znajdować się na powyższej liście.
 
-W **Ustawienia → Urządzenia i usługi → TSUN Local** otwórz menu odpowiedniego urządzenia:
+Jeśli TSUN Local rozpozna jeden z tych protokołów:
 
-- **Konfiguruj** ustawia normalny interwał od 10 sekund do 5 minut (domyślnie 20 sekund), ponowienie po błędzie od 10 sekund do 5 minut (domyślnie 20 sekund), interwał offline/nocny od 1 do 60 minut (domyślnie 5 minut) oraz próg od 1 do 20 kolejnych błędów (domyślnie 3);
-- **Skonfiguruj ponownie** zmienia adres IP i port TCP bez usuwania encji;
-- każde urządzenie ma niezależne interwały odpytywania.
+```text
+1511
+02B0
+1097
+```
 
-## Działanie lokalne i izolacja od chmury
+pozostaw integrację uruchomioną i sprawdź wykryte encje.
 
-TSUN Local komunikuje się wyłącznie przez sieć lokalną i nie korzysta z usług chmurowych. Integracja nie zmienia ustawień chmury w oprogramowaniu urządzenia.
+> [!TIP]
+> **Twój falownik może zostać kolejnym zweryfikowanym modelem.** Przydatne informacje to dokładny model, wykryty protokół, liczba wejść PV, wersja firmware i encje zwracające wiarygodne wartości.
 
-Aby uniemożliwić mikrofalownikowi dostęp do Internetu, utwórz w routerze lub zaporze regułę blokującą dostęp WAN, pozostawiając dostęp do sieci lokalnej i DHCP. Home Assistant musi nadal mieć dostęp do adresu IP mikrofalownika przez port TCP **8899**. Po instalacji HACS potrzebuje Internetu wyłącznie do sprawdzania i pobierania aktualizacji.
+---
 
-## Praca nocna
+## TSUN Local 1.4
 
-Gdy mikrofalownik przestaje być zasilany, integracja oznacza go jako offline bez powtarzania błędu przy każdym odpytywaniu:
+### Szerszy TSUN Local
 
-Do osiągnięcia konfigurowalnego progu ostatnie wartości pozostają dostępne, a ponowienia używają interwału po błędzie. Po osiągnięciu progu (domyślnie 3 błędy) urządzenie przechodzi offline i używa interwału offline/noc. Pierwsza udana odpowiedź zeruje licznik i przywraca normalny interwał.
+Wersja 1.4 przenosi TSUN Local z obsługi pojedynczych znanych modeli w stronę **kompatybilności na poziomie rodzin protokołów**.
 
-- pomiary chwilowe (napięcie, prąd, moc i częstotliwość) stają się niedostępne, aby nie wyświetlać nieaktualnych wartości;
-- dzienne i całkowite liczniki energii pozostają dostępne z ostatnią znaną wartością;
-- czujnik binarny **Mikrofalownik online** zgłasza stan offline;
-- licznik kolejnych błędów komunikacji wraca do zera po wznowieniu komunikacji;
-- czas ostatniej udanej komunikacji pozostaje dostępny;
-- kolejne próby korzystają ze skonfigurowanego interwału offline/nocnego;
-- po pierwszej udanej odpowiedzi rano przywracany jest normalny interwał.
+| | |
+|---|---|
+| 🔌 | **1511 · 02B0 · 1097** |
+| 🔍 | Automatyczne rozpoznawanie protokołu |
+| ☀️ | Stopniowe / dynamiczne wykrywanie wejść PV |
+| 📊 | Rozszerzona lokalna telemetria |
+| 🛡️ | Zaawansowana diagnostyka tylko do odczytu |
+| 🌍 | 8 języków |
+| 🧪 | Łatwiejsze testowanie nowych modeli TSUN |
 
-## Czujniki
+---
 
-Integracja tworzy jedno urządzenie z pomiarami AC, 5 pomiarami dla każdego wykrytego wejścia PV, sumą wykrytych mocy DC, 4 diagnostykami komunikacji, czujnikami diagnostycznymi **SN**, **SN mikrofalownika**, wersji oprogramowania i adresu MAC loggera oraz binarnym czujnikiem łączności **Mikrofalownik online**.
+## Inżynieria wsteczna i walidacja
 
-Liczba wejść PV jest dynamiczna: PV1 jest dostępne po pierwszym odczycie; PV2–PV6 dla TITAN lub PV2–PV4 dla GEN3/GEN3 PLUS są dodawane po wykryciu prawidłowego pomiaru lub licznika energii. Wykryte wejście pozostaje zarejestrowane w Home Assistant.
+Implementacje 1511 i 02B0 są rozwijane poprzez **niezależną analizę lokalnego protokołu, obserwację rzeczywistych urządzeń i walidację sprzętową**.
+
+Kandydaci do kompatybilności są celowo oznaczani oddzielnie od faktycznie zweryfikowanego sprzętu.
+
+---
+
+## Wkład społeczności
+
+TSUN Local korzysta również z wkładu społeczności:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — publiczne badania protokołu 1097, które przyczyniły się do eksperymentalnego mapowania używanego przez TSUN Local.
+- **TheSmartGerman** — testy na rzeczywistym sprzęcie i informacje zwrotne dotyczące kompatybilności **TSOL-MP3000 z 1511**, podczas których protokół **1097** został wykryty nieumyślnie.
+
+---
+
+## Projekt
+
+> [!IMPORTANT]
+> **Nieoficjalny projekt społecznościowy.** TSUN Local jest niezależny i nie jest rozwijany, zatwierdzany, wspierany ani utrzymywany przez TSUN.
+
+Autor i opiekun: **Jean-Philippe TESTART · `jptstar`**  
+*Tworzony i udostępniany z pasji, ciekawości technicznej i dla społeczności Home Assistant.*
+
+---
 
 ## Licencja
 
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
+Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
 
-Projekt jest rozpowszechniany na licencji **GNU General Public License v3.0 lub nowszej** (GPL-3.0-or-later). Wersje zmodyfikowane lub redystrybuowane muszą być zgodne z tą licencją i zachować informacje o prawach autorskich oraz licencji. Zobacz [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE).
-
-Licencja obejmuje wyłącznie tę niezależną implementację. Nie przyznaje żadnych praw do znaków towarowych, logo, oprogramowania ani produktów TSUN. Projekt pozostaje nieoficjalny i niepowiązany z TSUN.
+Udostępniany na licencji **GNU General Public License v3.0 lub nowszej**. Zobacz [LICENSE](../LICENSE).

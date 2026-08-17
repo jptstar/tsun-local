@@ -81,9 +81,13 @@ def format_ap_frame_for_log(frame: bytes) -> str:
     return " ".join(octets)
 
 
-def build_ap_frame(logger_sn: int, payload: bytes) -> bytes:
+def build_ap_frame(
+    logger_sn: int,
+    payload: bytes,
+    sensor_list: int = 0,
+) -> bytes:
     """Wrap a local-protocol request in a TSUN AP frame."""
-    data = b"\x02\x00\x00" + bytes(12) + payload
+    data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
     scope = (
         len(data).to_bytes(2, "little")
         + b"\x10\x45\x00\x00"

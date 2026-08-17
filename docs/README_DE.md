@@ -1,205 +1,248 @@
-# TSUN Local — Lokale Home-Assistant-Integration
-
-[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
-
-[![GitHub-Version](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="Unabhängiges TSUN-Local-Symbol">
+  <a href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-> **Inoffizielles Projekt** — Diese unabhängige Community-Integration wird weder von TSUN entwickelt noch genehmigt oder gewartet und steht in keiner Verbindung zu TSUN. TSUN und seine Produktnamen bleiben Eigentum der jeweiligen Rechteinhaber. Supportanfragen zu dieser Integration sind an den Autor und nicht an TSUN zu richten.
+<p align="center">
+  <img src="../custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local">
+</p>
 
-**TSUN Local** verbindet kompatible TSUN-Mikrowechselrichter über das lokale Netzwerk direkt mit Home Assistant, ohne Proxy oder Cloud-Dienst. Version **1.3.3** unterstützt die auf echter Hardware geprüften Modelle **TSOL-MP3000** und **TSOL-MX500** und stellt testbereite Adapter für weitere TITAN-, GEN3- und GEN3-PLUS-Modelle bereit.
+<h1 align="center">TSUN Local</h1>
+<h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
+<p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.4.0</strong></p>
 
-## Über dieses Projekt
+<p align="center">
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
+  <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
+</p>
 
-Ich habe diese Integration ursprünglich aus Freude an der Technik und für meine eigene Home-Assistant-Installation entwickelt. Da viele Besitzer Schwierigkeiten mit dem lokalen Zugriff auf ihre TSUN-Mikrowechselrichter haben, stelle ich sie auch anderen zur Verfügung.
+---
 
-Hardware-Rückmeldungen, Diagnoseergebnisse und präzise Fehlerberichte sind willkommen. Wenn verwertbare Informationen vorliegen, kann ich etwas Zeit in weitere Verbesserungen investieren. Das Projekt bleibt jedoch ein persönliches Hobby und ist nicht meine Haupttätigkeit; Antworten und Korrekturen können daher manchmal etwas länger dauern.
+## Dein TSUN-Wechselrichter könnte bereits funktionieren
 
-## Hauptfunktionen
+TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 
-- vollständig lokale TCP-Abfrage ohne Proxy und ohne Cloud-Abhängigkeit;
-- automatische Auswahl des unterstützten lokalen Protokolladapters;
-- native UDP-Erkennung ergänzt durch eine begrenzte TCP-Netzwerksuche;
-- automatische Erkennung der verfügbaren PV-Eingänge innerhalb der validierten Registerkarten;
-- AC-Spannung, Strom, Frequenz, Leistung sowie Tages- und Gesamtenergie;
-- Spannung, Strom, Leistung sowie Tages- und Gesamtenergie je erkanntem PV-Eingang;
-- berechnete DC-Gesamtleistung aus den erkannten PV-Leistungen;
-- rohe Wechselrichteralarme und globaler Alarmstatus;
-- Kommunikationsdiagnosen mit getrennten Intervallen für Normalbetrieb, Fehlerwiederholung und Offline/Nacht;
-- eine Schaltfläche je Gerät zum sofortigen manuellen Aktualisieren der Daten;
-- mehrere Mikrowechselrichter in einer Home-Assistant-Installation;
-- übersetzte Home-Assistant-Entitäten auf Deutsch, Englisch, Französisch, Spanisch, Italienisch, Niederländisch, Polnisch und vereinfachtem Chinesisch.
+| Protokoll | Familie / validierte Referenz | Status |
+|:---:|---|:---:|
+| **1511** | TITAN · **TSOL-MP3000** | ✅ **Validiert** |
+| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
+| **1097** | GEN3 | 🧪 **Experimentell** |
+
+> [!TIP]
+> **Nicht aufgeführt bedeutet nicht automatisch nicht unterstützt.** Wenn dein Wechselrichter **1511, 02B0 oder 1097** verwendet, könnte er bereits funktionieren.
+
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="TSUN Local zu HACS hinzufügen" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
+
+<p align="center"><strong>Installieren. TSUN Local das Protokoll erkennen lassen. Prüfen, was dein Wechselrichter bereitstellt.</strong></p>
+
+---
+
+## Auf einen Blick
+
+| | Was TSUN Local bereitstellt |
+|---|---|
+| ☀️ **PV** | Spannung · Strom · Leistung · Tagesenergie · Gesamtenergie |
+| ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tagesenergie · Gesamtenergie |
+| 🚨 **Diagnose** | Alarme · Kommunikation · Logger-Informationen |
+| 🛡️ **Erweitert** | Netzschutz · Wechselrichterdiagnose · Standardmäßig deaktiviert |
+| 🔒 **Sicherheit** | Nur lesen · Keine Konfigurationsschreibzugriffe auf den Wechselrichter |
+
+📚 **[Vollständige Entitätsreferenz nach Protokoll](ENTITIES.md)** — Sensoren, Binärsensoren und Schaltflächen für **1511, 02B0 und 1097**.
+
+---
 
 ## Kompatibilität
 
-- **Home Assistant 2026.3.0 oder neuer**.
+**Home Assistant 2026.3.0 oder neuer.**
 
-**Legende:** ✅ auf echter Hardware validiert · 🧪 Adapter bereit für Community-Tests · 🔎 zusätzliche Registerinformationen oder Hardware-Aufzeichnungen erforderlich · ⏸️ derzeit nicht im Projektumfang.
+> [!NOTE]
+> **✅ Validiert** = mit TSUN Local auf echter Hardware bestätigt.  
+> **🔎 Wahrscheinlich kompatibel** = die Protokollfamilie wird unterstützt, dieses genaue Modell wurde mit TSUN Local aber noch nicht validiert.  
+> **🧪 Experimentell** = Protokollunterstützung ist vorhanden, benötigt jedoch weitere Validierung auf realen Geräten.
 
-### TITAN-Mikrowechselrichter
+### 1511 · TITAN — ✅ Validiert
 
-| PV-Eingänge | Modelle | Status | Hinweise |
-|---:|---|:---:|---|
-| 6 | **TSOL-MP3000** | ✅ | Auf echter Hardware validiert |
-| 6 | TSOL-MP2250, TSOL-MS3000 | 🧪 | 1511-Adapter ist testbereit |
-| 6 | MP3680, MP3750, MP4000, MP4600, MP5000, MP6000 | 🔎 | Hardware mit sechs Eingängen; lokales Protokoll und Registerkarte müssen noch durch einen Hardware-Mitschnitt bestätigt werden |
+**✅ Validiert**  
+`TSOL-MP3000`
 
-### GEN3- und GEN3-PLUS-Mikrowechselrichter
+**🔎 Wahrscheinlich kompatibel**  
+`TSOL-MP2250` · `TSOL-MS3000` *(TITAN-Generation)*
 
-| PV-Eingänge | Modelle | Status | Hinweise |
-|---:|---|:---:|---|
-| 1 | **TSOL-MX500** | ✅ | Auf echter Hardware validiert |
-| 1 | MX400, MX450, MS300, MS350, MS400, MS400-D | 🧪 | 02B0-Adapter ist testbereit |
-| 2 | MX800, MX900, MX1000, MS600, MS700, MS800, MS600-D, MS700-D, MS800-D | 🧪 | 02B0-Adapter ist testbereit |
-| 4 | MX2250, MS1600, MS1800, MS2000, MS2000-D | 🧪 | 02B0-Adapter ist testbereit |
-| 6 | MS3000, MX2400, MX2500, MX2700, MX3000/MX3000D, MX3300 | 🔎 | Die verfügbare 02B0-Karte endet derzeit bei PV4 |
+| | Verfügbare Daten |
+|---|---|
+| ☀️ **PV** | Bis zu 6 Eingänge · Spannung · Strom · Leistung · Tages- & Gesamtenergie |
+| ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tages- & Gesamtenergie |
+| 🚨 **Diagnose** | Wechselrichteralarme |
+| 🛡️ **Erweitert** | Netzschutz-Grenzwerte und Zeitdiagnosen |
+
+### 02B0 · GEN3 PLUS — ✅ Validiert
+
+**✅ Validiert**  
+`TSOL-MX500`
+
+**🔎 Wahrscheinlich kompatibel**  
+`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden.
+
+> [!NOTE]
+> Öffentliche GEN3-PLUS-Forschung ordnet diese Geräte im Allgemeinen der Seriennummernfamilie **Y17 / Y47** zu. Das hilft bei der Unterscheidung von Modellen, deren Namen auch bei älteren GEN3-Varianten vorkommen.
+
+| | Verfügbare Daten |
+|---|---|
+| ☀️ **PV** | Dynamische PV-Eingangserkennung · Spannung · Strom · Leistung · Energie |
+| ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Energie |
+| 🚨 **Diagnose** | Wechselrichteralarme |
+| 🛡️ **Erweitert** | Netzschutzdiagnose · Ausgangskoeffizient |
+
+### 1097 · GEN3 — 🧪 Experimentell
+
+**🔎 Wahrscheinlich kompatibel**  
+`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
+`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
+`TSOL-MS3000`
+
+> [!NOTE]
+> Öffentliche GEN3-Forschung ordnet diese Geräte im Allgemeinen der Seriennummernfamilie **R17 / R47** zu. Die Kompatibilität mit dem TSUN-Local-Protokoll **1097** bleibt experimentell, bis sie auf mehr echter Hardware bestätigt wurde.
+
+| | Verfügbare Daten |
+|---|---|
+| ☀️ **PV** | Standard-PV-Telemetrie |
+| ⚡ **AC** | Standard-Wechselrichter-/AC-Telemetrie |
+| 🚨 **Diagnose** | Verfügbare Wechselrichterdiagnosen |
+| 🛡️ **Erweitert** | Protokollversion · Wechselrichterversion · Temperatur · Isolation RX/RY · Rohwert Land/Profil · Auslegungsleistung |
+
+> **🔎 Wahrscheinlich kompatibel bedeutet nicht validiert.** Es bedeutet, dass TSUN Local die passende Protokollfamilie bereits implementiert und das Gerät damit ein guter Kompatibilitätskandidat ist.
+
+---
+
+## 🛡️ Erweiterte Diagnose
+
+Erweiterte Entitäten sind absichtlich **standardmäßig deaktiviert**. Dadurch bleibt die normale Geräteseite übersichtlich, während technische Informationen bei Bedarf verfügbar bleiben.
+
+Aktivierung:
+
+**Einstellungen → Geräte & Dienste → TSUN Local → Gerät → Entitäten → Deaktivierte Entitäten**
+
+Es sind keine Schreibzugriffe zur Konfiguration des Wechselrichters implementiert.
+
+---
 
 ## Installation
 
-### Mit HACS
+### HACS
 
-[![TSUN Local zu HACS hinzufügen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="TSUN Local zu HACS hinzufügen" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
 
-Oder manuell hinzufügen:
+Alternativ `https://github.com/jptstar/tsun-local` unter **HACS → Benutzerdefinierte Repositories → Integration** hinzufügen, **TSUN Local** installieren und Home Assistant neu starten.
 
-1. Öffne in HACS das Menü **⋮** und wähle **Benutzerdefinierte Repositories**.
-2. Füge `https://github.com/jptstar/tsun-local` mit dem Typ **Integration** hinzu.
-3. Öffne **TSUN Local**, wähle **Herunterladen** und anschließend die neueste Version.
-4. Starte Home Assistant neu.
+### Manuell
 
-Wenn eine neue Version nicht erscheint, öffne das Repository-Menü und wähle **Informationen aktualisieren**.
+`custom_components/tsun_local` nach `/config/custom_components/` kopieren, Home Assistant neu starten und anschließend **TSUN Local** unter **Einstellungen → Geräte & Dienste** hinzufügen.
 
-### Manuelle Installation
+---
 
-1. Kopiere `custom_components/tsun_local` nach `/config/custom_components/`.
-2. Starte Home Assistant neu.
-3. Öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen**.
-4. Suche nach **TSUN Local**.
+## Funktionsweise
 
-## Gerät hinzufügen
-
-TSUN Local kann im lokalen Netzwerk nach Mikrowechselrichtern suchen. Alternativ kann ihre IP-Adresse manuell eingegeben werden. TCP-Port `8899` ist voreingestellt und bleibt änderbar.
-
-Lokales Protokoll und numerische **SN** werden automatisch erkannt. Falls nötig, kann die SN von der lokalen Statusseite oder dem Typenschild manuell eingegeben werden. Sie unterscheidet sich von der alphanumerischen **Mikrowechselrichter-SN**.
-
-Befindet sich das Gerät in einem anderen VLAN und wird nicht gefunden, kann sein Subnetz in CIDR-Notation angegeben oder die manuelle Konfiguration verwendet werden.
-
-Mehrere Mikrowechselrichter können hinzugefügt werden. Jedes Gerät besitzt eigene Entitäten und Abfrageeinstellungen.
-
-## Abfrageeinstellungen
-
-Öffne unter **Einstellungen → Geräte & Dienste → TSUN Local** die Option **Konfigurieren** des betreffenden Geräts:
-
-- normales Intervall: 10 Sekunden bis 5 Minuten, standardmäßig 20 Sekunden;
-- Wiederholungsintervall nach einem Kommunikationsfehler: 10 Sekunden bis 5 Minuten, standardmäßig 20 Sekunden;
-- Offline-/Nachtintervall: 1 bis 60 Minuten, standardmäßig 5 Minuten;
-- aufeinanderfolgende Fehler bis offline: 1 bis 20, standardmäßig 3.
-
-Mit **Neu konfigurieren** können IP-Adresse und TCP-Port geändert werden, ohne die vorhandenen Entitäten zu löschen.
-
-Die Schaltfläche **Daten aktualisieren** startet sofort eine vollständige Abfrage des betreffenden Mikrowechselrichters, ohne die konfigurierten Intervalle zu ändern. Wird gerade ein anderes TSUN-Gerät gelesen, wartet die manuelle Aktualisierung bis zum Ende dieser Abfrage.
-
-## Entitäten
-
-Die Integration erstellt für jeden eingerichteten Mikrowechselrichter ein Home-Assistant-Gerät. Technische Entitätskennungen bleiben englisch, während die angezeigten Namen übersetzt werden.
-
-Neue Kennungen verwenden stabile englische Schlüssel wie `ac_power`, `pv1_current` und `pv1_energy_total`. Eine bereits von einer älteren Version in Home Assistant gespeicherte Kennung wird absichtlich nicht automatisch umbenannt, da dies Dashboards und Automatisierungen beschädigen könnte; sie kann bei Bedarf in den Entitätseinstellungen manuell geändert werden.
-
-Verfügbar sind:
-
-- AC-Momentanwerte und Energiezähler;
-- fünf Messwerte je erkanntem PV-Eingang;
-- berechnete DC-Gesamtleistung;
-- vier Kommunikationsdiagnosen sowie **SN**, **Mikrowechselrichter-SN**, Logger-Firmwareversion und MAC-Adresse als Diagnoseentitäten;
-- ein binärer Verbindungssensor **Mikrowechselrichter online**;
-- ein globaler Wechselrichteralarm und protokollspezifische rohe Alarmregister;
-- eine manuelle Schaltfläche **Daten aktualisieren**.
-
-Die PV-Erkennung erfolgt schrittweise. TITAN kann mit der aktuellen 1511-Karte PV1 bis PV6 bereitstellen. GEN3/GEN3 PLUS kann mit der aktuellen 02B0-Karte PV1 bis PV4 bereitstellen. Ein einmal erkannter Eingang bleibt in Home Assistant registriert.
-
-### Wechselrichteralarme
-
-Interne Alarme werden getrennt von Kommunikationsfehlern behandelt:
-
-- TITAN/1511 stellt vier globale Wörter, vier sekundäre Wörter und ein Rohwort je erkanntem PV-Eingang bereit;
-- GEN3/GEN3 PLUS/02B0 stellt die vier Rohregister ERR1 bis ERR4 bereit;
-- jede Rohdiagnose zeigt Dezimalwert, Hexadezimalwert und Registeradresse;
-- jeder Wert ungleich null aktiviert den globalen Binärsensor **Wechselrichteralarm**;
-- wenn der vollständige Alarmblock nicht gelesen werden kann, wird der globale Status nicht verfügbar, statt fälschlich Entwarnung zu melden.
-
-Die veröffentlichten Handbücher beschreiben Fehlerkategorien, aber bisher wurde keine öffentliche und verlässliche Register-/Bit-Zuordnung für alle unterstützten Familien gefunden. Unbekannte Werte bleiben deshalb roh und erhalten keine unbestätigte Fehlerbeschreibung.
-
-Zu den dokumentierten Kategorien gehören ungewöhnliche PV-Spannungen oder -Ströme, fehlende oder ungewöhnliche Netzspannung/-frequenz, Übertemperatur, Erdschluss- oder Isolationsfehler und interne Wechselrichterfehler. Diese Kategorien dienen nur zur Information, bis ihre Beziehung zu jedem Rohregister bestätigt ist.
-
-## Nacht- und Offline-Betrieb
-
-Wenn der solarbetriebene Mikrowechselrichter nachts nicht mehr antwortet:
-
-Bis zum konfigurierbaren Fehlerschwellenwert bleiben die letzten Werte verfügbar und Wiederholungen verwenden das Fehlerintervall. Beim Erreichen des Schwellenwerts (standardmäßig 3 Fehler) geht das Gerät offline und verwendet das Offline-/Nachtintervall. Die erste erfolgreiche Antwort setzt den Zähler sofort auf null zurück und stellt das normale Intervall wieder her.
-
-- Momentanwerte für Spannung, Strom, Leistung und Frequenz werden nicht verfügbar;
-- Alarmstatus und rohe Alarmregister werden nicht verfügbar;
-- Tages- und Gesamtenergiezähler behalten den letzten bekannten Wert;
-- **Mikrowechselrichter online** wird ausgeschaltet und der Fehlerzähler steigt;
-- das langsamere Offline-/Nachtintervall wird verwendet;
-- nach der ersten erfolgreichen Antwort wird das normale Intervall wiederhergestellt.
-
-## Lokaler Betrieb und Cloud-Zugriff
-
-TSUN Local selbst kontaktiert keinen TSUN-Cloud-Dienst. Die Telemetrie wird direkt vom lokalen Gerät gelesen.
-
-Die eigene Internet- oder Cloud-Kommunikation des Mikrowechselrichters wird dadurch nicht deaktiviert. Eine vollständige Internet-Isolation muss am Router oder an der Firewall eingerichtet werden, wobei der lokale Zugriff von Home Assistant auf IP-Adresse und TCP-Port erhalten bleiben muss.
-
-## Community-Tests und Diagnosen
-
-Mit 🧪 markierte Modelle können tatsächlich getestet werden. Erfolgreiche und fehlgeschlagene Versuche sind gleichermaßen hilfreich: Unterschiede zwischen Modellen oder Firmware-Versionen lassen sich nur durch Rückmeldungen von echter Hardware bestätigen.
-
-Wenn die Integration bereits eingerichtet ist:
-
-1. Öffne **Einstellungen → Geräte & Dienste → TSUN Local**.
-2. Aktiviere im Integrationsmenü die Debug-Protokollierung, stelle das Problem einmal nach und deaktiviere die Protokollierung anschließend wieder.
-3. Lade die Diagnose auf derselben Integrations- oder Geräteseite herunter.
-4. Erstelle einen [Kompatibilitätsbericht](https://github.com/jptstar/tsun-local/issues/new/choose) mit genauem Modell, Firmware-Version, TSUN-Local-Version und der heruntergeladenen Datei.
-
-Wenn die Einrichtung nicht abgeschlossen werden kann, starte die eigenständige Aufzeichnung aus einer Kopie dieses Repositorys:
-
-```bash
-python3 tools/diagnose_device.py --host GERAETE_IP
+```text
+TSUN-Wechselrichter
+     │
+     │ Lokales Netzwerk
+     ▼
+ TSUN Local
+     │
+     ▼
+Home Assistant
 ```
 
-Die numerische SN wird interaktiv abgefragt und nicht im Befehlsverlauf gespeichert. Die erzeugte Datei `tsun_local_diagnostic.json` enthält dekodierte Messwerte und eine kurze Ringspur der internen Protokollanfragen und -antworten. Sie enthält **weder Geräte-IP noch SN noch Logger-MAC-Adresse noch AP-Hülle**. Prüfe die Datei vor dem Teilen, da Produktions- und Energiewerte sichtbar bleiben.
+**Keine Cloud im Datenpfad. Kein Proxy. Kein externer Laufzeitdienst. Keine Konfigurationsschreibzugriffe auf den Wechselrichter.**
 
-Die aufgezeichneten Antworten können ohne das physische Gerät lokal erneut ausgewertet werden:
+Nur direkte lokale Abfrage.
 
-```bash
-python3 tools/replay_diagnostic.py tsun_local_diagnostic.json
+---
+
+## Ein anderes TSUN-Modell testen
+
+Dein Wechselrichter muss nicht oben aufgeführt sein.
+
+Wenn TSUN Local eines dieser Protokolle erkennt:
+
+```text
+1511
+02B0
+1097
 ```
 
-Die verfügbaren Registerkarten sind eine solide Ausgangsbasis, garantieren aber kein identisches Verhalten jedes ungeprüften Modells oder jeder Firmware-Version. Durch Aufzeichnung und Wiedergabe werden gezielte Kompatibilitätskorrekturen möglich, ohne Fernzugriff auf das Netzwerk anderer Nutzer.
+lass die Integration laufen und prüfe die erkannten Entitäten.
 
-## Mögliche nächste Erweiterungen
+> [!TIP]
+> **Dein Wechselrichter könnte das nächste validierte Modell werden.** Hilfreich sind das genaue Modell, das erkannte Protokoll, die Anzahl der PV-Eingänge, die Firmwareversion und welche Entitäten plausible Werte liefern.
 
-Die folgenden Ideen sind bewusst noch nicht aktiviert und benötigen vor einer Umsetzung eine Validierung:
+---
 
-- Netzschutzschwellen als schreibgeschützte Diagnoseentitäten;
-- der 02B0-Ausgangskoeffizient als schreibgeschützter Prozentwert;
-- Home-Assistant-Benachrichtigungen oder Reparaturhinweise für dauerhafte Alarme;
-- übersetzte Fehlerbeschreibungen nach Bestätigung der Register-/Bit-Zuordnung;
-- weitere lokale Adapter für künftige TSUN-Mikrowechselrichterfamilien.
+## TSUN Local 1.4
 
-Schreib- oder Steuerbefehle werden nicht ohne ausdrückliche Schutzmaßnahmen und Validierung auf echter Hardware hinzugefügt.
+### Ein breiteres TSUN Local
 
-## Autor
+Version 1.4 entwickelt TSUN Local von einzelnen bekannten Modellen hin zu **Kompatibilität auf Protokollfamilien-Ebene**.
 
-Jean-Philippe TESTART (`jptstar`)
+| | |
+|---|---|
+| 🔌 | **1511 · 02B0 · 1097** |
+| 🔍 | Automatische Protokollerkennung |
+| ☀️ | Progressive / dynamische PV-Eingangserkennung |
+| 📊 | Erweiterte lokale Telemetrie |
+| 🛡️ | Erweiterte Nur-Lese-Diagnose |
+| 🌍 | 8 Sprachen |
+| 🧪 | Einfacheres Testen neuer TSUN-Modelle |
+
+---
+
+## Reverse Engineering & Validierung
+
+Die Implementierungen 1511 und 02B0 entstehen durch **unabhängige lokale Protokollanalyse, Beobachtungen an realen Geräten und Hardwarevalidierung**.
+
+Kompatibilitätskandidaten werden bewusst getrennt von tatsächlich validierter Hardware gekennzeichnet.
+
+---
+
+## Beiträge
+
+TSUN Local profitiert auch von Beiträgen aus der Community:
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — öffentliche 1097-Protokollforschung, die in die experimentelle Zuordnung von TSUN Local eingeflossen ist.
+- **TheSmartGerman** — Tests an realer Hardware und Kompatibilitätsrückmeldungen für den **TSOL-MP3000 mit 1511**, bei denen das Protokoll **1097** unbeabsichtigt erkannt wurde.
+
+---
+
+## Projekt
+
+> [!IMPORTANT]
+> **Inoffizielles Community-Projekt.** TSUN Local ist unabhängig und wird weder von TSUN entwickelt, genehmigt, unterstützt noch gepflegt.
+
+Erstellt und gepflegt von **Jean-Philippe TESTART · `jptstar`**  
+*Aus Spaß, technischer Neugier und für die Home-Assistant-Community entwickelt und geteilt.*
+
+---
 
 ## Lizenz
 
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
+Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
 
-Dieses Projekt wird unter der **GNU General Public License v3.0 oder höher** (`GPL-3.0-or-later`) veröffentlicht. Geänderte oder weiterverteilte Versionen müssen die Lizenzbedingungen einhalten und die Copyright- und Lizenzhinweise beibehalten. Siehe [LICENSE](LICENSE).
-
-Die Lizenz gilt ausschließlich für diese unabhängige Implementierung. Sie gewährt keine Rechte an Marken, Logos, Software oder Produkten von TSUN. Dieses Projekt bleibt inoffiziell und unabhängig von TSUN.
+Veröffentlicht unter der **GNU General Public License v3.0 oder später**. Siehe [LICENSE](../LICENSE).

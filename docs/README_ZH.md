@@ -1,144 +1,248 @@
-# TSUN Local — Home Assistant 本地集成
-
-[English](../README.md) | [Français](README_FR.md) | [Deutsch](README_DE.md) | [Nederlands](README_NL.md) | [Italiano](README_IT.md) | [Español](README_ES.md) | [Polski](README_PL.md) | [简体中文](README_ZH.md)
-
-[![GitHub Release](https://img.shields.io/github/v/release/jptstar/tsun-local)](https://github.com/jptstar/tsun-local/releases)
-
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon@2x.png" width="160" alt="独立的 TSUN Local 图标">
+  <a href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a> ·
+  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-> **非官方项目** — 此独立社区集成并非由 TSUN 开发、认可或维护，也与 TSUN 没有任何关联。TSUN 及其产品名称归各自权利人所有。有关此集成的支持请求应提交给作者，而不是 TSUN。
+<p align="center">
+  <img src="../custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local">
+</p>
 
-**TSUN Local** 可将兼容的 TSUN 微型逆变器直接接入 Home Assistant，**通过本地网络，无需代理服务器或云服务**。
+<h1 align="center">TSUN Local</h1>
+<h3 align="center">你的逆变器。你的网络。你的数据。</h3>
+<p align="center"><strong>本地。只读。无需云端。无需代理。</strong></p>
+<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.4.0</strong></p>
 
-版本 1.3.3 支持已在真实设备上验证的 **TSOL-MP3000** 和 **MX500**，并为其他等待验证的 **TITAN**、**GEN3** 和 **GEN3 PLUS** 型号提供支持。
+<p align="center">
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
+  <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
+</p>
 
-**作者：Jean-Philippe TESTART（jptstar）**
+---
 
-## 项目性质与支持
+## 你的 TSUN 逆变器可能已经可以使用
 
-TSUN Local 是一个 Home Assistant 集成，最初是我出于兴趣并为个人使用而开发的。由于许多用户难以与 TITAN 微型逆变器建立本地连接，我将此集成公开提供，希望尽可能多的人能够从中受益。
+TSUN Local 支持 **三种 TSUN 本地协议系列**。
 
-如果我收到有关特定型号的反馈和诊断信息，我愿意投入一些时间来改进兼容性并修复错误。不过，TSUN Local 仍然是我的个人爱好和业余项目，并非我的主要工作。因此，我有时可能需要较长时间才能回复或发布修复。
+| 协议 | 系列 / 已验证参考型号 | 状态 |
+|:---:|---|:---:|
+| **1511** | TITAN · **TSOL-MP3000** | ✅ **已验证** |
+| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **已验证** |
+| **1097** | GEN3 | 🧪 **实验性** |
 
-## 版本
+> [!TIP]
+> **未列出并不代表不支持。** 如果你的逆变器使用 **1511、02B0 或 1097**，它可能已经能够工作。
 
-发布版本遵循 `MAJOR.MINOR.PATCH` 格式。HACS 通过 GitHub Releases 提供更新。详细信息请参阅[更新日志](../CHANGELOG.md)。
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="将 TSUN Local 添加到 HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
+
+<p align="center"><strong>安装它。让 TSUN Local 识别协议。查看你的逆变器可以提供哪些数据。</strong></p>
+
+---
+
+## 一览
+
+| | TSUN Local 可提供的数据 |
+|---|---|
+| ☀️ **PV** | 电压 · 电流 · 功率 · 当日发电量 · 总发电量 |
+| ⚡ **AC** | 电压 · 电流 · 频率 · 功率 · 当日发电量 · 总发电量 |
+| 🚨 **诊断** | 告警 · 通信 · Logger 信息 |
+| 🛡️ **高级** | 电网保护 · 逆变器诊断 · 默认禁用 |
+| 🔒 **安全** | 只读 · 不向逆变器写入配置 |
+
+📚 **[按协议查看完整实体列表](ENTITIES.md)** — **1511、02B0 和 1097** 的传感器、二进制传感器和按钮。
+
+---
 
 ## 兼容性
 
-**Home Assistant 2026.3.0 或更高版本**
+**需要 Home Assistant 2026.3.0 或更高版本。**
 
-### 图例
+> [!NOTE]
+> **✅ 已验证** = 已在真实硬件上使用 TSUN Local 确认。  
+> **🔎 很可能兼容** = 协议系列已支持，但该具体型号尚未使用 TSUN Local 验证。  
+> **🧪 实验性** = 已有协议支持，但仍需要更多真实设备验证。
 
-- ✅ 兼容并已在真实硬件上验证
-- 🧪 已准备好供社区测试 — 适配器已提供，欢迎反馈
-- 🔎 征集硬件数据 — 兼容性尚待确认
+### 1511 · TITAN — ✅ 已验证
 
-### 微型逆变器
+**✅ 已验证**  
+`TSOL-MP3000`
 
-#### TITAN
+**🔎 很可能兼容**  
+`TSOL-MP2250` · `TSOL-MS3000` *(TITAN 代际)*
 
-| 配置 | 型号 | 状态 |
-|---|---|---|
-| 6-in-1 | **TSOL-MP3000** | ✅ 已验证 |
-| 6-in-1 | **TSOL-MP2250, TSOL-MS3000** | 🧪 征集测试者 |
-| 输入数量待确定 | **MP6000, MP5000, MP4600, MP4000, MP3750, MP3680** | 🔎 征集硬件数据 |
+| | 可用数据 |
+|---|---|
+| ☀️ **PV** | 最多 6 路输入 · 电压 · 电流 · 功率 · 当日及总发电量 |
+| ⚡ **AC** | 电压 · 电流 · 频率 · 功率 · 当日及总发电量 |
+| 🚨 **诊断** | 逆变器告警 |
+| 🛡️ **高级** | 电网保护阈值及时间参数诊断 |
 
-#### GEN3 / GEN3 PLUS — MX 系列
+### 02B0 · GEN3 PLUS — ✅ 已验证
 
-| 配置 | 型号 | 状态 |
-|---|---|---|
-| 1-in-1 | **MX500** | ✅ 已验证 |
-| 1-in-1 | **MX450, MX400** | 🧪 征集测试者 |
-| 2-in-1 | **MX1000, MX900, MX800** | 🧪 征集测试者 |
-| 4-in-1 | **MX2250** | 🧪 征集测试者 |
-| 6-in-1 | **MX3300, MX3000, MX2700, MX2500, MX2400** | 🔎 征集硬件数据 |
+**✅ 已验证**  
+`TSOL-MX500`
 
-#### GEN3 / GEN3 PLUS — MS 系列
+**🔎 很可能兼容**  
+`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+相应的 `-D` 变体在适用时也可能兼容。
 
-| 配置 | 型号 | 状态 |
-|---|---|---|
-| 1-in-1 | **MS400, MS350, MS300, MS400-D** | 🧪 征集测试者 |
-| 2-in-1 | **MS800, MS700, MS600, MS600-D, MS800-D** | 🧪 征集测试者 |
-| 4-in-1 | **MS2000, MS1800, MS1600, MS2000-D, MS3000** | 🧪 征集测试者 |
+> [!NOTE]
+> 公开的 GEN3 PLUS 研究通常将这些设备与 **Y17 / Y47** 序列号系列关联。这有助于区分名称相同、但属于较早 GEN3 代际的型号。
 
-TITAN 的光伏输入可动态检测至 **6 路**。对于 GEN3 / GEN3 PLUS，当前映射覆盖 **1、2 或 4 路光伏输入**；PV5 和 PV6 尚未被检测。
+| | 可用数据 |
+|---|---|
+| ☀️ **PV** | 动态 PV 输入检测 · 电压 · 电流 · 功率 · 能量 |
+| ⚡ **AC** | 电压 · 电流 · 频率 · 功率 · 能量 |
+| 🚨 **诊断** | 逆变器告警 |
+| 🛡️ **高级** | 电网保护诊断 · 输出系数 |
 
-> **您拥有上述型号之一吗？** 标有 🧪 的型号已准备好供社区测试。请[提交兼容性报告](https://github.com/jptstar/tsun-local/issues/new)，注明准确型号、固件版本和测试结果。请隐藏完整序列号和私有网络信息。
+### 1097 · GEN3 — 🧪 实验性
+
+**🔎 很可能兼容**  
+`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
+`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
+`TSOL-MS3000`
+
+> [!NOTE]
+> 公开的 GEN3 研究通常将这些设备与 **R17 / R47** 序列号系列关联。在更多真实硬件上确认之前，TSUN Local 的 **1097** 协议兼容性仍属于实验性支持。
+
+| | 可用数据 |
+|---|---|
+| ☀️ **PV** | 标准 PV 遥测 |
+| ⚡ **AC** | 标准逆变器 / AC 遥测 |
+| 🚨 **诊断** | 可用的逆变器诊断数据 |
+| 🛡️ **高级** | 协议版本 · 逆变器版本 · 温度 · 绝缘 RX/RY · 国家/配置原始值 · 设计功率 |
+
+> **🔎 很可能兼容并不等于已验证。** 这表示 TSUN Local 已实现相应协议系列，因此该设备是很有希望的兼容候选型号。
+
+---
+
+## 🛡️ 高级诊断
+
+高级实体被有意设置为 **默认禁用**。这样可以保持普通设备页面简洁，同时在需要时仍可启用更深入的技术信息。
+
+启用方式：
+
+**设置 → 设备与服务 → TSUN Local → 设备 → 实体 → 已禁用实体**
+
+未实现任何向逆变器写入配置的功能。
+
+---
 
 ## 安装
 
-### 通过 HACS 安装
+### HACS
 
-[![将 TSUN Local 添加到 HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration)
+<p align="center">
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
+    <img alt="将 TSUN Local 添加到 HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
+  </a>
+</p>
 
-也可以手动添加：
-
-1. 在 HACS 中，打开右上角的 **⋮** 菜单，然后选择**自定义存储库**。
-2. 添加 `https://github.com/jptstar/tsun-local`，类型选择**集成**。
-3. 选择**添加**，然后打开 **TSUN Local**。
-4. 选择**下载**并选取最新可用版本。
-5. 重新启动 Home Assistant。
-
-如果未显示最新版本，请打开存储库菜单并选择**更新信息**。
+或者在 **HACS → 自定义仓库 → Integration** 中添加 `https://github.com/jptstar/tsun-local`，安装 **TSUN Local**，然后重启 Home Assistant。
 
 ### 手动安装
 
-1. 将 `custom_components/tsun_local` 复制到 Home Assistant 的 `/config/custom_components/`。
-2. 重新启动 Home Assistant。
-3. 打开**设置 → 设备与服务 → 添加集成**。
-4. 搜索 **TSUN Local**。
+将 `custom_components/tsun_local` 复制到 `/config/custom_components/`，重启 Home Assistant，然后在 **设置 → 设备与服务** 中添加 **TSUN Local**。
 
-## 添加设备
+---
 
-TSUN Local 可以在本地网络中搜索微型逆变器，也可以手动输入其 IP 地址。默认提供 TCP 端口 `8899`，并可随时修改。
+## 工作方式
 
-本地协议和数字 **SN** 会自动检测。如有需要，可从本地页面或设备铭牌手动输入该 SN。它与字母数字形式的**微型逆变器 SN**不同。
+```text
+TSUN 逆变器
+     │
+     │ 本地网络
+     ▼
+ TSUN Local
+     │
+     ▼
+Home Assistant
+```
 
-如果设备位于其他 VLAN 且未被发现，请输入其 CIDR 子网或使用手动配置。
+**数据路径中无需云端。无需代理。无需远程运行服务。不向逆变器写入配置。**
 
-可以添加多台微型逆变器。每台设备都有独立的实体和轮询设置。
+仅进行直接本地轮询。
 
-## Home Assistant 设置
+---
 
-在**设置 → 设备与服务 → TSUN Local**中，打开对应设备的菜单：
+## 测试其他 TSUN 型号
 
-- **配置**可设置 10 秒至 5 分钟的正常轮询间隔（默认 20 秒）、10 秒至 5 分钟的错误后重试间隔（默认 20 秒）、1 至 60 分钟的离线/夜间轮询间隔（默认 5 分钟），以及 1 至 20 次连续失败阈值（默认 3 次）；
-- **重新配置**可修改 IP 地址和 TCP 端口，而不会删除实体；
-- 每台设备都有独立的轮询间隔。
+你的逆变器不一定需要出现在上面的列表中。
 
-## 本地运行与云端隔离
+如果 TSUN Local 识别出以下任一协议：
 
-TSUN Local 仅通过本地网络通信，不使用任何云服务。但此集成不会修改设备固件中的云端设置。
+```text
+1511
+02B0
+1097
+```
 
-如需阻止微型逆变器访问互联网，请在路由器或防火墙中创建规则，阻止其 WAN 访问，同时保留本地网络和 DHCP 访问。Home Assistant 必须仍可通过 TCP 端口 **8899** 访问微型逆变器的 IP 地址。安装完成后，HACS 仅在检查和下载更新时需要互联网连接。
+让集成运行并检查发现的实体。
 
-## 夜间运行
+> [!TIP]
+> **你的逆变器可能成为下一个已验证型号。** 有用的反馈包括准确型号、检测到的协议、PV 输入数量、固件版本，以及哪些实体返回合理数值。
 
-当微型逆变器停止供电时，集成会将其标记为离线，而不会在每次轮询时重复记录错误：
+---
 
-在达到可配置失败阈值之前，最新值保持可用，并按错误重试间隔再次尝试。达到阈值后（默认连续失败 3 次），设备转为离线并使用离线/夜间间隔。首次成功响应会将计数器清零并恢复正常轮询间隔。
+## TSUN Local 1.4
 
-- 瞬时测量值（电压、电流、功率和频率）将变为不可用，以避免显示过期数据；
-- 每日和总发电量计数器会保留最后一次已知值并继续可用；
-- **微型逆变器在线**二进制传感器显示为离线；
-- 通信恢复后，连续通信失败计数器会归零；
-- 最后一次成功通信时间仍然可用；
-- 重试使用已配置的离线/夜间间隔；
-- 早晨首次成功响应后恢复正常轮询间隔。
+### 覆盖范围更广的 TSUN Local
 
-## 传感器
+1.4 版本让 TSUN Local 从单个已知型号的支持，扩展到 **协议系列级兼容性**。
 
-该集成创建一台设备，其中包含交流测量、每个已检测光伏输入的 5 项测量、已检测直流功率之和、4 项通信诊断、**SN**、**微型逆变器 SN**、logger 固件版本和 MAC 地址诊断传感器，以及**微型逆变器在线**连接二进制传感器。
+| | |
+|---|---|
+| 🔌 | **1511 · 02B0 · 1097** |
+| 🔍 | 自动协议识别 |
+| ☀️ | 渐进式 / 动态 PV 输入检测 |
+| 📊 | 更丰富的本地遥测 |
+| 🛡️ | 高级只读诊断 |
+| 🌍 | 8 种语言 |
+| 🧪 | 更容易测试新的 TSUN 型号 |
 
-光伏输入数量是动态的：首次读取后 PV1 可用；当检测到有效测量值或发电量计数器时，TITAN 的 PV2 至 PV6 或 GEN3/GEN3 PLUS 的 PV2 至 PV4 会被添加。已检测到的输入会持续保留在 Home Assistant 中。
+---
+
+## 逆向分析与验证
+
+1511 和 02B0 的实现来自 **独立的本地协议分析、真实设备观察和硬件验证**。
+
+兼容候选型号与真正完成验证的硬件会被明确区分。
+
+---
+
+## 贡献
+
+TSUN Local 也受益于社区贡献：
+
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — 公开的 1097 协议研究，为 TSUN Local 使用的实验性映射提供了参考。
+- **TheSmartGerman** — 对 **TSOL-MP3000 / 1511** 的真实硬件测试和兼容性反馈，在此过程中意外检测到了 **1097** 协议。
+
+---
+
+## 项目
+
+> [!IMPORTANT]
+> **非官方社区项目。** TSUN Local 是独立项目，并非由 TSUN 开发、批准、背书或维护。
+
+创建和维护者：**Jean-Philippe TESTART · `jptstar`**  
+*出于兴趣、技术好奇心以及对 Home Assistant 社区的分享而开发。*
+
+---
 
 ## 许可证
 
-Copyright © 2026 Jean-Philippe TESTART (jptstar).
+Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
 
-本项目依据 **GNU General Public License v3.0 或更高版本**（GPL-3.0-or-later）发布。修改或再分发的版本必须遵守此许可证，并保留版权和许可证声明。请参阅 [LICENSE](https://github.com/jptstar/tsun-local/blob/main/LICENSE)。
-
-该许可证仅涵盖此独立实现，不授予任何 TSUN 商标、徽标、软件或产品的权利。本项目始终为非官方项目，与 TSUN 无任何关联。
+根据 **GNU General Public License v3.0 或更高版本** 发布。参见 [LICENSE](../LICENSE)。

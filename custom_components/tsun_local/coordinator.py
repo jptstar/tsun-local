@@ -47,6 +47,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         logger_firmware_version: str | None = None,
         logger_mac_address: str | None = None,
         inverter_serial_number: str | None = None,
+        logger_raw_profile: str | None = None,
+        logger_wifi_signal: int | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -71,6 +73,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "logger_firmware_version": logger_firmware_version,
                 "logger_mac_address": logger_mac_address,
                 "inverter_serial_number": inverter_serial_number,
+                "logger_raw_profile": logger_raw_profile,
+                "logger_wifi_signal": logger_wifi_signal,
             }.items()
             if value is not None
         }
@@ -99,9 +103,33 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "last_error": self._last_error,
         }
         if self.data:
-            summary["last_duration_ms"] = self.data.get("communication_duration")
-            summary["last_blocks_ok"] = self.data.get("communication_blocks")
+            summary["last_duration_ms"] = self.data.get(
+                "communication_duration"
+            )
+            summary["last_blocks_ok"] = self.data.get(
+                "communication_blocks"
+            )
         return summary
+
+    def async_update_logger_metadata(
+        self, updates: dict[str, Any]
+    ) -> bool:
+        """Update logger metadata without resetting inverter polling."""
+        changed = False
+        for key, value in updates.items():
+            if value is None or self._logger_metadata.get(key) == value:
+                continue
+            self._logger_metadata[key] = value
+            changed = True
+        if not changed:
+            return False
+
+        self.data = {
+            **dict(self.data or {}),
+            **self._logger_metadata,
+        }
+        self.async_update_listeners()
+        return True
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
@@ -114,8 +142,12 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._last_error = safe_error_details(err)
             trace = self.client.diagnostic_trace
             if trace:
-                self._last_error["protocol"] = str(trace[-1].get("protocol", "unknown"))
-                self._last_error["stage"] = str(trace[-1].get("stage", "unknown"))
+                self._last_error["protocol"] = str(
+                    trace[-1].get("protocol", "unknown")
+                )
+                self._last_error["stage"] = str(
+                    trace[-1].get("stage", "unknown")
+                )
             threshold_reached = (
                 self._consecutive_failures >= self._failure_threshold
             )
@@ -142,8 +174,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 self.update_interval = self._error_update_interval
             previous_data = {
-                **self._logger_metadata,
                 **dict(self.data or {}),
+                **self._logger_metadata,
             }
             previous_data.update(
                 {

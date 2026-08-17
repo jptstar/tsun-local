@@ -2,11 +2,11 @@
   "config": {
     "step": {
       "user": {
-        "title": "Aggiungi un dispositivo TSUN Local",
-        "description": "Scegli la ricerca automatica in rete o la configurazione manuale.",
+        "title": "Aggiungi un dispositivo TSUN",
+        "description": "Cerca automaticamente i dispositivi TSUN compatibili sulla rete oppure aggiungine uno manualmente.",
         "menu_options": {
-          "discover": "Cerca nella rete locale",
-          "manual": "Inserisci manualmente i dati di connessione"
+          "discover": "Cerca dispositivi TSUN",
+          "manual": "Aggiungi manualmente"
         }
       },
       "reconfigure": {
@@ -18,17 +18,18 @@
         }
       },
       "manual": {
-        "title": "Configurazione manuale",
-        "description": "Inserisci l'indirizzo IP e la porta. Home Assistant prova prima a leggere automaticamente il SN numerico dalla pagina di stato locale del logger. Se non è leggibile, il modulo ne richiederà l'inserimento manuale.",
+        "title": "Aggiungi un dispositivo manualmente",
+        "description": "Inserisci l’indirizzo IP del dispositivo. Nella maggior parte dei casi, lascia la selezione del protocollo su «Automatico — in base al firmware». TSUN Local proverà anche a leggere automaticamente il SN del logger.",
         "data": {
           "host": "Indirizzo IP",
           "port": "Porta",
-          "logger_sn": "SN"
+          "logger_sn": "SN",
+          "protocol": "Metodo di selezione del protocollo"
         }
       },
       "discover": {
-        "title": "Dispositivi trovati",
-        "description": "Seleziona un indirizzo trovato sulla porta TCP configurata. Home Assistant prova prima a leggere automaticamente il SN numerico dalla pagina di stato locale del logger. Se non è leggibile, il modulo ne richiederà l'inserimento manuale.",
+        "title": "Dispositivi TSUN rilevati",
+        "description": "Seleziona il dispositivo TSUN da aggiungere. TSUN Local verifica il firmware e mostra solo i dispositivi che utilizzano protocolli supportati.",
         "data": {
           "host": "Indirizzo rilevato",
           "port": "Porta",
@@ -36,8 +37,8 @@
         }
       },
       "discover_network": {
-        "title": "Rete da analizzare",
-        "description": "Non è stato trovato alcun dispositivo nelle reti rilevate da Home Assistant. Inserisci la sottorete IPv4 dei microinverter in notazione CIDR (ad esempio 192.168.1.0/24). La ricerca è limitata a 254 indirizzi.",
+        "title": "Cerca in un’altra sottorete",
+        "description": "Non è stato rilevato automaticamente alcun dispositivo TSUN compatibile. Inserisci la sottorete IPv4 da analizzare, ad esempio 192.168.1.0/24. La ricerca è limitata a 254 indirizzi.",
         "data": {
           "discovery_network": "Sottorete IPv4",
           "port": "Porta"
@@ -45,16 +46,17 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossibile connettersi al dispositivo",
-      "cannot_detect_logger_sn": "Il rilevamento automatico non è riuscito. Inserisci il SN numerico mostrato come Device serial number nella pagina di stato locale o sull'etichetta del dispositivo.",
+      "cannot_connect": "Impossibile comunicare con il dispositivo. Verifica che sia online e raggiungibile da Home Assistant.",
+      "cannot_detect_logger_sn": "Non è stato possibile rilevare automaticamente il SN del logger. Inserisci il numero indicato come Device serial number nella pagina di stato locale o sull’etichetta del dispositivo.",
       "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32",
-      "invalid_response": "Il dispositivo ha restituito una risposta non valida",
-      "no_devices_found": "Nessun dispositivo con connessione locale è stato trovato in questa sottorete e porta"
+      "invalid_response": "Il dispositivo ha risposto, ma i dati ricevuti non sono riconosciuti.",
+      "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile in questa sottorete.",
+      "unknown_firmware": "Il firmware di questo dispositivo non viene riconosciuto automaticamente. Torna alla configurazione manuale e scegli «Rilevamento forzato — prova i protocolli», oppure seleziona manualmente un protocollo."
     },
     "abort": {
       "already_configured": "Questo microinverter è già configurato",
       "all_devices_configured": "Tutti i microinverter rilevati sono già configurati",
-      "no_devices_found": "Non è stato trovato alcun dispositivo che accetti connessioni locali sulla porta 8899"
+      "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile nelle reti analizzate."
     }
   },
   "options": {
@@ -73,14 +75,72 @@
   },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "SN del microinverter"},
-      "logger_firmware_version": {"name": "Versione firmware del logger"},
-      "logger_mac_address": {"name": "Indirizzo MAC del logger"},
-      "alarm_global_0_raw": {"name": "Allarme globale (valore grezzo) 0"}, "alarm_global_1_raw": {"name": "Allarme globale (valore grezzo) 1"}, "alarm_global_2_raw": {"name": "Allarme globale (valore grezzo) 2"}, "alarm_global_3_raw": {"name": "Allarme globale (valore grezzo) 3"},
-      "alarm_secondary_0_raw": {"name": "Allarme secondario (valore grezzo) 0"}, "alarm_secondary_1_raw": {"name": "Allarme secondario (valore grezzo) 1"}, "alarm_secondary_2_raw": {"name": "Allarme secondario (valore grezzo) 2"}, "alarm_secondary_3_raw": {"name": "Allarme secondario (valore grezzo) 3"},
-      "alarm_code_1_raw": {"name": "Codice allarme (valore grezzo) 1"}, "alarm_code_2_raw": {"name": "Codice allarme (valore grezzo) 2"}, "alarm_code_3_raw": {"name": "Codice allarme (valore grezzo) 3"}, "alarm_code_4_raw": {"name": "Codice allarme (valore grezzo) 4"},
-      "pv1_alarm_raw": {"name": "Allarme PV1 (valore grezzo)"}, "pv2_alarm_raw": {"name": "Allarme PV2 (valore grezzo)"}, "pv3_alarm_raw": {"name": "Allarme PV3 (valore grezzo)"}, "pv4_alarm_raw": {"name": "Allarme PV4 (valore grezzo)"}, "pv5_alarm_raw": {"name": "Allarme PV5 (valore grezzo)"}, "pv6_alarm_raw": {"name": "Allarme PV6 (valore grezzo)"},
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN del microinverter"
+      },
+      "logger_firmware_version": {
+        "name": "Versione firmware del logger"
+      },
+      "logger_mac_address": {
+        "name": "Indirizzo MAC del logger"
+      },
+      "alarm_global_0_raw": {
+        "name": "Allarme globale (valore grezzo) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Allarme globale (valore grezzo) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Allarme globale (valore grezzo) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Allarme globale (valore grezzo) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Allarme secondario (valore grezzo) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Allarme secondario (valore grezzo) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Allarme secondario (valore grezzo) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Allarme secondario (valore grezzo) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Codice allarme (valore grezzo) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Codice allarme (valore grezzo) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Codice allarme (valore grezzo) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Codice allarme (valore grezzo) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "Allarme PV1 (valore grezzo)"
+      },
+      "pv2_alarm_raw": {
+        "name": "Allarme PV2 (valore grezzo)"
+      },
+      "pv3_alarm_raw": {
+        "name": "Allarme PV3 (valore grezzo)"
+      },
+      "pv4_alarm_raw": {
+        "name": "Allarme PV4 (valore grezzo)"
+      },
+      "pv5_alarm_raw": {
+        "name": "Allarme PV5 (valore grezzo)"
+      },
+      "pv6_alarm_raw": {
+        "name": "Allarme PV6 (valore grezzo)"
+      },
       "ac_voltage": {
         "name": "Tensione AC"
       },
@@ -101,6 +161,24 @@
       },
       "dc_power_total": {
         "name": "Potenza DC totale"
+      },
+      "inverter_status_raw": {
+        "name": "Stato grezzo dell’inverter"
+      },
+      "rated_power": {
+        "name": "Potenza nominale dell’inverter"
+      },
+      "max_designed_power": {
+        "name": "Potenza massima di progetto"
+      },
+      "register_3017_raw": {
+        "name": "Registro grezzo 3017 (significato non confermato)"
+      },
+      "register_3018_raw": {
+        "name": "Registro grezzo 3018 (significato non confermato)"
+      },
+      "register_3028_raw": {
+        "name": "Registro grezzo 3028 (significato non confermato)"
       },
       "communication_last_success": {
         "name": "Ultima comunicazione riuscita"
@@ -203,6 +281,96 @@
       },
       "pv6_energy_total": {
         "name": "Energia PV6 totale"
+      },
+      "logger_wifi_signal": {
+        "name": "Segnale Wi-Fi del logger"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "Tensione di ripristino dopo sovratensione di rete"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "Tensione di ripristino dopo sottotensione di rete"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "Frequenza di ripristino dopo sovrafrequenza di rete"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "Frequenza di ripristino dopo sottofrequenza di rete"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "Soglia sottotensione rete livello 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "Soglia sottotensione rete livello 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "Soglia sottotensione rete livello 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "Tempo sottotensione rete livello 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "Tempo sottotensione rete livello 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "Tempo sottotensione rete livello 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "Soglia sovratensione rete livello 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "Soglia sovratensione rete livello 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "Tempo sovratensione rete livello 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "Tempo sovratensione rete livello 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "Soglia sottofrequenza rete livello 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "Soglia sottofrequenza rete livello 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "Tempo sottofrequenza rete livello 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "Tempo sottofrequenza rete livello 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "Soglia sovrafrequenza rete livello 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "Soglia sovrafrequenza rete livello 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "Tempo sovrafrequenza rete livello 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "Tempo sovrafrequenza rete livello 2"
+      },
+      "output_coefficient": {
+        "name": "Coefficiente di uscita"
+      },
+      "protocol_version": {
+        "name": "Versione protocollo"
+      },
+      "inverter_version": {
+        "name": "Versione inverter"
+      },
+      "insulation_impedance_rx": {
+        "name": "Impedenza di isolamento RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "Impedenza di isolamento RY"
+      },
+      "inverter_temperature": {
+        "name": "Temperatura inverter"
+      },
+      "country_profile_raw": {
+        "name": "Codice paese/profilo"
       }
     },
     "binary_sensor": {
@@ -216,6 +384,17 @@
     "button": {
       "refresh_data": {
         "name": "Aggiorna dati"
+      }
+    }
+  },
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatico — in base al firmware",
+        "force": "Rilevamento forzato — prova i protocolli",
+        "1511": "Usa il protocollo 1511",
+        "1097": "Usa il protocollo 1097 — sperimentale",
+        "02b0": "Usa il protocollo 02B0"
       }
     }
   }
