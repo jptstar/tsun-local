@@ -261,14 +261,14 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "grid_undervoltage_time_1",
         "grid_undervoltage_time_1",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
         "grid_undervoltage_time_2",
         "grid_undervoltage_time_2",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -289,14 +289,14 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "grid_overvoltage_time_1",
         "grid_overvoltage_time_1",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
         "grid_overvoltage_time_2",
         "grid_overvoltage_time_2",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -317,14 +317,14 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "grid_underfrequency_time_1",
         "grid_underfrequency_time_1",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
         "grid_underfrequency_time_2",
         "grid_underfrequency_time_2",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -345,14 +345,14 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "grid_overfrequency_time_1",
         "grid_overfrequency_time_1",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
         "grid_overfrequency_time_2",
         "grid_overfrequency_time_2",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -366,7 +366,7 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "grid_undervoltage_time_3",
         "grid_undervoltage_time_3",
         device_class=SensorDeviceClass.DURATION,
-        unit=UnitOfTime.MILLISECONDS,
+        unit=UnitOfTime.SECONDS,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -466,6 +466,11 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         "register_3017_raw",
         "register_3017_raw",
         "3017 (0x0BC9)",
+    ),
+    _raw_register(
+        "register_3018_raw",
+        "register_3018_raw",
+        "3018 (0x0BCA)",
     ),
     _raw_register(
         "register_3028_raw",
