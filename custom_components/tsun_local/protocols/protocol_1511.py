@@ -225,12 +225,13 @@ def decode_measurements(
         "ac_current": registers[0x0BC5] * 0.01,
         "ac_frequency": registers[0x0BC7] * 0.01,
         "register_3017_raw": registers[0x0BC9],
-        "register_3018_raw": registers[0x0BCA],
         "rated_power": registers[0x0BCC],
         "ac_power": registers[0x0BCD] * 0.1,
         "ac_energy_today": registers[0x0BCE] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x0BCF) * 0.01,
     }
+    if 0x0BCA in registers:
+        data["register_3018_raw"] = registers[0x0BCA]
     if 0x0BD4 in registers:
         data["register_3028_raw"] = registers[0x0BD4]
     if 0x07FA in registers:
