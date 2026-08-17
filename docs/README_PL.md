@@ -85,7 +85,7 @@ TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 | ☀️ **PV** | Do 6 wejść · Napięcie · Prąd · Moc · Energia dzienna i całkowita |
 | ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia dzienna i całkowita |
 | 🚨 **Diagnostyka** | Alarmy falownika |
-| 🛡️ **Zaawansowane** | Progi ochrony sieci i diagnostyka czasów |
+| 🛡️ **Zaawansowane** | Progi ochrony sieci i czasy · Temperatura falownika · Temperatura otoczenia falownika · Poziom mocy (kandydat) |
 
 ### 02B0 · GEN3 PLUS — ✅ Zweryfikowany
 
@@ -105,16 +105,14 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 | ☀️ **PV** | Dynamiczne wykrywanie wejść PV · Napięcie · Prąd · Moc · Energia |
 | ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia |
 | 🚨 **Diagnostyka** | Alarmy falownika |
-| 🛡️ **Zaawansowane** | Diagnostyka ochrony sieci · Współczynnik wyjściowy |
+| 🛡️ **Zaawansowane** | Diagnostyka ochrony sieci · Poziom mocy (%) |
 
 ### 1097 · GEN3 — 🧪 Eksperymentalny
-
-`TSOL-MX3000D`
 
 **🔎 Prawdopodobnie kompatybilny**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > Publiczne badania GEN3 zwykle wiążą te urządzenia z rodziną numerów seryjnych **R17 / R47**. Kompatybilność z protokołem **1097** w TSUN Local pozostaje eksperymentalna do czasu potwierdzenia na większej liczbie rzeczywistych urządzeń.
@@ -124,7 +122,7 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 | ☀️ **PV** | Standardowa telemetria PV |
 | ⚡ **AC** | Standardowa telemetria falownika / AC |
 | 🚨 **Diagnostyka** | Dostępna diagnostyka falownika |
-| 🛡️ **Zaawansowane** | Wersja protokołu · Wersja falownika · Temperatura · Izolacja RX/RY · Surowa wartość kraju/profilu · Moc projektowa |
+| 🛡️ **Zaawansowane** | Wersja protokołu · Wersja falownika · Temperatura · Izolacja RX/RY · Poziom mocy (eksperymentalny) · Surowa wartość kraj/profil · Moc projektowa |
 
 > **🔎 Prawdopodobnie kompatybilny nie oznacza zweryfikowany.** Oznacza to, że TSUN Local implementuje już odpowiednią rodzinę protokołu, więc urządzenie jest dobrym kandydatem do kompatybilności.
 
@@ -136,8 +134,8 @@ Walidacja na rzeczywistych urządzeniach MP3000 / 1511 i MX500 / 02B0 doprecyzow
 
 - czasy zabezpieczeń sieci pozostają natywnie w **sekundach**; automatyczne jednostki `ms` zapamiętane przez wcześniejsze wersje beta są migrowane do `s`;
 - w zweryfikowanym MP3000 surowy bit `0x2000` (`8192`), obserwowany o świcie, zmierzchu i przy bardzo niskim nasłonecznieniu, pozostaje widoczny, ale sam nie wywołuje już stanu usterki; stan pracy pokazuje **Czuwanie — niski poziom energii słonecznej**;
-- rejestry TITAN **3017** i **3028** pozostają nieskalowanymi surowymi wartościami dziesiętnymi z historią do czasu potwierdzenia mapowania temperatury; nie stosuje się jeszcze offsetu temperatury;
-- rejestr 02B0 `0x202C` jest prezentowany jako **surowy współczynnik wyjściowy** do czasu potwierdzenia kodowania, a nie jako procent.
+- rejestry TITAN **3017** i **3028** są teraz dekodowane jako **Temperatura falownika** i **Temperatura otoczenia falownika** z `raw - 40 °C`; surowe wartości pozostają dostępne do weryfikacji;
+- rejestr 02B0 `0x202C` jest teraz wyświetlany jako **Poziom mocy** z potwierdzonym skalowaniem `raw × 100 / 1024` (`1024 = 100 %`);
 
 ---
 

@@ -85,7 +85,7 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 | ☀️ **PV** | Hasta 6 entradas · Tensión · Corriente · Potencia · Energía diaria y total |
 | ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía diaria y total |
 | 🚨 **Diagnóstico** | Alarmas del inversor |
-| 🛡️ **Avanzado** | Umbrales de protección de red y diagnósticos de temporización |
+| 🛡️ **Avanzado** | Umbrales de protección de red y temporizaciones · Temperatura del inversor · Temperatura ambiente del inversor · Nivel de potencia (candidato) |
 
 ### 02B0 · GEN3 PLUS — ✅ Validado
 
@@ -105,16 +105,14 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 | ☀️ **PV** | Detección dinámica de entradas PV · Tensión · Corriente · Potencia · Energía |
 | ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía |
 | 🚨 **Diagnóstico** | Alarmas del inversor |
-| 🛡️ **Avanzado** | Diagnóstico de protección de red · Coeficiente de salida |
+| 🛡️ **Avanzado** | Diagnósticos de protección de red · Nivel de potencia (%) |
 
 ### 1097 · GEN3 — 🧪 Experimental
-
-`TSOL-MX3000D`
 
 **🔎 Probablemente compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > La investigación pública sobre GEN3 asocia generalmente estos dispositivos con la familia de números de serie **R17 / R47**. La compatibilidad con el protocolo **1097** de TSUN Local sigue siendo experimental hasta confirmarse en más hardware real.
@@ -124,7 +122,7 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 | ☀️ **PV** | Telemetría PV estándar |
 | ⚡ **AC** | Telemetría estándar del inversor / AC |
 | 🚨 **Diagnóstico** | Diagnósticos disponibles del inversor |
-| 🛡️ **Avanzado** | Versión de protocolo · Versión de inversor · Temperatura · Aislamiento RX/RY · Valor bruto país/perfil · Potencia de diseño |
+| 🛡️ **Avanzado** | Versión de protocolo · Versión del inversor · Temperatura · Aislamiento RX/RY · Nivel de potencia (experimental) · Valor bruto país/perfil · Potencia de diseño |
 
 > **🔎 Probablemente compatible no significa validado.** Significa que TSUN Local ya implementa la familia de protocolo correspondiente, lo que convierte al dispositivo en un buen candidato de compatibilidad.
 
@@ -136,8 +134,8 @@ La validación con hardware real MP3000 / 1511 y MX500 / 02B0 permitió afinar v
 
 - los tiempos de protección de red permanecen nativamente en **segundos**; las unidades automáticas `ms` heredadas de versiones beta se migran a `s`;
 - en el MP3000 validado, el bit bruto `0x2000` (`8192`) observado al amanecer, al anochecer y con irradiancia muy baja sigue visible, pero por sí solo ya no provoca un fallo; el estado de funcionamiento muestra **En espera — baja entrada solar**;
-- los registros TITAN **3017** y **3028** permanecen como valores decimales brutos, numéricos e historizables mientras se valida el mapeo de temperatura; todavía no se aplica ningún offset;
-- el registro 02B0 `0x202C` se muestra como **coeficiente de salida sin procesar** hasta confirmar su codificación, no como porcentaje.
+- los registros TITAN **3017** y **3028** se decodifican ahora como **Temperatura del inversor** y **Temperatura ambiente del inversor** con `raw - 40 °C`; los valores brutos se conservan para verificación;
+- el registro 02B0 `0x202C` se muestra ahora como **Nivel de potencia** con la escala confirmada `raw × 100 / 1024` (`1024 = 100 %`);
 
 ---
 

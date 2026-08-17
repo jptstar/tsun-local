@@ -85,7 +85,7 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 | ☀️ **PV** | Jusqu’à 6 entrées · Tension · Courant · Puissance · Énergie du jour et totale |
 | ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie du jour et totale |
 | 🚨 **Diagnostics** | Alarmes onduleur |
-| 🛡️ **Avancé** | Seuils de protection réseau et temporisations |
+| 🛡️ **Avancé** | Seuils de protection réseau et temporisations · Température onduleur · Température ambiante onduleur · Niveau de puissance (candidat) |
 
 ### 02B0 · GEN3 PLUS — ✅ Validé
 
@@ -105,16 +105,14 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 | ☀️ **PV** | Détection dynamique des entrées PV · Tension · Courant · Puissance · Énergie |
 | ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie |
 | 🚨 **Diagnostics** | Alarmes onduleur |
-| 🛡️ **Avancé** | Diagnostics de protection réseau · Coefficient de sortie brut (encodage non confirmé) |
+| 🛡️ **Avancé** | Diagnostics de protection réseau · Niveau de puissance (%) |
 
 ### 1097 · GEN3 — 🧪 Expérimental
-
-`TSOL-MX3000D`
 
 **🔎 Probablement compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > Les recherches publiques sur GEN3 associent généralement ces appareils à la famille de numéros de série **R17 / R47**. La compatibilité avec le protocole **1097** de TSUN Local reste expérimentale tant qu’elle n’a pas été confirmée sur davantage de matériel réel.
@@ -124,7 +122,7 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 | ☀️ **PV** | Télémétrie PV standard |
 | ⚡ **AC** | Télémétrie onduleur / AC standard |
 | 🚨 **Diagnostics** | Diagnostics onduleur disponibles |
-| 🛡️ **Avancé** | Version protocole · Version onduleur · Température · Isolation RX/RY · Valeur brute pays/profil · Puissance nominale de conception |
+| 🛡️ **Avancé** | Version protocole · Version onduleur · Température · Isolation RX/RY · Niveau de puissance (expérimental) · Valeur brute pays/profil · Puissance nominale de conception |
 
 > **🔎 Probablement compatible ne signifie pas validé.** Cela signifie que TSUN Local implémente déjà la famille de protocole correspondante, ce qui en fait un bon candidat à la compatibilité.
 
@@ -136,10 +134,10 @@ La validation sur matériel réel MP3000 / 1511 et MX500 / 02B0 a permis d’aff
 
 - les temporisations de protection réseau restent exprimées nativement en **secondes** et les anciens choix automatiques `ms` hérités des bêta sont migrés vers `s` ;
 - sur le MP3000 validé, le bit brut `0x2000` (`8192`), observé au lever, au coucher du soleil et lorsque l’irradiance est très faible, reste visible dans les diagnostics mais ne déclenche plus à lui seul une panne ; l’état de fonctionnement indique **Veille — faible entrée solaire** ;
-- les registres TITAN **3017** et **3028** restent des valeurs décimales brutes, numériques et historisables afin de comparer leurs courbes pendant la validation du décodage température ; aucun offset de température n’est encore appliqué ;
-- le registre 02B0 `0x202C` est affiché comme **coefficient de sortie brut** tant que son encodage n’est pas confirmé, et non plus comme un pourcentage.
+- les registres TITAN **3017** et **3028** sont désormais décodés respectivement comme **Température onduleur** et **Température ambiante onduleur** avec `raw - 40 °C`, tout en conservant les valeurs brutes pour vérification ;
+- le registre 02B0 `0x202C` est désormais affiché comme **Niveau de puissance** avec l’échelle confirmée `raw × 100 / 1024` (`1024 = 100 %`) ;
 
-La signification constructeur exacte du bit MP3000 `0x2000` et l’échelle température de 3017/3028 ne sont volontairement pas affirmées au-delà de ce que les observations réelles permettent de démontrer.
+Le registre TITAN 3018 reste brut et non confirmé. Le registre décimal 2028 (`0x07EC`) est exposé comme **Niveau de puissance (candidat)** jusqu’à validation terrain.
 
 ---
 

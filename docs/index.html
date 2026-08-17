@@ -126,7 +126,7 @@
     </section>
 
     <section>
-      <h2>Compatibility candidates in 1.4</h2>
+      <h2>Compatibility candidates in 1.4.1</h2>
       <p><strong>1511 · TITAN:</strong> validated on TSOL-MP3000; TSOL-MP2250 and TSOL-MS3000 are strong compatibility candidates.</p>
       <p><strong>02B0 · GEN3 PLUS:</strong> validated on TSOL-MX500. Likely candidates include TSOL-MX450, TSOL-MX800, TSOL-MX1000, TSOL-MX3000, TSOL-MS800, TSOL-MS1600, TSOL-MS1800 and TSOL-MS2000, with applicable <code>-D</code> variants.</p>
       <p><strong>1097 · GEN3:</strong> experimental candidates include TSOL-MS300, TSOL-MS350, TSOL-MS400, TSOL-MS600, TSOL-MS700, TSOL-MS800 and TSOL-MS3000 and TSOL-MX3000D.</p>
@@ -144,24 +144,26 @@
     </section>
 
     <section class="notice">
-      <h2>Field-validation corrections in 1.4.1</h2>
-      <p>Real-device validation on MP3000 / 1511 and MX500 / 02B0 refined several diagnostics in the republished stable 1.4.1 release.</p>
+      <h2>Field refinements in 1.4.1</h2>
+      <p>Additional protocol cross-checking and real-device observation refine several advanced diagnostics in 1.4.1.</p>
       <ul>
         <li>Grid-protection timing values remain native <strong>seconds</strong>, with legacy beta-era automatic <code>ms</code> display choices migrated back to <code>s</code>.</li>
         <li>On validated MP3000 hardware, raw alarm bit <code>0x2000</code> (<code>8192</code>) observed at dawn, dusk and very low irradiance remains visible but no longer reports a fault by itself; the operating state reports <strong>Standby — low solar input</strong>.</li>
-        <li>TITAN registers <strong>3017</strong> and <strong>3028</strong> remain unscaled raw decimal measurement sensors so their history can be charted while the temperature mapping is validated. No temperature offset is applied yet.</li>
-        <li>02B0 register <code>0x202C</code> is exposed as a <strong>raw output coefficient</strong> until its encoding is confirmed, rather than being labelled as a percentage.</li>
+        <li>TITAN register <strong>3017</strong> is exposed as <strong>Inverter temperature</strong> and register <strong>3028</strong> as <strong>Inverter ambient temperature</strong>, both using <code>raw - 40 °C</code>. Their raw diagnostic values remain available.</li>
+        <li>TITAN decimal register <strong>2028</strong> (<code>0x07EC</code>) is exposed as <strong>Power level (candidate)</strong> until field validation confirms the mapping; register <strong>3018</strong> remains raw and unconfirmed.</li>
+        <li>02B0 register <code>0x202C</code> is exposed as <strong>Power level</strong> using <code>raw × 100 / 1024</code>, so <code>1024 = 100%</code>.</li>
+        <li>The experimental 1097 adapter exposes the same <strong>Power level</strong> terminology while its advanced mapping remains experimental.</li>
       </ul>
-      <p class="muted">TSUN Local preserves the raw diagnostic values and deliberately avoids claiming an unconfirmed vendor bit-name or temperature offset.</p>
+      <p class="muted">TSUN Local keeps the original raw diagnostics where useful so semantic decoding can still be checked against real protocol values.</p>
     </section>
 
     <section class="experimental">
       <h2>1097 remains experimental</h2>
-      <p>The 1097 adapter is included in 1.4 for community validation. It can expose standard inverter/PV telemetry plus advanced diagnostics such as protocol version, inverter version, temperature, insulation RX/RY, country/profile raw value and designed power where available.</p>
+      <p>The 1097 adapter is included in 1.4 for community validation. It can expose standard inverter/PV telemetry plus advanced diagnostics such as protocol version, inverter version, temperature, insulation RX/RY, power level, country/profile raw value and designed power where available.</p>
     </section>
 
     <section>
-      <h2>Install TSUN Local 1.4</h2>
+      <h2>Install TSUN Local 1.4.1</h2>
       <p>Install TSUN Local through HACS, restart Home Assistant, then add <strong>TSUN Local</strong> from <strong>Settings → Devices &amp; services</strong>.</p>
       <div class="actions" style="justify-content:flex-start">
         <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Open HACS repository</a>

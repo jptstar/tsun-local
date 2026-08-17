@@ -85,7 +85,7 @@ TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
 | ☀️ **PV** | Tot 6 ingangen · Spanning · Stroom · Vermogen · Dag- & totale energie |
 | ⚡ **AC** | Spanning · Stroom · Frequentie · Vermogen · Dag- & totale energie |
 | 🚨 **Diagnostiek** | Omvormeralarmen |
-| 🛡️ **Geavanceerd** | Netbeveiligingsdrempels en tijdsdiagnostiek |
+| 🛡️ **Geavanceerd** | Netbeveiligingsdrempels en tijdsdiagnostiek · Omvormertemperatuur · Omgevingstemperatuur omvormer · Vermogensniveau (kandidaat) |
 
 ### 02B0 · GEN3 PLUS — ✅ Gevalideerd
 
@@ -105,16 +105,14 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 | ☀️ **PV** | Dynamische detectie van PV-ingangen · Spanning · Stroom · Vermogen · Energie |
 | ⚡ **AC** | Spanning · Stroom · Frequentie · Vermogen · Energie |
 | 🚨 **Diagnostiek** | Omvormeralarmen |
-| 🛡️ **Geavanceerd** | Netbeveiligingsdiagnostiek · Uitgangscoëfficiënt |
+| 🛡️ **Geavanceerd** | Netbeveiligingsdiagnostiek · Vermogensniveau (%) |
 
 ### 1097 · GEN3 — 🧪 Experimenteel
-
-`TSOL-MX3000D`
 
 **🔎 Waarschijnlijk compatibel**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000`
+`TSOL-MS3000` · `TSOL-MX3000D`
 
 > [!NOTE]
 > Publiek GEN3-onderzoek koppelt deze apparaten doorgaans aan de serienummerfamilie **R17 / R47**. Compatibiliteit met TSUN Local-protocol **1097** blijft experimenteel totdat deze op meer echte hardware is bevestigd.
@@ -124,7 +122,7 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 | ☀️ **PV** | Standaard PV-telemetrie |
 | ⚡ **AC** | Standaard omvormer-/AC-telemetrie |
 | 🚨 **Diagnostiek** | Beschikbare omvormerdiagnostiek |
-| 🛡️ **Geavanceerd** | Protocolversie · Omvormerversie · Temperatuur · Isolatie RX/RY · Ruwe land/profielwaarde · Ontwerpvermogen |
+| 🛡️ **Geavanceerd** | Protocolversie · Omvormerversie · Temperatuur · Isolatieweerstand RX/RY · Vermogensniveau (experimenteel) · Ruwe land/profielwaarde · Ontwerpvermogen |
 
 > **🔎 Waarschijnlijk compatibel betekent niet gevalideerd.** Het betekent dat TSUN Local de relevante protocolfamilie al implementeert, waardoor het apparaat een sterke compatibiliteitskandidaat is.
 
@@ -136,8 +134,8 @@ Validatie op echte MP3000 / 1511- en MX500 / 02B0-hardware heeft enkele diagnost
 
 - netbeveiligingstijden blijven native in **seconden**; automatisch opgeslagen `ms`-weergave uit oudere bèta’s wordt naar `s` gemigreerd;
 - op de gevalideerde MP3000 blijft raw bit `0x2000` (`8192`), waargenomen bij schemering en zeer lage zoninstraling, zichtbaar maar veroorzaakt het op zichzelf geen storing meer; de bedrijfstoestand toont **Stand-by — lage zonne-invoer**;
-- TITAN-registers **3017** en **3028** blijven ongeschaalde decimale ruwe meetwaarden met historie totdat de temperatuurmapping is gevalideerd; er wordt nog geen temperatuuroffset toegepast;
-- 02B0-register `0x202C` wordt als **ruwe uitgangscoëfficiënt** getoond totdat de codering is bevestigd, niet als percentage.
+- TITAN-registers **3017** en **3028** worden nu gedecodeerd als **Omvormertemperatuur** en **Omgevingstemperatuur omvormer** met `raw - 40 °C`; de ruwe waarden blijven beschikbaar voor verificatie;
+- 02B0-register `0x202C` wordt nu weergegeven als **Vermogensniveau** met de bevestigde schaal `raw × 100 / 1024` (`1024 = 100 %`);
 
 ---
 
