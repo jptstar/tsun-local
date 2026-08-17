@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TSUN Local — Home Assistant integration for TSUN micro-inverters</title>
+  <meta name="description" content="TSUN Local is an open-source Home Assistant integration for TSUN solar micro-inverters. Direct local LAN polling via HACS, with no cloud dependency and no proxy.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TSUN Local">
+  <meta property="og:title" content="TSUN Local — Home Assistant integration for TSUN micro-inverters">
+  <meta property="og:description" content="Local Home Assistant monitoring for compatible TSUN solar micro-inverters. No cloud dependency. No proxy. Read-only by design.">
+  <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
+  <meta property="og:image" content="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="TSUN Local — Home Assistant integration for TSUN micro-inverters">
+  <meta name="twitter:description" content="Direct local Home Assistant monitoring for compatible TSUN solar micro-inverters.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "TSUN Local",
+    "description": "Open-source Home Assistant integration for compatible TSUN solar micro-inverters using direct local network polling without a cloud dependency or proxy.",
+    "url": "https://jptstar.github.io/tsun-local/",
+    "codeRepository": "https://github.com/jptstar/tsun-local",
+    "programmingLanguage": "Python",
+    "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+    "author": {
+      "@type": "Person",
+      "name": "Jean-Philippe TESTART",
+      "url": "https://github.com/jptstar"
+    },
+    "keywords": [
+      "Home Assistant",
+      "TSUN",
+      "micro-inverter",
+      "solar energy",
+      "HACS",
+      "local integration",
+      "photovoltaic monitoring"
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1020;
+      --panel: #121a2f;
+      --text: #eef3ff;
+      --muted: #aebbd4;
+      --accent: #62d6ff;
+      --accent2: #8cf0b3;
+      --border: #273654;
+      --max: 1060px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: var(--accent); }
+    .wrap { width: min(var(--max), calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 72px 0 44px; text-align: center; }
+    .icon { width: 108px; height: 108px; border-radius: 24px; }
+    h1 { font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.05; margin: 24px auto 18px; max-width: 920px; }
+    h2 { font-size: clamp(1.45rem, 4vw, 2rem); margin: 0 0 14px; }
+    .lead { max-width: 780px; margin: 0 auto; color: var(--muted); font-size: 1.15rem; }
+    .strap { margin-top: 14px; font-weight: 750; letter-spacing: .02em; }
+    .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 30px; }
+    .button { display: inline-block; padding: 11px 17px; border-radius: 10px; text-decoration: none; font-weight: 700; border: 1px solid var(--border); }
+    .primary { background: var(--accent); color: #071018; border-color: transparent; }
+    .secondary { background: var(--panel); color: var(--text); }
+    main { padding-bottom: 64px; }
+    section { margin: 22px 0; padding: 28px; border: 1px solid var(--border); border-radius: 18px; background: var(--panel); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 18px; }
+    .card { border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+    .card strong { display: block; margin-bottom: 6px; }
+    .muted { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    code { background: #080d18; padding: 2px 6px; border-radius: 6px; }
+    .notice { border-left: 4px solid var(--accent2); padding-left: 16px; }
+    footer { color: var(--muted); text-align: center; padding: 20px 0 48px; font-size: .94rem; }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #f6f8fc; --panel: #ffffff; --text: #172033; --muted: #55647e; --accent: #006fa8; --accent2: #15804a; --border: #dbe2ee; }
+      code { background: #eef2f8; }
+      .primary { color: #fff; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <img class="icon" src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" alt="TSUN Local Home Assistant integration icon" width="108" height="108">
+    <h1>TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
+    <p class="lead"><strong>TSUN Local</strong> connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network for local photovoltaic monitoring without a proxy or cloud dependency.</p>
+    <p class="strap">Local. Read-only. No cloud dependency. No proxy.</p>
+    <div class="actions">
+      <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Add TSUN Local to HACS</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local">View on GitHub</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases">Releases</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>Local solar monitoring in Home Assistant</h2>
+      <p>TSUN Local is an independent open-source integration focused on direct LAN access to compatible TSUN micro-inverters. Telemetry is read locally and presented as native Home Assistant entities.</p>
+      <div class="grid">
+        <div class="card"><strong>☀️ PV telemetry</strong><span class="muted">Voltage, current, power, daily energy and total energy for detected PV inputs.</span></div>
+        <div class="card"><strong>⚡ AC telemetry</strong><span class="muted">Voltage, current, frequency, power and energy counters.</span></div>
+        <div class="card"><strong>🚨 Diagnostics</strong><span class="muted">Local communication status, alarms and device/logger information.</span></div>
+        <div class="card"><strong>🔒 Read-only</strong><span class="muted">No inverter configuration writes are implemented.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>TSUN micro-inverter compatibility</h2>
+      <p>Compatibility is organized by local protocol family and validated on real hardware where stated. The project evolves as additional devices and firmware versions are tested.</p>
+      <table>
+        <thead><tr><th>Family</th><th>Validated reference</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>TITAN / 1511</td><td><strong>TSOL-MP3000</strong></td><td>Validated on real hardware; up to six PV inputs in the current map.</td></tr>
+          <tr><td>GEN3 PLUS / 02B0</td><td><strong>TSOL-MX500</strong></td><td>Validated on real hardware; protocol-family support covers additional compatibility candidates.</td></tr>
+          <tr><td>GEN3 / 1097</td><td>Experimental</td><td>Experimental protocol support is available on the current development branch and requires broader real-device validation.</td></tr>
+        </tbody>
+      </table>
+      <p class="muted">A model not listed here is not automatically unsupported. See the repository README for the current compatibility matrix and protocol status.</p>
+    </section>
+
+    <section>
+      <h2>Install with HACS</h2>
+      <p>TSUN Local can be installed as a custom Home Assistant integration through HACS. Add the repository, install the latest release, restart Home Assistant, then add <strong>TSUN Local</strong> from Devices &amp; services.</p>
+      <p><code>https://github.com/jptstar/tsun-local</code></p>
+      <div class="actions" style="justify-content:flex-start">
+        <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">Open HACS repository</a>
+        <a class="button secondary" href="https://github.com/jptstar/tsun-local#installation">Installation guide</a>
+      </div>
+    </section>
+
+    <section class="notice">
+      <h2>Independent community project</h2>
+      <p>TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN. TSUN and its product names remain the property of their respective owners.</p>
+      <p>Created and maintained by <a href="https://github.com/jptstar">Jean-Philippe TESTART (jptstar)</a> for the Home Assistant community.</p>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p>TSUN Local · GPL-3.0-or-later · <a href="https://github.com/jptstar/tsun-local">Source code</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a></p>
+  </footer>
+</body>
+</html>
