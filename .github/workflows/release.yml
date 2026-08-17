@@ -13,13 +13,54 @@ permissions:
 jobs:
   tag:
     name: Publish stable release
-    if: github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, '[release]') || contains(github.event.head_commit.message, '[release-notes]'))
+    if: github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, '[release]') || contains(github.event.head_commit.message, '[release-notes]') || contains(github.event.head_commit.message, '[release-retag]'))
     runs-on: ubuntu-latest
     steps:
       - name: Check out release source
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Set up Python for republish validation
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Apply stable 1.4.0 field corrections
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        run: python3 .github/scripts/republish_1_4_0.py
+
+      - name: Check corrected diff
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        run: git diff --check
+
+      - name: Run corrected unit tests
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate corrected HACS repository
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Validate corrected Home Assistant integration
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Commit corrected stable source
+        if: contains(github.event.head_commit.message, '[release-retag]')
+        run: |
+          if git diff --quiet; then
+            echo "No generated correction remains to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Republish TSUN Local 1.4.0 field corrections"
+          git push origin HEAD:main
 
       - name: Verify version metadata
         id: version
@@ -41,16 +82,22 @@ jobs:
           PY
           echo "version=$(cat release_version.txt)" >> "$GITHUB_OUTPUT"
 
-      - name: Create stable tag if needed
+      - name: Create or refresh stable tag
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          RETAG: ${{ contains(github.event.head_commit.message, '[release-retag]') }}
         run: |
           TAG="v${VERSION}"
-          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ "${RETAG}" = "true" ]; then
+            echo "Refreshing ${TAG} on corrected stable source $(git rev-parse HEAD)."
+            git tag -fa "${TAG}" -m "Version ${VERSION}"
+            git push origin "refs/tags/${TAG}" --force
+          elif git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
             echo "Tag ${TAG} already exists."
           else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git tag -a "${TAG}" -m "Version ${VERSION}"
             git push origin "${TAG}"
           fi
