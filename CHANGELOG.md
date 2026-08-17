@@ -7,8 +7,8 @@ All notable changes to this project are documented here. The project follows [Se
 ### Changed
 
 - Rename the user-facing output coefficient to **Power level** across supported protocol families.
-- Decode the confirmed 02B0 `0x202C` 1024 full-scale value as a percentage.
-- Decode 1511 registers 3017 and 3028 as inverter and inverter-ambient temperatures using the `-40 °C` offset while retaining their raw diagnostic values.
+- Decode the confirmed 02B0 `0x202C` 1024 full-scale value as a percentage and repair legacy Home Assistant percentage metadata from the temporary raw representation.
+- Decode 1511 registers 3017 and 3028 as final inverter and inverter-ambient temperature entities using the `-40 °C` offset, removing the temporary raw 3017/3028 comparison entities.
 - Keep 1511 register 3018 raw because its meaning remains unconfirmed.
 - Expose 1511 decimal register 2028 (`0x07EC`) as **Power level (candidate)** for field validation.
 - Expose the 1097 power-level diagnostic as part of the experimental 1097 mapping.
@@ -155,7 +155,7 @@ All notable changes to this project are documented here. The project follows [Se
 
 - automatic network discovery now filters generic port-8899 devices and proposes only candidates whose local logger firmware contains a supported TSUN protocol token;
 - 1511 PV inputs are added progressively from observed live or accumulated telemetry instead of assuming six inputs for every TITAN device;
-- 1097 PV detection keeps the highest observed input and no longer defaults an all-zero device to six PV inputs;
+- 1097 PV detection keeps the highest observed input and no longer defaults an all-zero device to six active PV inputs;
 - manual setup remains available when a logger firmware is unknown or its local web page is unavailable.
 
 ### Safety
@@ -303,6 +303,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.4.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.1
 [1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
 [1.4.0-beta.8]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.8
 [1.4.0-beta.7]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.7
