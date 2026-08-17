@@ -11,6 +11,7 @@ All notable changes to this project are documented here. The project follows [Se
 - progressive / dynamic PV-input detection across supported protocol families;
 - expanded read-only inverter, logger, alarm and advanced grid-protection diagnostics;
 - raw TITAN diagnostic registers 3017, 3018 and 3028 for continued hardware observation;
+- a clear 1511 inverter operating-state sensor separating active, standby, observed low-solar standby and fault states;
 - eight Home Assistant translation sets and a protocol-oriented entity reference.
 
 ### Fixed
@@ -19,11 +20,15 @@ All notable changes to this project are documented here. The project follows [Se
 - align the entity reference with the seconds-based timing metadata and remove the provisional unit/scaling markers;
 - correct 1511 per-PV daily-energy register offsets and use the corrected positions for PV detection;
 - keep optional TITAN raw register 3018 from breaking devices or fixtures where that register is absent;
-- preserve logger metadata and device discovery state across temporary communication failures.
+- preserve logger metadata and device discovery state across temporary communication failures;
+- migrate beta-era automatic grid-timing display units from `ms` to `s` while preserving explicit user unit choices;
+- stop treating the MP3000-observed `0x2000` / `8192` low-solar status bit as a fault by itself while preserving the raw alarm word;
+- stop presenting the unconfirmed 02B0 `0x202C` output-coefficient encoding as a percentage.
 
 ### Changed
 
 - advanced diagnostics remain disabled by default so normal Home Assistant device pages stay uncluttered;
+- TITAN registers 3017 and 3028 remain unscaled raw decimal measurement sensors so their Home Assistant history can be charted during temperature-mapping validation; no temperature offset is applied yet;
 - version 1.4 moves TSUN Local from individual known models toward protocol-family compatibility;
 - the experimental 1097 implementation continues to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
 

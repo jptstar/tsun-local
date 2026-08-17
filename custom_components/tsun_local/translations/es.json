@@ -172,13 +172,13 @@
         "name": "Potencia máxima de diseño"
       },
       "register_3017_raw": {
-        "name": "Registro bruto 3017 (significado no confirmado)"
+        "name": "Registro bruto 3017 (candidato de temperatura)"
       },
       "register_3018_raw": {
         "name": "Registro bruto 3018 (significado no confirmado)"
       },
       "register_3028_raw": {
-        "name": "Registro bruto 3028 (significado no confirmado)"
+        "name": "Registro bruto 3028 (candidato de temperatura)"
       },
       "communication_last_success": {
         "name": "Última comunicación correcta"
@@ -352,7 +352,7 @@
         "name": "Tiempo de sobrefrecuencia de red nivel 2"
       },
       "output_coefficient": {
-        "name": "Coeficiente de salida"
+        "name": "Coeficiente de salida sin procesar (codificación no confirmada)"
       },
       "protocol_version": {
         "name": "Versión del protocolo"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Código de país/perfil"
+      },
+      "inverter_operating_state": {
+        "name": "Estado de funcionamiento del inversor",
+        "state": {
+          "active": "Activo",
+          "standby": "En espera",
+          "standby_low_solar": "En espera — baja entrada solar",
+          "fault": "Fallo"
+        }
       }
     },
     "binary_sensor": {

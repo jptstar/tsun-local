@@ -128,6 +128,17 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 
 ---
 
+## Correcciones de validación en campo incluidas en 1.4.0
+
+La validación con hardware real MP3000 / 1511 y MX500 / 02B0 permitió afinar varios diagnósticos antes de volver a publicar la versión 1.4.0:
+
+- los tiempos de protección de red permanecen nativamente en **segundos**; las unidades automáticas `ms` heredadas de versiones beta se migran a `s`;
+- en el MP3000 validado, el bit bruto `0x2000` (`8192`) observado al amanecer, al anochecer y con irradiancia muy baja sigue visible, pero por sí solo ya no provoca un fallo; el estado de funcionamiento muestra **En espera — baja entrada solar**;
+- los registros TITAN **3017** y **3028** permanecen como valores decimales brutos, numéricos e historizables mientras se valida el mapeo de temperatura; todavía no se aplica ningún offset;
+- el registro 02B0 `0x202C` se muestra como **coeficiente de salida sin procesar** hasta confirmar su codificación, no como porcentaje.
+
+---
+
 ## 🛡️ Diagnóstico avanzado
 
 Las entidades avanzadas están **desactivadas por defecto** de forma intencionada. Así, la página normal del dispositivo permanece simple, mientras que la información técnica sigue disponible cuando se necesita.

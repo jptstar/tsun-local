@@ -172,13 +172,13 @@
         "name": "最大设计功率"
       },
       "register_3017_raw": {
-        "name": "原始寄存器 3017（含义尚未确认）"
+        "name": "原始寄存器 3017（温度候选）"
       },
       "register_3018_raw": {
         "name": "原始寄存器 3018（含义尚未确认）"
       },
       "register_3028_raw": {
-        "name": "原始寄存器 3028（含义尚未确认）"
+        "name": "原始寄存器 3028（温度候选）"
       },
       "communication_last_success": {
         "name": "上次成功通信"
@@ -352,7 +352,7 @@
         "name": "电网过频时间 2"
       },
       "output_coefficient": {
-        "name": "输出系数"
+        "name": "原始输出系数（编码未确认）"
       },
       "protocol_version": {
         "name": "协议版本"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "国家/配置代码"
+      },
+      "inverter_operating_state": {
+        "name": "逆变器运行状态",
+        "state": {
+          "active": "运行",
+          "standby": "待机",
+          "standby_low_solar": "待机 — 光照输入不足",
+          "fault": "故障"
+        }
       }
     },
     "binary_sensor": {

@@ -172,13 +172,13 @@
         "name": "Potenza massima di progetto"
       },
       "register_3017_raw": {
-        "name": "Registro grezzo 3017 (significato non confermato)"
+        "name": "Registro grezzo 3017 (candidato temperatura)"
       },
       "register_3018_raw": {
         "name": "Registro grezzo 3018 (significato non confermato)"
       },
       "register_3028_raw": {
-        "name": "Registro grezzo 3028 (significato non confermato)"
+        "name": "Registro grezzo 3028 (candidato temperatura)"
       },
       "communication_last_success": {
         "name": "Ultima comunicazione riuscita"
@@ -352,7 +352,7 @@
         "name": "Tempo sovrafrequenza rete livello 2"
       },
       "output_coefficient": {
-        "name": "Coefficiente di uscita"
+        "name": "Coefficiente di uscita grezzo (codifica non confermata)"
       },
       "protocol_version": {
         "name": "Versione protocollo"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Codice paese/profilo"
+      },
+      "inverter_operating_state": {
+        "name": "Stato operativo dell'inverter",
+        "state": {
+          "active": "Attivo",
+          "standby": "Standby",
+          "standby_low_solar": "Standby — bassa potenza solare in ingresso",
+          "fault": "Guasto"
+        }
       }
     },
     "binary_sensor": {

@@ -109,7 +109,7 @@ Corresponding `-D` variants may also be compatible where applicable.
 | ☀️ **PV** | Dynamic PV-input detection · Voltage · Current · Power · Energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Energy |
 | 🚨 **Diagnostics** | Inverter alarms |
-| 🛡️ **Advanced** | Grid-protection diagnostics · Output coefficient |
+| 🛡️ **Advanced** | Grid-protection diagnostics · Raw output coefficient (encoding unconfirmed) |
 
 ### 1097 · GEN3 — 🧪 Experimental
 
@@ -129,6 +129,19 @@ Corresponding `-D` variants may also be compatible where applicable.
 | 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Country/profile raw value · Designed power |
 
 > **🔎 Likely compatible does not mean validated.** It means TSUN Local already implements the relevant protocol family, making the device a strong compatibility candidate.
+
+---
+
+## Field-validation corrections included in 1.4.0
+
+Real-device validation on MP3000 / 1511 and MX500 / 02B0 refined a few diagnostics before republishing the stable 1.4.0 tag:
+
+- grid-protection timing values remain native **seconds**, and legacy beta-era automatic `ms` display choices are migrated back to `s`;
+- on validated MP3000 hardware, raw alarm bit `0x2000` (`8192`) observed during dawn, dusk and very low irradiance is preserved for diagnostics but no longer reports a fault by itself; the operating state shows **Standby — low solar input** instead;
+- TITAN registers **3017** and **3028** remain unscaled raw decimal measurement sensors so their history can be charted while the temperature mapping is validated; no temperature offset is applied yet;
+- the 02B0 register `0x202C` is exposed as a **raw output coefficient** until its encoding is confirmed, rather than being labelled as a percentage.
+
+The exact vendor meaning of the MP3000 `0x2000` bit and the temperature scaling of 3017/3028 are intentionally not claimed beyond what real-device observation currently supports.
 
 ---
 

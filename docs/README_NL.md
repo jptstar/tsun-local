@@ -128,6 +128,17 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 
 ---
 
+## Correcties uit veldvalidatie in 1.4.0
+
+Validatie op echte MP3000 / 1511- en MX500 / 02B0-hardware heeft enkele diagnostische waarden aangescherpt vóór het opnieuw publiceren van 1.4.0:
+
+- netbeveiligingstijden blijven native in **seconden**; automatisch opgeslagen `ms`-weergave uit oudere bèta’s wordt naar `s` gemigreerd;
+- op de gevalideerde MP3000 blijft raw bit `0x2000` (`8192`), waargenomen bij schemering en zeer lage zoninstraling, zichtbaar maar veroorzaakt het op zichzelf geen storing meer; de bedrijfstoestand toont **Stand-by — lage zonne-invoer**;
+- TITAN-registers **3017** en **3028** blijven ongeschaalde decimale ruwe meetwaarden met historie totdat de temperatuurmapping is gevalideerd; er wordt nog geen temperatuuroffset toegepast;
+- 02B0-register `0x202C` wordt als **ruwe uitgangscoëfficiënt** getoond totdat de codering is bevestigd, niet als percentage.
+
+---
+
 ## 🛡️ Geavanceerde diagnostiek
 
 Geavanceerde entiteiten zijn bewust **standaard uitgeschakeld**. Zo blijft de normale apparaatpagina overzichtelijk terwijl technische informatie beschikbaar blijft wanneer dat nodig is.

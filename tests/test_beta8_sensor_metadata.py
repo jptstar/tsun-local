@@ -13,8 +13,8 @@ class Beta8SensorMetadataTests(unittest.TestCase):
             "grid_undervoltage_time_3",
         )
         for key in keys:
-            start = source.index(f'        "{key}",')
-            block = source[start:start + 280]
+            start = source.index(f'    _advanced_diagnostic(\n        "{key}",')
+            block = source[start:start + 320]
             self.assertIn("SensorDeviceClass.DURATION", block)
             self.assertIn("UnitOfTime.SECONDS", block)
 

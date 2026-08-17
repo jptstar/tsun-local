@@ -143,6 +143,18 @@
       </div>
     </section>
 
+    <section class="notice">
+      <h2>Field-validation corrections in 1.4.0</h2>
+      <p>Real-device validation on MP3000 / 1511 and MX500 / 02B0 refined several diagnostics in the republished stable 1.4.0 release.</p>
+      <ul>
+        <li>Grid-protection timing values remain native <strong>seconds</strong>, with legacy beta-era automatic <code>ms</code> display choices migrated back to <code>s</code>.</li>
+        <li>On validated MP3000 hardware, raw alarm bit <code>0x2000</code> (<code>8192</code>) observed at dawn, dusk and very low irradiance remains visible but no longer reports a fault by itself; the operating state reports <strong>Standby — low solar input</strong>.</li>
+        <li>TITAN registers <strong>3017</strong> and <strong>3028</strong> remain unscaled raw decimal measurement sensors so their history can be charted while the temperature mapping is validated. No temperature offset is applied yet.</li>
+        <li>02B0 register <code>0x202C</code> is exposed as a <strong>raw output coefficient</strong> until its encoding is confirmed, rather than being labelled as a percentage.</li>
+      </ul>
+      <p class="muted">TSUN Local preserves the raw diagnostic values and deliberately avoids claiming an unconfirmed vendor bit-name or temperature offset.</p>
+    </section>
+
     <section class="experimental">
       <h2>1097 remains experimental</h2>
       <p>The 1097 adapter is included in 1.4 for community validation. It can expose standard inverter/PV telemetry plus advanced diagnostics such as protocol version, inverter version, temperature, insulation RX/RY, country/profile raw value and designed power where available.</p>

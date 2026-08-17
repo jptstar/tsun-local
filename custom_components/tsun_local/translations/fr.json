@@ -160,13 +160,13 @@
         "name": "Puissance maximale prévue"
       },
       "register_3017_raw": {
-        "name": "Registre brut 3017 (signification non confirmée)"
+        "name": "Registre brut 3017 (candidat température)"
       },
       "register_3018_raw": {
         "name": "Registre brut 3018 (signification non confirmée)"
       },
       "register_3028_raw": {
-        "name": "Registre brut 3028 (signification non confirmée)"
+        "name": "Registre brut 3028 (candidat température)"
       },
       "communication_last_success": {
         "name": "Dernière communication réussie"
@@ -352,7 +352,7 @@
         "name": "Temps de surfréquence réseau niveau 2"
       },
       "output_coefficient": {
-        "name": "Coefficient de sortie"
+        "name": "Coefficient de sortie brut (encodage non confirmé)"
       },
       "protocol_version": {
         "name": "Version du protocole"
@@ -371,6 +371,15 @@
       },
       "country_profile_raw": {
         "name": "Code pays/profil"
+      },
+      "inverter_operating_state": {
+        "name": "État de fonctionnement de l’onduleur",
+        "state": {
+          "active": "Actif",
+          "standby": "Veille",
+          "standby_low_solar": "Veille — faible entrée solaire",
+          "fault": "Défaut"
+        }
       }
     },
     "binary_sensor": {
