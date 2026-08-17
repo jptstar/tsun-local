@@ -70,9 +70,7 @@ These entities are available across all three supported protocol families.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
-| `register_3017_raw` | Raw register 3017 (inverter temperature) | ✅ |
 | `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
-| `register_3028_raw` | Raw register 3028 (inverter ambient temperature) | ✅ |
 | `inverter_operating_state` | Inverter operating state | ✅ |
 | `alarm_global_0_raw` | Raw global alarm 0 | ✅ |
 | `alarm_global_1_raw` | Raw global alarm 1 | ✅ |
@@ -85,7 +83,7 @@ These entities are available across all three supported protocol families.
 
 ### Field-observation notes
 
-- `register_3017_raw` and `register_3028_raw` remain available as original raw decimal diagnostics for protocol verification. In parallel, 1.4.1 exposes `inverter_temperature = raw - 40 °C` from register 3017 and `ambient_temperature = raw - 40 °C` from register 3028.
+- Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
 - Decimal register `2028` (`0x07EC`) is exposed as `output_coefficient_candidate`, displayed as **Power level (candidate)**. The candidate label is intentional until field validation confirms the mapping.
 - On validated MP3000 hardware, bit `0x2000` in `alarm_global_1_raw` is repeatedly observed during dawn, dusk and very low irradiance. TSUN Local preserves the raw `8192` value but does not treat that bit alone as a fault. The operating-state entity reports **Standby — low solar input** instead. The exact vendor bit-name remains unconfirmed.
@@ -236,14 +234,6 @@ All entities below are **🛡️ disabled by default**.
 | `inverter_temperature` | Inverter temperature | °C |
 | `output_coefficient` | Power level | % |
 | `country_profile_raw` | Country/profile code | raw |
-
----
-
-## Field semantics and display-unit migration in 1.4.1
-
-Grid-protection timing values are native **seconds**. The one-time migration introduced in 1.4.0 still moves beta-era automatic `ms` display choices back to `s` without replacing an explicit user-selected unit.
-
-For 02B0, register `0x202C` is now **Power level** with confirmed `raw × 100 / 1024` scaling (`1024 = 100%`). For 1511, registers 3017 and 3028 are decoded as temperatures using `raw - 40 °C`, while their original raw diagnostics remain available. The 1511 power-level register remains explicitly marked **candidate**.
 
 ---
 
