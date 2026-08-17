@@ -21,6 +21,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Detect republish generator
+        id: republish
+        run: |
+          if [ -f .github/scripts/republish_1_4_0.py ]; then
+            echo "generator=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "generator=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Python for republish validation
         if: contains(github.event.head_commit.message, '[release-retag]')
         uses: actions/setup-python@v6
@@ -28,7 +37,7 @@ jobs:
           python-version: "3.13"
 
       - name: Apply stable 1.4.0 field corrections
-        if: contains(github.event.head_commit.message, '[release-retag]')
+        if: contains(github.event.head_commit.message, '[release-retag]') && steps.republish.outputs.generator == 'true'
         run: python3 .github/scripts/republish_1_4_0.py
 
       - name: Check corrected diff
@@ -49,8 +58,8 @@ jobs:
         if: contains(github.event.head_commit.message, '[release-retag]')
         uses: home-assistant/actions/hassfest@master
 
-      - name: Commit corrected stable source
-        if: contains(github.event.head_commit.message, '[release-retag]')
+      - name: Commit corrected stable source to release branch
+        if: contains(github.event.head_commit.message, '[release-retag]') && steps.republish.outputs.generator == 'true'
         run: |
           if git diff --quiet; then
             echo "No generated correction remains to commit."
@@ -60,9 +69,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Republish TSUN Local 1.4.0 field corrections"
-          git push origin HEAD:main
+          git push --force origin HEAD:refs/heads/republish-1.4.0
 
       - name: Verify version metadata
+        if: steps.republish.outputs.generator != 'true'
         id: version
         run: |
           python3 - <<'PY'
@@ -83,6 +93,7 @@ jobs:
           echo "version=$(cat release_version.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Create or refresh stable tag
+        if: steps.republish.outputs.generator != 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
           RETAG: ${{ contains(github.event.head_commit.message, '[release-retag]') }}
@@ -103,6 +114,7 @@ jobs:
           fi
 
       - name: Create or update GitHub Release
+        if: steps.republish.outputs.generator != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
