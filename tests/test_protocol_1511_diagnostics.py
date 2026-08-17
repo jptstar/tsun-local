@@ -49,13 +49,14 @@ class Protocol1511DiagnosticTests(unittest.TestCase):
             bytes.fromhex("A1 21 00 07 D0 00 02 00 60 3E 5D"),
         )
 
-    def test_keeps_3017_and_3028_as_unscaled_raw_values(self) -> None:
+    def test_keeps_3017_3018_and_3028_as_unscaled_raw_values(self) -> None:
         registers = {
             0x0BB8: 1,
             0x0BC4: 2300,
             0x0BC5: 100,
             0x0BC7: 5000,
             0x0BC9: 92,
+            0x0BCA: 68,
             0x0BCC: 3000,
             0x0BCD: 1000,
             0x0BCE: 100,
@@ -77,6 +78,7 @@ class Protocol1511DiagnosticTests(unittest.TestCase):
         self.assertEqual(data["rated_power"], 3000)
         self.assertEqual(data["max_designed_power"], 3000)
         self.assertEqual(data["register_3017_raw"], 92)
+        self.assertEqual(data["register_3018_raw"], 68)
         self.assertEqual(data["register_3028_raw"], 90)
 
 
