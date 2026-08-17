@@ -118,7 +118,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
+          SYNC_RELEASE_NOTES: ${{ contains(github.event.head_commit.message, '[release-notes]') }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
+          if [ "${SYNC_RELEASE_NOTES}" = "true" ]; then
+            while IFS= read -r NOTES; do
+              [ -n "${NOTES}" ] || continue
+              NOTE_VERSION="$(basename "${NOTES}" .md)"
+              NOTE_TAG="v${NOTE_VERSION}"
+              if gh release view "${NOTE_TAG}" >/dev/null 2>&1; then
+                gh release edit "${NOTE_TAG}" --title "Version ${NOTE_VERSION}" --notes-file "${NOTES}"
+                echo "Updated ${NOTE_TAG} from ${NOTES}."
+              else
+                echo "Release ${NOTE_TAG} does not exist; skipping notes sync."
+              fi
+            done < <(git diff --name-only "${BEFORE_SHA}" "${GITHUB_SHA}" -- 'docs/releases/*.md')
+            exit 0
+          fi
+
           TAG="v${VERSION}"
           NOTES="docs/releases/${VERSION}.md"
 
