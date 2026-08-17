@@ -79,9 +79,7 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
         "inverter_status_raw",
         "rated_power",
         "max_designed_power",
-        "register_3017_raw",
         "register_3018_raw",
-        "register_3028_raw",
         "inverter_temperature",
         "ambient_temperature",
     }
@@ -238,7 +236,6 @@ def decode_measurements(
         "ac_voltage": registers[0x0BC4] * 0.1,
         "ac_current": registers[0x0BC5] * 0.01,
         "ac_frequency": registers[0x0BC7] * 0.01,
-        "register_3017_raw": registers[0x0BC9],
         "inverter_temperature": registers[0x0BC9] - 40,
         "rated_power": registers[0x0BCC],
         "ac_power": registers[0x0BCD] * 0.1,
@@ -248,7 +245,6 @@ def decode_measurements(
     if 0x0BCA in registers:
         data["register_3018_raw"] = registers[0x0BCA]
     if 0x0BD4 in registers:
-        data["register_3028_raw"] = registers[0x0BD4]
         data["ambient_temperature"] = registers[0x0BD4] - 40
     if 0x07FA in registers:
         data["max_designed_power"] = registers[0x07FA]

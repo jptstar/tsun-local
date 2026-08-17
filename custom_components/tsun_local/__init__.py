@@ -9,7 +9,12 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PORT,
+    CONF_UNIT_OF_MEASUREMENT,
+    PERCENTAGE,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.event import async_track_time_interval
@@ -85,12 +90,55 @@ def _async_remove_legacy_raw_profile_entity(
         entity_registry.async_remove(entity_id)
 
 
+def _async_migrate_141_entity_registry(
+    hass: HomeAssistant, logger_sn: str
+) -> None:
+    """Finalize 1.4.1 temperature and percentage entity semantics."""
+    entity_registry = er.async_get(hass)
+
+    # 3017 and 3028 are now established temperature entities. Remove the
+    # temporary raw comparison entities used during field validation.
+    for key in ("register_3017_raw", "register_3028_raw"):
+        unique_id = f"{logger_sn}_{key}"
+        if entity_id := entity_registry.async_get_entity_id(
+            "sensor", DOMAIN, unique_id
+        ):
+            entity_registry.async_remove(entity_id)
+
+    # 1.4.0 temporarily exposed output_coefficient without a percentage unit.
+    # 1.4.1 restores its confirmed percentage semantics. Preserve any explicit
+    # user-selected sensor unit, otherwise repair the registry override so a
+    # decoded value of 100 is displayed as 100% rather than inheriting stale
+    # unit metadata from the earlier raw diagnostic.
+    output_unique_id = f"{logger_sn}_output_coefficient"
+    output_entity_id = entity_registry.async_get_entity_id(
+        "sensor", DOMAIN, output_unique_id
+    )
+    if output_entity_id is None:
+        return
+    output_entry = entity_registry.async_get(output_entity_id)
+    if output_entry is None:
+        return
+    sensor_options = dict(output_entry.options.get("sensor", {}))
+    if CONF_UNIT_OF_MEASUREMENT in sensor_options:
+        return
+    sensor_options[CONF_UNIT_OF_MEASUREMENT] = PERCENTAGE
+    entity_registry.async_update_entity_options(
+        output_entity_id, "sensor", sensor_options
+    )
+    entity_registry.async_update_entity(
+        output_entity_id,
+        unit_of_measurement=PERCENTAGE,
+    )
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: TsunConfigEntry
 ) -> bool:
     """Set up one locally connected TSUN device from a config entry."""
     logger_sn = str(entry.data[CONF_LOGGER_SN])
     _async_remove_legacy_raw_profile_entity(hass, logger_sn)
+    _async_migrate_141_entity_registry(hass, logger_sn)
     logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
     logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
     logger_raw_profile = entry.data.get(CONF_LOGGER_RAW_PROFILE)
@@ -201,6 +249,10 @@ async def async_setup_entry(
 
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Sensor setup still contains the legacy 1.4.0 unit migration. Re-apply
+    # the final 1.4.1 registry semantics afterwards so Power level is `%` and
+    # the temporary 3017/3028 raw entities cannot survive an upgrade.
+    _async_migrate_141_entity_registry(hass, logger_sn)
     entry.async_on_unload(
         async_track_time_interval(
             hass,

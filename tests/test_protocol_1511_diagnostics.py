@@ -36,7 +36,7 @@ from tsun_local_1511_diagnostic_tests.protocol_1511 import (  # noqa: E402
 
 
 class Protocol1511DiagnosticTests(unittest.TestCase):
-    """Protect the validated MP3000 diagnostic reads and raw semantics."""
+    """Protect the validated MP3000 diagnostic reads and temperature semantics."""
 
     def test_slow_diagnostics_are_due_on_first_poll(self) -> None:
         client = Tsun1511Client("192.0.2.10", 8899, 123456)
@@ -49,7 +49,7 @@ class Protocol1511DiagnosticTests(unittest.TestCase):
             bytes.fromhex("A1 21 00 07 D0 00 02 00 60 3E 5D"),
         )
 
-    def test_keeps_3017_3018_and_3028_as_unscaled_raw_values(self) -> None:
+    def test_decodes_3017_and_3028_as_temperatures_and_keeps_3018_raw(self) -> None:
         registers = {
             0x0BB8: 1,
             0x0BC4: 2300,
@@ -77,9 +77,11 @@ class Protocol1511DiagnosticTests(unittest.TestCase):
         self.assertEqual(data["inverter_status_raw"], 1)
         self.assertEqual(data["rated_power"], 3000)
         self.assertEqual(data["max_designed_power"], 3000)
-        self.assertEqual(data["register_3017_raw"], 92)
+        self.assertEqual(data["inverter_temperature"], 52)
+        self.assertEqual(data["ambient_temperature"], 50)
         self.assertEqual(data["register_3018_raw"], 68)
-        self.assertEqual(data["register_3028_raw"], 90)
+        self.assertNotIn("register_3017_raw", data)
+        self.assertNotIn("register_3028_raw", data)
 
 
 if __name__ == "__main__":
