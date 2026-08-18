@@ -130,6 +130,32 @@ class MetadataTests(unittest.TestCase):
                 (ROOT / "docs" / name).read_text(encoding="utf-8"),
             )
 
+    def test_public_site_links_visual_entity_reference(self) -> None:
+        index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        entities = (ROOT / "docs" / "entities.html").read_text(encoding="utf-8")
+        sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
+
+        self.assertIn('href="entities.html"', index)
+        self.assertIn("Plug &amp; play identification", index)
+        self.assertIn("about 20 seconds", index)
+        self.assertIn('<strong>55</strong><span>enabled by default</span>', index)
+        self.assertIn('<strong>39</strong><span>advanced diagnostics</span>', index)
+        self.assertIn('<strong>224</strong><span>alarm positions</span>', index)
+        self.assertIn("physically verified alarm mappings", index)
+        self.assertIn("Every entity, clearly organised.", entities)
+        self.assertIn("94", entities)
+        self.assertIn("55", entities)
+        self.assertIn("39", entities)
+        self.assertIn("224", entities)
+        self.assertIn("total MP3000 entities", entities)
+        self.assertIn("total with 6 PV inputs", entities)
+        self.assertIn("How 1511 alarms appear in Home Assistant", entities)
+        self.assertIn("PV6 input voltage too low", entities)
+        self.assertIn("PV6 DSP fault", entities)
+        self.assertIn("other 212 positions", entities)
+        self.assertNotIn("Profile-only data", entities)
+        self.assertIn("entities.html", sitemap)
+
 
 if __name__ == "__main__":
     unittest.main()

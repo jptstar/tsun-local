@@ -67,9 +67,14 @@
     .primary { color: #071829; background: #8ee4ff; }
     .secondary { color: #fff; border: 1px solid rgba(255,255,255,.27); background: rgba(255,255,255,.08); }
     .preview-card { padding: 26px; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: rgba(255,255,255,.08); backdrop-filter: blur(12px); }
-    .preview-card .big { display: block; margin: 8px 0 3px; font-size: 50px; line-height: 1; font-weight: 900; }
-    .preview-card strong { display: block; font-size: 22px; }
-    .preview-card p { margin: 9px 0 0; color: #d6e5f7; }
+    .preview-kicker { display: block; color: #8cd5ff; letter-spacing: .08em; font-size: 12px; font-weight: 900; }
+    .preview-primary { display: flex; gap: 13px; align-items: end; margin-top: 12px; }
+    .preview-primary .big { display: block; font-size: 56px; line-height: .88; letter-spacing: -.05em; font-weight: 900; }
+    .preview-primary strong { display: block; max-width: 130px; font-size: 21px; line-height: 1.05; }
+    .preview-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .preview-stat { min-height: 94px; padding: 13px; border-radius: 14px; background: rgba(255,255,255,.08); }
+    .preview-stat strong { display: block; font-size: 27px; line-height: 1; }
+    .preview-stat span { display: block; margin-top: 7px; color: #d6e5f7; font-size: 13px; line-height: 1.25; }
     main { margin-top: -30px; padding-bottom: 72px; }
     section { margin-top: 28px; padding: 34px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); box-shadow: var(--shadow); }
     section[id] { scroll-margin-top: 18px; }
@@ -126,7 +131,7 @@
     <div class="wrap">
       <nav>
         <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#alarms">MP3000 alarms</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
+        <div class="navlinks"><a href="#features">Features</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
       </nav>
       <div class="hero" id="top">
         <div>
@@ -140,11 +145,15 @@
             <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.0">Release 1.5.0</a>
           </div>
         </div>
-        <aside class="preview-card">
-          <span>🚨 NEW IN 1.5.0</span>
-          <span class="big">224</span>
-          <strong>MP3000 alarm positions</strong>
-          <p>Every active position is counted and displayed. Functional names are added only after physical validation.</p>
+        <aside class="preview-card" aria-label="MP3000 entity and alarm summary">
+          <span class="preview-kicker">🚨 NEW IN 1.5.0</span>
+          <div class="preview-primary"><span class="big">94</span><strong>MP3000 entities</strong></div>
+          <div class="preview-stats">
+            <div class="preview-stat"><strong>55</strong><span>enabled by default</span></div>
+            <div class="preview-stat"><strong>39</strong><span>advanced diagnostics</span></div>
+            <div class="preview-stat"><strong>12</strong><span>physically verified alarm mappings</span></div>
+            <div class="preview-stat"><strong>224</strong><span>alarm positions</span></div>
+          </div>
         </aside>
       </div>
     </div>
@@ -156,7 +165,7 @@
       <p class="intro">One clean integration for three local TSUN protocol families, with everyday entities visible and expert diagnostics kept out of the way.</p>
       <div class="grid">
         <div class="card"><strong>🔌 1511 · 02B0 · 1097</strong><span class="muted">TITAN, GEN3 PLUS and experimental GEN3 support.</span></div>
-        <div class="card"><strong>🔍 Automatic identification</strong><span class="muted">The supported local protocol is identified from the logger where available.</span></div>
+        <div class="card"><strong>🔍 Plug &amp; play identification</strong><span class="muted">No protocol configuration in most cases. TSUN Local identifies a supported local protocol from the logger—typically in about 20 seconds when the logger is reachable.</span></div>
         <div class="card"><strong>☀️ Dynamic PV detection</strong><span class="muted">PV inputs appear progressively as the inverter exposes them.</span></div>
         <div class="card"><strong>🚨 Clear alarms</strong><span class="muted">Active names and local codes without a wall of permanent entities.</span></div>
         <div class="card"><strong>🌍 Eight languages</strong><span class="muted">Entities and active alarm wording follow Home Assistant.</span></div>
@@ -237,12 +246,12 @@
           </ul>
         </div>
       </div>
-      <div class="actions"><a class="button primary" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Open the full entity reference</a></div>
+      <div class="actions"><a class="button primary" href="entities.html">Explore all entities</a><a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Technical reference</a></div>
     </section>
 
     <section id="install">
       <h2>Install through HACS</h2>
-      <p class="intro">Home Assistant 2026.3.0 or later. Add the custom repository, install TSUN Local, restart Home Assistant, then add the integration from Settings → Devices &amp; services.</p>
+      <p class="intro">Home Assistant 2026.3.0 or later. Add the custom repository, install TSUN Local, restart Home Assistant, then add the integration from Settings → Devices &amp; services. In most installations there is no protocol to configure: automatic identification typically completes in about 20 seconds when the logger is reachable.</p>
       <div class="actions">
         <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Open the HACS repository</a>
         <a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local">Read the installation guide</a>
