@@ -2,12 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://jptstar.github.io/tsun-local/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-08-19</lastmod>
   </url>
   <url>
     <loc>https://jptstar.github.io/tsun-local/entities.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2026-08-19</lastmod>
   </url>
 </urlset>

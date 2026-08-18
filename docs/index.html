@@ -4,34 +4,54 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk">
-  <title>TSUN Local 1.5.0 — Local Home Assistant integration for TSUN micro-inverters</title>
-  <meta name="description" content="TSUN Local is an open-source HACS integration for local, read-only Home Assistant monitoring of compatible TSUN micro-inverters, with 1511, 02B0 and experimental 1097 support.">
+  <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
+  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local, a read-only HACS integration for MP3000, MX500 and 1511/02B0/1097.">
   <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
   <link rel="icon" type="image/png" href="icon.png">
   <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="TSUN Local — Your inverter. Your network. Your data.">
-  <meta property="og:description" content="Local, read-only Home Assistant monitoring for compatible TSUN micro-inverters. No cloud dependency. No proxy.">
+  <meta property="og:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
+  <meta property="og:description" content="Local, read-only monitoring for compatible TSUN microinverters in Home Assistant. Install through HACS with no cloud dependency or proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
+  <meta property="og:image:width" content="256">
+  <meta property="og:image:height" content="256">
+  <meta property="og:image:alt" content="TSUN Local Home Assistant integration icon">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TSUN Local — Home Assistant integration">
-  <meta name="twitter:description" content="Direct local monitoring for compatible TSUN micro-inverters.">
+  <meta name="twitter:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
+  <meta name="twitter:description" content="Local, read-only TSUN microinverter monitoring for Home Assistant through HACS.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
+  <meta name="twitter:image:alt" content="TSUN Local Home Assistant integration icon">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareSourceCode",
-    "name": "TSUN Local",
-    "softwareVersion": "1.5.0",
-    "description": "Open-source HACS integration for direct local read-only monitoring of compatible TSUN solar micro-inverters.",
-    "url": "https://jptstar.github.io/tsun-local/",
-    "codeRepository": "https://github.com/jptstar/tsun-local",
-    "programmingLanguage": "Python",
-    "license": "https://www.gnu.org/licenses/gpl-3.0.html",
-    "author": {"@type": "Person", "name": "Jean-Philippe TESTART", "url": "https://github.com/jptstar"},
-    "keywords": ["Home Assistant", "HACS", "TSUN", "TSOL-MP3000", "TSOL-MX500", "1511", "02B0", "1097", "solar monitoring", "local integration"]
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://jptstar.github.io/tsun-local/#website",
+        "name": "TSUN Local",
+        "url": "https://jptstar.github.io/tsun-local/",
+        "description": "Local TSUN microinverter monitoring for Home Assistant.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "https://jptstar.github.io/tsun-local/#software",
+        "name": "TSUN Local",
+        "softwareVersion": "1.5.0",
+        "description": "Open-source HACS integration for direct, local and read-only monitoring of compatible TSUN solar microinverters in Home Assistant.",
+        "url": "https://jptstar.github.io/tsun-local/",
+        "codeRepository": "https://github.com/jptstar/tsun-local",
+        "programmingLanguage": "Python",
+        "runtimePlatform": "Home Assistant",
+        "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+        "author": {"@type": "Person", "name": "Jean-Philippe TESTART", "url": "https://github.com/jptstar"},
+        "keywords": ["Home Assistant", "HACS", "TSUN microinverter", "TSOL-MP3000", "TSOL-MX500", "1511", "02B0", "1097", "solar monitoring", "local integration"]
+      }
+    ]
   }
   </script>
   <style>
@@ -131,13 +151,13 @@
     <div class="wrap">
       <nav>
         <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
+        <div class="navlinks"><a href="#features">Features</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
       </nav>
       <div class="hero" id="top">
         <div>
-          <p class="eyebrow">Current release · 1.5.0</p>
-          <h1>Your inverter. Your network. Your data.</h1>
-          <p class="lead">TSUN Local connects compatible TSUN solar micro-inverters directly to Home Assistant over the local network.</p>
+          <p class="eyebrow">TSUN microinverter integration · Home Assistant</p>
+          <h1>Local TSUN microinverter monitoring for Home Assistant.</h1>
+          <p class="lead">TSUN Local connects compatible TSUN solar microinverters—including the validated TSOL-MP3000 and TSOL-MX500—directly to Home Assistant over the local network.</p>
           <p class="strap">Local. Read-only. No cloud. No proxy.</p>
           <div class="actions">
             <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
@@ -258,6 +278,16 @@
       </div>
     </section>
 
+    <section id="faq">
+      <h2>TSUN Local and Home Assistant FAQ</h2>
+      <p class="intro">Quick answers for owners looking for a local TSUN microinverter integration.</p>
+      <div class="grid">
+        <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
+        <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
+        <div class="card"><strong>How is TSUN Local installed?</strong><span class="muted">Add the repository to HACS, install the integration, restart Home Assistant and add TSUN Local from Devices &amp; services.</span></div>
+      </div>
+    </section>
+
     <section>
       <h2>Documentation in eight languages</h2>
       <p class="intro">The integration interface and MP3000 alarm presentation are available across the complete TSUN Local language set.</p>
@@ -280,6 +310,6 @@
     </section>
   </main>
 
-  <footer class="wrap">TSUN Local · <a href="https://github.com/jptstar/tsun-local">Source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a> · <a href="https://github.com/jptstar/tsun-local/releases">Releases</a></footer>
+  <footer class="wrap">TSUN Local · <a href="entities.html">Entity reference</a> · <a href="https://github.com/jptstar/tsun-local">Source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a> · <a href="https://github.com/jptstar/tsun-local/releases">Releases</a></footer>
 </body>
 </html>

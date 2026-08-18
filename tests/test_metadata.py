@@ -142,7 +142,9 @@ class MetadataTests(unittest.TestCase):
         self.assertIn('<strong>39</strong><span>advanced diagnostics</span>', index)
         self.assertIn('<strong>224</strong><span>alarm positions</span>', index)
         self.assertIn("physically verified alarm mappings", index)
-        self.assertIn("Every entity, clearly organised.", entities)
+        self.assertIn("Local TSUN microinverter monitoring for Home Assistant.", index)
+        self.assertIn("TSUN Local and Home Assistant FAQ", index)
+        self.assertIn("TSUN MP3000 and microinverter entities for Home Assistant.", entities)
         self.assertIn("94", entities)
         self.assertIn("55", entities)
         self.assertIn("39", entities)
@@ -155,6 +157,10 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("other 212 positions", entities)
         self.assertNotIn("Profile-only data", entities)
         self.assertIn("entities.html", sitemap)
+        self.assertEqual(sitemap.count("<lastmod>2026-08-19</lastmod>"), 2)
+        self.assertIn('"@type": "WebSite"', index)
+        self.assertIn('"@type": "BreadcrumbList"', entities)
+        self.assertIn('name="twitter:card"', entities)
 
 
 if __name__ == "__main__":
