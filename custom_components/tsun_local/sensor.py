@@ -33,6 +33,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import TsunConfigEntry
+from .alarm_catalog import alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 
@@ -73,6 +74,7 @@ def _raw_alarm(
         suggested_object_id=key,
         translation_key=translation_key,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         register_address=register_address,
     )
 
@@ -591,6 +593,13 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         suggested_display_precision=0,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    TsunSensorDescription(
+        key="alarm_active_count",
+        suggested_object_id="alarm_active_count",
+        translation_key="alarm_active_count",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:alert-circle-outline",
+    ),
     *(
         _raw_alarm(
             f"alarm_global_{index}_raw",
@@ -820,12 +829,23 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         )
 
     @property
-    def extra_state_attributes(self) -> dict[str, str] | None:
-        """Expose the source address and hexadecimal value for raw registers."""
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        """Expose active alarm names or compact raw diagnostics."""
+        if self.entity_description.key == "alarm_active_count":
+            return alarm_state_attributes(
+                self.coordinator.data,
+                self.coordinator.hass.config.language,
+            )
         address = self._source_register_address()
         value = self.native_value
         if address is None or not isinstance(value, int):
             return None
+        key = self.entity_description.key
+        if (
+            key.startswith("alarm_") and key.endswith("_raw")
+            or key.startswith("pv") and key.endswith("_alarm_raw")
+        ):
+            return {"raw_value_hex": f"0x{value:04X}"}
         return {
             "register_address": address,
             "raw_value_hex": f"0x{value:04X}",

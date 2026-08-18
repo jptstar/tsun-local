@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Il tuo inverter. La tua rete. I tuoi dati.</h3>
 <p align="center"><strong>Locale. Sola lettura. Nessun cloud. Nessun proxy.</strong></p>
-<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.4.1</strong></p>
+<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.5.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -133,9 +133,15 @@ Le corrispondenti varianti `-D` possono essere compatibili dove previste.
 La validazione su hardware reale MP3000 / 1511 e MX500 / 02B0 ha affinato alcuni diagnostici prima della ripubblicazione della 1.4.1:
 
 - i tempi di protezione rete restano nativamente in **secondi**; le vecchie unità automatiche `ms` memorizzate dalle beta vengono migrate a `s`;
-- sul MP3000 validato, il bit grezzo `0x2000` (`8192`) osservato all’alba, al tramonto e con irraggiamento molto basso resta visibile ma da solo non segnala più un guasto; lo stato operativo mostra **Standby — bassa potenza solare in ingresso**;
+- sul MP3000 validato, il bit grezzo `0x2000` (`8192`) osservato all’alba, al tramonto e con irraggiamento molto basso resta visibile, viene conteggiato e segnalato con un codice locale neutro; lo stato mostra **Standby — bassa potenza solare in ingresso** finché il significato esatto non è confermato su hardware di controllo;
 - i registri TITAN **3017** e **3028** vengono ora decodificati come **Temperatura inverter** e **Temperatura ambiente inverter** con `raw - 40 °C`; i valori grezzi restano disponibili per la verifica;
 - il registro 02B0 `0x202C` viene ora mostrato come **Livello di potenza** con la scala confermata `raw × 100 / 1024` (`1024 = 100 %`);
+
+---
+
+## 🚨 Catalogo allarmi MP3000
+
+Tutte le **224 posizioni** delle 14 parole di allarme sono incluse, conteggiate e mostrate quando attive. **12 corrispondenze funzionali** sono convalidate; le altre **212 posizioni** ricevono un codice TSUN Local neutro e univoco e richiedono una verifica fisica su hardware di controllo adeguato. Nessuna posizione attiva viene scartata. I testi in otto lingue sono formulazioni indipendenti di TSUN Local, non traduzioni del server presentate come ufficiali.
 
 ---
 
@@ -225,9 +231,9 @@ La versione 1.4 porta TSUN Local dai singoli modelli conosciuti verso la **compa
 
 ---
 
-## Reverse engineering e validazione
+## Politica di validazione
 
-Le implementazioni 1511 e 02B0 sono sviluppate tramite **analisi indipendente del protocollo locale, osservazione di dispositivi reali e validazione hardware**.
+I nomi funzionali e il supporto di un modello vengono indicati come convalidati solo dopo controlli riproducibili su hardware reale.
 
 I candidati alla compatibilità sono intenzionalmente distinti dall’hardware effettivamente validato.
 

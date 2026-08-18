@@ -18,6 +18,28 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 
 ---
 
+## MP3000 entity summary — 1511 with six PV inputs
+
+The maximum current MP3000 configuration exposes **94 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
+
+| Group | Maximum | Examples |
+|---|---:|---|
+| Production and electricity | 37 | AC and PV voltage, current, power, daily energy, total energy |
+| Device and logger information | 5 | label SN, inverter SN, logger firmware, MAC address, Wi-Fi signal |
+| Temperatures | 2 | inverter and inverter ambient temperature |
+| Communication | 5 | online state, last success, duration, blocks, failures |
+| Operating state and control | 3 | raw inverter status, operating state, manual refresh |
+| Power and capacity diagnostics | 3 | rated power, maximum designed power, candidate power level |
+| Grid protection | 22 | voltage/frequency thresholds, recovery values and delays |
+| Alarm interface | 16 | inverter alarm, active-alarm count, 14 complete raw words |
+| Unconfirmed raw diagnostic | 1 | raw register 3018 |
+| **Total** | **94** | Maximum after detection of PV1 through PV6 |
+
+> [!NOTE]
+> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
+
+---
+
 ## Common entities — 1511 · 02B0 · 1097
 
 These entities are available across all three supported protocol families.
@@ -70,27 +92,40 @@ These entities are available across all three supported protocol families.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
+| `alarm_active_count` | Active alarms | ✅ |
 | `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
 | `inverter_operating_state` | Inverter operating state | ✅ |
-| `alarm_global_0_raw` | Raw global alarm 0 | ✅ |
-| `alarm_global_1_raw` | Raw global alarm 1 | ✅ |
-| `alarm_global_2_raw` | Raw global alarm 2 | ✅ |
-| `alarm_global_3_raw` | Raw global alarm 3 | ✅ |
-| `alarm_secondary_0_raw` | Raw secondary alarm 0 | ✅ |
-| `alarm_secondary_1_raw` | Raw secondary alarm 1 | ✅ |
-| `alarm_secondary_2_raw` | Raw secondary alarm 2 | ✅ |
-| `alarm_secondary_3_raw` | Raw secondary alarm 3 | ✅ |
+| `alarm_global_0_raw` | Raw global alarm 0 | 🛡️ |
+| `alarm_global_1_raw` | Raw global alarm 1 | 🛡️ |
+| `alarm_global_2_raw` | Raw global alarm 2 | 🛡️ |
+| `alarm_global_3_raw` | Raw global alarm 3 | 🛡️ |
+| `alarm_secondary_0_raw` | Raw controller alarm 0 | 🛡️ |
+| `alarm_secondary_1_raw` | Raw controller alarm 1 | 🛡️ |
+| `alarm_secondary_2_raw` | Raw controller alarm 2 | 🛡️ |
+| `alarm_secondary_3_raw` | Raw controller alarm 3 | 🛡️ |
 
 ### Field-observation notes
 
 - Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
 - Decimal register `2028` (`0x07EC`) is exposed as `output_coefficient_candidate`, displayed as **Power level (candidate)**. The candidate label is intentional until field validation confirms the mapping.
-- On validated MP3000 hardware, bit `0x2000` in `alarm_global_1_raw` is repeatedly observed during dawn, dusk and very low irradiance. TSUN Local preserves the raw `8192` value but does not treat that bit alone as a fault. The operating-state entity reports **Standby — low solar input** instead. The exact vendor bit-name remains unconfirmed.
+- On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.
+
+## 1511 MP3000 alarm catalogue
+
+The independent local catalogue contains all **224 positions** exposed by the 14 alarm words. Every active position is counted and displayed.
+
+| Catalogue range | Positions | Validation |
+|---|---:|---|
+| `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
+| `A065`–`A128` | 64 controller positions | Control-hardware validation required |
+| `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
+
+The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `alarm_active_count` entity lists the localized names and stable local codes of current alarms. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
 
 ## 1511 PV entities
 
-Every detected PV input exposes voltage, current, power, daily energy, total energy and one raw alarm entity.
+Every detected PV input exposes voltage, current, power, daily energy, total energy and one raw alarm entity. Raw alarm entities are disabled by default.
 
 | PV | Voltage | Current | Power | Daily energy | Total energy | Raw alarm |
 |:---:|---|---|---|---|---|---|
@@ -146,10 +181,10 @@ All entities below are **🛡️ disabled by default**.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
-| `alarm_code_1_raw` | Raw alarm code 1 | ✅ |
-| `alarm_code_2_raw` | Raw alarm code 2 | ✅ |
-| `alarm_code_3_raw` | Raw alarm code 3 | ✅ |
-| `alarm_code_4_raw` | Raw alarm code 4 | ✅ |
+| `alarm_code_1_raw` | Raw alarm code 1 | 🛡️ |
+| `alarm_code_2_raw` | Raw alarm code 2 | 🛡️ |
+| `alarm_code_3_raw` | Raw alarm code 3 | 🛡️ |
+| `alarm_code_4_raw` | Raw alarm code 4 | 🛡️ |
 
 ## 02B0 PV entities
 
@@ -203,10 +238,10 @@ All entities below are **🛡️ disabled by default**.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
-| `alarm_code_1_raw` | Raw alarm code 1 | ✅ |
-| `alarm_code_2_raw` | Raw alarm code 2 | ✅ |
-| `alarm_code_3_raw` | Raw alarm code 3 | ✅ |
-| `alarm_code_4_raw` | Raw alarm code 4 | ✅ |
+| `alarm_code_1_raw` | Raw alarm code 1 | 🛡️ |
+| `alarm_code_2_raw` | Raw alarm code 2 | 🛡️ |
+| `alarm_code_3_raw` | Raw alarm code 3 | 🛡️ |
+| `alarm_code_4_raw` | Raw alarm code 4 | 🛡️ |
 
 ## 1097 PV entities
 

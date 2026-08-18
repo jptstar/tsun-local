@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
-<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.4.1</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -133,9 +133,15 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 Walidacja na rzeczywistych urządzeniach MP3000 / 1511 i MX500 / 02B0 doprecyzowała kilka diagnostyk przed ponowną publikacją 1.4.1:
 
 - czasy zabezpieczeń sieci pozostają natywnie w **sekundach**; automatyczne jednostki `ms` zapamiętane przez wcześniejsze wersje beta są migrowane do `s`;
-- w zweryfikowanym MP3000 surowy bit `0x2000` (`8192`), obserwowany o świcie, zmierzchu i przy bardzo niskim nasłonecznieniu, pozostaje widoczny, ale sam nie wywołuje już stanu usterki; stan pracy pokazuje **Czuwanie — niski poziom energii słonecznej**;
+- w zweryfikowanym MP3000 surowy bit `0x2000` (`8192`), obserwowany o świcie, zmierzchu i przy bardzo niskim nasłonecznieniu, pozostaje widoczny, jest liczony i zgłaszany z neutralnym kodem lokalnym; stan pracy pokazuje **Czuwanie — niski poziom energii słonecznej**, dopóki dokładne znaczenie nie zostanie potwierdzone na sprzęcie kontrolnym;
 - rejestry TITAN **3017** i **3028** są teraz dekodowane jako **Temperatura falownika** i **Temperatura otoczenia falownika** z `raw - 40 °C`; surowe wartości pozostają dostępne do weryfikacji;
 - rejestr 02B0 `0x202C` jest teraz wyświetlany jako **Poziom mocy** z potwierdzonym skalowaniem `raw × 100 / 1024` (`1024 = 100 %`);
+
+---
+
+## 🚨 Katalog alarmów MP3000
+
+Wszystkie **224 pozycje** w 14 słowach alarmowych są uwzględniane, liczone i wyświetlane po aktywacji. **12 powiązań funkcjonalnych** zostało zweryfikowanych; pozostałe **212 pozycji** otrzymuje unikalny neutralny kod TSUN Local i wymaga fizycznej weryfikacji na odpowiednim sprzęcie kontrolnym. Żadna aktywna pozycja nie jest pomijana. Teksty w ośmiu językach są niezależnymi sformułowaniami TSUN Local, a nie tłumaczeniami serwera przedstawianymi jako oficjalne.
 
 ---
 
@@ -225,9 +231,9 @@ Wersja 1.4 przenosi TSUN Local z obsługi pojedynczych znanych modeli w stronę 
 
 ---
 
-## Inżynieria wsteczna i walidacja
+## Zasady walidacji
 
-Implementacje 1511 i 02B0 są rozwijane poprzez **niezależną analizę lokalnego protokołu, obserwację rzeczywistych urządzeń i walidację sprzętową**.
+Nazwy funkcjonalne i obsługa modelu są oznaczane jako zweryfikowane dopiero po powtarzalnych testach na rzeczywistym sprzęcie.
 
 Kandydaci do kompatybilności są celowo oznaczani oddzielnie od faktycznie zweryfikowanego sprzętu.
 

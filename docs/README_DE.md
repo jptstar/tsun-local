@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
 <p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
-<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.4.1</strong></p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -133,9 +133,15 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der erneuten Veröffentlichung von 1.4.1 einige Diagnosewerte präzisiert:
 
 - Netzschutz-Zeitwerte bleiben nativ in **Sekunden**; automatisch gespeicherte `ms`-Anzeigeeinheiten aus älteren Betas werden auf `s` migriert;
-- beim validierten MP3000 bleibt das bei Dämmerung und sehr geringer Einstrahlung beobachtete Rohbit `0x2000` (`8192`) sichtbar, löst allein aber keinen Fehler mehr aus; der Betriebszustand zeigt **Standby — geringe PV-Eingangsleistung**;
+- beim validierten MP3000 bleibt das bei Dämmerung und sehr geringer Einstrahlung beobachtete Rohbit `0x2000` (`8192`) sichtbar, wird gezählt und mit einem neutralen lokalen Code gemeldet; der Betriebszustand zeigt **Standby — geringe PV-Eingangsleistung**, bis seine genaue Bedeutung auf Kontrollhardware bestätigt ist;
 - die TITAN-Register **3017** und **3028** werden jetzt als **Wechselrichtertemperatur** bzw. **Umgebungstemperatur des Wechselrichters** mit `raw - 40 °C` dekodiert; die Rohwerte bleiben zur Prüfung erhalten;
 - das 02B0-Register `0x202C` wird jetzt als **Leistungsniveau** mit der bestätigten Skalierung `raw × 100 / 1024` (`1024 = 100 %`) angezeigt;
+
+---
+
+## 🚨 MP3000-Alarmkatalog
+
+Alle **224 Positionen** der 14 Alarmwörter werden berücksichtigt, gezählt und bei Aktivierung angezeigt. **12 funktionale Zuordnungen** sind validiert; die übrigen **212 Positionen** erhalten einen eindeutigen neutralen TSUN-Local-Code und benötigen eine physische Prüfung auf geeigneter Kontrollhardware. Keine aktive Position wird verworfen. Die Texte in acht Sprachen sind unabhängige TSUN-Local-Formulierungen und keine als offiziell ausgegebenen Serverübersetzungen.
 
 ---
 
@@ -225,9 +231,9 @@ Version 1.4 entwickelt TSUN Local von einzelnen bekannten Modellen hin zu **Komp
 
 ---
 
-## Reverse Engineering & Validierung
+## Validierungsrichtlinie
 
-Die Implementierungen 1511 und 02B0 entstehen durch **unabhängige lokale Protokollanalyse, Beobachtungen an realen Geräten und Hardwarevalidierung**.
+Funktionsnamen und Modellunterstützung werden erst nach reproduzierbaren Prüfungen an realer Hardware als validiert gekennzeichnet.
 
 Kompatibilitätskandidaten werden bewusst getrennt von tatsächlich validierter Hardware gekennzeichnet.
 

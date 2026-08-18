@@ -18,6 +18,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import TsunConfigEntry
+from .alarm_catalog import alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 
@@ -122,8 +123,13 @@ class TsunAlarmSensor(CoordinatorEntity[TsunCoordinator], BinarySensorEntity):
         )
 
     @property
-    def extra_state_attributes(self) -> dict[str, dict[str, int]]:
-        """List only non-zero raw alarm values for diagnostics."""
+    def extra_state_attributes(self) -> dict[str, object]:
+        """Expose clear MP3000 alarms or legacy raw protocol values."""
+        if str(getattr(self.coordinator.client, "protocol_name", "")) == "1511":
+            return alarm_state_attributes(
+                self.coordinator.data,
+                self.coordinator.hass.config.language,
+            )
         active_values = {
             key: value
             for key, value in self.coordinator.data.items()

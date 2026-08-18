@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Jouw omvormer. Jouw netwerk. Jouw data.</h3>
 <p align="center"><strong>Lokaal. Alleen-lezen. Geen cloud. Geen proxy.</strong></p>
-<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.4.1</strong></p>
+<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -133,9 +133,15 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 Validatie op echte MP3000 / 1511- en MX500 / 02B0-hardware heeft enkele diagnostische waarden aangescherpt vóór het opnieuw publiceren van 1.4.1:
 
 - netbeveiligingstijden blijven native in **seconden**; automatisch opgeslagen `ms`-weergave uit oudere bèta’s wordt naar `s` gemigreerd;
-- op de gevalideerde MP3000 blijft raw bit `0x2000` (`8192`), waargenomen bij schemering en zeer lage zoninstraling, zichtbaar maar veroorzaakt het op zichzelf geen storing meer; de bedrijfstoestand toont **Stand-by — lage zonne-invoer**;
+- op de gevalideerde MP3000 blijft raw bit `0x2000` (`8192`), waargenomen bij schemering en zeer lage zoninstraling, zichtbaar, geteld en gemeld met een neutrale lokale code; de bedrijfstoestand toont **Stand-by — lage zonne-invoer** totdat de exacte betekenis op controlehardware is bevestigd;
 - TITAN-registers **3017** en **3028** worden nu gedecodeerd als **Omvormertemperatuur** en **Omgevingstemperatuur omvormer** met `raw - 40 °C`; de ruwe waarden blijven beschikbaar voor verificatie;
 - 02B0-register `0x202C` wordt nu weergegeven als **Vermogensniveau** met de bevestigde schaal `raw × 100 / 1024` (`1024 = 100 %`);
+
+---
+
+## 🚨 MP3000-alarmcatalogus
+
+Alle **224 posities** in de 14 alarmwoorden worden opgenomen, geteld en weergegeven wanneer ze actief zijn. **12 functionele koppelingen** zijn gevalideerd; de overige **212 posities** krijgen een unieke neutrale TSUN Local-code en vereisen fysieke verificatie op geschikte controlehardware. Geen actieve positie wordt genegeerd. De teksten in acht talen zijn onafhankelijke TSUN Local-formuleringen, niet als officieel gepresenteerde serververtalingen.
 
 ---
 
@@ -225,9 +231,9 @@ Versie 1.4 brengt TSUN Local van afzonderlijke bekende modellen naar **compatibi
 
 ---
 
-## Reverse engineering & validatie
+## Validatiebeleid
 
-De 1511- en 02B0-implementaties worden ontwikkeld via **onafhankelijke lokale protocolanalyse, observatie van echte apparaten en hardwarevalidatie**.
+Functionele namen en modelondersteuning worden pas als gevalideerd aangeduid na reproduceerbare controles op echte hardware.
 
 Compatibiliteitskandidaten worden bewust apart aangeduid van daadwerkelijk gevalideerde hardware.
 

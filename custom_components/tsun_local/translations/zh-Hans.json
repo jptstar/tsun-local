@@ -285,6 +285,9 @@
       "logger_wifi_signal": {
         "name": "记录器 Wi-Fi 信号"
       },
+      "alarm_active_count": {
+        "name": "当前报警"
+      },
       "grid_overvoltage_recovery_voltage": {
         "name": "电网过压恢复电压"
       },

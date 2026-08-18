@@ -300,6 +300,7 @@ class Protocol1511Tests(unittest.TestCase):
                 "pv1_alarm_raw": 4,
                 "pv2_alarm_raw": 0,
                 "alarm_active": 1,
+                "alarm_active_count": 2,
                 "inverter_operating_state": "fault",
             },
         )

@@ -47,15 +47,16 @@ SECONDARY_ALARM_REGISTERS = (0x0CE4, 0x0CE5, 0x0CE6, 0x0CE7)
 PV_ALARM_REGISTERS = (0x0E16, 0x0E1D, 0x0E24, 0x0EDE, 0x0EE5, 0x0EEC)
 
 # On validated MP3000 hardware, bit 0x2000 in global alarm word 1 is
-# repeatedly observed at dawn, dusk and during very low irradiance. Keep the
-# bit visible in the raw diagnostic value, but do not report it as a fault by
-# itself. Its exact vendor bit-name remains unconfirmed.
+# repeatedly observed at dawn, dusk and during very low irradiance. Count the
+# position while keeping it distinct from the operating fault state when it is
+# the only active bit. Its exact functional meaning remains unconfirmed.
 LOW_SOLAR_STATUS_REGISTER = GLOBAL_ALARM_REGISTERS[1]
 LOW_SOLAR_STATUS_MASK = 0x2000
 
 ALARM_MEASUREMENT_KEYS = frozenset(
     {
         "alarm_active",
+        "alarm_active_count",
         "inverter_operating_state",
         *(f"alarm_global_{index}_raw" for index in range(4)),
         *(f"alarm_secondary_{index}_raw" for index in range(4)),
@@ -278,15 +279,17 @@ def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float]:
 def decode_alarms(
     registers: dict[int, int], pv_count: int
 ) -> dict[str, float | int | str]:
-    """Expose 1511 alarms while separating observed low-solar standby."""
+    """Expose all 1511 alarm words while separating low-solar standby."""
     data: dict[str, float | int | str] = {}
     fault_values: list[int] = []
+    active_values: list[int] = []
     low_solar = False
 
     for index, address in enumerate(GLOBAL_ALARM_REGISTERS):
         if address in registers:
             value = registers[address]
             data[f"alarm_global_{index}_raw"] = value
+            active_values.append(value)
             fault_value = value
             if address == LOW_SOLAR_STATUS_REGISTER:
                 low_solar = bool(value & LOW_SOLAR_STATUS_MASK)
@@ -300,19 +303,27 @@ def decode_alarms(
         if address in registers:
             value = registers[address]
             data[f"alarm_secondary_{index}_raw"] = value
+            active_values.append(value)
             fault_values.append(value)
 
-    for number, address in enumerate(PV_ALARM_REGISTERS[:pv_count], 1):
+    # Decode all six PV alarm words independently from topology detection.
+    # This preserves every alarm position even before a PV input has produced
+    # enough telemetry to receive its own Home Assistant sensor entities.
+    for number, address in enumerate(PV_ALARM_REGISTERS, 1):
         if address in registers:
             value = registers[address]
             data[f"pv{number}_alarm_raw"] = value
+            active_values.append(value)
             fault_values.append(value)
 
     # A complete fault status still requires the separate secondary-alarm
     # block. Raw values remain available if that optional read fails.
     if secondary_complete:
         has_fault = any(fault_values)
-        data["alarm_active"] = int(has_fault)
+        data["alarm_active"] = int(any(active_values))
+        data["alarm_active_count"] = sum(
+            value.bit_count() for value in active_values
+        )
         if has_fault:
             operating_state = "fault"
         elif low_solar:
