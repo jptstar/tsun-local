@@ -29,6 +29,7 @@ SPEC.loader.exec_module(PROTOCOLS)
 
 from tsun_local_release_140_protocol_tests.protocol_1511 import (  # noqa: E402
     GLOBAL_ALARM_REGISTERS,
+    PV_ALARM_REGISTERS,
     SECONDARY_ALARM_REGISTERS,
     decode_alarms,
 )
@@ -45,15 +46,17 @@ def _alarm_registers(global_1: int = 0, inverter_status: int = 0) -> dict[int, i
 
 
 class Release140FieldCorrectionTests(unittest.TestCase):
-    def test_low_solar_status_is_preserved_but_not_a_fault(self) -> None:
+    def test_low_solar_position_is_preserved_and_counted(self) -> None:
         data = decode_alarms(_alarm_registers(0x2000), 1)
         self.assertEqual(data["alarm_global_1_raw"], 8192)
-        self.assertEqual(data["alarm_active"], 0)
+        self.assertEqual(data["alarm_active"], 1)
+        self.assertEqual(data["alarm_active_count"], 1)
         self.assertEqual(data["inverter_operating_state"], "standby_low_solar")
 
     def test_low_solar_plus_another_bit_remains_a_fault(self) -> None:
         data = decode_alarms(_alarm_registers(0x2001), 1)
         self.assertEqual(data["alarm_active"], 1)
+        self.assertEqual(data["alarm_active_count"], 2)
         self.assertEqual(data["inverter_operating_state"], "fault")
 
     def test_active_and_plain_standby_states(self) -> None:
@@ -61,6 +64,39 @@ class Release140FieldCorrectionTests(unittest.TestCase):
         standby = decode_alarms(_alarm_registers(inverter_status=0), 1)
         self.assertEqual(active["inverter_operating_state"], "active")
         self.assertEqual(standby["inverter_operating_state"], "standby")
+
+    def test_all_six_pv_alarm_words_are_decoded_before_topology_detection(self) -> None:
+        registers = _alarm_registers()
+        registers.update(
+            {
+                0x0E16: 1,
+                0x0E1D: 2,
+                0x0E24: 4,
+                0x0EDE: 8,
+                0x0EE5: 16,
+                0x0EEC: 32,
+            }
+        )
+
+        data = decode_alarms(registers, pv_count=1)
+
+        self.assertEqual(data["alarm_active_count"], 6)
+        for number in range(1, 7):
+            self.assertIn(f"pv{number}_alarm_raw", data)
+
+    def test_protocol_counts_all_224_positions(self) -> None:
+        registers = {
+            address: 0xFFFF
+            for address in (
+                *GLOBAL_ALARM_REGISTERS,
+                *SECONDARY_ALARM_REGISTERS,
+                *PV_ALARM_REGISTERS,
+            )
+        }
+        data = decode_alarms(registers, pv_count=1)
+
+        self.assertEqual(data["alarm_active"], 1)
+        self.assertEqual(data["alarm_active_count"], 224)
 
     def test_sensor_metadata_retains_raw_values_and_confirmed_percentage(self) -> None:
         source = (

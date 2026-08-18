@@ -95,7 +95,7 @@ class Release141FieldUpdateTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(manifest["version"], "1.4.1")
+        self.assertEqual(manifest["version"], "1.5.0")
 
 
 if __name__ == "__main__":

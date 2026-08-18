@@ -286,6 +286,9 @@
       "logger_wifi_signal": {
         "name": "Logger Wi-Fi signal"
       },
+      "alarm_active_count": {
+        "name": "Active alarms"
+      },
       "grid_overvoltage_recovery_voltage": {
         "name": "Grid overvoltage recovery voltage"
       },

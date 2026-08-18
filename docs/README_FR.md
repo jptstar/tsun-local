@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.4.1</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -133,11 +133,21 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 La validation sur matériel réel MP3000 / 1511 et MX500 / 02B0 a permis d’affiner plusieurs diagnostics avant la republication de la version stable 1.4.1 :
 
 - les temporisations de protection réseau restent exprimées nativement en **secondes** et les anciens choix automatiques `ms` hérités des bêta sont migrés vers `s` ;
-- sur le MP3000 validé, le bit brut `0x2000` (`8192`), observé au lever, au coucher du soleil et lorsque l’irradiance est très faible, reste visible dans les diagnostics mais ne déclenche plus à lui seul une panne ; l’état de fonctionnement indique **Veille — faible entrée solaire** ;
+- sur le MP3000 validé, le bit brut `0x2000` (`8192`), observé au lever, au coucher du soleil et lorsque l’irradiance est très faible, reste visible, compté et signalé avec un code local neutre ; l’état de fonctionnement indique **Veille — faible entrée solaire** tant que sa signification exacte n’est pas confirmée sur matériel de contrôle ;
 - les registres TITAN **3017** et **3028** sont désormais décodés respectivement comme **Température onduleur** et **Température ambiante onduleur** avec `raw - 40 °C`, tout en conservant les valeurs brutes pour vérification ;
 - le registre 02B0 `0x202C` est désormais affiché comme **Niveau de puissance** avec l’échelle confirmée `raw × 100 / 1024` (`1024 = 100 %`) ;
 
 Le registre TITAN 3018 reste brut et non confirmé. Le registre décimal 2028 (`0x07EC`) est exposé comme **Niveau de puissance (candidat)** jusqu’à validation terrain.
+
+---
+
+## 🚨 Catalogue d’alarmes MP3000
+
+Les **224 positions** des 14 mots d’alarme sont toutes intégrées, comptées et affichées lorsqu’elles sont actives. Les **12 correspondances fonctionnelles validées** couvrent la tension d’entrée PV trop faible et les défauts DSP pour PV1 à PV6. Les **212 autres positions** restent entièrement opérationnelles avec un code TSUN Local neutre et unique ; leur signification nécessite une validation physique sur un matériel de contrôle adapté.
+
+Home Assistant conserve une page lisible : un état **Alarme de l’onduleur**, un compteur et une liste **Alarmes actives**, puis les 14 mots bruts complets comme diagnostics désactivés par défaut. Aucune des 224 positions n’est ignorée et 224 entités permanentes ne sont pas créées.
+
+Les libellés sont disponibles dans les huit langues de TSUN Local. Il s’agit de formulations indépendantes basées sur les significations confirmées, et non de traductions certifiées provenant des serveurs du fabricant.
 
 ---
 
@@ -227,9 +237,9 @@ La version 1.4 fait évoluer TSUN Local d’une prise en charge de modèles indi
 
 ---
 
-## Rétro-ingénierie et validation
+## Politique de validation
 
-Les implémentations 1511 et 02B0 sont développées à partir d’une **analyse indépendante du protocole local, d’observations sur appareil réel et de validations matérielles**.
+Les noms fonctionnels et la prise en charge d’un modèle ne sont indiqués comme validés qu’après des contrôles reproductibles sur du matériel réel.
 
 Les candidats à la compatibilité sont volontairement distingués du matériel réellement validé.
 

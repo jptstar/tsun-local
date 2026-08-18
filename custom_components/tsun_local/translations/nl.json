@@ -285,6 +285,9 @@
       "logger_wifi_signal": {
         "name": "Wi-Fi-signaal van logger"
       },
+      "alarm_active_count": {
+        "name": "Actieve alarmen"
+      },
       "grid_overvoltage_recovery_voltage": {
         "name": "Herstelspanning na netoverspanning"
       },

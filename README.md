@@ -9,7 +9,7 @@
   <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.4.1** -->
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.0** -->
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
@@ -18,7 +18,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.4.1</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -59,7 +59,7 @@ TSUN Local supports **three local TSUN protocol families**.
 |---|---|
 | ☀️ **PV** | Voltage · Current · Power · Daily energy · Total energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Daily energy · Total energy |
-| 🚨 **Diagnostics** | Alarms · Communication · Logger information |
+| 🚨 **Diagnostics** | Active alarm names · Communication · Logger information |
 | 🛡️ **Advanced** | Grid protection · Inverter diagnostics · Disabled by default |
 | 🔒 **Safety** | Read-only · No inverter configuration writes |
 
@@ -88,7 +88,7 @@ TSUN Local supports **three local TSUN protocol families**.
 |---|---|
 | ☀️ **PV** | Up to 6 inputs · Voltage · Current · Power · Daily & total energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Daily & total energy |
-| 🚨 **Diagnostics** | Inverter alarms |
+| 🚨 **Diagnostics** | Inverter alarm · Active-alarm count and names |
 | 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · Inverter temperature · Inverter ambient temperature · Power level (candidate) |
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validated
@@ -126,6 +126,24 @@ Corresponding `-D` variants may also be compatible where applicable.
 | 🛡️ **Advanced** | Protocol version · Inverter version · Temperature · Insulation RX/RY · Power level (experimental) · Country/profile raw value · Designed power |
 
 > **🔎 Likely compatible does not mean validated.** It means TSUN Local already implements the relevant protocol family, making the device a strong compatibility candidate.
+
+---
+
+## 🚨 MP3000 alarm catalogue
+
+TSUN Local now models every bit exposed by the MP3000 alarm words. **All 224 positions are included, counted and displayed when active.** No active position is discarded.
+
+| Local catalogue | Positions | Status |
+|---|---:|---|
+| `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
+| `A065`–`A128` | 64 controller positions | Control-hardware validation required |
+| `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
+
+The **12 validated functional mappings** cover low PV input voltage and PV DSP faults for PV1 through PV6. The remaining **212 positions are fully operational catalogue entries**: each receives a stable neutral TSUN Local code and appears in Home Assistant if it becomes active. Its functional description is added only after physical validation on suitable control hardware.
+
+Home Assistant shows one clear **Inverter alarm** state plus an **Active alarms** count and list. The 14 complete raw words remain available as disabled-by-default diagnostics, without creating 224 permanent entities.
+
+Alarm wording is translated into all eight TSUN Local languages. These are independent TSUN Local translations based on the confirmed meanings; they are not presented as vendor-certified server wording.
 
 ---
 
@@ -197,27 +215,27 @@ let it run and check what entities are discovered.
 
 ---
 
-## TSUN Local 1.4.1
+## TSUN Local 1.5.0
 
-### A wider TSUN Local
+### Clear, complete MP3000 alarms
 
-Version 1.4.1 moves TSUN Local from individual known models toward **protocol-family compatibility**.
+Version 1.5.0 adds a clean Home Assistant alarm interface while preserving every locally reported MP3000 alarm position.
 
 | | |
 |---|---|
-| 🔌 | **1511 · 02B0 · 1097** |
-| 🔍 | Automatic protocol identification |
-| ☀️ | Progressive / dynamic PV-input detection |
-| 📊 | Expanded local telemetry |
-| 🛡️ | Advanced read-only diagnostics |
-| 🌍 | 8 languages |
-| 🧪 | Easier testing of new TSUN models |
+| 🚨 | **224 alarm positions included** |
+| ✅ | 12 hardware-validated functional mappings |
+| 🔎 | 212 neutral entries awaiting physical validation |
+| 📊 | Active-alarm count, names and stable local codes |
+| 🛡️ | 14 complete raw words available but disabled by default |
+| 🌍 | Alarm presentation in 8 languages |
+| 🔒 | Fully local and read-only |
 
 ---
 
-## Reverse engineering & validation
+## Validation policy
 
-The 1511 and 02B0 implementations are developed through **independent local protocol analysis, real-device observation and hardware validation**.
+Functional names and model support are labelled as validated only after repeatable checks on real hardware.
 
 Compatibility candidates are intentionally labelled separately from validated hardware.
 

@@ -285,6 +285,9 @@
       "logger_wifi_signal": {
         "name": "Segnale Wi-Fi del logger"
       },
+      "alarm_active_count": {
+        "name": "Allarmi attivi"
+      },
       "grid_overvoltage_recovery_voltage": {
         "name": "Tensione di ripristino dopo sovratensione di rete"
       },

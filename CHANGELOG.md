@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-08-18
+
+### Added
+
+- Add a complete, stable local catalogue for all 224 MP3000 alarm positions exposed by the fourteen 16-bit alarm words.
+- Add localized active-alarm names and stable local codes in English, French, German, Dutch, Italian, Spanish, Polish and Simplified Chinese.
+- Add an **Active alarms** sensor with the current count and compact active-alarm details.
+- Add twelve hardware-validated functional mappings covering low PV input voltage and PV DSP faults for PV1 through PV6.
+
+### Changed
+
+- Keep the remaining 212 alarm positions fully visible with neutral local wording until their functional meaning is physically validated.
+- Count the observed MP3000 `8192` position while retaining **Standby — low solar input** as the operating state when it is the only non-fault observation.
+- Disable the fourteen complete raw MP3000 alarm-word sensors by default while keeping them available for advanced diagnostics.
+- Refresh the README, HACS presentation, entity reference, localized documentation and project website for the 1.5.0 alarm interface.
+
+### Safety
+
+- Alarm decoding is entirely local and read-only.
+- No inverter configuration, protection-setting or control write has been added.
+
 ## [1.4.1] - 2026-08-17
 
 ### Changed
@@ -303,6 +324,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.5.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.0
 [1.4.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.1
 [1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
 [1.4.0-beta.8]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0-beta.8
