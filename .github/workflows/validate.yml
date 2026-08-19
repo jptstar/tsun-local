@@ -1,5 +1,6 @@
 name: Validate
 
+# TSUN Local 1.5.1-beta.4 validation trigger; no release action.
 on:
   push:
   pull_request:
