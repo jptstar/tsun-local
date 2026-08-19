@@ -384,9 +384,6 @@
           "fault": "Storing"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Vermogensniveau (kandidaat)"
-      },
       "ambient_temperature": {
         "name": "Omgevingstemperatuur omvormer"
       },

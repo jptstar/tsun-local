@@ -384,9 +384,6 @@
           "fault": "Fehler"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Leistungsniveau (Kandidat)"
-      },
       "ambient_temperature": {
         "name": "Umgebungstemperatur des Wechselrichters"
       },

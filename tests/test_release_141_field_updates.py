@@ -50,18 +50,9 @@ class Release141FieldUpdateTests(unittest.TestCase):
         self.assertNotIn("register_3017_raw", data)
         self.assertNotIn("register_3028_raw", data)
 
-    def test_1511_power_level_is_explicitly_candidate(self) -> None:
+    def test_1511_unvalidated_power_level_candidate_is_removed(self) -> None:
         data = decode_1511_advanced({0x07EC: 1024})
-        self.assertEqual(data["output_coefficient_candidate"], 100.0)
-        fr = json.loads(
-            (ROOT / "custom_components/tsun_local/translations/fr.json").read_text(
-                encoding="utf-8"
-            )
-        )
-        self.assertEqual(
-            fr["entity"]["sensor"]["output_coefficient_candidate"]["name"],
-            "Niveau de puissance (candidat)",
-        )
+        self.assertNotIn("output_coefficient_candidate", data)
 
     def test_1097_power_level_remains_experimental(self) -> None:
         self.assertEqual(

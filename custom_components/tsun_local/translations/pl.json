@@ -384,9 +384,6 @@
           "fault": "Usterka"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Poziom mocy (kandydat)"
-      },
       "ambient_temperature": {
         "name": "Temperatura otoczenia falownika"
       },

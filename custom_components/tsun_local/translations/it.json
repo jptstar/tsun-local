@@ -384,9 +384,6 @@
           "fault": "Guasto"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Livello di potenza (candidato)"
-      },
       "ambient_temperature": {
         "name": "Temperatura ambiente inverter"
       },

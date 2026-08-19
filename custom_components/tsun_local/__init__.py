@@ -78,6 +78,19 @@ def _async_sync_device_info(
     )
 
 
+def _async_remove_removed_beta_entities(
+    hass: HomeAssistant, logger_sn: str
+) -> None:
+    """Remove beta-only entities that are no longer exposed."""
+    entity_registry = er.async_get(hass)
+    for key in ("output_coefficient_candidate",):
+        unique_id = f"{logger_sn}_{key}"
+        if entity_id := entity_registry.async_get_entity_id(
+            "sensor", DOMAIN, unique_id
+        ):
+            entity_registry.async_remove(entity_id)
+
+
 def _async_remove_legacy_raw_profile_entity(
     hass: HomeAssistant, logger_sn: str
 ) -> None:
@@ -137,6 +150,7 @@ async def async_setup_entry(
 ) -> bool:
     """Set up one locally connected TSUN device from a config entry."""
     logger_sn = str(entry.data[CONF_LOGGER_SN])
+    _async_remove_removed_beta_entities(hass, logger_sn)
     _async_remove_legacy_raw_profile_entity(hass, logger_sn)
     _async_migrate_141_entity_registry(hass, logger_sn)
     logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)

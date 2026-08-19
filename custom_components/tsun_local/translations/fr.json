@@ -384,9 +384,6 @@
           "fault": "Défaut"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Niveau de puissance (candidat)"
-      },
       "ambient_temperature": {
         "name": "Température ambiante onduleur"
       },

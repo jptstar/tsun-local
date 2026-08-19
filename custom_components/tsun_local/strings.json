@@ -385,9 +385,6 @@
           "fault": "Fault"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Power level (candidate)"
-      },
       "ambient_temperature": {
         "name": "Inverter ambient temperature"
       },

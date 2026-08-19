@@ -122,7 +122,6 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_start_lower_voltage_limit",
         "grid_start_upper_frequency_limit",
         "grid_start_lower_frequency_limit",
-        "output_coefficient_candidate",
     }
 )
 
@@ -155,9 +154,6 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overfrequency_time_2": (0x07E9, 0.02),
     "grid_undervoltage_level_3": (0x07EA, 0.1),
     "grid_undervoltage_time_3": (0x07EB, 0.02),
-    # Candidate inferred from the adjacent protocol layout; keep the
-    # candidate label until confirmed independently on 1511 hardware.
-    "output_coefficient_candidate": (0x07EC, 100 / 1024),
     "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),  # field validation
     "grid_overfrequency_reduction_coefficient": (0x07EF, 1.0),  # field validation
     "overtemperature_protection_temperature": (0x07F0, 1.0),  # field validation

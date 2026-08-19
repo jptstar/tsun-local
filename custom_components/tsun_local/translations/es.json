@@ -384,9 +384,6 @@
           "fault": "Fallo"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Nivel de potencia (candidato)"
-      },
       "ambient_temperature": {
         "name": "Temperatura ambiente del inversor"
       },

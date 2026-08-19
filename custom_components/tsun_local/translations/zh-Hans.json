@@ -384,9 +384,6 @@
           "fault": "故障"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "功率水平（候选）"
-      },
       "ambient_temperature": {
         "name": "逆变器环境温度"
       },

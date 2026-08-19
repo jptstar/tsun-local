@@ -105,7 +105,6 @@ These entities are available across the supported protocol families when the cor
 
 - Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
-- Decimal register `2028` (`0x07EC`) is exposed as `output_coefficient_candidate`, displayed as **Power level (candidate)**. The candidate label is intentional until field validation confirms the mapping.
 - In 1.5.1-beta.1, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
 - `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.
 - The adjacent `0x07D1 = 80` and `0x07D2 = 80` values are documented as the leading pair for the two TSUN/Talent 40.0 s grid connection/reconnection settings with candidate scaling `×0.5 s`. They are **not exposed as separately named Home Assistant entities yet**, because their individual order cannot be proven while both settings have the same value.
@@ -193,7 +192,6 @@ Additional 1511 advanced diagnostics also include:
 |---|---|---:|
 | `inverter_temperature` | Inverter temperature | °C |
 | `ambient_temperature` | Inverter ambient temperature | °C |
-| `output_coefficient_candidate` | Power level (candidate) | % |
 
 See [MP3000 / TITAN 1511 field-validation diagnostics](MP3000_FIELD_VALIDATION.md) for the evidence details.
 

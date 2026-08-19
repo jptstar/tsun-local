@@ -220,7 +220,6 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_overfrequency_time_2": "0x07E9",
         "grid_undervoltage_level_3": "0x07EA",
         "grid_undervoltage_time_3": "0x07EB",
-        "output_coefficient_candidate": "2028 (0x07EC) — candidate",
         "grid_overfrequency_reduction_frequency": "2030 (0x07EE) — field validation",
         "grid_overfrequency_reduction_coefficient": "2031 (0x07EF) — field validation",
         "overtemperature_protection_temperature": "2032 (0x07F0) — field validation",
@@ -500,12 +499,6 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _advanced_diagnostic(
         "output_coefficient",
         "output_coefficient",
-        unit=PERCENTAGE,
-        precision=1,
-    ),
-    _advanced_diagnostic(
-        "output_coefficient_candidate",
-        "output_coefficient_candidate",
         unit=PERCENTAGE,
         precision=1,
     ),
