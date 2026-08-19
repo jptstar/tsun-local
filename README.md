@@ -9,7 +9,7 @@
   <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1-beta.1** -->
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1-beta.2** -->
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
@@ -18,7 +18,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1-beta.1</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local?include_prereleases"></a>
@@ -89,7 +89,7 @@ TSUN Local supports **three local TSUN protocol families**.
 | ☀️ **PV** | Up to 6 inputs · Voltage · Current · Power · Daily & total energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Daily & total energy |
 | 🚨 **Diagnostics** | Inverter alarm · Active-alarm count and names |
-| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · 10 additional A1/21 field-validation diagnostics · Country/profile raw candidate · Inverter temperature · Inverter ambient temperature · Power level (candidate) |
+| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · 10 additional A1/21 field-validation diagnostics · Country/profile raw candidate · Inverter temperature · Inverter ambient temperature |
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validated
 
@@ -151,7 +151,7 @@ Alarm wording is translated into all eight TSUN Local languages. These are indep
 
 The 1.5.1 beta keeps the 1.5.0 alarm interface unchanged and adds read-only evidence gathered from complete native MP3000/TITAN dumps.
 
-| | 1.5.1-beta.1 |
+| | 1.5.1-beta.2 |
 |---|---|
 | 📶 | **Logger Wi-Fi signal fallback fixed** — valid index pages no longer prevent reading RSSI from `/status.html` |
 | 🛡️ | **10 additional A1/21 diagnostics** exposed as disabled-by-default field-validation entities |

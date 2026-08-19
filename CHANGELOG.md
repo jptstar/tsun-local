@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.1-beta.2] - 2026-08-19
+
+### Fixed
+
+- Remove the unvalidated MP3000/1511 `output_coefficient_candidate` entity (`0x07EC`) instead of presenting it as **Power level (candidate)**.
+- Use Home Assistant translation keys for the ten 1.5.1 MP3000 field-validation entity names while keeping their technical entity IDs stable in English.
+- Enforce complete entity-name coverage in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Keep the complete 224-position MP3000 alarm catalogue localized in the same eight languages.
+- Remove the discarded candidate from the entity reference and clean the obsolete beta entity from the Home Assistant entity registry on upgrade.
+
+### Safety
+
+- No inverter write or configuration command is added.
+- Alarm and diagnostic access remains local and read-only.
+
 ## [1.5.1-beta.1] - 2026-08-19
 
 ### Added

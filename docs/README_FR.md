@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.1-beta.1</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.1-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local?include_prereleases"></a>
@@ -132,7 +132,7 @@ La bêta 1.5.1 ne modifie pas cette architecture d’alarmes : les 224 positions
 
 ## 🧪 TSUN Local 1.5.1 beta 1
 
-La 1.5.1-beta.1 conserve la présentation et le fonctionnement de la 1.5.0, tout en ajoutant les dernières découvertes MP3000 en **lecture seule**.
+La 1.5.1-beta.2 conserve la présentation et le fonctionnement de la 1.5.0, tout en ajoutant les dernières découvertes MP3000 en **lecture seule**.
 
 | | Nouveautés |
 |---|---|

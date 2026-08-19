@@ -8,89 +8,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  prepare-beta2:
-    name: Prepare 1.5.1-beta.2 once
-    if: github.event_name == 'pull_request' && github.head_ref == 'beta-1097'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out beta branch
-        uses: actions/checkout@v6
-        with:
-          ref: beta-1097
-          fetch-depth: 0
-
-      - name: Prepare beta2 metadata and docs
-        run: |
-          python3 - <<'PY'
-          from __future__ import annotations
-
-          import json
-          from pathlib import Path
-
-          version = "1.5.1-beta.2"
-          root = Path('.')
-
-          manifest_path = root / "custom_components/tsun_local/manifest.json"
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          manifest["version"] = version
-          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
-          changelog_path = root / "CHANGELOG.md"
-          changelog = changelog_path.read_text(encoding="utf-8")
-          section = f'''## [{version}] - 2026-08-19\n\n### Fixed\n\n- Remove the unvalidated MP3000/1511 `output_coefficient_candidate` entity (`0x07EC`) instead of presenting it as **Power level (candidate)**.\n- Use Home Assistant translation keys for the ten 1.5.1 MP3000 field-validation entity names while keeping their technical entity IDs stable in English.\n- Enforce complete entity-name coverage in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.\n- Keep the complete 224-position MP3000 alarm catalogue localized in the same eight languages.\n- Remove the discarded candidate from the entity reference and clean the obsolete beta entity from the Home Assistant entity registry on upgrade.\n\n### Safety\n\n- No inverter write or configuration command is added.\n- Alarm and diagnostic access remains local and read-only.\n\n'''
-          if f"## [{version}]" not in changelog:
-              marker = "## [1.5.1-beta.1]"
-              if marker not in changelog:
-                  raise SystemExit("beta.1 changelog marker not found")
-              changelog = changelog.replace(marker, section + marker, 1)
-              changelog_path.write_text(changelog, encoding="utf-8")
-
-          notes = root / "docs/releases/1.5.1-beta.2.md"
-          notes.write_text('''# TSUN Local 1.5.1-beta.2\n\nThis beta corrects the entity-localization regression found after `1.5.1-beta.1`.\n\n## Fixed\n\n- Removed the unvalidated MP3000/1511 **Power level (candidate)** entity (`output_coefficient_candidate`, register candidate `0x07EC`).\n- Kept all technical entity IDs and unique IDs in stable English.\n- Added/verified translated display names for the ten new MP3000 field-validation entities in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.\n- Verified that the complete 224-position MP3000 alarm catalogue keeps stable `A001`–`A224` codes while alarm names are localized in the same eight languages.\n- Added regression tests requiring every canonical Home Assistant entity name to exist in all eight translation files.\n- Added upgrade cleanup so the removed beta-only entity is deleted from the Home Assistant entity registry if it existed previously.\n\n## Unchanged\n\n- The 224-position alarm architecture and the fourteen raw alarm source words are unchanged.\n- The Wi-Fi logger fallback fix and the MP3000 field-validation diagnostics from beta.1 remain included.\n- All inverter access remains local and read-only.\n''', encoding="utf-8")
-
-          replacements = {
-              "1.5.1-beta.1": version,
-              " · Power level (candidate)": "",
-              "Power level (candidate) · ": "",
-              " · Niveau de puissance (candidat)": "",
-              "Niveau de puissance (candidat) · ": "",
-              "105 entities": "104 entities",
-              "105 entités": "104 entités",
-              "50 advanced diagnostics": "49 advanced diagnostics",
-              "50 diagnostics avancés": "49 diagnostics avancés",
-          }
-          for path in (root / "README.md", root / "docs/README_FR.md", root / "docs/index.html"):
-              if not path.is_file():
-                  continue
-              text = path.read_text(encoding="utf-8")
-              for old, new in replacements.items():
-                  text = text.replace(old, new)
-              path.write_text(text, encoding="utf-8")
-
-          test_path = root / "tests/test_release_141_field_updates.py"
-          test = test_path.read_text(encoding="utf-8")
-          test = test.replace(
-              'self.assertEqual(manifest["version"], "1.5.1-beta.1")',
-              'self.assertEqual(manifest["version"], "1.5.1-beta.2")',
-          )
-          test_path.write_text(test, encoding="utf-8")
-          PY
-
-      - name: Run release tests
-        run: python -m unittest discover -s tests -v
-
-      - name: Restore validation workflow and publish beta2 source
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout origin/main -- .github/workflows/validate.yml
-          git add custom_components/tsun_local/manifest.json CHANGELOG.md docs/releases/1.5.1-beta.2.md README.md docs/README_FR.md docs/index.html tests/test_release_141_field_updates.py .github/workflows/validate.yml
-          git commit -m "Publish TSUN Local 1.5.1-beta.2 [beta-release]"
-          git push origin HEAD:beta-1097
-
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
