@@ -20,15 +20,19 @@ jobs:
             const repo = context.repo.repo;
             const currentRunId = context.runId;
             const keepRecent = 5;
-            const maxDeletesPerRun = 75;
+            const maxDeletesPerRun = 100;
             const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-            const workflows = await github.paginate(
-              github.rest.actions.listRepoWorkflows,
-              { owner, repo, per_page: 100 }
-            );
-            const activeWorkflows = workflows.filter(w => w.state === 'active');
-            const activeWorkflowIds = new Set(activeWorkflows.map(w => w.id));
+            // Only these workflows are intentionally kept in the Actions sidebar.
+            // Everything else is considered historical/obsolete and all of its
+            // completed runs can be removed.
+            const protectedWorkflows = new Set([
+              'Validate',
+              'Publish release',
+              'Cleanup old beta releases',
+              'Deep cleanup Actions history - PREVIEW',
+              'Deep cleanup Actions history - DELETE',
+            ]);
 
             const runs = await github.paginate(
               github.rest.actions.listWorkflowRunsForRepo,
@@ -36,7 +40,7 @@ jobs:
             );
             runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-            const seenActive = new Map();
+            const seenProtected = new Map();
             const candidates = [];
             const kept = [];
 
@@ -46,14 +50,13 @@ jobs:
                 continue;
               }
 
-              const workflowStillExists = activeWorkflowIds.has(run.workflow_id);
-              if (!workflowStillExists) {
-                candidates.push({ run, reason: 'obsolete workflow' });
+              if (!protectedWorkflows.has(run.name)) {
+                candidates.push({ run, reason: 'obsolete workflow name' });
                 continue;
               }
 
-              const seen = seenActive.get(run.workflow_id) || 0;
-              seenActive.set(run.workflow_id, seen + 1);
+              const seen = seenProtected.get(run.name) || 0;
+              seenProtected.set(run.name, seen + 1);
               if (seen < keepRecent) {
                 kept.push(run);
               } else {
@@ -66,57 +69,38 @@ jobs:
             let alreadyGone = 0;
             let deferred = 0;
 
-            async function deleteWithRetry(run) {
-              const delays = [0, 2000, 5000, 10000, 20000];
-              for (let attempt = 0; attempt < delays.length; attempt += 1) {
-                if (delays[attempt]) await sleep(delays[attempt]);
-                try {
-                  await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
-                  return 'deleted';
-                } catch (error) {
-                  if (error.status === 404) return 'gone';
-                  if ([403, 429].includes(error.status) && attempt < delays.length - 1) {
-                    core.warning(`Rate limited on run ${run.id}; retry ${attempt + 1}/${delays.length - 1}.`);
-                    continue;
-                  }
-                  if ([403, 422, 429].includes(error.status)) {
-                    core.warning(`Deferring run ${run.id}: HTTP ${error.status}.`);
-                    return 'deferred';
-                  }
-                  throw error;
-                }
-              }
-              return 'deferred';
-            }
-
             for (const item of batch) {
               const run = item.run;
               core.info(`[DELETE] ${item.reason} | ${run.name} #${run.run_number} | ${run.created_at} | id=${run.id}`);
-              const result = await deleteWithRetry(run);
-              if (result === 'deleted') deleted += 1;
-              else if (result === 'gone') alreadyGone += 1;
-              else deferred += 1;
-              await sleep(250);
+              try {
+                await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
+                deleted += 1;
+              } catch (error) {
+                if (error.status === 404) {
+                  alreadyGone += 1;
+                } else if ([403, 422, 429].includes(error.status)) {
+                  deferred += 1;
+                  core.warning(`Deferred run ${run.id}: HTTP ${error.status}`);
+                } else {
+                  throw error;
+                }
+              }
+              await sleep(300);
             }
 
-            const remainingEstimate = Math.max(0, candidates.length - deleted - alreadyGone);
-            core.info(`Deleted ${deleted}; already gone ${alreadyGone}; deferred ${deferred}; remaining candidates about ${remainingEstimate}.`);
-            if (remainingEstimate > 0) {
-              core.notice('Run this cleanup workflow again until Remaining candidates reaches 0. Batching avoids GitHub API throttling.');
-            }
+            const remaining = Math.max(0, candidates.length - deleted - alreadyGone);
 
             await core.summary
               .addHeading('Deep GitHub Actions cleanup')
               .addTable([
-                [{data:'Active workflow files', header:true}, String(activeWorkflows.length)],
+                [{data:'Protected workflow names', header:true}, [...protectedWorkflows].join(', ')],
                 [{data:'Total historical runs', header:true}, String(runs.length)],
                 [{data:'Candidates found', header:true}, String(candidates.length)],
-                [{data:'Batch size', header:true}, String(batch.length)],
                 [{data:'Deleted this run', header:true}, String(deleted)],
                 [{data:'Already absent', header:true}, String(alreadyGone)],
-                [{data:'Deferred / rate limited', header:true}, String(deferred)],
-                [{data:'Remaining candidates', header:true}, String(remainingEstimate)],
-                [{data:'Recent runs kept per active workflow', header:true}, String(keepRecent)],
+                [{data:'Deferred', header:true}, String(deferred)],
+                [{data:'Remaining candidates', header:true}, String(remaining)],
+                [{data:'Recent runs kept per protected workflow', header:true}, String(keepRecent)],
               ])
-              .addRaw('\nThis workflow deletes run history only. It never deletes workflow YAML files, releases, tags, the current cleanup run, or queued/in-progress runs. If candidates remain, run it again.\n')
+              .addRaw('\nOnly workflow-run history is deleted. Workflow YAML files, releases, tags, the current cleanup run, and queued/in-progress runs are never deleted. Re-run until Remaining candidates = 0.\n')
               .write();
