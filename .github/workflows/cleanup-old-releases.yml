@@ -1,0 +1,86 @@
+name: Cleanup old beta releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type DELETE to remove all beta releases/tags and 1.5.0'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    name: Delete beta releases and 1.5.0
+    runs-on: ubuntu-latest
+    if: ${{ inputs.confirm == 'DELETE' }}
+    steps:
+      - name: Show cleanup scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Repository: $REPO"
+          echo "Targets: every release/tag containing 'beta' (case-insensitive), plus exactly 1.5.0 or v1.5.0."
+          echo "Stable 1.5.1 is explicitly excluded."
+
+          echo "Releases that match:"
+          gh release list --repo "$REPO" --limit 1000 --json tagName \
+            --jq '.[].tagName' \
+            | awk 'BEGIN{IGNORECASE=1} /beta/ || $0=="1.5.0" || $0=="v1.5.0" {print}' || true
+
+          echo "Tags that match:"
+          gh api --paginate "repos/$REPO/tags?per_page=100" --jq '.[].name' \
+            | awk 'BEGIN{IGNORECASE=1} /beta/ || $0=="1.5.0" || $0=="v1.5.0" {print}' || true
+
+      - name: Delete matching releases and tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t release_tags < <(
+            gh release list --repo "$REPO" --limit 1000 --json tagName \
+              --jq '.[].tagName' \
+              | awk 'BEGIN{IGNORECASE=1} /beta/ || $0=="1.5.0" || $0=="v1.5.0" {print}'
+          )
+
+          for tag in "${release_tags[@]}"; do
+            [[ -z "$tag" ]] && continue
+            if [[ "$tag" == "1.5.1" || "$tag" == "v1.5.1" ]]; then
+              echo "Safety stop: refusing to delete stable $tag"
+              exit 1
+            fi
+            echo "Deleting release and associated tag: $tag"
+            gh release delete "$tag" --repo "$REPO" --cleanup-tag --yes
+          done
+
+          mapfile -t remaining_tags < <(
+            gh api --paginate "repos/$REPO/tags?per_page=100" --jq '.[].name' \
+              | awk 'BEGIN{IGNORECASE=1} /beta/ || $0=="1.5.0" || $0=="v1.5.0" {print}'
+          )
+
+          for tag in "${remaining_tags[@]}"; do
+            [[ -z "$tag" ]] && continue
+            if [[ "$tag" == "1.5.1" || "$tag" == "v1.5.1" ]]; then
+              echo "Safety stop: refusing to delete stable $tag"
+              exit 1
+            fi
+            encoded_tag=$(python -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$tag")
+            echo "Deleting orphan tag: $tag"
+            gh api --method DELETE "repos/$REPO/git/refs/tags/$encoded_tag"
+          done
+
+      - name: Verify remaining releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Remaining releases:"
+          gh release list --repo "$REPO" --limit 1000
