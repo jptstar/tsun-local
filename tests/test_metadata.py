@@ -136,14 +136,17 @@ class MetadataTests(unittest.TestCase):
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         text_sitemap = (ROOT / "docs" / "sitemap.txt").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
+        protection_validation = (
+            ROOT / "docs" / "MP3000_PROTECTION_VALIDATION.md"
+        ).read_text(encoding="utf-8")
 
         self.assertIn('href="entities.html"', index)
         self.assertIn("Plug &amp; play identification", index)
         self.assertIn("about 20 seconds", index)
         self.assertIn('<strong>55</strong><span>enabled by default</span>', index)
         self.assertIn('<strong>39</strong><span>advanced diagnostics</span>', index)
-        self.assertIn('<strong>224</strong><span>alarm positions</span>', index)
-        self.assertIn("physically verified alarm mappings", index)
+        self.assertIn('<strong>52</strong><span>functional alarm names</span>', index)
+        self.assertIn("physically verified mappings", index)
         self.assertIn("Local TSUN microinverter monitoring for Home Assistant.", index)
         self.assertIn("TSUN Local and Home Assistant FAQ", index)
         self.assertIn("TSUN MP3000 and microinverter entities for Home Assistant.", entities)
@@ -158,6 +161,8 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("PV6 DSP fault", entities)
         self.assertIn("other 212 positions", entities)
         self.assertNotIn("Profile-only data", entities)
+        self.assertIn("physical test required", protection_validation.lower())
+        self.assertIn("0x07EC", protection_validation)
         self.assertIn("entities.html", sitemap)
         self.assertEqual(sitemap.count("<lastmod>2026-08-19</lastmod>"), 2)
         self.assertIn('"@type": "WebSite"', index)
