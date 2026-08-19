@@ -13,7 +13,7 @@ permissions:
 jobs:
   prepare-beta4:
     name: Prepare beta4 source
-    if: github.event_name == 'push' && github.ref == 'refs/heads/beta-1097' && github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, 'Execute beta4 prep')
+    if: github.event_name == 'pull_request' && github.head_ref == 'beta-1097' && github.actor != 'github-actions[bot]'
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -31,6 +31,7 @@ jobs:
 
       - name: Apply beta4 preparation
         run: |
+          test -f .github/scripts/prepare_beta4.py
           python3 .github/scripts/prepare_beta4.py
           python3 - <<'PY'
           from pathlib import Path
@@ -54,7 +55,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout HEAD^ -- .github/workflows/validate.yml
+          git show 84280ca972161984eab3fd9ae8c805f5d8c9c271:.github/workflows/validate.yml > .github/workflows/validate.yml
           git rm -f .github/scripts/prepare_beta4.py .github/workflows/prepare-beta4.yml
           git add -A
           git commit -m "Prepare TSUN Local 1.5.1-beta.4"
