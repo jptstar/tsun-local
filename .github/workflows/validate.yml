@@ -69,6 +69,14 @@ jobs:
               for old, new in replacements.items():
                   text = text.replace(old, new)
               path.write_text(text, encoding="utf-8")
+
+          test_path = root / "tests/test_release_141_field_updates.py"
+          test = test_path.read_text(encoding="utf-8")
+          test = test.replace(
+              'self.assertEqual(manifest["version"], "1.5.1-beta.1")',
+              'self.assertEqual(manifest["version"], "1.5.1-beta.2")',
+          )
+          test_path.write_text(test, encoding="utf-8")
           PY
 
       - name: Run release tests
@@ -79,7 +87,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout origin/main -- .github/workflows/validate.yml
-          git add custom_components/tsun_local/manifest.json CHANGELOG.md docs/releases/1.5.1-beta.2.md README.md docs/README_FR.md docs/index.html .github/workflows/validate.yml
+          git add custom_components/tsun_local/manifest.json CHANGELOG.md docs/releases/1.5.1-beta.2.md README.md docs/README_FR.md docs/index.html tests/test_release_141_field_updates.py .github/workflows/validate.yml
           git commit -m "Publish TSUN Local 1.5.1-beta.2 [beta-release]"
           git push origin HEAD:beta-1097
 
