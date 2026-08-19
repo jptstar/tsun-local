@@ -13,7 +13,7 @@ permissions:
 jobs:
   cleanup-localization:
     name: Apply localization cleanup once
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[cleanup-localization]')
+    if: github.event_name == 'pull_request' && github.head_ref == 'beta-1097'
     runs-on: ubuntu-latest
     steps:
       - name: Check out beta branch
@@ -33,7 +33,6 @@ jobs:
           root = Path('.')
           component = root / 'custom_components' / 'tsun_local'
 
-          # 1) Remove the unvalidated output_coefficient_candidate entity.
           sensor_path = component / 'sensor.py'
           sensor = sensor_path.read_text(encoding='utf-8')
           block = '''    _advanced_diagnostic(\n        "output_coefficient_candidate",\n        "output_coefficient_candidate",\n        unit=PERCENTAGE,\n        precision=1,\n    ),\n'''
@@ -54,7 +53,6 @@ jobs:
           )
           protocol_path.write_text(protocol, encoding='utf-8')
 
-          # 2) Remove the obsolete translation key from canonical strings + all locales.
           json_paths = [component / 'strings.json', *sorted((component / 'translations').glob('*.json'))]
           for path in json_paths:
               data = json.loads(path.read_text(encoding='utf-8'))
@@ -62,7 +60,6 @@ jobs:
               sensor_names.pop('output_coefficient_candidate', None)
               path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
-          # 3) Remove stale registry entity on upgrade from earlier beta builds.
           init_path = component / '__init__.py'
           init = init_path.read_text(encoding='utf-8')
           helper_marker = '''def _async_remove_legacy_raw_profile_entity(\n    hass: HomeAssistant, logger_sn: str\n) -> None:\n'''
@@ -79,12 +76,10 @@ jobs:
               init = init.replace(setup_marker, setup_replacement, 1)
           init_path.write_text(init, encoding='utf-8')
 
-          # 4) Add strict localization regression coverage.
           test_path = root / 'tests' / 'test_translation_coverage.py'
           test_path.write_text('''from __future__ import annotations\n\nimport ast\nimport json\nfrom pathlib import Path\nimport unittest\n\nROOT = Path(__file__).parents[1]\nCOMPONENT = ROOT / "custom_components" / "tsun_local"\nTRANSLATIONS = COMPONENT / "translations"\nSUPPORTED = {"en.json", "fr.json", "de.json", "es.json", "it.json", "nl.json", "pl.json", "zh-Hans.json"}\n\n\nclass TranslationCoverageTests(unittest.TestCase):\n    def test_all_supported_translation_files_exist(self) -> None:\n        self.assertEqual({path.name for path in TRANSLATIONS.glob("*.json")}, SUPPORTED)\n\n    def test_every_entity_key_has_a_name_in_every_language(self) -> None:\n        canonical = json.loads((COMPONENT / "strings.json").read_text(encoding="utf-8"))\n        expected = canonical["entity"]\n        for path in sorted(TRANSLATIONS.glob("*.json")):\n            translated = json.loads(path.read_text(encoding="utf-8"))["entity"]\n            for platform, definitions in expected.items():\n                self.assertIn(platform, translated, f"{path.name}: missing {platform}")\n                for key in definitions:\n                    self.assertIn(key, translated[platform], f"{path.name}: missing {platform}.{key}")\n                    name = translated[platform][key].get("name")\n                    self.assertIsInstance(name, str, f"{path.name}: missing name for {platform}.{key}")\n                    self.assertTrue(name.strip(), f"{path.name}: empty name for {platform}.{key}")\n\n    def test_removed_candidate_is_absent_everywhere(self) -> None:\n        key = "output_coefficient_candidate"\n        self.assertNotIn(key, (COMPONENT / "sensor.py").read_text(encoding="utf-8"))\n        self.assertNotIn(key, (COMPONENT / "protocols" / "protocol_1511.py").read_text(encoding="utf-8"))\n        for path in [COMPONENT / "strings.json", *TRANSLATIONS.glob("*.json")]:\n            data = json.loads(path.read_text(encoding="utf-8"))\n            self.assertNotIn(key, data.get("entity", {}).get("sensor", {}), path.name)\n\n    def test_alarm_catalog_has_all_eight_languages_and_same_text_keys(self) -> None:\n        tree = ast.parse((COMPONENT / "alarm_catalog.py").read_text(encoding="utf-8"))\n        texts = None\n        for node in tree.body:\n            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "_TEXTS":\n                texts = ast.literal_eval(node.value)\n                break\n        self.assertIsNotNone(texts)\n        assert texts is not None\n        self.assertEqual(set(texts), {"en", "fr", "de", "es", "it", "nl", "pl", "zh-hans"})\n        expected = set(texts["en"])\n        for language, values in texts.items():\n            self.assertEqual(set(values), expected, language)\n            self.assertTrue(all(isinstance(value, str) and value.strip() for value in values.values()))\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
           PY
 
-          # No code/doc translation should still expose the removed key.
           if git grep -n 'output_coefficient_candidate' -- ':!tests/test_translation_coverage.py'; then
             echo 'Removed candidate still referenced in tracked files.' >&2
             exit 1
