@@ -8,81 +8,21 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply-web-cleanup:
-    name: Apply website cleanup once
-    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[web-cleanup]')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out beta branch
-        uses: actions/checkout@v6
-        with:
-          ref: beta-1097
-          fetch-depth: 0
-
-      - name: Remove verbose beta evidence blocks from public web pages
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          root = Path('.')
-
-          # Main project page: remove the country candidate card and the verbose
-          # evidence/country research blocks. Keep technical detail in Markdown docs.
-          path = root / 'docs' / 'index.html'
-          text = path.read_text(encoding='utf-8')
-          blocks = [
-              '''        <div class="card"><strong>🌍 Country/profile candidate</strong><span class="muted"><code>2000 / 0x07D0 = 8</code> on the France-configured MP3000. Only the raw candidate is exposed while the 1511 semantic address remains under independent validation.</span></div>\n''',
-              '''      <div class="notice"><span>🔬</span><div><strong>Evidence stays explicit</strong>The additional semantic mappings are labelled <b>LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING</b>. The adjacent <code>0x07D1 = 80</code> and <code>0x07D2 = 80</code> form a strong candidate pair for the two 40.0 s grid connection/reconnection settings, but Beta 1 does not guess their individual order.</div></div>\n''',
-              '''      <div class="columns">\n        <div class="column"><h3>Country value: 8, not 1008</h3><p class="muted">The TSUN/Talent export contains <code>raw_value=1008</code>, but that value is not the local country enum. A live dump also observed 1008 at <code>0x0BCE</code> simply because AC daily energy was 10.08 kWh.</p></div>\n        <div class="column"><h3>Stefan Allius credited</h3><p class="muted">Public <code>s-allius/tsun-gen3-proxy</code> research documents the 1097 country/profile field and country table where France is code <strong>8</strong>. TSUN Local credits Stefan for that discovery and uses it as an external semantic reference.</p></div>\n      </div>\n''',
-          ]
-          for block in blocks:
-              if block in text:
-                  text = text.replace(block, '', 1)
-          path.write_text(text, encoding='utf-8')
-
-          # Entity web page: retain the actual entity rows, but remove the verbose
-          # evidence-status and country/connection research notices.
-          path = root / 'docs' / 'entities.html'
-          text = path.read_text(encoding='utf-8')
-          blocks = [
-              '''          <p class="muted"><strong>Evidence status:</strong> LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING.</p>\n''',
-              '''          <div class="notice"><span>🌍</span><div><strong>Country mapping attribution and validation</strong>Stefan Allius's public 1097 research documents the country table where France is code 8 and the 1097 country/profile field at <code>0x1400</code>. The MP3000 value <code>0x07D0 = 8</code> is therefore a strong 1511 candidate, not a fully proven semantic address. The TSUN/Talent exported <code>raw_value=1008</code> is not used as the local country enum.</div></div>\n''',
-              '''          <div class="notice info"><span>⏱️</span><div><strong>Connection/reconnection pair stays documentation-only</strong><code>0x07D1 = 80</code> and <code>0x07D2 = 80</code> each fit 40.0 s at candidate scale ×0.5. Because both settings are identical, Beta 1 does not expose guessed individual entity names for them.</div></div>\n''',
-          ]
-          for block in blocks:
-              if block in text:
-                  text = text.replace(block, '', 1)
-          path.write_text(text, encoding='utf-8')
-
-          trigger = root / '.github' / 'web-cleanup.trigger'
-          if trigger.exists():
-              trigger.unlink()
-
-          standard = '''name: Validate\n\non:\n  push:\n  pull_request:\n  schedule:\n    - cron: "0 0 * * *"\n  workflow_dispatch:\n\npermissions:\n  contents: read\n\njobs:\n  unit-tests:\n    name: Unit tests\n    runs-on: ubuntu-latest\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v6\n\n      - name: Set up Python\n        uses: actions/setup-python@v6\n        with:\n          python-version: "3.13"\n\n      - name: Run tests\n        run: python -m unittest discover -s tests -v\n\n  hacs:\n    name: HACS\n    runs-on: ubuntu-latest\n    steps:\n      - name: Validate HACS repository\n        uses: hacs/action@main\n        with:\n          category: integration\n\n  hassfest:\n    name: Hassfest\n    runs-on: ubuntu-latest\n    steps:\n      - name: Check out repository\n        uses: actions/checkout@v6\n\n      - name: Validate Home Assistant integration\n        uses: home-assistant/actions/hassfest@master\n'''
-          (root / '.github' / 'workflows' / 'validate.yml').write_text(standard, encoding='utf-8')
-          PY
-
-      - name: Commit website cleanup without publishing
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Remove verbose beta evidence blocks from website"
-          git push origin beta-1097
-
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+
       - name: Run tests
         run: python -m unittest discover -s tests -v
 
@@ -101,5 +41,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
       - name: Validate Home Assistant integration
         uses: home-assistant/actions/hassfest@master

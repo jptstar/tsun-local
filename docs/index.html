@@ -199,12 +199,6 @@
       <div class="grid">
         <div class="card"><strong>📶 Wi-Fi RSSI fallback fixed</strong><span class="muted">A valid index page without RSSI no longer stops the search. TSUN Local continues until `/status.html` exposes `cover_sta_rssi`; a live post-fix dump read 30%.</span></div>
         <div class="card"><strong>🛡️ 10 A1/21 diagnostics</strong><span class="muted">Ten additional MP3000 field-validation sensors are available as advanced entities and remain disabled by default.</span></div>
-        <div class="card"><strong>🌍 Country/profile candidate</strong><span class="muted"><code>2000 / 0x07D0 = 8</code> on the France-configured MP3000. Only the raw candidate is exposed while the 1511 semantic address remains under independent validation.</span></div>
-      </div>
-      <div class="notice"><span>🔬</span><div><strong>Evidence stays explicit</strong>The additional semantic mappings are labelled <b>LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING</b>. The adjacent <code>0x07D1 = 80</code> and <code>0x07D2 = 80</code> form a strong candidate pair for the two 40.0 s grid connection/reconnection settings, but Beta 1 does not guess their individual order.</div></div>
-      <div class="columns">
-        <div class="column"><h3>Country value: 8, not 1008</h3><p class="muted">The TSUN/Talent export contains <code>raw_value=1008</code>, but that value is not the local country enum. A live dump also observed 1008 at <code>0x0BCE</code> simply because AC daily energy was 10.08 kWh.</p></div>
-        <div class="column"><h3>Stefan Allius credited</h3><p class="muted">Public <code>s-allius/tsun-gen3-proxy</code> research documents the 1097 country/profile field and country table where France is code <strong>8</strong>. TSUN Local credits Stefan for that discovery and uses it as an external semantic reference.</p></div>
       </div>
     </section>
 
