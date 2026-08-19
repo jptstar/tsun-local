@@ -38,7 +38,9 @@ ALARM_BLOCKS = (
 DIAGNOSTIC_BLOCKS = (
     # Full native A1/01 3000-3031 block, validated on MP3000 firmware 1.03.
     (0xA1, 0x01, 0x0BB8, 0x0BD7),
-    # Native TITAN A1/21 block: decimal registers 2000-2095.
+    # Native TITAN A1/21 diagnostic window. The official mobile asset exposes
+    # 0x07D0-0x07EB; TSUN Local reads the wider native 2000-2095 window so
+    # candidate protection fields can be checked against real hardware.
     (0xA1, 0x21, 0x07D0, 0x082F),
 )
 
@@ -88,10 +90,13 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
 
 ADVANCED_GRID_KEYS = frozenset(
     {
+        "grid_qp_voltage_threshold",
+        "grid_recovery_speed",
         "grid_overvoltage_recovery_voltage",
         "grid_undervoltage_recovery_voltage",
         "grid_overfrequency_recovery_frequency",
         "grid_underfrequency_recovery_frequency",
+        "grid_overtemperature_protection_value",
         "grid_undervoltage_level_1",
         "grid_undervoltage_level_2",
         "grid_undervoltage_time_1",
@@ -100,6 +105,7 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overvoltage_level_2",
         "grid_overvoltage_time_1",
         "grid_overvoltage_time_2",
+        "grid_overfrequency_reduction_frequency",
         "grid_underfrequency_level_1",
         "grid_underfrequency_level_2",
         "grid_underfrequency_time_1",
@@ -110,15 +116,35 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overfrequency_time_2",
         "grid_undervoltage_level_3",
         "grid_undervoltage_time_3",
-        "output_coefficient_candidate",
+        "grid_overfrequency_reduction_coefficient",
+        "grid_start_upper_voltage",
+        "grid_start_lower_voltage",
+        "grid_start_upper_frequency",
+        "grid_start_lower_frequency",
+        "grid_connection_time",
+        "grid_reconnection_time",
+        "grid_ten_minute_overvoltage_protection",
     }
 )
 
+# The 22 mappings already present in the official 1511 mobile asset are
+# physically tied to their register addresses. Twelve additional functional
+# names come from the MP3000/TITAN Talent parameter export. Their candidate
+# addresses follow the otherwise continuous native protection layout and are
+# intentionally documented as requiring a physical check before being called
+# validated. Home Assistant nevertheless uses the functional names directly.
 ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
+    # Candidate MP3000/TITAN mappings from the parameter export.
+    "grid_qp_voltage_threshold": (0x07D2, 0.1),
+    "grid_recovery_speed": (0x07D3, 0.1),
+    # Official 1511 mobile-asset mappings.
     "grid_overvoltage_recovery_voltage": (0x07D4, 0.1),
     "grid_undervoltage_recovery_voltage": (0x07D5, 0.1),
     "grid_overfrequency_recovery_frequency": (0x07D6, 0.01),
     "grid_underfrequency_recovery_frequency": (0x07D7, 0.01),
+    # Candidate field occupying the otherwise unused protection slot.
+    "grid_overtemperature_protection_value": (0x07D8, 1.0),
+    # Official mappings continue here.
     "grid_undervoltage_level_1": (0x07D9, 0.1),
     "grid_undervoltage_level_2": (0x07DA, 0.1),
     "grid_undervoltage_time_1": (0x07DB, 0.02),
@@ -127,6 +153,9 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overvoltage_level_2": (0x07DE, 0.1),
     "grid_overvoltage_time_1": (0x07DF, 0.02),
     "grid_overvoltage_time_2": (0x07E0, 0.02),
+    # Candidate field occupying the otherwise unused protection slot.
+    "grid_overfrequency_reduction_frequency": (0x07E1, 0.01),
+    # Official mappings continue here.
     "grid_underfrequency_level_1": (0x07E2, 0.01),
     "grid_underfrequency_level_2": (0x07E3, 0.01),
     "grid_underfrequency_time_1": (0x07E4, 0.02),
@@ -137,9 +166,18 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overfrequency_time_2": (0x07E9, 0.02),
     "grid_undervoltage_level_3": (0x07EA, 0.1),
     "grid_undervoltage_time_3": (0x07EB, 0.02),
-    # Candidate inferred from the adjacent protocol layout; keep the
-    # candidate label until confirmed independently on 1511 hardware.
-    "output_coefficient_candidate": (0x07EC, 100 / 1024),
+    # Candidate continuation inferred from the MP3000/TITAN export ordering.
+    # 0x07EC was previously exposed as a guessed power-level mapping copied
+    # from the adjacent 02B0 layout. The TITAN parameter export instead places
+    # the overfrequency-reduction coefficient here; keep it unvalidated in docs.
+    "grid_overfrequency_reduction_coefficient": (0x07EC, 1.0),
+    "grid_start_upper_voltage": (0x07F1, 0.1),
+    "grid_start_lower_voltage": (0x07F2, 0.1),
+    "grid_start_upper_frequency": (0x07F3, 0.01),
+    "grid_start_lower_frequency": (0x07F4, 0.01),
+    "grid_connection_time": (0x07F7, 0.1),
+    "grid_reconnection_time": (0x07F8, 0.1),
+    "grid_ten_minute_overvoltage_protection": (0x07F9, 0.1),
 }
 
 
