@@ -9,7 +9,7 @@
   <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1-beta.2** -->
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1-beta.3** -->
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
@@ -18,7 +18,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1-beta.2</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1-beta.3</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local?include_prereleases"></a>
@@ -151,12 +151,15 @@ Alarm wording is translated into all eight TSUN Local languages. These are indep
 
 The 1.5.1 beta keeps the 1.5.0 alarm interface unchanged and adds read-only evidence gathered from complete native MP3000/TITAN dumps.
 
-| | 1.5.1-beta.2 |
+| | 1.5.1-beta.3 |
 |---|---|
 | 📶 | **Logger Wi-Fi signal fallback fixed** — valid index pages no longer prevent reading RSSI from `/status.html` |
 | 🛡️ | **10 additional A1/21 diagnostics** exposed as disabled-by-default field-validation entities |
 | 🌍 | **Country/profile raw candidate** exposed from `2000 / 0x07D0`; the France-configured MP3000 reads `8` |
 | ⏱️ | `0x07D1 = 80` and `0x07D2 = 80` documented as the leading pair for the two 40.0 s connection/reconnection settings, but not exposed with guessed individual names |
+| 🚨 | **Dedicated Active alarm names** sensor exposes localized alarm text directly in Home Assistant |
+| 📐 | **Overfrequency reduction coefficient corrected** — `0x07EF` raw `4000` → `40.00 %/Hz` (`×0.01`) |
+| 🌐 | Technical entity IDs stay stable in English; display names and alarm text follow the Home Assistant language |
 | 🚨 | **224 alarm positions preserved** with the same compact Home Assistant interface |
 | 🔒 | Fully local and read-only |
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN MP3000 Entities for Home Assistant | TSUN Local</title>
-  <meta name="description" content="Explore 105 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1-beta.1, including production, 224 alarm positions and read-only field-validation diagnostics.">
+  <meta name="description" content="Explore 105 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1-beta.3, including production, 224 alarm positions and read-only field-validation diagnostics.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/entities.html">
@@ -147,7 +147,7 @@
       </nav>
       <div class="hero">
         <div>
-          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1-beta.1</p>
+          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1-beta.3</p>
           <h1>TSUN MP3000 and microinverter entities for Home Assistant.</h1>
           <p class="lead">See all entities that TSUN Local can create for protocols 1511, 02B0 and 1097, including MP3000 production, alarms and read-only field-validation diagnostics.</p>
           <div class="actions">
@@ -157,8 +157,8 @@
         </div>
         <aside class="hero-card" aria-label="Entity summary">
           <div class="hero-stat"><strong>105</strong><span>total MP3000 entities with six detected PV inputs</span></div>
-          <div class="hero-stat"><strong>55</strong><span>enabled by default</span></div>
-          <div class="hero-stat"><strong>50</strong><span>advanced diagnostics</span></div>
+          <div class="hero-stat"><strong>56</strong><span>enabled by default</span></div>
+          <div class="hero-stat"><strong>49</strong><span>advanced diagnostics</span></div>
         </aside>
       </div>
     </div>
@@ -167,11 +167,11 @@
   <main class="wrap">
     <section id="overview">
       <h2>MP3000 at a glance</h2>
-      <p class="intro">With all six PV inputs detected, 1.5.1-beta.1 exposes up to 105 MP3000 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
+      <p class="intro">With all six PV inputs detected, 1.5.1-beta.3 exposes up to 105 MP3000 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
       <div class="metrics">
         <div class="metric"><strong>105</strong><span>total with 6 PV inputs</span></div>
-        <div class="metric good"><strong>55</strong><span>enabled by default</span></div>
-        <div class="metric"><strong>50</strong><span>advanced diagnostics</span></div>
+        <div class="metric good"><strong>56</strong><span>enabled by default</span></div>
+        <div class="metric"><strong>49</strong><span>advanced diagnostics</span></div>
         <div class="metric warn"><strong>224</strong><span>alarm positions · 12 verified</span></div>
       </div>
       <div class="legend">
@@ -189,12 +189,12 @@
             <tr><td>Temperatures</td><td>2</td><td>Inverter and ambient temperature</td></tr>
             <tr><td>Communication</td><td>5</td><td>Online state, last success, duration, blocks and failures</td></tr>
             <tr><td>Operating state and control</td><td>3</td><td>Raw status, operating state and refresh button</td></tr>
-            <tr><td>Power and capacity diagnostics</td><td>3</td><td>Rated power, designed power and candidate power level</td></tr>
+            <tr><td>Power and capacity diagnostics</td><td>2</td><td>Rated power and maximum designed power</td></tr>
             <tr><td>Core grid protection</td><td>22</td><td>Voltage/frequency limits, recovery values and timing</td></tr>
             <tr><td>Field-validation diagnostics</td><td><strong>11</strong></td><td>10 additional A1/21 fields + country/profile raw candidate</td></tr>
-            <tr><td>Alarm interface</td><td>16</td><td>Alarm state, active count and 14 complete raw words</td></tr>
+            <tr><td>Alarm interface</td><td>17</td><td>Alarm state, active count, active alarm names and 14 complete raw words</td></tr>
             <tr><td>Unconfirmed raw diagnostic</td><td>1</td><td>Register 3018</td></tr>
-            <tr><td><strong>Total</strong></td><td><strong>105</strong></td><td>55 enabled · 50 advanced</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>105</strong></td><td>56 enabled · 49 advanced</td></tr>
           </tbody>
         </table>
       </div>
@@ -208,7 +208,7 @@
         <div class="group"><strong>📡 Logger</strong><span class="muted">SN · inverter SN · firmware · MAC · Wi-Fi signal.</span></div>
         <div class="group"><strong>🩺 Communication</strong><span class="muted">Online state · last success · duration · blocks · failures · manual refresh.</span></div>
       </div>
-      <div class="notice info"><span>📶</span><div><strong>Wi-Fi signal fix in 1.5.1-beta.1</strong>The logger reader no longer stops when an earlier valid page lacks RSSI. It continues through the configured pages until <code>cover_sta_rssi</code> is found; a live validation dump read 30% from <code>/status.html</code>.</div></div>
+      <div class="notice info"><span>📶</span><div><strong>Wi-Fi signal fix in 1.5.1-beta.3</strong>The logger reader no longer stops when an earlier valid page lacks RSSI. It continues through the configured pages until <code>cover_sta_rssi</code> is found; a live validation dump read 30% from <code>/status.html</code>.</div></div>
     </section>
 
     <section id="p1511">
@@ -217,15 +217,16 @@
       <div class="status-row"><span class="pill">✅ Validated core</span><span class="pill blue">🔄 Up to 6 PV inputs</span><span class="pill blue">105 entities with 6 PV inputs</span><span class="pill warn">🔬 New semantic diagnostics in beta</span></div>
       <div class="groups">
         <div class="group"><strong>☀️ Each detected PV input</strong><span class="muted">Voltage · current · power · daily energy · total energy · optional raw alarm word.</span></div>
-        <div class="group"><strong>🚨 Clear alarm interface</strong><span class="muted">Inverter alarm · active count · localized names · stable local codes.</span></div>
-        <div class="group"><strong>🛡️ Advanced diagnostics</strong><span class="muted">22 core grid protections · 10 field-validation values · temperatures · candidate power level · raw country/profile candidate.</span></div>
+        <div class="group"><strong>🚨 Clear alarm interface</strong><span class="muted">Inverter alarm · active count · dedicated localized alarm names.</span></div>
+        <div class="group"><strong>🛡️ Advanced diagnostics</strong><span class="muted">22 core grid protections · 10 field-validation values · temperatures · raw country/profile candidate.</span></div>
       </div>
 
       <h3 style="margin-top:32px">How 1511 alarms appear in Home Assistant</h3>
-      <p class="intro">The MP3000 alarm interface stays compact: active positions are decoded inside two everyday entities, while the fourteen original words remain available as optional expert diagnostics.</p>
+      <p class="intro">The MP3000 alarm interface stays compact: active positions are decoded through three everyday entities, while the fourteen original words remain available as optional expert diagnostics.</p>
       <div class="groups">
-        <div class="group"><strong>🚨 Inverter alarm</strong><span class="muted">A problem binary sensor that turns on when an alarm position is active. Its attributes list active localized names and stable local codes.</span></div>
+        <div class="group"><strong>🚨 Inverter alarm</strong><span class="muted">A problem binary sensor that turns on when an alarm position is active.</span></div>
         <div class="group"><strong>🔢 Active alarms</strong><span class="muted">Counts every active position, including positions whose exact physical meaning is still awaiting validation.</span></div>
+        <div class="group"><strong>📝 Active alarm names</strong><span class="muted">Publishes localized alarm text directly. Internal Axxx identifiers remain diagnostic-only.</span></div>
         <div class="group"><strong>🧰 Fourteen raw words</strong><span class="muted">Four inverter words, four secondary words and six PV words. They are disabled by default.</span></div>
       </div>
       <div class="metrics">
@@ -267,7 +268,7 @@
                 <tr><td><code>grid_recovery_rate</code></td><td><code>0x07D3</code></td><td>1280 × 0.5 = 640.0 s</td></tr>
                 <tr><td><code>grid_overvoltage_10min</code></td><td><code>0x07E1</code></td><td>2530 × 0.1 = 253.0 V</td></tr>
                 <tr><td><code>grid_overfrequency_reduction_frequency</code></td><td><code>0x07EE</code></td><td>5020 × 0.01 = 50.20 Hz</td></tr>
-                <tr><td><code>grid_overfrequency_reduction_coefficient</code></td><td><code>0x07EF</code></td><td>4000 raw</td></tr>
+                <tr><td><code>grid_overfrequency_reduction_coefficient</code></td><td><code>0x07EF</code></td><td>4000 × 0.01 = 40.00 %/Hz</td></tr>
                 <tr><td><code>overtemperature_protection_temperature</code></td><td><code>0x07F0</code></td><td>79 °C</td></tr>
                 <tr><td><code>grid_start_upper_voltage_limit</code></td><td><code>0x07FB</code></td><td>251.0 V</td></tr>
                 <tr><td><code>grid_start_lower_voltage_limit</code></td><td><code>0x07FC</code></td><td>196.0 V</td></tr>

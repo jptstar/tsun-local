@@ -2,6 +2,31 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.1-beta.3] - 2026-08-19
+
+### Added
+
+- Add a dedicated MP3000/1511 `active_alarm_names` sensor so localized active alarm text is directly visible and usable.
+
+### Fixed
+
+- Decode MP3000/1511 `0x07EF` raw `4000` with candidate factor `0.01`, exposing `40.00 %/Hz`.
+- Keep stable `A001`–`A224` identifiers internal/diagnostic and remove them from user-facing unknown alarm text.
+- Refresh web/entity counts to 105 maximum, 56 enabled by default and 49 advanced/disabled by default.
+- Remove stale public references to the discarded MP3000 power-level candidate.
+
+### Changed
+
+- Keep technical entity IDs stable in English while display names and alarm text remain localized in all eight supported languages.
+- Preserve beta1 logger RSSI/A1/21 diagnostics and beta2 localization/removal fixes.
+- Keep newly observed reactive-mode, GFCI, calibration and anti-reflux correlations in the research backlog only.
+- Verify HACS metadata and Home Assistant local icon/logo assets.
+
+### Safety
+
+- All MP3000 alarm and diagnostic access remains local and read-only.
+- No inverter configuration, protection, country/profile or control write is added.
+
 ## [1.5.1-beta.2] - 2026-08-19
 
 ### Fixed

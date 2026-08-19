@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   unit-tests:
@@ -17,10 +17,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+
       - name: Run tests
         run: python -m unittest discover -s tests -v
 
@@ -39,92 +41,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
       - name: Validate Home Assistant integration
         uses: home-assistant/actions/hassfest@master
-
-  prepare-beta3:
-    name: Prepare beta3 once
-    if: github.event_name == 'pull_request' && github.head_ref == 'beta-1097'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out beta source
-        uses: actions/checkout@v6
-        with:
-          ref: beta-1097
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.13"
-      - name: Prepare beta3 files
-        run: python3 .github/scripts/prepare_beta3.py
-      - name: Check prepared diff
-        run: git diff --check
-      - name: Run prepared unit tests
-        run: python -m unittest discover -s tests -v
-      - name: Validate prepared HACS repository
-        uses: hacs/action@main
-        with:
-          category: integration
-      - name: Validate prepared Home Assistant integration
-        uses: home-assistant/actions/hassfest@master
-      - name: Remove one-shot helpers and restore Validate
-        run: |
-          rm -f .github/scripts/prepare_beta3.py
-          rm -f .github/workflows/prepare-beta3.yml
-          rm -f docs/.prepare-beta3 docs/.prepare-beta3-run
-          cat > .github/workflows/validate.yml <<'EOF'
-          name: Validate
-
-          on:
-            push:
-            pull_request:
-            schedule:
-              - cron: "0 0 * * *"
-            workflow_dispatch:
-
-          permissions:
-            contents: read
-
-          jobs:
-            unit-tests:
-              name: Unit tests
-              runs-on: ubuntu-latest
-              steps:
-                - name: Check out repository
-                  uses: actions/checkout@v6
-
-                - name: Set up Python
-                  uses: actions/setup-python@v6
-                  with:
-                    python-version: "3.13"
-
-                - name: Run tests
-                  run: python -m unittest discover -s tests -v
-
-            hacs:
-              name: HACS
-              runs-on: ubuntu-latest
-              steps:
-                - name: Validate HACS repository
-                  uses: hacs/action@main
-                  with:
-                    category: integration
-
-            hassfest:
-              name: Hassfest
-              runs-on: ubuntu-latest
-              steps:
-                - name: Check out repository
-                  uses: actions/checkout@v6
-
-                - name: Validate Home Assistant integration
-                  uses: home-assistant/actions/hassfest@master
-          EOF
-      - name: Commit beta3 preparation
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Prepare TSUN Local 1.5.1-beta.3"
-          git push origin HEAD:beta-1097

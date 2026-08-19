@@ -1,13 +1,25 @@
-# Pending TSUN Local 1.5.1 corrections
+# TSUN Local 1.5.1 research backlog
 
-**Development branch only — do not publish a new beta yet.**
+These MP3000/1511 correlations are intentionally **kept out of 1.5.1-beta.3 semantic Home Assistant entities** until independently validated.
 
-Corrections currently staged on `beta-1097` while additional review is still in progress:
+## Very strong
 
-- MP3000 / 1511 register `0x07EF`: raw `4000` (`0x0FA0`) is decoded with candidate factor `0.01`, giving `40.00 %/Hz` for the overfrequency reduction coefficient. Evidence status remains `LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING`.
-- Add a real Home Assistant entity `sensor.…_active_alarm_names` for protocol 1511. The technical entity key/ID stays in English; the displayed entity name and alarm text are localized in all eight supported languages.
-- Keep `A001`–`A224` as internal/debug identifiers. User-facing unknown alarm wording no longer includes the internal `Axxx` code; the codes remain available for diagnostics.
-- Keep `binary_sensor.…_inverter_alarm` as the simple OK/problem state and `sensor.…_alarm_active_count` as the numeric count.
-- No inverter write or configuration command is added.
+- `0x07F1` → Reactive mode candidate, live raw `0x0066`.
+- `0x07F2` → GFCI enable candidate, live raw `1000`.
+- `0x07F9` → Calibration K3 candidate, live raw `1003`.
+- `0x080D` → Anti-current / anti-reflux delay candidate, live raw `10`, profile value `10 s`.
 
-More corrections may be added before the next beta is published.
+## Strong but order-indeterminate
+
+- `0x07F7` / `0x07F8` → Calibration K1 / K2 candidate pair, both live raw `1024`; individual order is not assigned.
+
+## Very promising cluster
+
+- `0x080B`–`0x080E` → anti-reflux / zero-export configuration cluster. Individual semantic assignments remain pending.
+
+## Still too ambiguous
+
+- `0x07ED` / `0x0809` → reduction-signal candidates.
+- `0x0BD2` → isolation candidate around `60 MΩ`; Rx/Ry assignment is not distinguishable from the current profile.
+
+No write command is implemented or required for this research backlog.
