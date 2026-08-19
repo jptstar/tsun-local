@@ -14,13 +14,14 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 | ✅ | Enabled by default |
 | 🛡️ | Advanced diagnostic entity, **disabled by default** |
 | 🔄 | Created dynamically when the corresponding PV input is detected |
+| ⚠️ | Functional name available, but the proposed 1511 register/scaling still requires a physical test |
 | 🧪 | Experimental protocol support |
 
 ---
 
 ## MP3000 entity summary — 1511 with six PV inputs
 
-The maximum current MP3000 configuration exposes **94 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
+The maximum current MP3000 configuration exposes **105 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
 
 | Group | Maximum | Examples |
 |---|---:|---|
@@ -29,11 +30,11 @@ The maximum current MP3000 configuration exposes **94 Home Assistant entities**.
 | Temperatures | 2 | inverter and inverter ambient temperature |
 | Communication | 5 | online state, last success, duration, blocks, failures |
 | Operating state and control | 3 | raw inverter status, operating state, manual refresh |
-| Power and capacity diagnostics | 3 | rated power, maximum designed power, candidate power level |
-| Grid protection | 22 | voltage/frequency thresholds, recovery values and delays |
+| Power and capacity diagnostics | 2 | rated power, maximum designed power |
+| Grid protection | 34 | voltage/frequency thresholds, recovery values, delays and MP3000/TITAN candidate fields |
 | Alarm interface | 16 | inverter alarm, active-alarm count, 14 complete raw words |
 | Unconfirmed raw diagnostic | 1 | raw register 3018 |
-| **Total** | **94** | Maximum after detection of PV1 through PV6 |
+| **Total** | **105** | Maximum after detection of PV1 through PV6 |
 
 > [!NOTE]
 > The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
@@ -108,20 +109,21 @@ These entities are available across all three supported protocol families.
 
 - Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
-- Decimal register `2028` (`0x07EC`) is exposed as `output_coefficient_candidate`, displayed as **Power level (candidate)**. The candidate label is intentional until field validation confirms the mapping.
+- The earlier 1511 guess that `0x07EC` represented a candidate **Power level** has been removed. The MP3000/TITAN parameter export instead places **Overfrequency reduction coefficient** at this point in the protection sequence. Its exact local mapping still requires physical validation.
 - On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.
 
 ## 1511 MP3000 alarm catalogue
 
 The independent local catalogue contains all **224 positions** exposed by the 14 alarm words. Every active position is counted and displayed.
 
-| Catalogue range | Positions | Validation |
+| Catalogue range | Positions | Current status |
 |---|---:|---|
-| `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
-| `A065`–`A128` | 64 controller positions | Control-hardware validation required |
-| `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
+| `A001`–`A064` | 64 inverter positions | 1 named mapping to verify · 63 neutral |
+| `A065`–`A128` | 64 controller positions | 3 named mappings to verify · 61 neutral |
+| `A129`–`A224` | 96 PV positions | 12 validated · 36 named mappings to verify · 48 neutral |
+| **Total** | **224** | **52 named · 12 validated · 40 to verify · 172 neutral** |
 
-The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `alarm_active_count` entity lists the localized names and stable local codes of current alarms. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
+Home Assistant displays the available functional alarm names directly. The physical-validation distinction is intentionally kept in the documentation rather than appended to the active alarm wording.
 
 ## 1511 PV entities
 
@@ -140,35 +142,46 @@ All rows above are **🔄 dynamic**: only PV inputs detected by TSUN Local are c
 
 ## 1511 advanced diagnostics
 
-All entities below are **🛡️ disabled by default**.
+All entities below are **🛡️ disabled by default**. The entries marked ⚠️ use the real MP3000/TITAN functional name from the parameter export, but the proposed local register and scaling still require a physical test. See **[MP3000 protection validation](MP3000_PROTECTION_VALIDATION.md)** for the complete validation table.
 
-| Entity key | Home Assistant name | Unit |
-|---|---|---:|
-| `grid_overvoltage_recovery_voltage` | Grid overvoltage recovery voltage | V |
-| `grid_undervoltage_recovery_voltage` | Grid undervoltage recovery voltage | V |
-| `grid_overfrequency_recovery_frequency` | Grid overfrequency recovery frequency | Hz |
-| `grid_underfrequency_recovery_frequency` | Grid underfrequency recovery frequency | Hz |
-| `grid_undervoltage_level_1` | Grid undervoltage level 1 | V |
-| `grid_undervoltage_level_2` | Grid undervoltage level 2 | V |
-| `grid_undervoltage_time_1` | Grid undervoltage time 1 | s |
-| `grid_undervoltage_time_2` | Grid undervoltage time 2 | s |
-| `grid_overvoltage_level_1` | Grid overvoltage level 1 | V |
-| `grid_overvoltage_level_2` | Grid overvoltage level 2 | V |
-| `grid_overvoltage_time_1` | Grid overvoltage time 1 | s |
-| `grid_overvoltage_time_2` | Grid overvoltage time 2 | s |
-| `grid_underfrequency_level_1` | Grid underfrequency level 1 | Hz |
-| `grid_underfrequency_level_2` | Grid underfrequency level 2 | Hz |
-| `grid_underfrequency_time_1` | Grid underfrequency time 1 | s |
-| `grid_underfrequency_time_2` | Grid underfrequency time 2 | s |
-| `grid_overfrequency_level_1` | Grid overfrequency level 1 | Hz |
-| `grid_overfrequency_level_2` | Grid overfrequency level 2 | Hz |
-| `grid_overfrequency_time_1` | Grid overfrequency time 1 | s |
-| `grid_overfrequency_time_2` | Grid overfrequency time 2 | s |
-| `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
-| `grid_undervoltage_time_3` | Grid undervoltage time 3 | s |
-| `inverter_temperature` | Inverter temperature | °C |
-| `ambient_temperature` | Inverter ambient temperature | °C |
-| `output_coefficient_candidate` | Power level (candidate) | % |
+| Entity key | Home Assistant name | Unit | Status |
+|---|---|---:|:---:|
+| `grid_qp_voltage_threshold` | QP voltage threshold | V | ⚠️ |
+| `grid_recovery_speed` | Recovery speed | s | ⚠️ |
+| `grid_overvoltage_recovery_voltage` | Grid overvoltage recovery voltage | V | ✅ |
+| `grid_undervoltage_recovery_voltage` | Grid undervoltage recovery voltage | V | ✅ |
+| `grid_overfrequency_recovery_frequency` | Grid overfrequency recovery frequency | Hz | ✅ |
+| `grid_underfrequency_recovery_frequency` | Grid underfrequency recovery frequency | Hz | ✅ |
+| `grid_overtemperature_protection_value` | Overtemperature protection value | °C | ⚠️ |
+| `grid_undervoltage_level_1` | Grid undervoltage level 1 | V | ✅ |
+| `grid_undervoltage_level_2` | Grid undervoltage level 2 | V | ✅ |
+| `grid_undervoltage_time_1` | Grid undervoltage time 1 | s | ✅ |
+| `grid_undervoltage_time_2` | Grid undervoltage time 2 | s | ✅ |
+| `grid_overvoltage_level_1` | Grid overvoltage level 1 | V | ✅ |
+| `grid_overvoltage_level_2` | Grid overvoltage level 2 | V | ✅ |
+| `grid_overvoltage_time_1` | Grid overvoltage time 1 | s | ✅ |
+| `grid_overvoltage_time_2` | Grid overvoltage time 2 | s | ✅ |
+| `grid_overfrequency_reduction_frequency` | Overfrequency reduction value | Hz | ⚠️ |
+| `grid_underfrequency_level_1` | Grid underfrequency level 1 | Hz | ✅ |
+| `grid_underfrequency_level_2` | Grid underfrequency level 2 | Hz | ✅ |
+| `grid_underfrequency_time_1` | Grid underfrequency time 1 | s | ✅ |
+| `grid_underfrequency_time_2` | Grid underfrequency time 2 | s | ✅ |
+| `grid_overfrequency_level_1` | Grid overfrequency level 1 | Hz | ✅ |
+| `grid_overfrequency_level_2` | Grid overfrequency level 2 | Hz | ✅ |
+| `grid_overfrequency_time_1` | Grid overfrequency time 1 | s | ✅ |
+| `grid_overfrequency_time_2` | Grid overfrequency time 2 | s | ✅ |
+| `grid_undervoltage_level_3` | Grid undervoltage level 3 | V | ✅ |
+| `grid_undervoltage_time_3` | Grid undervoltage time 3 | s | ✅ |
+| `grid_overfrequency_reduction_coefficient` | Overfrequency reduction coefficient | raw | ⚠️ |
+| `grid_start_upper_voltage` | Upper start voltage limit | V | ⚠️ |
+| `grid_start_lower_voltage` | Lower start voltage limit | V | ⚠️ |
+| `grid_start_upper_frequency` | Upper start frequency limit | Hz | ⚠️ |
+| `grid_start_lower_frequency` | Lower start frequency limit | Hz | ⚠️ |
+| `grid_connection_time` | Grid connection time | s | ⚠️ |
+| `grid_reconnection_time` | Grid reconnection time | s | ⚠️ |
+| `grid_ten_minute_overvoltage_protection` | 10-minute overvoltage protection | V | ⚠️ |
+| `inverter_temperature` | Inverter temperature | °C | ✅ |
+| `ambient_temperature` | Inverter ambient temperature | °C | ✅ |
 
 ---
 
