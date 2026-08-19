@@ -176,6 +176,8 @@ class MetadataTests(unittest.TestCase):
         self.assertNotIn("New semantic diagnostics in beta", entities)
         self.assertIn("108 entities with 6 PV inputs", entities)
         self.assertIn("Device and logger</td><td>8</td>", entities)
+        self.assertIn("59 enabled · 49 advanced", entities)
+        self.assertNotIn("beta field-validation work", entities)
         self.assertIn("entities.html", sitemap)
         self.assertEqual(sitemap.count("<lastmod>2026-08-19</lastmod>"), 2)
         self.assertIn('"@type": "WebSite"', index)
