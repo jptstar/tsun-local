@@ -20,7 +20,7 @@ jobs:
             const repo = context.repo.repo;
             const currentRunId = context.runId;
             const keepRecent = 5;
-            const maxDeletesPerRun = 100;
+            const maxDeletesPerRun = 500;
             const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
             // Only these workflows are intentionally kept in the Actions sidebar.
@@ -85,7 +85,7 @@ jobs:
                   throw error;
                 }
               }
-              await sleep(300);
+              await sleep(100);
             }
 
             const remaining = Math.max(0, candidates.length - deleted - alreadyGone);
@@ -96,6 +96,7 @@ jobs:
                 [{data:'Protected workflow names', header:true}, [...protectedWorkflows].join(', ')],
                 [{data:'Total historical runs', header:true}, String(runs.length)],
                 [{data:'Candidates found', header:true}, String(candidates.length)],
+                [{data:'Batch limit', header:true}, String(maxDeletesPerRun)],
                 [{data:'Deleted this run', header:true}, String(deleted)],
                 [{data:'Already absent', header:true}, String(alreadyGone)],
                 [{data:'Deferred', header:true}, String(deferred)],
