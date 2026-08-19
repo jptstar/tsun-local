@@ -39,6 +39,7 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import TsunCoordinator, get_poll_lock
+from .field_validation_localization import apply_field_validation_names
 from .logger_web import (
     async_read_logger_web_data,
     async_read_logger_wifi_signal,
@@ -247,6 +248,7 @@ async def async_setup_entry(
         if updates.get("logger_raw_profile") is not None:
             _async_sync_device_info(hass, entry, coordinator)
 
+    apply_field_validation_names(hass.config.language)
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     # Sensor setup still contains the legacy 1.4.0 unit migration. Re-apply
