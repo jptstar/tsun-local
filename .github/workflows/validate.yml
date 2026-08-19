@@ -8,9 +8,101 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  cleanup-localization:
+    name: Apply localization cleanup once
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[cleanup-localization]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Remove candidate entity and enforce translations
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+          component = root / 'custom_components' / 'tsun_local'
+
+          # 1) Remove the unvalidated output_coefficient_candidate entity.
+          sensor_path = component / 'sensor.py'
+          sensor = sensor_path.read_text(encoding='utf-8')
+          block = '''    _advanced_diagnostic(\n        "output_coefficient_candidate",\n        "output_coefficient_candidate",\n        unit=PERCENTAGE,\n        precision=1,\n    ),\n'''
+          if block not in sensor:
+              raise SystemExit('output_coefficient_candidate sensor block not found')
+          sensor = sensor.replace(block, '', 1)
+          sensor_path.write_text(sensor, encoding='utf-8')
+
+          protocol_path = component / 'protocols' / 'protocol_1511.py'
+          protocol = protocol_path.read_text(encoding='utf-8')
+          protocol = protocol.replace('        "output_coefficient_candidate",\n', '', 1)
+          protocol = protocol.replace(
+              '    # Candidate inferred from the adjacent protocol layout; keep the\n'
+              '    # candidate label until confirmed independently on 1511 hardware.\n'
+              '    "output_coefficient_candidate": (0x07EC, 100 / 1024),\n',
+              '',
+              1,
+          )
+          protocol_path.write_text(protocol, encoding='utf-8')
+
+          # 2) Remove the obsolete translation key from canonical strings + all locales.
+          json_paths = [component / 'strings.json', *sorted((component / 'translations').glob('*.json'))]
+          for path in json_paths:
+              data = json.loads(path.read_text(encoding='utf-8'))
+              sensor_names = data.get('entity', {}).get('sensor', {})
+              sensor_names.pop('output_coefficient_candidate', None)
+              path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          # 3) Remove stale registry entity on upgrade from earlier beta builds.
+          init_path = component / '__init__.py'
+          init = init_path.read_text(encoding='utf-8')
+          helper_marker = '''def _async_remove_legacy_raw_profile_entity(\n    hass: HomeAssistant, logger_sn: str\n) -> None:\n'''
+          cleanup_helper = '''def _async_remove_removed_beta_entities(\n    hass: HomeAssistant, logger_sn: str\n) -> None:\n    """Remove beta-only entities that are no longer exposed."""\n    entity_registry = er.async_get(hass)\n    for key in ("output_coefficient_candidate",):\n        unique_id = f"{logger_sn}_{key}"\n        if entity_id := entity_registry.async_get_entity_id(\n            "sensor", DOMAIN, unique_id\n        ):\n            entity_registry.async_remove(entity_id)\n\n\n'''
+          if '_async_remove_removed_beta_entities' not in init:
+              if helper_marker not in init:
+                  raise SystemExit('registry cleanup insertion marker not found')
+              init = init.replace(helper_marker, cleanup_helper + helper_marker, 1)
+          setup_marker = '''    logger_sn = str(entry.data[CONF_LOGGER_SN])\n    _async_remove_legacy_raw_profile_entity(hass, logger_sn)\n'''
+          setup_replacement = '''    logger_sn = str(entry.data[CONF_LOGGER_SN])\n    _async_remove_removed_beta_entities(hass, logger_sn)\n    _async_remove_legacy_raw_profile_entity(hass, logger_sn)\n'''
+          if '_async_remove_removed_beta_entities(hass, logger_sn)' not in init:
+              if setup_marker not in init:
+                  raise SystemExit('setup cleanup marker not found')
+              init = init.replace(setup_marker, setup_replacement, 1)
+          init_path.write_text(init, encoding='utf-8')
+
+          # 4) Add strict localization regression coverage.
+          test_path = root / 'tests' / 'test_translation_coverage.py'
+          test_path.write_text('''from __future__ import annotations\n\nimport ast\nimport json\nfrom pathlib import Path\nimport unittest\n\nROOT = Path(__file__).parents[1]\nCOMPONENT = ROOT / "custom_components" / "tsun_local"\nTRANSLATIONS = COMPONENT / "translations"\nSUPPORTED = {"en.json", "fr.json", "de.json", "es.json", "it.json", "nl.json", "pl.json", "zh-Hans.json"}\n\n\nclass TranslationCoverageTests(unittest.TestCase):\n    def test_all_supported_translation_files_exist(self) -> None:\n        self.assertEqual({path.name for path in TRANSLATIONS.glob("*.json")}, SUPPORTED)\n\n    def test_every_entity_key_has_a_name_in_every_language(self) -> None:\n        canonical = json.loads((COMPONENT / "strings.json").read_text(encoding="utf-8"))\n        expected = canonical["entity"]\n        for path in sorted(TRANSLATIONS.glob("*.json")):\n            translated = json.loads(path.read_text(encoding="utf-8"))["entity"]\n            for platform, definitions in expected.items():\n                self.assertIn(platform, translated, f"{path.name}: missing {platform}")\n                for key in definitions:\n                    self.assertIn(key, translated[platform], f"{path.name}: missing {platform}.{key}")\n                    name = translated[platform][key].get("name")\n                    self.assertIsInstance(name, str, f"{path.name}: missing name for {platform}.{key}")\n                    self.assertTrue(name.strip(), f"{path.name}: empty name for {platform}.{key}")\n\n    def test_removed_candidate_is_absent_everywhere(self) -> None:\n        key = "output_coefficient_candidate"\n        self.assertNotIn(key, (COMPONENT / "sensor.py").read_text(encoding="utf-8"))\n        self.assertNotIn(key, (COMPONENT / "protocols" / "protocol_1511.py").read_text(encoding="utf-8"))\n        for path in [COMPONENT / "strings.json", *TRANSLATIONS.glob("*.json")]:\n            data = json.loads(path.read_text(encoding="utf-8"))\n            self.assertNotIn(key, data.get("entity", {}).get("sensor", {}), path.name)\n\n    def test_alarm_catalog_has_all_eight_languages_and_same_text_keys(self) -> None:\n        tree = ast.parse((COMPONENT / "alarm_catalog.py").read_text(encoding="utf-8"))\n        texts = None\n        for node in tree.body:\n            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "_TEXTS":\n                texts = ast.literal_eval(node.value)\n                break\n        self.assertIsNotNone(texts)\n        assert texts is not None\n        self.assertEqual(set(texts), {"en", "fr", "de", "es", "it", "nl", "pl", "zh-hans"})\n        expected = set(texts["en"])\n        for language, values in texts.items():\n            self.assertEqual(set(values), expected, language)\n            self.assertTrue(all(isinstance(value, str) and value.strip() for value in values.values()))\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
+          PY
+
+          # No code/doc translation should still expose the removed key.
+          if git grep -n 'output_coefficient_candidate' -- ':!tests/test_translation_coverage.py'; then
+            echo 'Removed candidate still referenced in tracked files.' >&2
+            exit 1
+          fi
+
+      - name: Run tests before committing
+        run: python -m unittest discover -s tests -v
+
+      - name: Restore workflow and commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout origin/main -- .github/workflows/validate.yml
+          git rm -f docs/.cleanup-localization-trigger || true
+          git add custom_components/tsun_local tests .github/workflows/validate.yml
+          git commit -m "Remove unvalidated power-level candidate and enforce translations"
+          git push origin HEAD:beta-1097
+
   unit-tests:
     name: Unit tests
     runs-on: ubuntu-latest
