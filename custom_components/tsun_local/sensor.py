@@ -135,6 +135,29 @@ def _advanced_diagnostic(
     )
 
 
+def _advanced_named_diagnostic(
+    key: str,
+    name: str,
+    *,
+    device_class: SensorDeviceClass | None = None,
+    unit: str | None = None,
+    precision: int | None = None,
+    state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
+) -> TsunSensorDescription:
+    """Describe a candidate TITAN diagnostic using its recovered real name."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        name=name,
+        device_class=device_class,
+        native_unit_of_measurement=unit,
+        state_class=state_class,
+        suggested_display_precision=precision,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    )
+
+
 COMMUNICATION_SENSOR_KEYS = frozenset(
     {
         "communication_last_success",
@@ -156,6 +179,7 @@ DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
 
 GRID_TIMING_SENSOR_KEYS = frozenset(
     {
+        "grid_recovery_speed",
         "grid_undervoltage_time_1",
         "grid_undervoltage_time_2",
         "grid_undervoltage_time_3",
@@ -165,6 +189,8 @@ GRID_TIMING_SENSOR_KEYS = frozenset(
         "grid_underfrequency_time_2",
         "grid_overfrequency_time_1",
         "grid_overfrequency_time_2",
+        "grid_connection_time",
+        "grid_reconnection_time",
     }
 )
 
@@ -173,10 +199,13 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "inverter_status_raw": "3000 (0x0BB8)",
         "rated_power": "3020 (0x0BCC)",
         "max_designed_power": "2042 (0x07FA)",
+        "grid_qp_voltage_threshold": "0x07D2 — physical validation required",
+        "grid_recovery_speed": "0x07D3 — physical validation required",
         "grid_overvoltage_recovery_voltage": "0x07D4",
         "grid_undervoltage_recovery_voltage": "0x07D5",
         "grid_overfrequency_recovery_frequency": "0x07D6",
         "grid_underfrequency_recovery_frequency": "0x07D7",
+        "grid_overtemperature_protection_value": "0x07D8 — physical validation required",
         "grid_undervoltage_level_1": "0x07D9",
         "grid_undervoltage_level_2": "0x07DA",
         "grid_undervoltage_time_1": "0x07DB",
@@ -185,6 +214,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_overvoltage_level_2": "0x07DE",
         "grid_overvoltage_time_1": "0x07DF",
         "grid_overvoltage_time_2": "0x07E0",
+        "grid_overfrequency_reduction_frequency": "0x07E1 — physical validation required",
         "grid_underfrequency_level_1": "0x07E2",
         "grid_underfrequency_level_2": "0x07E3",
         "grid_underfrequency_time_1": "0x07E4",
@@ -195,7 +225,14 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_overfrequency_time_2": "0x07E9",
         "grid_undervoltage_level_3": "0x07EA",
         "grid_undervoltage_time_3": "0x07EB",
-        "output_coefficient_candidate": "2028 (0x07EC) — candidate",
+        "grid_overfrequency_reduction_coefficient": "0x07EC — physical validation required",
+        "grid_start_upper_voltage": "0x07F1 — physical validation required",
+        "grid_start_lower_voltage": "0x07F2 — physical validation required",
+        "grid_start_upper_frequency": "0x07F3 — physical validation required",
+        "grid_start_lower_frequency": "0x07F4 — physical validation required",
+        "grid_connection_time": "0x07F7 — physical validation required",
+        "grid_reconnection_time": "0x07F8 — physical validation required",
+        "grid_ten_minute_overvoltage_protection": "0x07F9 — physical validation required",
     },
     "02b0": {
         "inverter_status_raw": "0x3000",
@@ -241,6 +278,20 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
 
 
 ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
+    _advanced_named_diagnostic(
+        "grid_qp_voltage_threshold",
+        "QP voltage threshold",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_named_diagnostic(
+        "grid_recovery_speed",
+        "Recovery speed",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=1,
+    ),
     _advanced_diagnostic(
         "grid_overvoltage_recovery_voltage",
         "grid_overvoltage_recovery_voltage",
@@ -268,6 +319,13 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         device_class=SensorDeviceClass.FREQUENCY,
         unit=UnitOfFrequency.HERTZ,
         precision=2,
+    ),
+    _advanced_named_diagnostic(
+        "grid_overtemperature_protection_value",
+        "Overtemperature protection value",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        unit=UnitOfTemperature.CELSIUS,
+        precision=0,
     ),
     _advanced_diagnostic(
         "grid_undervoltage_level_1",
@@ -323,6 +381,13 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "grid_overvoltage_time_2",
         device_class=SensorDeviceClass.DURATION,
         unit=UnitOfTime.SECONDS,
+        precision=2,
+    ),
+    _advanced_named_diagnostic(
+        "grid_overfrequency_reduction_frequency",
+        "Overfrequency reduction value",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
         precision=2,
     ),
     _advanced_diagnostic(
@@ -395,15 +460,63 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         unit=UnitOfTime.SECONDS,
         precision=2,
     ),
-    _advanced_diagnostic(
-        "output_coefficient",
-        "output_coefficient",
-        unit=PERCENTAGE,
+    _advanced_named_diagnostic(
+        "grid_overfrequency_reduction_coefficient",
+        "Overfrequency reduction coefficient",
+        precision=0,
+    ),
+    _advanced_named_diagnostic(
+        "grid_start_upper_voltage",
+        "Upper start voltage limit",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_named_diagnostic(
+        "grid_start_lower_voltage",
+        "Lower start voltage limit",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _advanced_named_diagnostic(
+        "grid_start_upper_frequency",
+        "Upper start frequency limit",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_named_diagnostic(
+        "grid_start_lower_frequency",
+        "Lower start frequency limit",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _advanced_named_diagnostic(
+        "grid_connection_time",
+        "Grid connection time",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=1,
+    ),
+    _advanced_named_diagnostic(
+        "grid_reconnection_time",
+        "Grid reconnection time",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
+        precision=1,
+    ),
+    _advanced_named_diagnostic(
+        "grid_ten_minute_overvoltage_protection",
+        "10-minute overvoltage protection",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
         precision=1,
     ),
     _advanced_diagnostic(
-        "output_coefficient_candidate",
-        "output_coefficient_candidate",
+        "output_coefficient",
+        "output_coefficient",
         unit=PERCENTAGE,
         precision=1,
     ),
