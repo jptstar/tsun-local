@@ -43,14 +43,42 @@ The same live dump reports **2164.0 W** as the sum of PV1..PV6 input power and *
 
 ## Country/profile evidence
 
-The TSUN/Talent device profile reports:
+The TSUN/Talent device-profile export reports:
 
 - `Réglages du Pays`: **France**
-- vendor raw value: **1008**
+- exported `raw_value`: **1008**
 - product: `0_1511_15`
 - rated power: 3000 W
 
-This demonstrates that the cloud/device profile uses a vendor country enumeration rather than the telephone code `33`. No local 1511 register has yet been demonstrated to carry the raw value `1008`, so a `country_profile` entity is **not mapped on protocol 1511** at this stage.
+The exported value `1008` must **not** be treated as the local country enum itself.
+
+The public TSUN protocol research by **Stefan Allius** in [`s-allius/tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy) identified the country/profile field used by the 1097 family and the corresponding country enumeration. In that table, **France is country code `8`**. Stefan's 1097 mapping also associates the country/profile field with local register **`0x1400`**.
+
+Country enumeration documented by Stefan Allius:
+
+| Code | Country/profile |
+|---:|---|
+| 0 | Testing |
+| 1 | Brazil |
+| 2 | Germany |
+| 3 | Netherlands |
+| 4 | Ireland |
+| 5 | Italy |
+| 6 | Poland |
+| 7 | Belgium |
+| **8** | **France** |
+| 9 | Austria |
+| 10 | Spain |
+| 11 | VDE 0126 |
+| 12 | Australia |
+| 13 | Thailand MEA |
+| 14 | Thailand PEA |
+| 15 | South Africa |
+| 16 | UK |
+
+This 1097 discovery is credited to **Stefan Allius**. TSUN Local reuses that public research for its experimental 1097 support.
+
+For protocol **1511 / MP3000**, France=`8` is now the correct semantic country code to look for, but no local 1511 register has yet been demonstrated to carry that value. Therefore a 1511 `country_profile` entity remains deliberately unmapped until a local address is proven.
 
 ## Evidence level
 
@@ -66,4 +94,4 @@ The six PV daily-generation addresses are stronger: they are present in the TSUN
 
 `Grid Connection Time` / `Temps de Connexion au Réseau` and `Grid Reconnection Time` / `Temps de Reconnexion au Réseau` are visible in the TSUN/Talent profile, but their local A1/21 addresses cannot yet be identified with sufficient confidence. They remain out of the integration until an address can be demonstrated.
 
-Likewise, the device-profile country value `France / raw 1008` is documented but not assigned to a 1511 local register without direct evidence.
+Likewise, country code `8` means France according to Stefan Allius's public 1097 country table, but it is not assigned to a 1511 local register without direct evidence.
