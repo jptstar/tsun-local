@@ -114,7 +114,8 @@
     .sub { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; }
     .progress { display: flex; overflow: hidden; height: 13px; margin-top: 20px; border-radius: 999px; background: #e9eef4; }
     .progress .verified { width: 5.357%; background: var(--green); }
-    .progress .waiting { flex: 1; background: #e9a135; }
+    .progress .candidate { width: 17.857%; background: #e9a135; }
+    .progress .waiting { flex: 1; background: #e9eef4; }
     .alarm-demo, .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 26px; }
     .alarm, .column { padding: 23px; border: 1px solid var(--line); border-radius: 18px; }
     .alarm .row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
@@ -171,8 +172,8 @@
           <div class="preview-stats">
             <div class="preview-stat"><strong>55</strong><span>enabled by default</span></div>
             <div class="preview-stat"><strong>39</strong><span>advanced diagnostics</span></div>
-            <div class="preview-stat"><strong>12</strong><span>physically verified alarm mappings</span></div>
-            <div class="preview-stat"><strong>224</strong><span>alarm positions</span></div>
+            <div class="preview-stat"><strong>52</strong><span>functional alarm names</span></div>
+            <div class="preview-stat"><strong>12</strong><span>physically verified mappings</span></div>
           </div>
         </aside>
       </div>
@@ -195,34 +196,34 @@
 
     <section id="alarms">
       <h2>Every MP3000 alarm position is included</h2>
-      <p class="intro">The 14 local 16-bit words provide 224 stable positions. All 224 are counted and displayed when active; none is silently discarded.</p>
+      <p class="intro">The 14 local 16-bit words provide 224 stable positions. All 224 are counted and displayed when active. The current MP3000/TITAN alarm export gives a functional name to 52 of them.</p>
       <div class="metrics">
         <div class="metric"><span class="number">224</span><span class="label">positions integrated</span><span class="sub">A001 through A224</span></div>
-        <div class="metric good"><span class="number">12</span><span class="label">functional names validated</span><span class="sub">PV1 through PV6</span></div>
-        <div class="metric pending"><span class="number">212</span><span class="label">require control-hardware validation</span><span class="sub">detected, never guessed</span></div>
+        <div class="metric good"><span class="number">52</span><span class="label">functional names</span><span class="sub">12 validated · 40 to verify</span></div>
+        <div class="metric pending"><span class="number">172</span><span class="label">neutral positions</span><span class="sub">no functional name in the current export</span></div>
       </div>
-      <div class="progress" aria-label="12 validated positions and 212 pending positions"><span class="verified"></span><span class="waiting"></span></div>
+      <div class="progress" aria-label="12 validated mappings, 40 named mappings to verify, 172 neutral positions"><span class="verified"></span><span class="candidate"></span><span class="waiting"></span></div>
       <div class="alarm-demo">
         <article class="alarm">
           <div class="row"><strong>Validated example</strong><span class="pill">VALIDATED</span></div>
           <h3>PV1 input voltage too low</h3>
-          <p>A clear functional name, localized for Home Assistant.</p>
+          <p>The functional name is shown directly in Home Assistant.</p>
         </article>
         <article class="alarm">
-          <div class="row"><strong>Pending example</strong><span class="pill pending">PHYSICAL CHECK</span></div>
-          <h3>Unidentified inverter alarm (A030)</h3>
-          <p>The active position remains visible without inventing its exact cause.</p>
+          <div class="row"><strong>Named mapping</strong><span class="pill pending">PHYSICAL CHECK</span></div>
+          <h3>PV3 input overvoltage</h3>
+          <p>Home Assistant shows the clear name; only this documentation carries the validation status.</p>
         </article>
       </div>
       <table>
-        <thead><tr><th>Local range</th><th>Positions</th><th>Validation status</th></tr></thead>
+        <thead><tr><th>Local range</th><th>Positions</th><th>Current status</th></tr></thead>
         <tbody>
-          <tr><td><code>A001–A064</code></td><td>64 inverter positions</td><td>Control-hardware validation required</td></tr>
-          <tr><td><code>A065–A128</code></td><td>64 controller positions</td><td>Control-hardware validation required</td></tr>
-          <tr><td><code>A129–A224</code></td><td>96 PV positions</td><td>12 validated · 84 require control-hardware validation</td></tr>
+          <tr><td><code>A001–A064</code></td><td>64 inverter positions</td><td>1 named mapping to verify · 63 neutral</td></tr>
+          <tr><td><code>A065–A128</code></td><td>64 controller positions</td><td>3 named mappings to verify · 61 neutral</td></tr>
+          <tr><td><code>A129–A224</code></td><td>96 PV positions</td><td>12 validated · 36 named mappings to verify · 48 neutral</td></tr>
         </tbody>
       </table>
-      <div class="notice"><span>⚠️</span><div><strong>Validation remains explicit</strong>The remaining 212 positions are fully operational entries with unique neutral codes. Their exact functional meaning will be added only after a physical test on suitable control hardware. The eight translations are independent TSUN Local wording, not vendor-certified server terminology.</div></div>
+      <div class="notice"><span>⚠️</span><div><strong>Validation is documentation-only</strong>The 40 candidate positions already use their functional MP3000/TITAN alarm names in Home Assistant. They still require controlled physical reproduction to confirm the exact local bit. The remaining 172 positions keep stable neutral Axxx wording because the current alarm export does not provide a functional mapping for them.</div></div>
     </section>
 
     <section id="compatibility">
