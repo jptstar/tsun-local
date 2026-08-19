@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN MP3000 Entities for Home Assistant | TSUN Local</title>
-  <meta name="description" content="Explore 105 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1-beta.3, including production, 224 alarm positions and read-only field-validation diagnostics.">
+  <meta name="description" content="Explore 105 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1-beta.4, including production, 224 alarm positions and read-only field-validation diagnostics.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/entities.html">
@@ -147,7 +147,7 @@
       </nav>
       <div class="hero">
         <div>
-          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1-beta.3</p>
+          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1-beta.4</p>
           <h1>TSUN MP3000 and microinverter entities for Home Assistant.</h1>
           <p class="lead">See all entities that TSUN Local can create for protocols 1511, 02B0 and 1097, including MP3000 production, alarms and read-only field-validation diagnostics.</p>
           <div class="actions">
@@ -156,8 +156,8 @@
           </div>
         </div>
         <aside class="hero-card" aria-label="Entity summary">
-          <div class="hero-stat"><strong>105</strong><span>total MP3000 entities with six detected PV inputs</span></div>
-          <div class="hero-stat"><strong>56</strong><span>enabled by default</span></div>
+          <div class="hero-stat"><strong>108</strong><span>total MP3000 entities with six detected PV inputs</span></div>
+          <div class="hero-stat"><strong>59</strong><span>enabled by default</span></div>
           <div class="hero-stat"><strong>49</strong><span>advanced diagnostics</span></div>
         </aside>
       </div>
@@ -167,10 +167,10 @@
   <main class="wrap">
     <section id="overview">
       <h2>MP3000 at a glance</h2>
-      <p class="intro">With all six PV inputs detected, 1.5.1-beta.3 exposes up to 105 MP3000 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
+      <p class="intro">With all six PV inputs detected, 1.5.1-beta.4 exposes up to 105 MP3000 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
       <div class="metrics">
-        <div class="metric"><strong>105</strong><span>total with 6 PV inputs</span></div>
-        <div class="metric good"><strong>56</strong><span>enabled by default</span></div>
+        <div class="metric"><strong>108</strong><span>total with 6 PV inputs</span></div>
+        <div class="metric good"><strong>59</strong><span>enabled by default</span></div>
         <div class="metric"><strong>49</strong><span>advanced diagnostics</span></div>
         <div class="metric warn"><strong>224</strong><span>alarm positions · 12 verified</span></div>
       </div>
@@ -194,7 +194,7 @@
             <tr><td>Field-validation diagnostics</td><td><strong>11</strong></td><td>10 additional A1/21 fields + country/profile raw candidate</td></tr>
             <tr><td>Alarm interface</td><td>17</td><td>Alarm state, active count, active alarm names and 14 complete raw words</td></tr>
             <tr><td>Unconfirmed raw diagnostic</td><td>1</td><td>Register 3018</td></tr>
-            <tr><td><strong>Total</strong></td><td><strong>105</strong></td><td>56 enabled · 49 advanced</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>108</strong></td><td>56 enabled · 49 advanced</td></tr>
           </tbody>
         </table>
       </div>
@@ -208,7 +208,7 @@
         <div class="group"><strong>📡 Logger</strong><span class="muted">SN · inverter SN · firmware · MAC · Wi-Fi signal.</span></div>
         <div class="group"><strong>🩺 Communication</strong><span class="muted">Online state · last success · duration · blocks · failures · manual refresh.</span></div>
       </div>
-      <div class="notice info"><span>📶</span><div><strong>Wi-Fi signal fix in 1.5.1-beta.3</strong>The logger reader no longer stops when an earlier valid page lacks RSSI. It continues through the configured pages until <code>cover_sta_rssi</code> is found; a live validation dump read 30% from <code>/status.html</code>.</div></div>
+      <div class="notice info"><span>📶</span><div><strong>Wi-Fi signal fix in 1.5.1-beta.4</strong>The logger reader no longer stops when an earlier valid page lacks RSSI. It continues through the configured pages until <code>cover_sta_rssi</code> is found; a live validation dump read 30% from <code>/status.html</code>.</div></div>
     </section>
 
     <section id="p1511">

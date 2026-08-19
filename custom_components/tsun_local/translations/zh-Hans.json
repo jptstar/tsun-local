@@ -419,6 +419,15 @@
       },
       "active_alarm_names": {
         "name": "活动报警名称"
+      },
+      "dsp_firmware_version": {
+        "name": "DSP 固件版本"
+      },
+      "qcpu1_firmware_version": {
+        "name": "QCPU1 固件版本"
+      },
+      "qcpu2_firmware_version": {
+        "name": "QCPU2 固件版本"
       }
     },
     "binary_sensor": {

@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.1-beta.4] - 2026-08-19
+
+### Added
+
+- Add MP3000/1511 DSP, QCPU1 and QCPU2 firmware-version diagnostics from local packed 16-bit words.
+- Add the reusable `firmware_version()` decoder for TSUN packed firmware values.
+
+### Changed
+
+- Keep FCPU unexposed until its local 1511 source register is identified.
+- Refine the research backlog after a new low-power dump: keep reactive mode, GFCI, K1/K2/K3 and anti-reflux candidates out of semantic entities; promote `0x07ED` to the leading overfrequency-reduction signal candidate; track `0x0BD2` as a dynamic insulation-measurement candidate rather than a fixed 60 MΩ setting.
+- Refresh MP3000 documentation to 108 maximum entities, 59 enabled by default and 49 advanced/disabled by default.
+
+### Safety
+
+- All new firmware reads reuse existing local 1511 telemetry blocks and remain read-only.
+- No inverter configuration or control write is added.
+
 ## [1.5.1-beta.3] - 2026-08-19
 
 ### Added

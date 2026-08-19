@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1-beta.3, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
+  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1-beta.4, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
@@ -41,7 +41,7 @@
         "@type": "SoftwareSourceCode",
         "@id": "https://jptstar.github.io/tsun-local/#software",
         "name": "TSUN Local",
-        "softwareVersion": "1.5.1-beta.3",
+        "softwareVersion": "1.5.1-beta.4",
         "description": "Open-source HACS integration for direct, local and read-only monitoring of compatible TSUN solar microinverters in Home Assistant.",
         "url": "https://jptstar.github.io/tsun-local/",
         "codeRepository": "https://github.com/jptstar/tsun-local",
@@ -162,14 +162,14 @@
           <div class="actions">
             <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
             <a class="button secondary" href="https://github.com/jptstar/tsun-local">Source &amp; README</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.3">Release 1.5.1-beta.3</a>
+            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.4">Release 1.5.1-beta.4</a>
           </div>
         </div>
         <aside class="preview-card" aria-label="MP3000 entity and alarm summary">
-          <span class="preview-kicker">🧪 NEW IN 1.5.1 BETA 3</span>
-          <div class="preview-primary"><span class="big">105</span><strong>MP3000 entities</strong></div>
+          <span class="preview-kicker">🧪 NEW IN 1.5.1 BETA 4</span>
+          <div class="preview-primary"><span class="big">108</span><strong>MP3000 entities</strong></div>
           <div class="preview-stats">
-            <div class="preview-stat"><strong>56</strong><span>enabled by default</span></div>
+            <div class="preview-stat"><strong>59</strong><span>enabled by default</span></div>
             <div class="preview-stat"><strong>49</strong><span>advanced diagnostics</span></div>
             <div class="preview-stat"><strong>10</strong><span>new A1/21 field-validation entities</span></div>
             <div class="preview-stat"><strong>224</strong><span>alarm positions preserved</span></div>
@@ -199,7 +199,7 @@
       <div class="grid">
         <div class="card"><strong>📶 Wi-Fi RSSI fallback fixed</strong><span class="muted">A valid index page without RSSI no longer stops the search. TSUN Local continues until `/status.html` exposes `cover_sta_rssi`.</span></div>
         <div class="card"><strong>🛡️ 10 A1/21 diagnostics</strong><span class="muted">Ten additional MP3000 field-validation sensors are available as advanced entities and remain disabled by default.</span></div>
-        <div class="card"><strong>🚨 Active alarm names</strong><span class="muted">A dedicated sensor exposes localized active alarm text directly in Home Assistant. Internal Axxx identifiers stay diagnostic-only.</span></div>
+        <div class="card"><strong>🚨 DSP/QCPU firmware · Active alarm names</strong><span class="muted">A dedicated sensor exposes localized active alarm text directly in Home Assistant. Internal Axxx identifiers stay diagnostic-only.</span></div>
         <div class="card"><strong>📐 Corrected coefficient</strong><span class="muted"><code>0x07EF</code> raw 4000 is decoded with ×0.01 as <strong>40.00 %/Hz</strong>.</span></div>
       </div>
     </section>
@@ -295,7 +295,7 @@
       <div class="grid">
         <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
         <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
-        <div class="card"><strong>What is beta in 1.5.1-beta.3?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the new MP3000 semantic diagnostics are intentionally labelled as field-validation candidates.</span></div>
+        <div class="card"><strong>What is beta in 1.5.1-beta.4?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the new MP3000 semantic diagnostics are intentionally labelled as field-validation candidates.</span></div>
       </div>
     </section>
 

@@ -23,6 +23,11 @@ MODEL = "TITAN"
 MAX_PV_COUNT = 6
 DIAGNOSTIC_INTERVAL = 300.0
 COUNTRY_PROFILE_REGISTER = 0x07D0
+FIRMWARE_VERSION_REGISTERS = {
+    "dsp_firmware_version": 0x0BC0,
+    "qcpu1_firmware_version": 0x0E26,
+    "qcpu2_firmware_version": 0x0EEE,
+}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,6 +90,9 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
         "inverter_temperature",
         "ambient_temperature",
         "country_profile_raw",
+        "dsp_firmware_version",
+        "qcpu1_firmware_version",
+        "qcpu2_firmware_version",
     }
 )
 
@@ -222,6 +230,21 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
     return (registers[high_address] << 16) | registers[high_address + 1]
 
 
+def firmware_version(value: int) -> str:
+    """Decode a packed TSUN 16-bit firmware version."""
+    raw = f"{value:04X}"
+    return f"V{raw[0]}.{raw[1]}.{raw[2:]}"
+
+
+def decode_firmware_versions(registers: dict[int, int]) -> dict[str, str]:
+    """Decode MP3000 DSP/QCPU firmware versions found in live 1511 blocks."""
+    return {
+        key: firmware_version(registers[address])
+        for key, address in FIRMWARE_VERSION_REGISTERS.items()
+        if address in registers
+    }
+
+
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
     return (
@@ -252,9 +275,9 @@ def detect_pv_count(registers: dict[int, int]) -> int:
 
 def decode_measurements(
     registers: dict[int, int], pv_count: int = 1
-) -> dict[str, float | int]:
+) -> dict[str, float | int | str]:
     """Decode the validated AC and PV register map."""
-    data: dict[str, float | int] = {
+    data: dict[str, float | int | str] = {
         "inverter_status_raw": registers[0x0BB8],
         "ac_voltage": registers[0x0BC4] * 0.1,
         "ac_current": registers[0x0BC5] * 0.01,
@@ -265,6 +288,7 @@ def decode_measurements(
         "ac_energy_today": registers[0x0BCE] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x0BCF) * 0.01,
     }
+    data.update(decode_firmware_versions(registers))
     if 0x0BCA in registers:
         data["register_3018_raw"] = registers[0x0BCA]
     if 0x0BD4 in registers:

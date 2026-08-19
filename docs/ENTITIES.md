@@ -21,12 +21,12 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 
 ## MP3000 entity summary — 1511 with six PV inputs
 
-The maximum 1.5.1-beta.3 MP3000 configuration exposes **105 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
+The maximum 1.5.1-beta.4 MP3000 configuration exposes **108 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
 
 | Group | Maximum | Examples |
 |---|---:|---|
 | Production and electricity | 37 | AC and PV voltage, current, power, daily energy, total energy |
-| Device and logger information | 5 | label SN, inverter SN, logger firmware, MAC address, Wi-Fi signal |
+| Device and logger information | 8 | label SN, inverter SN, logger/DSP/QCPU firmware, MAC address, Wi-Fi signal |
 | Temperatures | 2 | inverter and inverter ambient temperature |
 | Communication | 5 | online state, last success, duration, blocks, failures |
 | Operating state and control | 3 | raw inverter status, operating state, manual refresh |
@@ -35,10 +35,10 @@ The maximum 1.5.1-beta.3 MP3000 configuration exposes **105 Home Assistant entit
 | MP3000 field-validation diagnostics | 11 | ten additional A1/21 fields plus raw country/profile candidate |
 | Alarm interface | 17 | inverter alarm, active-alarm count, active alarm names, 14 complete raw words |
 | Unconfirmed raw diagnostic | 1 | raw register 3018 |
-| **Total** | **105** | **56 enabled by default · 49 advanced/disabled by default** |
+| **Total** | **108** | **59 enabled by default · 49 advanced/disabled by default** |
 
 > [!NOTE]
-> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state, localized alarm-name sensor and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
+> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state, localized alarm-name sensor and count; the 14 complete raw words remain available as disabled diagnostics. The logger, DSP, QCPU1 and QCPU2 firmware versions are exposed. FCPU remains intentionally absent because its local 1511 source register has not yet been identified.
 
 ---
 
@@ -72,6 +72,9 @@ These entities are available across the supported protocol families when the cor
 | `label_serial_number` | SN | text | ✅ |
 | `inverter_serial_number` | Micro-inverter SN | text | ✅ |
 | `logger_firmware_version` | Logger firmware version | text | ✅ |
+| `dsp_firmware_version` | DSP firmware version | text | ✅ |
+| `qcpu1_firmware_version` | QCPU1 firmware version | text | ✅ |
+| `qcpu2_firmware_version` | QCPU2 firmware version | text | ✅ |
 | `logger_mac_address` | Logger MAC address | text | ✅ |
 | `logger_wifi_signal` | Logger Wi-Fi signal | % | ✅ |
 
@@ -105,8 +108,9 @@ These entities are available across the supported protocol families when the cor
 ### Field-observation notes
 
 - Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
+- Packed 16-bit firmware words are decoded locally with `firmware_version()`: DSP `3008 / 0x0BC0 = 0x1172 → V1.1.72`, QCPU1 `3622 / 0x0E26 = 0x1154 → V1.1.54`, and QCPU2 `3822 / 0x0EEE = 0x1154 → V1.1.54`. FCPU is not guessed.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
-- In 1.5.1-beta.3, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
+- In 1.5.1-beta.4, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
 - `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.
 - The adjacent `0x07D1 = 80` and `0x07D2 = 80` values are documented as the leading pair for the two TSUN/Talent 40.0 s grid connection/reconnection settings with candidate scaling `×0.5 s`. They are **not exposed as separately named Home Assistant entities yet**, because their individual order cannot be proven while both settings have the same value.
 - On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.
