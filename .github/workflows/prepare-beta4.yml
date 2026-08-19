@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   prepare:
-    if: github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, 'Add beta4 preparation script')
+    if: github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, 'Run beta4 preparation')
     runs-on: ubuntu-latest
     steps:
       - name: Check out beta branch
