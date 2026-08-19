@@ -389,6 +389,36 @@
       },
       "ambient_temperature": {
         "name": "Temperatura ambiente del inversor"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "Umbral de tensión QP"
+      },
+      "grid_recovery_rate": {
+        "name": "Tiempo de recuperación de red"
+      },
+      "grid_overvoltage_10min": {
+        "name": "Protección de sobretensión de red de 10 minutos"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Valor de reducción por sobrefrecuencia"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Coeficiente de reducción por sobrefrecuencia"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Umbral de protección por sobretemperatura"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Límite superior de tensión de arranque"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Límite inferior de tensión de arranque"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Límite superior de frecuencia de arranque"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Límite inferior de frecuencia de arranque"
       }
     },
     "binary_sensor": {

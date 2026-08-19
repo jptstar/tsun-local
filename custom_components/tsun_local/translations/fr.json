@@ -389,6 +389,36 @@
       },
       "ambient_temperature": {
         "name": "Température ambiante onduleur"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "Seuil de tension QP"
+      },
+      "grid_recovery_rate": {
+        "name": "Temps de récupération réseau"
+      },
+      "grid_overvoltage_10min": {
+        "name": "Protection surtension réseau 10 minutes"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Valeur de réduction de surfréquence"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Coefficient de réduction de surfréquence"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Seuil de protection contre la surtempérature"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Limite supérieure de tension au démarrage"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Limite inférieure de tension au démarrage"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Limite supérieure de fréquence au démarrage"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Limite inférieure de fréquence au démarrage"
       }
     },
     "binary_sensor": {

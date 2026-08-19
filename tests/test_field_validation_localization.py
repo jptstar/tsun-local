@@ -1,88 +1,80 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Regression tests for localized MP3000 beta diagnostic names."""
-
 from __future__ import annotations
 
-import importlib.util
+import json
 from pathlib import Path
-import sys
 import unittest
 
-
 ROOT = Path(__file__).parents[1]
-MODULE_PATH = (
-    ROOT
-    / "custom_components"
-    / "tsun_local"
-    / "field_validation_localization.py"
-)
-SPEC = importlib.util.spec_from_file_location(
-    "tsun_local_field_validation_localization_tests", MODULE_PATH
-)
-assert SPEC is not None and SPEC.loader is not None
-LOCALIZATION = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = LOCALIZATION
-SPEC.loader.exec_module(LOCALIZATION)
+INTEGRATION = ROOT / "custom_components" / "tsun_local"
+KEYS = {
+    "grid_qp_voltage_threshold",
+    "grid_recovery_rate",
+    "grid_overvoltage_10min",
+    "grid_overfrequency_reduction_frequency",
+    "grid_overfrequency_reduction_coefficient",
+    "overtemperature_protection_temperature",
+    "grid_start_upper_voltage_limit",
+    "grid_start_lower_voltage_limit",
+    "grid_start_upper_frequency_limit",
+    "grid_start_lower_frequency_limit",
+}
 
 
 class FieldValidationLocalizationTests(unittest.TestCase):
-    """Keep localized names complete without changing entity identifiers."""
+    def test_all_eight_translation_files_have_the_ten_names(self) -> None:
+        for filename in (
+            "en.json", "fr.json", "de.json", "es.json",
+            "it.json", "nl.json", "pl.json", "zh-Hans.json",
+        ):
+            document = json.loads(
+                (INTEGRATION / "translations" / filename).read_text(encoding="utf-8")
+            )
+            sensors = document["entity"]["sensor"]
+            self.assertTrue(KEYS <= set(sensors), filename)
+            self.assertTrue(
+                all(sensors[key]["name"].strip() for key in KEYS), filename
+            )
 
-    def test_all_eight_languages_cover_the_same_ten_keys(self) -> None:
-        names = LOCALIZATION.FIELD_VALIDATION_NAMES
-        self.assertEqual(
-            set(names),
-            {"en", "fr", "de", "es", "it", "nl", "pl", "zh-hans"},
+    def test_source_strings_have_the_same_ten_keys(self) -> None:
+        strings = json.loads((INTEGRATION / "strings.json").read_text(encoding="utf-8"))
+        self.assertTrue(KEYS <= set(strings["entity"]["sensor"]))
+
+    def test_field_validation_descriptions_use_translation_keys(self) -> None:
+        source = (INTEGRATION / "sensor.py").read_text(encoding="utf-8")
+        self.assertIn("translation_key=translation_key", source)
+        self.assertNotIn("name=name", source)
+        for key in KEYS:
+            self.assertIn(f'"{key}",\n        "{key}",', source)
+
+    def test_entity_identifiers_remain_stable_english(self) -> None:
+        source = (INTEGRATION / "sensor.py").read_text(encoding="utf-8")
+        self.assertIn("suggested_object_id=key", source)
+        self.assertIn(
+            'self._attr_unique_id = f"{logger_sn}_{description.key}"', source
         )
-        expected = set(names["en"])
-        self.assertEqual(len(expected), 10)
-        self.assertEqual(expected, set(LOCALIZATION.FIELD_VALIDATION_KEYS))
-        for language, translated in names.items():
-            self.assertEqual(set(translated), expected, language)
-            self.assertTrue(all(value.strip() for value in translated.values()))
 
-    def test_language_variants_and_fallback(self) -> None:
+    def test_representative_names_are_localized(self) -> None:
+        fr = json.loads(
+            (INTEGRATION / "translations" / "fr.json").read_text(encoding="utf-8")
+        )["entity"]["sensor"]
+        de = json.loads(
+            (INTEGRATION / "translations" / "de.json").read_text(encoding="utf-8")
+        )["entity"]["sensor"]
+        zh = json.loads(
+            (INTEGRATION / "translations" / "zh-Hans.json").read_text(encoding="utf-8")
+        )["entity"]["sensor"]
         self.assertEqual(
-            LOCALIZATION.field_validation_name(
-                "grid_start_upper_voltage_limit", "fr-FR"
-            ),
+            fr["grid_start_upper_voltage_limit"]["name"],
             "Limite supérieure de tension au démarrage",
         )
         self.assertEqual(
-            LOCALIZATION.field_validation_name(
-                "grid_qp_voltage_threshold", "de-DE"
-            ),
-            "QP-Spannungsschwelle",
+            de["grid_qp_voltage_threshold"]["name"], "QP-Spannungsschwelle"
         )
         self.assertEqual(
-            LOCALIZATION.field_validation_name(
-                "grid_overfrequency_reduction_coefficient", "zh-Hans"
-            ),
-            "过频降额系数",
-        )
-        self.assertEqual(
-            LOCALIZATION.field_validation_name(
-                "grid_qp_voltage_threshold", "unsupported"
-            ),
-            "QP voltage threshold",
-        )
-
-    def test_entity_identifiers_stay_english_and_stable(self) -> None:
-        sensor_source = (
-            ROOT / "custom_components" / "tsun_local" / "sensor.py"
-        ).read_text(encoding="utf-8")
-        init_source = (
-            ROOT / "custom_components" / "tsun_local" / "__init__.py"
-        ).read_text(encoding="utf-8")
-        self.assertIn("suggested_object_id=key", sensor_source)
-        self.assertIn(
-            'self._attr_unique_id = f"{logger_sn}_{description.key}"',
-            sensor_source,
-        )
-        self.assertIn(
-            "apply_field_validation_names(hass.config.language)", init_source
+            zh["grid_overfrequency_reduction_coefficient"]["name"], "过频降额系数"
         )
 
 

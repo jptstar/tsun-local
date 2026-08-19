@@ -389,6 +389,36 @@
       },
       "ambient_temperature": {
         "name": "Temperatura otoczenia falownika"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "Próg napięcia QP"
+      },
+      "grid_recovery_rate": {
+        "name": "Czas przywracania sieci"
+      },
+      "grid_overvoltage_10min": {
+        "name": "10-minutowe zabezpieczenie nadnapięciowe sieci"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Wartość redukcji przy nadczęstotliwości"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Współczynnik redukcji przy nadczęstotliwości"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Próg zabezpieczenia nadtemperaturowego"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Górna granica napięcia rozruchowego"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Dolna granica napięcia rozruchowego"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Górna granica częstotliwości rozruchowej"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Dolna granica częstotliwości rozruchowej"
       }
     },
     "binary_sensor": {

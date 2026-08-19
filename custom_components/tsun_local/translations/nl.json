@@ -389,6 +389,36 @@
       },
       "ambient_temperature": {
         "name": "Omgevingstemperatuur omvormer"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "QP-spanningsdrempel"
+      },
+      "grid_recovery_rate": {
+        "name": "Nethersteltijd"
+      },
+      "grid_overvoltage_10min": {
+        "name": "10-minuten-netoverspanningsbeveiliging"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Waarde overfrequentiereductie"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Coëfficiënt overfrequentiereductie"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Drempel overtemperatuurbeveiliging"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Bovengrens startspanning"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Ondergrens startspanning"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Bovengrens startfrequentie"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Ondergrens startfrequentie"
       }
     },
     "binary_sensor": {
