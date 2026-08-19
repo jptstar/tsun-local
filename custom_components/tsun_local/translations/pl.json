@@ -421,13 +421,13 @@
         "name": "Nazwy aktywnych alarmów"
       },
       "dsp_firmware_version": {
-        "name": "Wersja firmware DSP"
+        "name": "Wersja oprogramowania DSP"
       },
       "qcpu1_firmware_version": {
-        "name": "Wersja firmware QCPU1"
+        "name": "Wersja oprogramowania QCPU1"
       },
       "qcpu2_firmware_version": {
-        "name": "Wersja firmware QCPU2"
+        "name": "Wersja oprogramowania QCPU2"
       }
     },
     "binary_sensor": {

@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Jouw omvormer. Jouw netwerk. Jouw data.</h3>
 <p align="center"><strong>Lokaal. Alleen-lezen. Geen cloud. Geen proxy.</strong></p>
-<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.0</strong></p>
+<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -33,7 +33,7 @@ TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
 | Protocol | Familie / gevalideerde referentie | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Gevalideerd** |
-| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Gevalideerd** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Gevalideerd** |
 | **1097** | GEN3 | 🧪 **Experimenteel** |
 
 > [!TIP]
@@ -84,10 +84,10 @@ TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
 |---|---|
 | ☀️ **PV** | Tot 6 ingangen · Spanning · Stroom · Vermogen · Dag- & totale energie |
 | ⚡ **AC** | Spanning · Stroom · Frequentie · Vermogen · Dag- & totale energie |
-| 🚨 **Diagnostiek** | Omvormeralarmen |
-| 🛡️ **Geavanceerd** | Netbeveiligingsdrempels en tijdsdiagnostiek · Omvormertemperatuur · Omgevingstemperatuur omvormer · Vermogensniveau (kandidaat) |
+| 🚨 **Diagnostiek** | Omvormeralarm · aantal en namen van actieve alarmen · DSP/QCPU-firmwareversies |
+| 🛡️ **Geavanceerd** | Netbeveiligingsdrempels en tijden · 10 extra A1/21-veldvalidatiediagnoses · ruwe land/profielkandidaat · temperaturen |
 
-### 02B0 · GEN3 PLUS — ✅ Gevalideerd
+### 02B0 · GEN3 / GEN3 PLUS — ✅ Gevalideerd
 
 **✅ Gevalideerd**  
 `TSOL-MX500`
@@ -104,10 +104,10 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 |---|---|
 | ☀️ **PV** | Dynamische detectie van PV-ingangen · Spanning · Stroom · Vermogen · Energie |
 | ⚡ **AC** | Spanning · Stroom · Frequentie · Vermogen · Energie |
-| 🚨 **Diagnostiek** | Omvormeralarmen |
+| 🚨 **Diagnostiek** | Omvormeralarm · aantal en namen van actieve alarmen · DSP/QCPU-firmwareversies |
 | 🛡️ **Geavanceerd** | Netbeveiligingsdiagnostiek · Vermogensniveau (%) |
 
-### 1097 · GEN3 — 🧪 Experimenteel
+### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimenteel
 
 **🔎 Waarschijnlijk compatibel**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
@@ -139,9 +139,25 @@ Validatie op echte MP3000 / 1511- en MX500 / 02B0-hardware heeft enkele diagnost
 
 ---
 
+## 🆕 TSUN Local 1.5.1
+
+Versie **1.5.1** bundelt de volledige MP3000-alarminterface uit 1.5.0 en de correcties van beta1 tot en met beta4 in één stabiele release:
+
+- alle **224 MP3000-alarmposities** blijven beschikbaar; 12 functionele koppelingen zijn gebaseerd op directe hardwarewaarnemingen;
+- aparte sensor voor **namen van actieve alarmen**, gelokaliseerd voor Home Assistant;
+- gecorrigeerde logger-wifi-RSSI-fallback tot `/status.html`;
+- 10 extra alleen-lezen A1/21-veldvalidatiediagnoses plus ruwe land/profielkandidaat;
+- `0x07EF`: `4000 → 40,00 %/Hz` met kandidaatfactor `×0,01`;
+- lokale firmware **DSP V1.1.72**, **QCPU1 V1.1.54** en **QCPU2 V1.1.54**; FCPU wordt niet gepubliceerd zonder geïdentificeerd lokaal 1511-register;
+- de eerdere onbevestigde MP3000-vermogensniveaukandidaat blijft verwijderd;
+- technische entity-ID’s blijven Engels en zichtbare namen zijn in alle acht talen vertaald.
+
+Voor A1/21-toewijzingen die nog niet onafhankelijk zijn bevestigd blijft de status: **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**.
+---
+
 ## 🚨 MP3000-alarmcatalogus
 
-Alle **224 posities** in de 14 alarmwoorden worden opgenomen, geteld en weergegeven wanneer ze actief zijn. **12 functionele koppelingen** zijn gevalideerd; de overige **212 posities** krijgen een unieke neutrale TSUN Local-code en vereisen fysieke verificatie op geschikte controlehardware. Geen actieve positie wordt genegeerd. De teksten in acht talen zijn onafhankelijke TSUN Local-formuleringen, niet als officieel gepresenteerde serververtalingen.
+Alle **224 posities** in de 14 alarmwoorden worden opgenomen, geteld en weergegeven wanneer ze actief zijn. **12 functionele koppelingen** zijn rechtstreeks op echte hardware waargenomen; de overige **212 posities** krijgen een unieke neutrale TSUN Local-code en vereisen fysieke verificatie op geschikte controlehardware. Geen actieve positie wordt genegeerd. De teksten in acht talen zijn onafhankelijke TSUN Local-formuleringen, niet als officieel gepresenteerde serververtalingen.
 
 ---
 

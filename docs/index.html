@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1-beta.4, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
+  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
@@ -41,7 +41,7 @@
         "@type": "SoftwareSourceCode",
         "@id": "https://jptstar.github.io/tsun-local/#software",
         "name": "TSUN Local",
-        "softwareVersion": "1.5.1-beta.4",
+        "softwareVersion": "1.5.1",
         "description": "Open-source HACS integration for direct, local and read-only monitoring of compatible TSUN solar microinverters in Home Assistant.",
         "url": "https://jptstar.github.io/tsun-local/",
         "codeRepository": "https://github.com/jptstar/tsun-local",
@@ -162,11 +162,11 @@
           <div class="actions">
             <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
             <a class="button secondary" href="https://github.com/jptstar/tsun-local">Source &amp; README</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.4">Release 1.5.1-beta.4</a>
+            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1">Release 1.5.1</a>
           </div>
         </div>
         <aside class="preview-card" aria-label="MP3000 entity and alarm summary">
-          <span class="preview-kicker">🧪 NEW IN 1.5.1 BETA 4</span>
+          <span class="preview-kicker">NEW IN 1.5.1</span>
           <div class="preview-primary"><span class="big">108</span><strong>MP3000 entities</strong></div>
           <div class="preview-stats">
             <div class="preview-stat"><strong>59</strong><span>enabled by default</span></div>
@@ -194,8 +194,8 @@
     </section>
 
     <section id="beta">
-      <h2>1.5.1 beta: MP3000 field-validation update</h2>
-      <p class="intro">The 1.5.0 presentation and alarm architecture stay intact. Beta 3 consolidates the MP3000 diagnostics, localized alarm-name entity and logger RSSI fixes.</p>
+      <h2>1.5.1: MP3000 field-validation update</h2>
+      <p class="intro">Version 1.5.1 consolidates the complete MP3000 alarm interface, field-validation diagnostics, localized alarm-name entity, logger RSSI fix and local DSP/QCPU firmware diagnostics.</p>
       <div class="grid">
         <div class="card"><strong>📶 Wi-Fi RSSI fallback fixed</strong><span class="muted">A valid index page without RSSI no longer stops the search. TSUN Local continues until `/status.html` exposes `cover_sta_rssi`.</span></div>
         <div class="card"><strong>🛡️ 10 A1/21 diagnostics</strong><span class="muted">Ten additional MP3000 field-validation sensors are available as advanced entities and remain disabled by default.</span></div>
@@ -209,10 +209,10 @@
       <p class="intro">The 14 local 16-bit words provide 224 stable positions. All 224 are counted and displayed when active; none is silently discarded.</p>
       <div class="metrics">
         <div class="metric"><span class="number">224</span><span class="label">positions integrated</span><span class="sub">A001 through A224</span></div>
-        <div class="metric good"><span class="number">12</span><span class="label">functional names validated</span><span class="sub">PV1 through PV6</span></div>
+        <div class="metric good"><span class="number">12</span><span class="label">hardware-observed mappings</span><span class="sub">PV1 through PV6</span></div>
         <div class="metric pending"><span class="number">212</span><span class="label">require control-hardware validation</span><span class="sub">detected, never guessed</span></div>
       </div>
-      <div class="progress" aria-label="12 validated positions and 212 pending positions"><span class="verified"></span><span class="waiting"></span></div>
+      <div class="progress" aria-label="12 hardware-observed positions and 212 pending positions"><span class="verified"></span><span class="waiting"></span></div>
       <div class="alarm-demo">
         <article class="alarm">
           <div class="row"><strong>Validated example</strong><span class="pill">VALIDATED</span></div>
@@ -295,7 +295,7 @@
       <div class="grid">
         <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
         <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
-        <div class="card"><strong>What is beta in 1.5.1-beta.4?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the new MP3000 semantic diagnostics are intentionally labelled as field-validation candidates.</span></div>
+        <div class="card"><strong>What is new in 1.5.1?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the new MP3000 semantic diagnostics are intentionally labelled as field-validation candidates.</span></div>
       </div>
     </section>
 

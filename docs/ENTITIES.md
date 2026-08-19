@@ -21,7 +21,7 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 
 ## MP3000 entity summary — 1511 with six PV inputs
 
-The maximum 1.5.1-beta.4 MP3000 configuration exposes **108 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
+The maximum 1.5.1 MP3000 configuration exposes **108 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
 
 | Group | Maximum | Examples |
 |---|---:|---|
@@ -110,7 +110,7 @@ These entities are available across the supported protocol families when the cor
 - Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
 - Packed 16-bit firmware words are decoded locally with `firmware_version()`: DSP `3008 / 0x0BC0 = 0x1172 → V1.1.72`, QCPU1 `3622 / 0x0E26 = 0x1154 → V1.1.54`, and QCPU2 `3822 / 0x0EEE = 0x1154 → V1.1.54`. FCPU is not guessed.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
-- In 1.5.1-beta.4, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
+- In 1.5.1, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
 - `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.
 - The adjacent `0x07D1 = 80` and `0x07D2 = 80` values are documented as the leading pair for the two TSUN/Talent 40.0 s grid connection/reconnection settings with candidate scaling `×0.5 s`. They are **not exposed as separately named Home Assistant entities yet**, because their individual order cannot be proven while both settings have the same value.
 - On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.
@@ -123,9 +123,9 @@ The independent local catalogue contains all **224 positions** exposed by the 14
 |---|---:|---|
 | `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
 | `A065`–`A128` | 64 controller positions | Control-hardware validation required |
-| `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
+| `A129`–`A224` | 96 PV positions | 12 hardware-observed · 84 require control-hardware validation |
 
-The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `active_alarm_names` entity publishes the localized alarm text directly; `alarm_active_count` remains the numeric count. Stable Axxx codes are retained only as internal/debug identifiers. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
+The 12 hardware-observed mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `active_alarm_names` entity publishes the localized alarm text directly; `alarm_active_count` remains the numeric count. Stable Axxx codes are retained only as internal/debug identifiers. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
 
 ## 1511 PV entities
 
@@ -171,7 +171,7 @@ All entities below are **🛡️ disabled by default**.
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
 | `grid_undervoltage_time_3` | Grid undervoltage time 3 | s |
 
-## 1511 field-validation diagnostics — 1.5.1 beta
+## 1511 field-validation diagnostics — 1.5.1
 
 All entries are **🛡️ disabled by default** and carry the evidence status **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING** unless noted otherwise.
 

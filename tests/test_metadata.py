@@ -148,11 +148,11 @@ class MetadataTests(unittest.TestCase):
 
         self.assertIn('href="entities.html"', index)
         self.assertIn("Plug &amp; play identification", index)
-        self.assertIn("1.5.1 beta: MP3000 field-validation update", index)
+        self.assertIn("1.5.1: MP3000 field-validation update", index)
         self.assertIn('<strong>59</strong><span>enabled by default</span>', index)
         self.assertIn('<strong>49</strong><span>advanced diagnostics</span>', index)
         self.assertIn('<strong>224</strong><span>alarm positions preserved</span>', index)
-        self.assertIn("functional names validated", index)
+        self.assertIn("hardware-observed mappings", index)
         self.assertIn("Local TSUN microinverter monitoring for Home Assistant.", index)
         self.assertIn("TSUN Local and Home Assistant FAQ", index)
         self.assertIn("Stefan Allius", index)
@@ -164,7 +164,7 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("total MP3000 entities", entities)
         self.assertIn("total with 6 PV inputs", entities)
         self.assertIn("How 1511 alarms appear in Home Assistant", entities)
-        self.assertIn("physically verified alarm mappings", entities)
+        self.assertIn("hardware-observed alarm mappings", entities)
         self.assertIn("All 224 source positions remain covered", entities)
         self.assertIn("country_profile_raw", entities)
         self.assertIn("0x07D0", entities)
@@ -184,6 +184,17 @@ class MetadataTests(unittest.TestCase):
         )
         self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.xml", robots)
         self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.txt", robots)
+
+    def test_brand_assets_and_web_icon_are_synchronized(self) -> None:
+        brand = INTEGRATION / "brand"
+        expected = ("icon.png", "icon@2x.png", "logo.png", "logo@2x.png")
+        for name in expected:
+            data = (brand / name).read_bytes()
+            self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"), name)
+            self.assertGreater(len(data), 1024, name)
+        self.assertEqual((brand / "icon.png").read_bytes(), (brand / "logo.png").read_bytes())
+        self.assertEqual((brand / "icon@2x.png").read_bytes(), (brand / "logo@2x.png").read_bytes())
+        self.assertEqual((ROOT / "docs" / "icon.png").read_bytes(), (brand / "icon.png").read_bytes())
 
 
 if __name__ == "__main__":

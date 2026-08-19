@@ -1,6 +1,6 @@
 # TSUN Local 1.5.1 research backlog
 
-These MP3000/1511 correlations are intentionally **kept out of 1.5.1-beta.4 semantic Home Assistant entities** until independently validated by a controlled setting change or distinct hardware observation.
+These MP3000/1511 correlations are intentionally **kept out of 1.5.1 semantic Home Assistant entities** until independently validated by a controlled setting change or distinct hardware observation.
 
 ## Very strong — exact live/profile match
 

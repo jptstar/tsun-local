@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
-<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.0</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -33,7 +33,7 @@ TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 | Protokół | Rodzina / zweryfikowany model referencyjny | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Zweryfikowany** |
-| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Zweryfikowany** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Zweryfikowany** |
 | **1097** | GEN3 | 🧪 **Eksperymentalny** |
 
 > [!TIP]
@@ -84,10 +84,10 @@ TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 |---|---|
 | ☀️ **PV** | Do 6 wejść · Napięcie · Prąd · Moc · Energia dzienna i całkowita |
 | ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia dzienna i całkowita |
-| 🚨 **Diagnostyka** | Alarmy falownika |
-| 🛡️ **Zaawansowane** | Progi ochrony sieci i czasy · Temperatura falownika · Temperatura otoczenia falownika · Poziom mocy (kandydat) |
+| 🚨 **Diagnostyka** | Alarm falownika · liczba i nazwy aktywnych alarmów · firmware DSP/QCPU |
+| 🛡️ **Zaawansowane** | Progi i czasy ochrony sieci · 10 dodatkowych diagnostyk A1/21 do walidacji terenowej · surowy kandydat kraj/profil · temperatury |
 
-### 02B0 · GEN3 PLUS — ✅ Zweryfikowany
+### 02B0 · GEN3 / GEN3 PLUS — ✅ Zweryfikowany
 
 **✅ Zweryfikowany**  
 `TSOL-MX500`
@@ -104,10 +104,10 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 |---|---|
 | ☀️ **PV** | Dynamiczne wykrywanie wejść PV · Napięcie · Prąd · Moc · Energia |
 | ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia |
-| 🚨 **Diagnostyka** | Alarmy falownika |
+| 🚨 **Diagnostyka** | Alarm falownika · liczba i nazwy aktywnych alarmów · firmware DSP/QCPU |
 | 🛡️ **Zaawansowane** | Diagnostyka ochrony sieci · Poziom mocy (%) |
 
-### 1097 · GEN3 — 🧪 Eksperymentalny
+### 1097 · GEN3 / GEN3 PLUS — 🧪 Eksperymentalny
 
 **🔎 Prawdopodobnie kompatybilny**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
@@ -139,9 +139,25 @@ Walidacja na rzeczywistych urządzeniach MP3000 / 1511 i MX500 / 02B0 doprecyzow
 
 ---
 
+## 🆕 TSUN Local 1.5.1
+
+Wersja **1.5.1** łączy pełny interfejs alarmów MP3000 z 1.5.0 oraz poprawki od beta1 do beta4 w jednym stabilnym wydaniu:
+
+- zachowane są wszystkie **224 pozycje alarmów MP3000**; 12 powiązań funkcjonalnych opiera się na bezpośrednich obserwacjach sprzętowych;
+- osobny czujnik **nazw aktywnych alarmów**, zlokalizowany w Home Assistant;
+- poprawiony odczyt RSSI Wi-Fi loggera z przejściem do `/status.html`;
+- 10 dodatkowych diagnostyk A1/21 tylko do odczytu oraz surowy kandydat kraj/profil;
+- `0x07EF`: `4000 → 40,00 %/Hz` ze współczynnikiem kandydata `×0,01`;
+- lokalne wersje firmware **DSP V1.1.72**, **QCPU1 V1.1.54** i **QCPU2 V1.1.54**; FCPU nie jest publikowany bez zidentyfikowanego lokalnego rejestru 1511;
+- wcześniejszy niepotwierdzony kandydat poziomu mocy MP3000 pozostaje usunięty;
+- techniczne identyfikatory encji pozostają angielskie, a nazwy wyświetlane są przetłumaczone na wszystkie osiem języków.
+
+Dla mapowań A1/21 bez niezależnego potwierdzenia nadal obowiązuje status: **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**.
+---
+
 ## 🚨 Katalog alarmów MP3000
 
-Wszystkie **224 pozycje** w 14 słowach alarmowych są uwzględniane, liczone i wyświetlane po aktywacji. **12 powiązań funkcjonalnych** zostało zweryfikowanych; pozostałe **212 pozycji** otrzymuje unikalny neutralny kod TSUN Local i wymaga fizycznej weryfikacji na odpowiednim sprzęcie kontrolnym. Żadna aktywna pozycja nie jest pomijana. Teksty w ośmiu językach są niezależnymi sformułowaniami TSUN Local, a nie tłumaczeniami serwera przedstawianymi jako oficjalne.
+Wszystkie **224 pozycje** w 14 słowach alarmowych są uwzględniane, liczone i wyświetlane po aktywacji. **12 powiązań funkcjonalnych** zaobserwowano bezpośrednio na rzeczywistym sprzęcie; pozostałe **212 pozycji** otrzymuje unikalny neutralny kod TSUN Local i wymaga fizycznej weryfikacji na odpowiednim sprzęcie kontrolnym. Żadna aktywna pozycja nie jest pomijana. Teksty w ośmiu językach są niezależnymi sformułowaniami TSUN Local, a nie tłumaczeniami serwera przedstawianymi jako oficjalne.
 
 ---
 

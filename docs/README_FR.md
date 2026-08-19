@@ -16,10 +16,10 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.1-beta.4</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.1</strong></p>
 
 <p align="center">
-  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local?include_prereleases"></a>
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
@@ -84,8 +84,8 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 |---|---|
 | ☀️ **PV** | Jusqu’à 6 entrées · Tension · Courant · Puissance · Énergie du jour et totale |
 | ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie du jour et totale |
-| 🚨 **Diagnostics** | Alarme onduleur · compteur et liste des alarmes actives |
-| 🛡️ **Avancé** | Seuils et temporisations de protection réseau · 10 diagnostics A1/21 supplémentaires en validation terrain · code pays/profil brut candidat · températures · niveau de puissance candidat |
+| 🚨 **Diagnostics** | Alarme onduleur · compteur et noms des alarmes actives · firmwares DSP/QCPU |
+| 🛡️ **Avancé** | Seuils et temporisations de protection réseau · 10 diagnostics A1/21 supplémentaires en validation terrain · code pays/profil brut candidat · températures |
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validé
 
@@ -122,7 +122,7 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 
 ## 🚨 Catalogue d’alarmes MP3000
 
-Les **224 positions** des 14 mots d’alarme sont toutes intégrées, comptées et affichées lorsqu’elles sont actives. Les **12 correspondances fonctionnelles validées** couvrent la tension d’entrée PV trop faible et les défauts DSP pour PV1 à PV6. Les **212 autres positions** restent entièrement opérationnelles avec un code TSUN Local neutre et unique ; leur signification nécessite une validation physique sur un matériel de contrôle adapté.
+Les **224 positions** des 14 mots d’alarme sont toutes intégrées, comptées et affichées lorsqu’elles sont actives. Les **12 correspondances fonctionnelles observées sur matériel** couvrent la tension d’entrée PV trop faible et les défauts DSP pour PV1 à PV6. Les **212 autres positions** restent entièrement opérationnelles avec un code TSUN Local neutre et unique ; leur signification nécessite une validation physique sur un matériel de contrôle adapté.
 
 Home Assistant conserve une page lisible : un état **Alarme de l’onduleur**, un compteur et une liste **Alarmes actives**, puis les 14 mots bruts complets comme diagnostics désactivés par défaut. Aucune des 224 positions n’est ignorée et 224 entités permanentes ne sont pas créées.
 
@@ -130,31 +130,26 @@ La bêta 1.5.1 ne modifie pas cette architecture d’alarmes : les 224 positions
 
 ---
 
-## 🧪 TSUN Local 1.5.1 beta 1
+## 🆕 TSUN Local 1.5.1
 
-La 1.5.1-beta.4 conserve la présentation et le fonctionnement de la 1.5.0, tout en ajoutant les dernières découvertes MP3000 en **lecture seule**.
+La version **1.5.1** regroupe les évolutions de la 1.5.0 et des quatre bêtas 1.5.1 dans une version stable :
 
-| | Nouveautés |
-|---|---|
-| 📶 | **Signal Wi-Fi du logger corrigé** : une page `index` valide mais sans RSSI n’empêche plus la lecture de `cover_sta_rssi` sur `/status.html` ; le dump réel après correction a remonté **30 %** |
-| 🛡️ | **10 diagnostics A1/21 supplémentaires** exposés comme entités avancées, désactivées par défaut |
-| 🌍 | **Code pays/profil brut candidat** : `2000 / 0x07D0 = 8` sur le MP3000 configuré France |
-| ⏱️ | `0x07D1 = 80` et `0x07D2 = 80` documentés comme paire candidate pour les deux temporisations de 40,0 s, sans inventer leur ordre individuel |
-| 🚨 | Les **224 positions d’alarme** de la 1.5.0 sont conservées sans doublon d’entité |
-| 🔒 | Aucune écriture vers l’onduleur |
+- catalogue MP3000 complet de **224 positions d’alarme**, avec **12 correspondances fonctionnelles observées sur matériel** et 212 positions conservées avec un libellé neutre ;
+- capteur dédié **Noms des alarmes actives**, localisé et directement exploitable dans Home Assistant ;
+- correction du signal Wi-Fi du logger : la recherche continue jusqu’à `/status.html` lorsqu’une première page valide ne contient pas le RSSI ;
+- **10 diagnostics A1/21** MP3000 supplémentaires et le code pays/profil brut candidat, tous en lecture seule ;
+- correction de `0x07EF` : `4000 → 40,00 %/Hz` avec le facteur candidat `×0,01` ;
+- versions firmware locales **DSP V1.1.72**, **QCPU1 V1.1.54** et **QCPU2 V1.1.54** ; FCPU reste volontairement absent tant que son registre 1511 local n’est pas identifié ;
+- suppression du précédent candidat non validé de niveau de puissance MP3000 ;
+- IDs techniques conservés en anglais et noms d’entités traduits dans les huit langues de TSUN Local.
 
-Pour les nouvelles correspondances sémantiques A1/21, le statut reste volontairement :
+Pour les correspondances sémantiques A1/21 encore en validation, le statut reste :
 
 **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**
 
-### Pays France : 8, pas 1008
-
-L’export `device_parameters.csv` de TSUN/Talent contient bien `France` avec un `raw_value` exporté de `1008`. Mais **1008 n’est pas utilisé comme code pays local**. Le dernier dump a d’ailleurs trouvé `1008` sur `0x0BCE` au moment où le compteur d’énergie AC journalière valait simplement **10,08 kWh**.
-
-Les recherches publiques de **Stefan Allius / `s-allius/tsun-gen3-proxy`** documentent la table pays du protocole 1097, où **France = 8**, ainsi que le champ pays/profil 1097 à `0x1400`. Cette découverte est explicitement attribuée à Stefan. La valeur MP3000 `0x07D0 = 8` devient ainsi le meilleur candidat 1511 pour le pays, mais l’adresse sémantique 1511 reste sous validation indépendante.
+Les candidats `0x07F1`, `0x07F2`, `0x07F7–0x07F9`, `0x080B–0x080E`, `0x07ED`, `0x0809` et `0x0BD2` restent documentés comme recherche et ne sont pas publiés comme entités sémantiques tant qu’une validation indépendante n’est pas disponible.
 
 📚 Voir **[MP3000 / TITAN 1511 — diagnostics de validation terrain](MP3000_FIELD_VALIDATION.md)**.
-
 ---
 
 ## 🛡️ Diagnostics avancés

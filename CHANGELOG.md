@@ -2,6 +2,40 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] - 2026-08-19
+
+### Added
+
+- Publish the complete MP3000/1511 alarm interface from 1.5.0: all 224 source positions remain covered without creating 224 permanent Home Assistant entities.
+- Keep 12 alarm mappings based on direct physical observations for PV input undervoltage and PV DSP faults across PV1–PV6; all other positions remain neutral until independently confirmed.
+- Add a dedicated localized `active_alarm_names` sensor while keeping stable A001–A224 identifiers internal/diagnostic.
+- Add ten read-only MP3000/TITAN A1/21 field-validation diagnostics plus the raw 1511 country/profile candidate.
+- Add local MP3000 firmware sensors for DSP (`V1.1.72`), QCPU1 (`V1.1.54`) and QCPU2 (`V1.1.54`). FCPU remains intentionally unexposed until a local register is identified.
+
+### Fixed
+
+- Fix logger Wi-Fi RSSI fallback so a valid page without RSSI no longer prevents reading `/status.html`.
+- Correct MP3000 `0x07EF` raw `4000` to candidate `40.00 %/Hz` (`×0.01`).
+- Remove the discarded MP3000 `output_coefficient_candidate` / Power level candidate entity and clean its beta registry entry.
+- Keep unknown user-facing alarm text free of internal Axxx codes while retaining those identifiers for diagnostics.
+
+### Changed
+
+- Keep technical entity IDs stable in English and provide display-name coverage in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Refresh the main README, all seven localized READMEs, technical entity reference, public website and visual entity page for the stable 1.5.1 feature set.
+- Keep reactive-mode, GFCI, calibration, anti-reflux/zero-export, reduction-signal and insulation correlations in the research backlog only; they are not promoted to semantic Home Assistant entities without independent validation.
+- MP3000 maximum presentation with six detected PV inputs is 108 entities: 59 enabled by default and 49 advanced/disabled by default.
+
+### HACS / branding
+
+- Keep HACS metadata aligned with Home Assistant 2026.3.0 or later.
+- Verify local `brand/icon.png`, `brand/icon@2x.png`, `brand/logo.png`, `brand/logo@2x.png` assets and keep the website favicon synchronized with the integration icon.
+
+### Safety
+
+- All inverter diagnostics, alarm data and firmware reads remain local and read-only.
+- No inverter configuration, protection-setting, country/profile or control write is added.
+
 ## [1.5.1-beta.4] - 2026-08-19
 
 ### Added

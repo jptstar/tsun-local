@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Tu inversor. Tu red. Tus datos.</h3>
 <p align="center"><strong>Local. Solo lectura. Sin nube. Sin proxy.</strong></p>
-<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.0</strong></p>
+<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -33,7 +33,7 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 | Protocolo | Familia / referencia validada | Estado |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validado** |
-| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Validado** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validado** |
 | **1097** | GEN3 | 🧪 **Experimental** |
 
 > [!TIP]
@@ -84,10 +84,10 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 |---|---|
 | ☀️ **PV** | Hasta 6 entradas · Tensión · Corriente · Potencia · Energía diaria y total |
 | ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía diaria y total |
-| 🚨 **Diagnóstico** | Alarmas del inversor |
-| 🛡️ **Avanzado** | Umbrales de protección de red y temporizaciones · Temperatura del inversor · Temperatura ambiente del inversor · Nivel de potencia (candidato) |
+| 🚨 **Diagnóstico** | Alarma del inversor · contador y nombres de alarmas activas · firmware DSP/QCPU |
+| 🛡️ **Avanzado** | Umbrales y tiempos de protección de red · 10 diagnósticos A1/21 adicionales de validación en campo · candidato bruto país/perfil · temperaturas |
 
-### 02B0 · GEN3 PLUS — ✅ Validado
+### 02B0 · GEN3 / GEN3 PLUS — ✅ Validado
 
 **✅ Validado**  
 `TSOL-MX500`
@@ -104,10 +104,10 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 |---|---|
 | ☀️ **PV** | Detección dinámica de entradas PV · Tensión · Corriente · Potencia · Energía |
 | ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía |
-| 🚨 **Diagnóstico** | Alarmas del inversor |
+| 🚨 **Diagnóstico** | Alarma del inversor · contador y nombres de alarmas activas · firmware DSP/QCPU |
 | 🛡️ **Avanzado** | Diagnósticos de protección de red · Nivel de potencia (%) |
 
-### 1097 · GEN3 — 🧪 Experimental
+### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 
 **🔎 Probablemente compatible**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
@@ -139,9 +139,25 @@ La validación con hardware real MP3000 / 1511 y MX500 / 02B0 permitió afinar v
 
 ---
 
+## 🆕 TSUN Local 1.5.1
+
+La versión **1.5.1** reúne la interfaz completa de alarmas MP3000 de 1.5.0 y las correcciones de beta1 a beta4 en una versión estable:
+
+- se conservan las **224 posiciones de alarma MP3000**; 12 correspondencias funcionales proceden de observaciones directas en hardware;
+- sensor dedicado de **nombres de alarmas activas**, localizado para Home Assistant;
+- corrección del RSSI Wi-Fi del logger con búsqueda hasta `/status.html`;
+- 10 diagnósticos A1/21 adicionales de solo lectura y candidato bruto país/perfil;
+- `0x07EF`: `4000 → 40,00 %/Hz` con factor candidato `×0,01`;
+- firmware local **DSP V1.1.72**, **QCPU1 V1.1.54** y **QCPU2 V1.1.54**; FCPU no se publica sin un registro 1511 local identificado;
+- el antiguo candidato no validado de nivel de potencia MP3000 permanece eliminado;
+- IDs técnicos en inglés y nombres visibles traducidos en los ocho idiomas.
+
+Las asignaciones A1/21 aún no confirmadas de forma independiente mantienen el estado: **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**.
+---
+
 ## 🚨 Catálogo de alarmas MP3000
 
-Las **224 posiciones** de las 14 palabras de alarma se incluyen, se cuentan y se muestran cuando están activas. Hay **12 correspondencias funcionales validadas**; las otras **212 posiciones** reciben un código TSUN Local neutro y único y requieren verificación física con hardware de control adecuado. No se descarta ninguna posición activa. Los textos en ocho idiomas son formulaciones independientes de TSUN Local, no traducciones de servidor presentadas como oficiales.
+Las **224 posiciones** de las 14 palabras de alarma se incluyen, se cuentan y se muestran cuando están activas. Hay **12 correspondencias funcionales observadas en hardware real**; las otras **212 posiciones** reciben un código TSUN Local neutro y único y requieren verificación física con hardware de control adecuado. No se descarta ninguna posición activa. Los textos en ocho idiomas son formulaciones independientes de TSUN Local, no traducciones de servidor presentadas como oficiales.
 
 ---
 

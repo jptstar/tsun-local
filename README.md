@@ -9,7 +9,7 @@
   <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1-beta.4** -->
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1** -->
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
@@ -18,10 +18,10 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1-beta.4</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1</strong></p>
 
 <p align="center">
-  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local?include_prereleases"></a>
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
   <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
@@ -137,9 +137,9 @@ TSUN Local models every bit exposed by the MP3000 alarm words. **All 224 positio
 |---|---:|---|
 | `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
 | `A065`–`A128` | 64 controller positions | Control-hardware validation required |
-| `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
+| `A129`–`A224` | 96 PV positions | 12 hardware-observed · 84 require control-hardware validation |
 
-The **12 validated functional mappings** cover low PV input voltage and PV DSP faults for PV1 through PV6. The remaining **212 positions are fully operational catalogue entries**: each receives a stable neutral TSUN Local code and appears in Home Assistant if it becomes active. Its functional description is added only after physical validation on suitable control hardware.
+The **12 hardware-observed functional mappings** cover low PV input voltage and PV DSP faults for PV1 through PV6. The remaining **212 positions are fully operational catalogue entries**: each receives a stable neutral TSUN Local code and appears in Home Assistant if it becomes active. Its functional description is added only after physical validation on suitable control hardware.
 
 Home Assistant shows one clear **Inverter alarm** state, an **Active alarms** count, and a dedicated **Active alarm names** sensor containing the localized alarm text. The 14 complete raw words remain available as disabled-by-default diagnostics, without creating 224 permanent entities.
 
@@ -147,11 +147,11 @@ Alarm wording is translated into all eight TSUN Local languages. These are indep
 
 ---
 
-## 🧪 1.5.1 beta: MP3000 field validation
+## 1.5.1: MP3000 field validation and diagnostics
 
-The 1.5.1 beta keeps the 1.5.0 alarm interface unchanged and adds read-only evidence gathered from complete native MP3000/TITAN dumps.
+TSUN Local 1.5.1 combines the complete 1.5.0 MP3000 alarm interface with the read-only diagnostics, localization fixes and firmware decoding validated throughout the 1.5.1 beta cycle.
 
-| | 1.5.1-beta.4 |
+| | 1.5.1 |
 |---|---|
 | 📶 | **Logger Wi-Fi signal fallback fixed** — valid index pages no longer prevent reading RSSI from `/status.html` |
 | 🛡️ | **10 additional A1/21 diagnostics** exposed as disabled-by-default field-validation entities |

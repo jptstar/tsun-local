@@ -1,1 +1,0 @@
-Finalize TSUN Local 1.5.1 stable candidate.
