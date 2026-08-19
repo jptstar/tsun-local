@@ -151,7 +151,7 @@
     <div class="wrap">
       <nav>
         <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#beta">1.5.1 beta</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
+        <div class="navlinks"><a href="#features">Features</a><a href="#release">1.5.1</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
       </nav>
       <div class="hero" id="top">
         <div>
@@ -193,7 +193,7 @@
       </div>
     </section>
 
-    <section id="beta">
+    <section id="release">
       <h2>1.5.1: MP3000 field-validation update</h2>
       <p class="intro">Version 1.5.1 consolidates the complete MP3000 alarm interface, field-validation diagnostics, localized alarm-name entity, logger RSSI fix and local DSP/QCPU firmware diagnostics.</p>
       <div class="grid">
@@ -215,7 +215,7 @@
       <div class="progress" aria-label="12 hardware-observed positions and 212 pending positions"><span class="verified"></span><span class="waiting"></span></div>
       <div class="alarm-demo">
         <article class="alarm">
-          <div class="row"><strong>Validated example</strong><span class="pill">VALIDATED</span></div>
+          <div class="row"><strong>Hardware-observed example</strong><span class="pill">OBSERVED</span></div>
           <h3>PV1 input voltage too low</h3>
           <p>A clear functional name, localized for Home Assistant.</p>
         </article>
@@ -230,10 +230,10 @@
         <tbody>
           <tr><td><code>A001–A064</code></td><td>64 inverter positions</td><td>Control-hardware validation required</td></tr>
           <tr><td><code>A065–A128</code></td><td>64 controller positions</td><td>Control-hardware validation required</td></tr>
-          <tr><td><code>A129–A224</code></td><td>96 PV positions</td><td>12 validated · 84 require control-hardware validation</td></tr>
+          <tr><td><code>A129–A224</code></td><td>96 PV positions</td><td>12 hardware-observed · 84 require control-hardware validation</td></tr>
         </tbody>
       </table>
-      <div class="notice"><span>⚠️</span><div><strong>No alarm regression in the beta feature set</strong>The 224-position catalogue, stable internal positions, six PV alarm words and compact Home Assistant presentation remain unchanged from 1.5.0. The new beta diagnostics do not create duplicate alarm entities.</div></div>
+      <div class="notice"><span>⚠️</span><div><strong>No alarm regression in 1.5.1</strong>The 224-position catalogue, stable internal positions, six PV alarm words and compact Home Assistant presentation remain unchanged from 1.5.0. The 1.5.1 diagnostics do not create duplicate alarm entities.</div></div>
     </section>
 
     <section id="compatibility">
@@ -295,7 +295,7 @@
       <div class="grid">
         <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
         <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
-        <div class="card"><strong>What is new in 1.5.1?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the new MP3000 semantic diagnostics are intentionally labelled as field-validation candidates.</span></div>
+        <div class="card"><strong>What is new in 1.5.1?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the additional MP3000 semantic diagnostics remain explicitly labelled as field-validation candidates until independently confirmed.</span></div>
       </div>
     </section>
 

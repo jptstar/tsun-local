@@ -33,8 +33,8 @@ TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 | Protokół | Rodzina / zweryfikowany model referencyjny | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Zweryfikowany** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Zweryfikowany** |
-| **1097** | GEN3 | 🧪 **Eksperymentalny** |
+| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Zweryfikowany** |
+| **1097** | GEN3 / GEN3 PLUS | 🧪 **Eksperymentalny** |
 
 > [!TIP]
 > **Brak na liście nie oznacza braku obsługi.** Jeśli falownik korzysta z **1511, 02B0 lub 1097**, może już działać.
@@ -104,7 +104,7 @@ Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występuj
 |---|---|
 | ☀️ **PV** | Dynamiczne wykrywanie wejść PV · Napięcie · Prąd · Moc · Energia |
 | ⚡ **AC** | Napięcie · Prąd · Częstotliwość · Moc · Energia |
-| 🚨 **Diagnostyka** | Alarm falownika · liczba i nazwy aktywnych alarmów · firmware DSP/QCPU |
+| 🚨 **Diagnostyka** | Alarmy falownika |
 | 🛡️ **Zaawansowane** | Diagnostyka ochrony sieci · Poziom mocy (%) |
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Eksperymentalny

@@ -33,7 +33,7 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 | Protocole | Famille / référence validée | Statut |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validé** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validé** |
+| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validé** |
 | **1097** | GEN3 / GEN3 PLUS | 🧪 **Expérimental** |
 
 > [!TIP]

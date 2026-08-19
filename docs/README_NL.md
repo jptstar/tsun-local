@@ -33,8 +33,8 @@ TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
 | Protocol | Familie / gevalideerde referentie | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Gevalideerd** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Gevalideerd** |
-| **1097** | GEN3 | 🧪 **Experimenteel** |
+| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Gevalideerd** |
+| **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimenteel** |
 
 > [!TIP]
 > **Niet vermeld betekent niet automatisch niet ondersteund.** Als je omvormer **1511, 02B0 of 1097** gebruikt, kan hij al werken.
@@ -104,7 +104,7 @@ Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 |---|---|
 | ☀️ **PV** | Dynamische detectie van PV-ingangen · Spanning · Stroom · Vermogen · Energie |
 | ⚡ **AC** | Spanning · Stroom · Frequentie · Vermogen · Energie |
-| 🚨 **Diagnostiek** | Omvormeralarm · aantal en namen van actieve alarmen · DSP/QCPU-firmwareversies |
+| 🚨 **Diagnostiek** | Omvormeralarmen |
 | 🛡️ **Geavanceerd** | Netbeveiligingsdiagnostiek · Vermogensniveau (%) |
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimenteel

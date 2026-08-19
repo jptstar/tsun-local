@@ -33,8 +33,8 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 | Protocolo | Familia / referencia validada | Estado |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validado** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validado** |
-| **1097** | GEN3 | 🧪 **Experimental** |
+| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validado** |
+| **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimental** |
 
 > [!TIP]
 > **No aparecer en la lista no significa que no sea compatible.** Si tu inversor usa **1511, 02B0 o 1097**, puede funcionar ya.
@@ -104,7 +104,7 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 |---|---|
 | ☀️ **PV** | Detección dinámica de entradas PV · Tensión · Corriente · Potencia · Energía |
 | ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía |
-| 🚨 **Diagnóstico** | Alarma del inversor · contador y nombres de alarmas activas · firmware DSP/QCPU |
+| 🚨 **Diagnóstico** | Alarmas del inversor |
 | 🛡️ **Avanzado** | Diagnósticos de protección de red · Nivel de potencia (%) |
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental

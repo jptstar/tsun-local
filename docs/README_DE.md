@@ -33,8 +33,8 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 | Protokoll | Familie / validierte Referenz | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validiert** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
-| **1097** | GEN3 | 🧪 **Experimentell** |
+| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
+| **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimentell** |
 
 > [!TIP]
 > **Nicht aufgeführt bedeutet nicht automatisch nicht unterstützt.** Wenn dein Wechselrichter **1511, 02B0 oder 1097** verwendet, könnte er bereits funktionieren.
@@ -85,7 +85,7 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 | ☀️ **PV** | Bis zu 6 Eingänge · Spannung · Strom · Leistung · Tages- & Gesamtenergie |
 | ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tages- & Gesamtenergie |
 | 🚨 **Diagnose** | Wechselrichteralarm · Anzahl und Namen aktiver Alarme · DSP/QCPU-Firmwareversionen |
-| 🛡️ **Erweitert** | Netzschutz-Schwellenwerte und Zeitdiagnosen · Wechselrichtertemperatur · Umgebungstemperatur des Wechselrichters · Leistungsniveau (Kandidat) |
+| 🛡️ **Erweitert** | Netzschutz-Schwellenwerte und Zeitdiagnosen · 10 zusätzliche A1/21-Feldvalidierungsdiagnosen · Rohwert für Land/Profil als Kandidat · Wechselrichter- und Umgebungstemperatur |
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validiert
 
@@ -104,7 +104,7 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 |---|---|
 | ☀️ **PV** | Dynamische PV-Eingangserkennung · Spannung · Strom · Leistung · Energie |
 | ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Energie |
-| 🚨 **Diagnose** | Wechselrichteralarm · Anzahl und Namen aktiver Alarme · DSP/QCPU-Firmwareversionen |
+| 🚨 **Diagnose** | Wechselrichteralarme |
 | 🛡️ **Erweitert** | Netzschutzdiagnosen · Leistungsniveau (%) |
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimentell
