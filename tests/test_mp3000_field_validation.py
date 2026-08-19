@@ -9,6 +9,8 @@ import unittest
 
 from custom_components.tsun_local.protocols.protocol_1511 import (
     ADVANCED_GRID_REGISTERS,
+    COUNTRY_PROFILE_REGISTER,
+    TITAN_DIAGNOSTIC_KEYS,
     decode_advanced_diagnostics,
     decode_measurements,
 )
@@ -63,6 +65,13 @@ class Mp3000FieldValidationTests(unittest.TestCase):
         self.assertEqual(decoded["grid_start_upper_frequency_limit"], 50.09)
         self.assertEqual(decoded["grid_start_lower_frequency_limit"], 49.51)
         self.assertEqual(decoded["grid_qp_voltage_threshold"], 105.0)
+
+    def test_country_profile_candidate_uses_local_enum_value(self) -> None:
+        """Keep the live 1511 France=8 candidate separate from export raw 1008."""
+        self.assertEqual(COUNTRY_PROFILE_REGISTER, 0x07D0)
+        self.assertIn("country_profile_raw", TITAN_DIAGNOSTIC_KEYS)
+        decoded = decode_advanced_diagnostics({0x07D0: 8})
+        self.assertEqual(decoded["country_profile_raw"], 8)
 
     def test_live_dump_confirms_six_pv_daily_registers(self) -> None:
         """Protect the six PV daily counters confirmed by the 2026-08-19 dump."""

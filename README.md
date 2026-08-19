@@ -9,7 +9,7 @@
   <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
 </p>
 
-<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.0** -->
+<!-- [Français](docs/README_FR.md) [Deutsch](docs/README_DE.md) **1.5.1-beta.1** -->
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/jptstar/tsun-local/main/custom_components/tsun_local/brand/icon%402x.png" width="160" alt="TSUN Local Home Assistant integration for TSUN micro-inverters">
@@ -18,10 +18,10 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.0</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1-beta.1</strong></p>
 
 <p align="center">
-  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
+  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local?include_prereleases"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
   <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
@@ -60,7 +60,7 @@ TSUN Local supports **three local TSUN protocol families**.
 | ☀️ **PV** | Voltage · Current · Power · Daily energy · Total energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Daily energy · Total energy |
 | 🚨 **Diagnostics** | Active alarm names · Communication · Logger information |
-| 🛡️ **Advanced** | Grid protection · Inverter diagnostics · Disabled by default |
+| 🛡️ **Advanced** | Grid protection · MP3000 field-validation diagnostics · Inverter diagnostics · Disabled by default |
 | 🔒 **Safety** | Read-only · No inverter configuration writes |
 
 📚 **[Full entity reference by protocol](docs/ENTITIES.md)** — complete list of sensors, binary sensors and buttons exposed by **1511, 02B0 and 1097**.
@@ -89,7 +89,7 @@ TSUN Local supports **three local TSUN protocol families**.
 | ☀️ **PV** | Up to 6 inputs · Voltage · Current · Power · Daily & total energy |
 | ⚡ **AC** | Voltage · Current · Frequency · Power · Daily & total energy |
 | 🚨 **Diagnostics** | Inverter alarm · Active-alarm count and names |
-| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · Inverter temperature · Inverter ambient temperature · Power level (candidate) |
+| 🛡️ **Advanced** | Grid-protection thresholds and timing diagnostics · 10 additional A1/21 field-validation diagnostics · Country/profile raw candidate · Inverter temperature · Inverter ambient temperature · Power level (candidate) |
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validated
 
@@ -131,7 +131,7 @@ Corresponding `-D` variants may also be compatible where applicable.
 
 ## 🚨 MP3000 alarm catalogue
 
-TSUN Local now models every bit exposed by the MP3000 alarm words. **All 224 positions are included, counted and displayed when active.** No active position is discarded.
+TSUN Local models every bit exposed by the MP3000 alarm words. **All 224 positions are included, counted and displayed when active.** No active position is discarded.
 
 | Local catalogue | Positions | Status |
 |---|---:|---|
@@ -144,6 +144,33 @@ The **12 validated functional mappings** cover low PV input voltage and PV DSP f
 Home Assistant shows one clear **Inverter alarm** state plus an **Active alarms** count and list. The 14 complete raw words remain available as disabled-by-default diagnostics, without creating 224 permanent entities.
 
 Alarm wording is translated into all eight TSUN Local languages. These are independent TSUN Local translations based on the confirmed meanings; they are not presented as vendor-certified server wording.
+
+---
+
+## 🧪 1.5.1 beta: MP3000 field validation
+
+The 1.5.1 beta keeps the 1.5.0 alarm interface unchanged and adds read-only evidence gathered from complete native MP3000/TITAN dumps.
+
+| | 1.5.1-beta.1 |
+|---|---|
+| 📶 | **Logger Wi-Fi signal fallback fixed** — valid index pages no longer prevent reading RSSI from `/status.html` |
+| 🛡️ | **10 additional A1/21 diagnostics** exposed as disabled-by-default field-validation entities |
+| 🌍 | **Country/profile raw candidate** exposed from `2000 / 0x07D0`; the France-configured MP3000 reads `8` |
+| ⏱️ | `0x07D1 = 80` and `0x07D2 = 80` documented as the leading pair for the two 40.0 s connection/reconnection settings, but not exposed with guessed individual names |
+| 🚨 | **224 alarm positions preserved** with the same compact Home Assistant interface |
+| 🔒 | Fully local and read-only |
+
+For the additional semantic A1/21 mappings the evidence status is deliberately explicit:
+
+**LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**
+
+### Country/profile evidence
+
+The TSUN/Talent device export reports `France` with an exported `raw_value` of `1008`. That exported value is **not** used as the local country enum: a live dump also observed `1008` at `0x0BCE`, where it is simply the AC daily-energy counter (`10.08 kWh`).
+
+Public 1097 protocol research by **Stefan Allius / `s-allius/tsun-gen3-proxy`** documents the country enumeration with **France = 8** and the 1097 country/profile field at `0x1400`. With that semantic reference, the MP3000 A1/21 value `0x07D0 = 8` is now the leading 1511 country/profile candidate. TSUN Local exposes only the raw candidate and keeps the 1511 semantic mapping under independent validation.
+
+📚 See **[MP3000 / TITAN 1511 field-validation diagnostics](docs/MP3000_FIELD_VALIDATION.md)** for the evidence and register table.
 
 ---
 
@@ -215,29 +242,11 @@ let it run and check what entities are discovered.
 
 ---
 
-## TSUN Local 1.5.0
-
-### Clear, complete MP3000 alarms
-
-Version 1.5.0 adds a clean Home Assistant alarm interface while preserving every locally reported MP3000 alarm position.
-
-| | |
-|---|---|
-| 🚨 | **224 alarm positions included** |
-| ✅ | 12 hardware-validated functional mappings |
-| 🔎 | 212 neutral entries awaiting physical validation |
-| 📊 | Active-alarm count, names and stable local codes |
-| 🛡️ | 14 complete raw words available but disabled by default |
-| 🌍 | Alarm presentation in 8 languages |
-| 🔒 | Fully local and read-only |
-
----
-
 ## Validation policy
 
 Functional names and model support are labelled as validated only after repeatable checks on real hardware.
 
-Compatibility candidates are intentionally labelled separately from validated hardware.
+Compatibility candidates are intentionally labelled separately from validated hardware. A live value matching a profile is useful evidence, but it is not promoted to a semantically validated register mapping until an independent observation distinguishes it.
 
 ---
 
@@ -245,7 +254,7 @@ Compatibility candidates are intentionally labelled separately from validated ha
 
 TSUN Local also benefits from community contributions:
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — public 1097 protocol research that informed the experimental mapping used by TSUN Local.
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — public 1097 protocol research that informed the experimental mapping used by TSUN Local, including the country/profile register research and country enumeration where France is code `8`.
 - **TheSmartGerman** — real-device testing and compatibility feedback for the **1511 TSOL-MP3000**, during which protocol **1097** was detected unintentionally.
 
 ---
@@ -257,11 +266,3 @@ TSUN Local also benefits from community contributions:
 
 Created and maintained by **Jean-Philippe TESTART · `jptstar`**  
 *Built and shared for fun, technical curiosity and the Home Assistant community.*
-
----
-
-## License
-
-Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
-
-Distributed under the **GNU General Public License v3.0 or later**. See [LICENSE](LICENSE).

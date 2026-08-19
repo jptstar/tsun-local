@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN MP3000 Entities for Home Assistant | TSUN Local</title>
-  <meta name="description" content="Explore 94 TSOL-MP3000 Home Assistant entities, including PV production, energy, diagnostics and 224 local alarm positions, with TSUN Local.">
+  <meta name="description" content="Explore 105 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1-beta.1, including production, 224 alarm positions and read-only field-validation diagnostics.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/entities.html">
@@ -147,18 +147,18 @@
       </nav>
       <div class="hero">
         <div>
-          <p class="eyebrow">TSUN Local · Home Assistant entity reference</p>
+          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1-beta.1</p>
           <h1>TSUN MP3000 and microinverter entities for Home Assistant.</h1>
-          <p class="lead">See all entities that TSUN Local can create for protocols 1511, 02B0 and 1097, including MP3000 production, alarms and read-only diagnostics.</p>
+          <p class="lead">See all entities that TSUN Local can create for protocols 1511, 02B0 and 1097, including MP3000 production, alarms and read-only field-validation diagnostics.</p>
           <div class="actions">
             <a class="button primary" href="index.html">← Back to TSUN Local</a>
             <a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Technical reference</a>
           </div>
         </div>
         <aside class="hero-card" aria-label="Entity summary">
-          <div class="hero-stat"><strong>94</strong><span>total MP3000 entities with six detected PV inputs</span></div>
+          <div class="hero-stat"><strong>105</strong><span>total MP3000 entities with six detected PV inputs</span></div>
           <div class="hero-stat"><strong>55</strong><span>enabled by default</span></div>
-          <div class="hero-stat"><strong>39</strong><span>advanced diagnostics</span></div>
+          <div class="hero-stat"><strong>50</strong><span>advanced diagnostics</span></div>
         </aside>
       </div>
     </div>
@@ -167,18 +167,18 @@
   <main class="wrap">
     <section id="overview">
       <h2>MP3000 at a glance</h2>
-      <p class="intro">With all six PV inputs detected, the MP3000 exposes 94 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
+      <p class="intro">With all six PV inputs detected, 1.5.1-beta.1 exposes up to 105 MP3000 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
       <div class="metrics">
-        <div class="metric"><strong>94</strong><span>total with 6 PV inputs</span></div>
+        <div class="metric"><strong>105</strong><span>total with 6 PV inputs</span></div>
         <div class="metric good"><strong>55</strong><span>enabled by default</span></div>
-        <div class="metric"><strong>39</strong><span>advanced diagnostics</span></div>
+        <div class="metric"><strong>50</strong><span>advanced diagnostics</span></div>
         <div class="metric warn"><strong>224</strong><span>alarm positions · 12 verified</span></div>
       </div>
       <div class="legend">
         <div class="legend-card"><strong>✅ Enabled</strong><span class="muted">Useful everyday entity.</span></div>
         <div class="legend-card"><strong>🛡️ Advanced</strong><span class="muted">Disabled by default.</span></div>
         <div class="legend-card"><strong>🔄 Dynamic</strong><span class="muted">Created when the input is detected.</span></div>
-        <div class="legend-card"><strong>🧪 Experimental</strong><span class="muted">Needs broader hardware validation.</span></div>
+        <div class="legend-card"><strong>🔬 Field validation</strong><span class="muted">Live read confirmed; semantic validation pending.</span></div>
       </div>
       <div class="table-wrap">
         <table>
@@ -190,111 +190,54 @@
             <tr><td>Communication</td><td>5</td><td>Online state, last success, duration, blocks and failures</td></tr>
             <tr><td>Operating state and control</td><td>3</td><td>Raw status, operating state and refresh button</td></tr>
             <tr><td>Power and capacity diagnostics</td><td>3</td><td>Rated power, designed power and candidate power level</td></tr>
-            <tr><td>Grid protection</td><td>22</td><td>Voltage, frequency, recovery values and delays</td></tr>
-            <tr><td>Alarm interface</td><td>16</td><td>Alarm state, active count and fourteen raw words</td></tr>
-            <tr><td>Unconfirmed raw diagnostic</td><td>1</td><td>Raw register 3018</td></tr>
+            <tr><td>Core grid protection</td><td>22</td><td>Voltage/frequency limits, recovery values and timing</td></tr>
+            <tr><td>Field-validation diagnostics</td><td><strong>11</strong></td><td>10 additional A1/21 fields + country/profile raw candidate</td></tr>
+            <tr><td>Alarm interface</td><td>16</td><td>Alarm state, active count and 14 complete raw words</td></tr>
+            <tr><td>Unconfirmed raw diagnostic</td><td>1</td><td>Register 3018</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>105</strong></td><td>55 enabled · 50 advanced</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="notice info"><span>ℹ️</span><div><strong>224 positions are not 224 entities</strong>The MP3000 alarm catalogue monitors 224 possible signal positions through one alarm state, one active count and fourteen optional raw-word diagnostics.</div></div>
-      <div class="protocol-nav"><a href="#common">Common entities</a><a href="#p1511">1511 · TITAN</a><a href="#p02b0">02B0 · GEN3 PLUS</a><a href="#p1097">1097 · GEN3</a></div>
     </section>
 
     <section id="common">
-      <h2>Common entities</h2>
-      <p class="intro">These entities are shared across the supported protocol families when the corresponding value is returned by the inverter or logger.</p>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Entity key</th><th>Home Assistant name</th><th>Unit / type</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr><td><code>ac_voltage</code></td><td>AC voltage</td><td>V</td><td>✅</td></tr>
-            <tr><td><code>ac_current</code></td><td>AC current</td><td>A</td><td>✅</td></tr>
-            <tr><td><code>ac_frequency</code></td><td>AC frequency</td><td>Hz</td><td>✅</td></tr>
-            <tr><td><code>ac_power</code></td><td>AC power</td><td>W</td><td>✅</td></tr>
-            <tr><td><code>ac_energy_today</code></td><td>AC energy today</td><td>kWh</td><td>✅</td></tr>
-            <tr><td><code>ac_energy_total</code></td><td>Total AC energy</td><td>kWh</td><td>✅</td></tr>
-            <tr><td><code>dc_power_total</code></td><td>Total DC power</td><td>W</td><td>✅</td></tr>
-            <tr><td><code>communication_online</code></td><td>Micro-inverter online</td><td>Binary sensor</td><td>✅</td></tr>
-            <tr><td><code>inverter_alarm</code></td><td>Inverter alarm</td><td>Binary sensor</td><td>✅</td></tr>
-            <tr><td><code>refresh_data</code></td><td>Refresh data</td><td>Button</td><td>✅</td></tr>
-          </tbody>
-        </table>
+      <h2>Common Home Assistant entities</h2>
+      <p class="intro">The core AC, logger and communication interface remains the same across the supported protocol adapters where the data is available.</p>
+      <div class="groups">
+        <div class="group"><strong>⚡ AC and total DC</strong><span class="muted"><code>ac_voltage</code> · <code>ac_current</code> · <code>ac_frequency</code> · <code>ac_power</code> · daily/total AC energy · <code>dc_power_total</code></span></div>
+        <div class="group"><strong>📡 Logger</strong><span class="muted">SN · inverter SN · firmware · MAC · Wi-Fi signal.</span></div>
+        <div class="group"><strong>🩺 Communication</strong><span class="muted">Online state · last success · duration · blocks · failures · manual refresh.</span></div>
       </div>
-      <details>
-        <summary>Show device, logger and communication diagnostics</summary>
-        <div class="inside table-wrap">
-          <table>
-            <thead><tr><th>Entity key</th><th>Name</th><th>Unit / type</th></tr></thead>
-            <tbody>
-              <tr><td><code>inverter_status_raw</code></td><td>Raw inverter status</td><td>raw</td></tr>
-              <tr><td><code>rated_power</code></td><td>Rated inverter power</td><td>W</td></tr>
-              <tr><td><code>max_designed_power</code></td><td>Maximum designed power</td><td>W</td></tr>
-              <tr><td><code>communication_last_success</code></td><td>Last successful communication</td><td>timestamp</td></tr>
-              <tr><td><code>communication_duration</code></td><td>Communication duration</td><td>ms</td></tr>
-              <tr><td><code>communication_blocks</code></td><td>Blocks received</td><td>blocks</td></tr>
-              <tr><td><code>communication_failures</code></td><td>Consecutive communication failures</td><td>count</td></tr>
-              <tr><td><code>label_serial_number</code></td><td>SN</td><td>text</td></tr>
-              <tr><td><code>inverter_serial_number</code></td><td>Micro-inverter SN</td><td>text</td></tr>
-              <tr><td><code>logger_firmware_version</code></td><td>Logger firmware version</td><td>text</td></tr>
-              <tr><td><code>logger_mac_address</code></td><td>Logger MAC address</td><td>text</td></tr>
-              <tr><td><code>logger_wifi_signal</code></td><td>Logger Wi-Fi signal</td><td>%</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </details>
+      <div class="notice info"><span>📶</span><div><strong>Wi-Fi signal fix in 1.5.1-beta.1</strong>The logger reader no longer stops when an earlier valid page lacks RSSI. It continues through the configured pages until <code>cover_sta_rssi</code> is found; a live validation dump read 30% from <code>/status.html</code>.</div></div>
     </section>
 
     <section id="p1511">
       <h2>1511 · TITAN</h2>
       <p class="intro">Validated on the TSOL-MP3000, with up to six PV inputs detected progressively.</p>
-      <div class="status-row"><span class="pill">✅ Validated</span><span class="pill blue">🔄 Up to 6 PV inputs</span><span class="pill blue">94 entities with 6 PV inputs</span></div>
+      <div class="status-row"><span class="pill">✅ Validated core</span><span class="pill blue">🔄 Up to 6 PV inputs</span><span class="pill blue">105 entities with 6 PV inputs</span><span class="pill warn">🔬 New semantic diagnostics in beta</span></div>
       <div class="groups">
         <div class="group"><strong>☀️ Each detected PV input</strong><span class="muted">Voltage · current · power · daily energy · total energy · optional raw alarm word.</span></div>
         <div class="group"><strong>🚨 Clear alarm interface</strong><span class="muted">Inverter alarm · active count · localized names · stable local codes.</span></div>
-        <div class="group"><strong>🛡️ Advanced diagnostics</strong><span class="muted">22 grid protections · temperatures · candidate power level.</span></div>
+        <div class="group"><strong>🛡️ Advanced diagnostics</strong><span class="muted">22 core grid protections · 10 field-validation values · temperatures · candidate power level · raw country/profile candidate.</span></div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>1511 entity key</th><th>Home Assistant name</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr><td><code>alarm_active_count</code></td><td>Active alarms</td><td>✅</td></tr>
-            <tr><td><code>inverter_operating_state</code></td><td>Inverter operating state</td><td>✅</td></tr>
-            <tr><td><code>register_3018_raw</code></td><td>Raw register 3018 — meaning unconfirmed</td><td>✅</td></tr>
-            <tr><td><code>alarm_global_0_raw</code> … <code>alarm_global_3_raw</code></td><td>Four raw global alarm words</td><td>🛡️</td></tr>
-            <tr><td><code>alarm_secondary_0_raw</code> … <code>alarm_secondary_3_raw</code></td><td>Four raw secondary diagnostic alarm words</td><td>🛡️</td></tr>
-            <tr><td><code>pv1_alarm_raw</code> … <code>pv6_alarm_raw</code></td><td>One raw alarm word per detected PV input</td><td>🛡️ 🔄</td></tr>
-          </tbody>
-        </table>
-      </div>
+
       <h3 style="margin-top:32px">How 1511 alarms appear in Home Assistant</h3>
       <p class="intro">The MP3000 alarm interface stays compact: active positions are decoded inside two everyday entities, while the fourteen original words remain available as optional expert diagnostics.</p>
       <div class="groups">
-        <div class="group"><strong>🚨 Inverter alarm</strong><span class="muted">A problem binary sensor that turns on when an alarm position is active. Its attributes list the active localized names and stable local codes.</span></div>
+        <div class="group"><strong>🚨 Inverter alarm</strong><span class="muted">A problem binary sensor that turns on when an alarm position is active. Its attributes list active localized names and stable local codes.</span></div>
         <div class="group"><strong>🔢 Active alarms</strong><span class="muted">Counts every active position, including positions whose exact physical meaning is still awaiting validation.</span></div>
-        <div class="group"><strong>🧰 Fourteen raw words</strong><span class="muted">Four inverter words, four secondary words and six PV words. They are disabled by default and intended for advanced diagnosis.</span></div>
+        <div class="group"><strong>🧰 Fourteen raw words</strong><span class="muted">Four inverter words, four secondary words and six PV words. They are disabled by default.</span></div>
       </div>
       <div class="metrics">
-        <div class="metric good"><strong>12</strong><span>physically verified mappings</span></div>
+        <div class="metric good"><strong>12</strong><span>physically verified alarm mappings</span></div>
         <div class="metric"><strong>64</strong><span>inverter positions</span></div>
         <div class="metric"><strong>64</strong><span>secondary positions</span></div>
         <div class="metric"><strong>96</strong><span>PV positions</span></div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>PV input</th><th>Verified alarm description 1</th><th>Verified alarm description 2</th></tr></thead>
-          <tbody>
-            <tr><td>PV1</td><td>PV1 input voltage too low</td><td>PV1 DSP fault</td></tr>
-            <tr><td>PV2</td><td>PV2 input voltage too low</td><td>PV2 DSP fault</td></tr>
-            <tr><td>PV3</td><td>PV3 input voltage too low</td><td>PV3 DSP fault</td></tr>
-            <tr><td>PV4</td><td>PV4 input voltage too low</td><td>PV4 DSP fault</td></tr>
-            <tr><td>PV5</td><td>PV5 input voltage too low</td><td>PV5 DSP fault</td></tr>
-            <tr><td>PV6</td><td>PV6 input voltage too low</td><td>PV6 DSP fault</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="notice info"><span>ℹ️</span><div><strong>No position is hidden or guessed</strong>The other 212 positions remain fully detectable and receive a neutral localized description until their exact function is physically verified.</div></div>
+      <div class="notice info"><span>ℹ️</span><div><strong>No alarm-position regression</strong>All 224 source positions remain covered. The six PV alarm words are decoded independently of PV-topology discovery, and the beta field-validation work adds no duplicate alarm entities.</div></div>
+
       <details>
-        <summary>Show the 22 locally exposed grid-protection entities</summary>
+        <summary>Show the 22 core grid-protection entities</summary>
         <div class="inside table-wrap">
           <table>
             <thead><tr><th>Entity keys</th><th>Group</th><th>Unit</th></tr></thead>
@@ -313,6 +256,34 @@
           </table>
         </div>
       </details>
+
+      <details open>
+        <summary>Show the 1.5.1 beta field-validation diagnostics</summary>
+        <div class="inside">
+          <p class="muted"><strong>Evidence status:</strong> LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Entity key</th><th>Register</th><th>Observed / decode</th></tr></thead>
+              <tbody>
+                <tr><td><code>grid_recovery_rate</code></td><td><code>0x07D3</code></td><td>1280 × 0.5 = 640.0 s</td></tr>
+                <tr><td><code>grid_overvoltage_10min</code></td><td><code>0x07E1</code></td><td>2530 × 0.1 = 253.0 V</td></tr>
+                <tr><td><code>grid_overfrequency_reduction_frequency</code></td><td><code>0x07EE</code></td><td>5020 × 0.01 = 50.20 Hz</td></tr>
+                <tr><td><code>grid_overfrequency_reduction_coefficient</code></td><td><code>0x07EF</code></td><td>4000 raw</td></tr>
+                <tr><td><code>overtemperature_protection_temperature</code></td><td><code>0x07F0</code></td><td>79 °C</td></tr>
+                <tr><td><code>grid_start_upper_voltage_limit</code></td><td><code>0x07FB</code></td><td>251.0 V</td></tr>
+                <tr><td><code>grid_start_lower_voltage_limit</code></td><td><code>0x07FC</code></td><td>196.0 V</td></tr>
+                <tr><td><code>grid_start_upper_frequency_limit</code></td><td><code>0x07FD</code></td><td>50.09 Hz</td></tr>
+                <tr><td><code>grid_start_lower_frequency_limit</code></td><td><code>0x07FE</code></td><td>49.51 Hz</td></tr>
+                <tr><td><code>grid_qp_voltage_threshold</code></td><td><code>0x0800</code></td><td>105 V</td></tr>
+                <tr><td><code>country_profile_raw</code></td><td><code>0x07D0</code> candidate</td><td>8 observed on France-configured MP3000</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="notice"><span>🌍</span><div><strong>Country mapping attribution and validation</strong>Stefan Allius's public 1097 research documents the country table where France is code 8 and the 1097 country/profile field at <code>0x1400</code>. The MP3000 value <code>0x07D0 = 8</code> is therefore a strong 1511 candidate, not a fully proven semantic address. The TSUN/Talent exported <code>raw_value=1008</code> is not used as the local country enum.</div></div>
+          <div class="notice info"><span>⏱️</span><div><strong>Connection/reconnection pair stays documentation-only</strong><code>0x07D1 = 80</code> and <code>0x07D2 = 80</code> each fit 40.0 s at candidate scale ×0.5. Because both settings are identical, Beta 1 does not expose guessed individual entity names for them.</div></div>
+        </div>
+      </details>
+
       <details>
         <summary>Show 1511 temperature and power diagnostics</summary>
         <div class="inside table-wrap">
@@ -329,29 +300,19 @@
     </section>
 
     <section id="p02b0">
-      <h2>02B0 · GEN3 PLUS</h2>
+      <h2>02B0 · GEN3 / GEN3 PLUS</h2>
       <p class="intro">Validated on the TSOL-MX500, with up to four PV inputs detected dynamically.</p>
       <div class="status-row"><span class="pill">✅ Validated</span><span class="pill blue">🔄 Up to 4 PV inputs</span></div>
       <div class="groups">
         <div class="group"><strong>☀️ Dynamic PV telemetry</strong><span class="muted">Voltage · current · power · daily energy · total energy.</span></div>
         <div class="group"><strong>🚨 Raw alarm diagnostics</strong><span class="muted"><code>alarm_code_1_raw</code> through <code>alarm_code_4_raw</code>, disabled by default.</span></div>
-        <div class="group"><strong>🛡️ Grid protection</strong><span class="muted">The same 22 local protection entities plus confirmed power level.</span></div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Protocol-specific entity</th><th>Name</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr><td><code>alarm_code_1_raw</code> … <code>alarm_code_4_raw</code></td><td>Four raw alarm codes</td><td>🛡️</td></tr>
-            <tr><td><code>output_coefficient</code></td><td>Power level</td><td>🛡️</td></tr>
-            <tr><td><code>pv1_*</code> … <code>pv4_*</code></td><td>Five production sensors per detected PV input</td><td>✅ 🔄</td></tr>
-          </tbody>
-        </table>
+        <div class="group"><strong>🛡️ Grid protection</strong><span class="muted">Core local protection diagnostics plus confirmed power level.</span></div>
       </div>
     </section>
 
     <section id="p1097">
-      <h2>1097 · GEN3</h2>
-      <p class="intro">Experimental support with up to six dynamically detected PV inputs.</p>
+      <h2>1097 · GEN3 / GEN3 PLUS</h2>
+      <p class="intro">Experimental support with up to six dynamically detected PV inputs. Public mapping research used by this adapter is explicitly credited to Stefan Allius.</p>
       <div class="status-row"><span class="pill warn">🧪 Experimental</span><span class="pill blue">🔄 Up to 6 PV inputs</span></div>
       <div class="table-wrap">
         <table>

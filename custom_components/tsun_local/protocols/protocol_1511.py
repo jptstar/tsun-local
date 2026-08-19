@@ -22,6 +22,7 @@ PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
 MAX_PV_COUNT = 6
 DIAGNOSTIC_INTERVAL = 300.0
+COUNTRY_PROFILE_REGISTER = 0x07D0
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,6 +84,7 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
         "register_3018_raw",
         "inverter_temperature",
         "ambient_temperature",
+        "country_profile_raw",
     }
 )
 
@@ -291,13 +293,23 @@ def decode_measurements(
     return data
 
 
-def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float]:
-    """Decode read-only grid protection diagnostics."""
-    return {
+def decode_advanced_diagnostics(
+    registers: dict[int, int],
+) -> dict[str, float | int]:
+    """Decode read-only grid protection and field-validation diagnostics."""
+    data: dict[str, float | int] = {
         key: round(registers[address] * factor, 2)
         for key, (address, factor) in ADVANCED_GRID_REGISTERS.items()
         if address in registers
     }
+
+    # Stefan Allius's public 1097 country table identifies code 8 as France.
+    # The live MP3000 1511 A1/21 block repeatedly reports raw 8 at 0x07D0.
+    # Expose the raw candidate only; independent validation is still pending.
+    if COUNTRY_PROFILE_REGISTER in registers:
+        data["country_profile_raw"] = registers[COUNTRY_PROFILE_REGISTER]
+
+    return data
 
 
 def decode_alarms(

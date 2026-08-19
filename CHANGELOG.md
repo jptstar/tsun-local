@@ -2,6 +2,33 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.1-beta.1] - 2026-08-19
+
+### Added
+
+- Expose ten additional read-only MP3000 / TITAN A1/21 field-validation diagnostics, disabled by default in Home Assistant.
+- Expose the raw 1511 country/profile candidate from decimal register `2000` (`0x07D0`); the live France-configured MP3000 reports raw value `8`.
+- Document `0x07D1 = 80` and `0x07D2 = 80` as the leading candidate pair for the two 40.0 s grid connection/reconnection settings using a candidate `×0.5 s` scale, without assigning their individual semantic order yet.
+- Add beta-release automation for `1.5.1-beta.N` prereleases from the `beta-1097` branch.
+
+### Fixed
+
+- Fix **Logger Wi-Fi signal** remaining unknown when an earlier valid logger page does not contain RSSI; the parser now continues to `/status.html` and other configured status paths until `cover_sta_rssi` is found.
+- Stop treating the TSUN/Talent exported country `raw_value` `1008` as the local country enumeration in validation documentation. The live 1511 dump shows that `1008` can independently occur at `0x0BCE` as the AC daily-energy counter.
+
+### Changed
+
+- Keep the complete 1.5.0 MP3000 alarm architecture unchanged: all 224 positions remain covered, the fourteen source words remain optional diagnostics, and no 224-entity wall is created.
+- Update the README, entity reference, field-validation documentation and project website while preserving the existing 1.5.0 presentation and layout.
+- Explicitly credit **Stefan Allius / `s-allius/tsun-gen3-proxy`** for the public 1097 country/profile research and country enumeration where France is code `8`.
+- Keep all new 1511 semantic candidates at evidence status **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING** until independently distinguished.
+
+### Safety
+
+- All added MP3000 diagnostics are local and read-only.
+- Logger metadata remains HTTP GET only.
+- No inverter configuration, country/profile, grid-protection or control write has been added.
+
 ## [1.5.0] - 2026-08-18
 
 ### Added
@@ -324,6 +351,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.5.1-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.1
 [1.5.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.0
 [1.4.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.1
 [1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
