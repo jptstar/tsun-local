@@ -50,18 +50,27 @@ class Release141FieldUpdateTests(unittest.TestCase):
         self.assertNotIn("register_3017_raw", data)
         self.assertNotIn("register_3028_raw", data)
 
-    def test_1511_power_level_is_explicitly_candidate(self) -> None:
-        data = decode_1511_advanced({0x07EC: 1024})
-        self.assertEqual(data["output_coefficient_candidate"], 100.0)
-        fr = json.loads(
-            (ROOT / "custom_components/tsun_local/translations/fr.json").read_text(
-                encoding="utf-8"
-            )
-        )
+    def test_1511_07ec_uses_titan_export_name_and_remains_unvalidated(self) -> None:
+        data = decode_1511_advanced({0x07EC: 0x0FA0})
         self.assertEqual(
-            fr["entity"]["sensor"]["output_coefficient_candidate"]["name"],
-            "Niveau de puissance (candidat)",
+            data["grid_overfrequency_reduction_coefficient"], 4000.0
         )
+        self.assertNotIn("output_coefficient_candidate", data)
+
+        sensor_source = (
+            ROOT / "custom_components/tsun_local/sensor.py"
+        ).read_text(encoding="utf-8")
+        self.assertIn("Overfrequency reduction coefficient", sensor_source)
+        self.assertNotIn(
+            '"output_coefficient_candidate": "2028 (0x07EC)', sensor_source
+        )
+
+        validation_doc = (
+            ROOT / "docs/MP3000_PROTECTION_VALIDATION.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn("0x07EC", validation_doc)
+        self.assertIn("physical validation", validation_doc.lower())
+        self.assertIn("old 1511 Power level candidate has therefore been removed", validation_doc)
 
     def test_1097_power_level_remains_experimental(self) -> None:
         self.assertEqual(
