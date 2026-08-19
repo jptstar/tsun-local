@@ -12,53 +12,78 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Delete obsolete releases and tags
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-        shell: bash
-        run: |
-          set -euo pipefail
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
-          should_delete() {
-            local tag="${1,,}"
-            [[ "$tag" == *beta* || "$tag" == "1.5.0" || "$tag" == "v1.5.0" ]]
-          }
+            const protectedTags = new Set(["1.5.1", "v1.5.1"]);
+            const shouldDelete = (tag, prerelease = false) => {
+              const value = tag.toLowerCase();
+              return prerelease || value.includes("beta") || value === "1.5.0" || value === "v1.5.0";
+            };
 
-          protect_stable() {
-            local tag="${1,,}"
-            if [[ "$tag" == "1.5.1" || "$tag" == "v1.5.1" ]]; then
-              echo "Safety stop: refusing to delete stable $1"
-              exit 1
-            fi
-          }
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner,
+              repo,
+              per_page: 100,
+            });
 
-          echo "Cleaning obsolete GitHub releases in $REPO"
-          mapfile -t release_tags < <(
-            gh release list --repo "$REPO" --limit 1000 --json tagName --jq '.[].tagName'
-          )
+            core.info(`Found ${releases.length} releases.`);
 
-          for tag in "${release_tags[@]}"; do
-            [[ -z "$tag" ]] && continue
-            protect_stable "$tag"
-            if should_delete "$tag"; then
-              echo "Deleting release + tag: $tag"
-              gh release delete "$tag" --repo "$REPO" --cleanup-tag --yes
-            fi
-          done
+            for (const release of releases) {
+              const tag = release.tag_name;
+              if (protectedTags.has(tag)) {
+                core.info(`Protected stable release: ${tag}`);
+                continue;
+              }
+              if (!shouldDelete(tag, release.prerelease)) {
+                continue;
+              }
 
-          echo "Removing matching orphan tags"
-          mapfile -t tags < <(
-            gh api --paginate "repos/$REPO/tags?per_page=100" --jq '.[].name'
-          )
+              core.info(`Deleting release ${tag} (id ${release.id})`);
+              await github.rest.repos.deleteRelease({
+                owner,
+                repo,
+                release_id: release.id,
+              });
 
-          for tag in "${tags[@]}"; do
-            [[ -z "$tag" ]] && continue
-            protect_stable "$tag"
-            if should_delete "$tag"; then
-              echo "Deleting orphan tag: $tag"
-              gh api --method DELETE "repos/$REPO/git/refs/tags/$tag"
-            fi
-          done
+              try {
+                core.info(`Deleting tag ${tag}`);
+                await github.rest.git.deleteRef({
+                  owner,
+                  repo,
+                  ref: `tags/${tag}`,
+                });
+              } catch (error) {
+                if (error.status === 404 || error.status === 422) {
+                  core.warning(`Tag ${tag} was already absent or could not be deleted after release removal: ${error.message}`);
+                } else {
+                  throw error;
+                }
+              }
+            }
 
-          echo "Cleanup complete. Remaining releases:"
-          gh release list --repo "$REPO" --limit 1000
+            const refs = await github.paginate(github.rest.git.listMatchingRefs, {
+              owner,
+              repo,
+              ref: "tags/",
+              per_page: 100,
+            });
+
+            for (const item of refs) {
+              const tag = item.ref.replace(/^refs\/tags\//, "");
+              if (protectedTags.has(tag) || !shouldDelete(tag, false)) {
+                continue;
+              }
+
+              core.info(`Deleting orphan tag ${tag}`);
+              await github.rest.git.deleteRef({
+                owner,
+                repo,
+                ref: `tags/${tag}`,
+              });
+            }
+
+            core.info("Cleanup complete. Stable 1.5.1 was protected.");
