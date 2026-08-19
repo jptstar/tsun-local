@@ -4,70 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN MP3000 Entities for Home Assistant | TSUN Local</title>
-  <meta name="description" content="Explore 108 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1, including production, 224 alarm positions and read-only field-validation diagnostics.">
+  <meta name="description" content="Explore TSUN Local Home Assistant entities for MP3000/1511, 02B0 and 1097, including firmware, production, alarms and diagnostics.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/entities.html">
   <link rel="icon" type="image/png" href="icon.png">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="TSUN MP3000 Entities for Home Assistant | TSUN Local">
-  <meta property="og:description" content="Explore MP3000 production, energy, diagnostics and all 224 local alarm positions in TSUN Local.">
-  <meta property="og:url" content="https://jptstar.github.io/tsun-local/entities.html">
-  <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
-  <meta property="og:image:width" content="256">
-  <meta property="og:image:height" content="256">
-  <meta property="og:image:alt" content="TSUN Local Home Assistant integration icon">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TSUN MP3000 Entities for Home Assistant | TSUN Local">
-  <meta name="twitter:description" content="A visual reference for MP3000 entities, alarms and read-only diagnostics in Home Assistant.">
-  <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
-  <meta name="twitter:image:alt" content="TSUN Local Home Assistant integration icon">
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebPage",
-        "@id": "https://jptstar.github.io/tsun-local/entities.html#webpage",
-        "name": "TSUN MP3000 Entities for Home Assistant",
-        "url": "https://jptstar.github.io/tsun-local/entities.html",
-        "description": "Visual reference for TSUN Local Home Assistant entities, including TSOL-MP3000 alarms and diagnostics.",
-        "isPartOf": {"@id": "https://jptstar.github.io/tsun-local/#website"},
-        "inLanguage": "en"
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {"@type": "ListItem", "position": 1, "name": "TSUN Local", "item": "https://jptstar.github.io/tsun-local/"},
-          {"@type": "ListItem", "position": 2, "name": "Home Assistant entity reference", "item": "https://jptstar.github.io/tsun-local/entities.html"}
-        ]
-      }
-    ]
-  }
-  </script>
   <style>
-    :root {
-      --ink:#10223a; --muted:#617188; --paper:#f4f7fb; --card:#fff;
-      --line:#dce5ef; --blue:#1167d8; --green:#148660;
-      --green-soft:#e7f7f1; --amber-soft:#fff3db; --violet:#6554d9;
-      --blue-soft:#eaf3ff; --shadow:0 18px 50px rgba(19,50,88,.10); --max:1120px;
-    }
+    :root { --ink:#10223a; --muted:#617188; --paper:#f4f7fb; --card:#fff; --line:#dce5ef; --blue:#1167d8; --green:#148660; --green-soft:#e7f7f1; --amber-soft:#fff3db; --violet:#6554d9; --blue-soft:#eaf3ff; --shadow:0 18px 50px rgba(19,50,88,.10); --max:1120px; }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; }
-    body {
-      margin:0; color:var(--ink); background:
-        radial-gradient(circle at 88% 5%,rgba(17,103,216,.12),transparent 24rem),var(--paper);
-      font:16px/1.56 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    }
+    body { margin:0; color:var(--ink); background:radial-gradient(circle at 88% 5%,rgba(17,103,216,.12),transparent 24rem),var(--paper); font:16px/1.56 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
     a { color:var(--blue); }
     .wrap { width:min(var(--max),calc(100% - 32px)); margin-inline:auto; }
     .topline { height:5px; background:linear-gradient(90deg,var(--green),var(--blue),var(--violet)); }
     header { padding:22px 0 70px; color:#fff; background:linear-gradient(145deg,#061c39 0%,#0a315e 70%,#105a9a 100%); }
     nav { display:flex; align-items:center; justify-content:space-between; gap:18px; }
     .brand { display:flex; align-items:center; gap:12px; color:#fff; text-decoration:none; font-weight:850; }
-    .brand img { width:42px; height:42px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.24); }
+    .brand img { width:42px; height:42px; border-radius:12px; }
     .navlinks { display:flex; gap:19px; align-items:center; }
     .navlinks a { color:#dceaff; text-decoration:none; font-size:14px; font-weight:700; }
     .hero { display:grid; grid-template-columns:1.25fr .75fr; gap:48px; align-items:center; padding-top:58px; }
@@ -78,63 +31,45 @@
     .button { display:inline-block; padding:12px 17px; border-radius:11px; text-decoration:none; font-weight:800; }
     .primary { color:#071829; background:#8ee4ff; }
     .secondary { color:#fff; border:1px solid rgba(255,255,255,.27); background:rgba(255,255,255,.08); }
-    .hero-card { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:18px; border:1px solid rgba(255,255,255,.16); border-radius:24px; background:rgba(255,255,255,.08); backdrop-filter:blur(12px); }
+    .hero-card { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:18px; border:1px solid rgba(255,255,255,.16); border-radius:24px; background:rgba(255,255,255,.08); }
     .hero-stat { min-height:112px; padding:17px; border-radius:16px; background:rgba(255,255,255,.08); }
-    .hero-stat:first-child { grid-column:1 / -1; }
+    .hero-stat:first-child { grid-column:1/-1; }
     .hero-stat strong { display:block; font-size:38px; line-height:1; }
     .hero-stat span { display:block; margin-top:8px; color:#d6e5f7; font-size:14px; }
     main { margin-top:-30px; padding-bottom:72px; }
     section { margin-top:28px; padding:34px; border:1px solid var(--line); border-radius:24px; background:var(--card); box-shadow:var(--shadow); }
-    section[id] { scroll-margin-top:18px; }
     h2 { margin:0 0 10px; font-size:clamp(27px,4vw,39px); letter-spacing:-.04em; }
-    h3 { margin:0 0 10px; }
-    .intro { max-width:830px; margin:0; color:var(--muted); font-size:18px; }
+    h3 { margin:30px 0 10px; }
+    .intro { max-width:900px; margin:0; color:var(--muted); font-size:18px; }
     .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:26px; }
     .metric { min-height:132px; padding:21px; border-radius:18px; background:#eef4fb; }
     .metric.good { color:#0d684d; background:var(--green-soft); }
     .metric.warn { color:#865000; background:var(--amber-soft); }
-    .metric strong { display:block; font-size:40px; line-height:1; letter-spacing:-.04em; }
+    .metric strong { display:block; font-size:40px; line-height:1; }
     .metric span { display:block; margin-top:11px; font-weight:800; }
-    .legend { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:24px; }
-    .legend-card { padding:18px; border:1px solid var(--line); border-radius:16px; background:#f8fafd; }
-    .legend-card strong { display:block; margin-bottom:5px; }
-    .muted { color:var(--muted); }
-    .protocol-nav { display:flex; flex-wrap:wrap; gap:10px; margin-top:23px; }
-    .protocol-nav a { padding:9px 13px; border:1px solid var(--line); border-radius:999px; text-decoration:none; background:#fff; font-weight:800; }
     .status-row { display:flex; flex-wrap:wrap; gap:9px; margin-top:17px; }
     .pill { padding:6px 10px; border-radius:999px; color:var(--green); background:var(--green-soft); font-size:12px; font-weight:850; }
     .pill.blue { color:#155899; background:var(--blue-soft); }
     .pill.warn { color:#955800; background:var(--amber-soft); }
+    .groups { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:24px; }
+    .group { padding:21px; border:1px solid var(--line); border-radius:18px; background:#f8fafd; }
+    .group strong { display:block; margin-bottom:6px; font-size:18px; }
+    .muted { color:var(--muted); }
+    .table-wrap { overflow-x:auto; }
     table { width:100%; margin-top:22px; border-collapse:collapse; }
     th,td { padding:13px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
     th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.07em; }
     tr:last-child td { border-bottom:0; }
     code { padding:3px 7px; border-radius:7px; color:#15466f; background:#eef3f8; font-weight:750; }
-    .table-wrap { overflow-x:auto; }
-    .notice { display:flex; gap:17px; align-items:flex-start; margin-top:24px; padding:21px; border-radius:18px; color:#754500; background:var(--amber-soft); }
-    .notice.info { color:#184c78; background:var(--blue-soft); }
-    .notice strong { display:block; margin-bottom:3px; }
     details { margin-top:20px; border:1px solid var(--line); border-radius:18px; background:#f8fafd; }
     summary { cursor:pointer; padding:18px 21px; font-weight:850; }
     details .inside { padding:0 21px 21px; }
-    details table { margin-top:4px; background:#fff; border-radius:12px; }
-    .groups { display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-top:24px; }
-    .group { padding:21px; border:1px solid var(--line); border-radius:18px; background:#f8fafd; }
-    .group strong { display:block; margin-bottom:6px; font-size:18px; }
+    .notice { display:flex; gap:17px; align-items:flex-start; margin-top:24px; padding:21px; border-radius:18px; color:#754500; background:var(--amber-soft); }
+    .notice.info { color:#184c78; background:var(--blue-soft); }
+    .notice strong { display:block; margin-bottom:3px; }
     footer { padding:8px 0 42px; color:var(--muted); text-align:center; font-size:14px; }
-    @media (max-width:900px) {
-      .hero { grid-template-columns:1fr; }
-      .metrics,.legend { grid-template-columns:1fr 1fr; }
-      .groups { grid-template-columns:1fr; }
-    }
-    @media (max-width:640px) {
-      .navlinks { display:none; }
-      .metrics,.legend { grid-template-columns:1fr; }
-      section { padding:23px; }
-      .hero { gap:28px; padding-top:45px; }
-      h1 { font-size:44px; }
-      th,td { min-width:145px; }
-    }
+    @media (max-width:900px) { .hero { grid-template-columns:1fr; } .metrics { grid-template-columns:1fr 1fr; } .groups { grid-template-columns:1fr; } }
+    @media (max-width:640px) { .navlinks { display:none; } .metrics { grid-template-columns:1fr; } section { padding:23px; } h1 { font-size:44px; } }
   </style>
 </head>
 <body>
@@ -149,17 +84,10 @@
         <div>
           <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1</p>
           <h1>TSUN MP3000 and microinverter entities for Home Assistant.</h1>
-          <p class="lead">See all entities that TSUN Local can create for protocols 1511, 02B0 and 1097, including MP3000 production, alarms and read-only field-validation diagnostics.</p>
-          <div class="actions">
-            <a class="button primary" href="index.html">← Back to TSUN Local</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Technical reference</a>
-          </div>
+          <p class="lead">A detailed visual reference for entities created by TSUN Local, including firmware versions, PV telemetry, alarms and diagnostics.</p>
+          <div class="actions"><a class="button primary" href="index.html">← Back to TSUN Local</a><a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Technical reference</a></div>
         </div>
-        <aside class="hero-card" aria-label="Entity summary">
-          <div class="hero-stat"><strong>108</strong><span>total MP3000 entities with six detected PV inputs</span></div>
-          <div class="hero-stat"><strong>59</strong><span>enabled by default</span></div>
-          <div class="hero-stat"><strong>49</strong><span>advanced diagnostics</span></div>
-        </aside>
+        <aside class="hero-card" aria-label="Entity summary"><div class="hero-stat"><strong>108</strong><span>maximum MP3000 entities with six detected PV inputs</span></div><div class="hero-stat"><strong>59</strong><span>enabled by default</span></div><div class="hero-stat"><strong>49</strong><span>advanced diagnostics</span></div></aside>
       </div>
     </div>
   </header>
@@ -167,176 +95,112 @@
   <main class="wrap">
     <section id="overview">
       <h2>MP3000 at a glance</h2>
-      <p class="intro">With all six PV inputs detected, 1.5.1 exposes up to 108 MP3000 Home Assistant entities. Inputs appear progressively, so smaller installations stay clean.</p>
-      <div class="metrics">
-        <div class="metric"><strong>108</strong><span>total with 6 PV inputs</span></div>
-        <div class="metric good"><strong>59</strong><span>enabled by default</span></div>
-        <div class="metric"><strong>49</strong><span>advanced diagnostics</span></div>
-        <div class="metric warn"><strong>224</strong><span>alarm positions · 12 observed</span></div>
-      </div>
-      <div class="legend">
-        <div class="legend-card"><strong>✅ Enabled</strong><span class="muted">Useful everyday entity.</span></div>
-        <div class="legend-card"><strong>🛡️ Advanced</strong><span class="muted">Disabled by default.</span></div>
-        <div class="legend-card"><strong>🔄 Dynamic</strong><span class="muted">Created when the input is detected.</span></div>
-        <div class="legend-card"><strong>🔬 Field validation</strong><span class="muted">Live read confirmed; semantic validation pending.</span></div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Group</th><th>Number</th><th>Examples</th></tr></thead>
-          <tbody>
-            <tr><td>Production and electricity</td><td><strong>37</strong></td><td>AC and PV voltage, current, power and energy</td></tr>
-            <tr><td>Device and logger</td><td>8</td><td>Serial numbers, logger/DSP/QCPU firmware, MAC and Wi-Fi</td></tr>
-            <tr><td>Temperatures</td><td>2</td><td>Inverter and ambient temperature</td></tr>
-            <tr><td>Communication</td><td>5</td><td>Online state, last success, duration, blocks and failures</td></tr>
-            <tr><td>Operating state and control</td><td>3</td><td>Raw status, operating state and refresh button</td></tr>
-            <tr><td>Power and capacity diagnostics</td><td>2</td><td>Rated power and maximum designed power</td></tr>
-            <tr><td>Core grid protection</td><td>22</td><td>Voltage/frequency limits, recovery values and timing</td></tr>
-            <tr><td>Field-validation diagnostics</td><td><strong>11</strong></td><td>10 additional A1/21 fields + country/profile raw candidate</td></tr>
-            <tr><td>Alarm interface</td><td>17</td><td>Alarm state, active count, active alarm names and 14 complete raw words</td></tr>
-            <tr><td>Unconfirmed raw diagnostic</td><td>1</td><td>Register 3018</td></tr>
-            <tr><td><strong>Total</strong></td><td><strong>108</strong></td><td>59 enabled · 49 advanced</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <p class="intro">With all six PV inputs detected, TSUN Local 1.5.1 can expose up to 108 MP3000 Home Assistant entities. Dynamic PV entities appear only when the corresponding input is detected.</p>
+      <div class="metrics"><div class="metric"><strong>108</strong><span>total with 6 PV inputs</span></div><div class="metric good"><strong>59</strong><span>enabled by default</span></div><div class="metric"><strong>49</strong><span>advanced diagnostics</span></div><div class="metric warn"><strong>224</strong><span>alarm bit positions</span></div></div>
     </section>
 
     <section id="common">
       <h2>Common Home Assistant entities</h2>
-      <p class="intro">The core AC, logger and communication interface remains the same across the supported protocol adapters where the data is available.</p>
-      <div class="groups">
-        <div class="group"><strong>⚡ AC and total DC</strong><span class="muted"><code>ac_voltage</code> · <code>ac_current</code> · <code>ac_frequency</code> · <code>ac_power</code> · daily/total AC energy · <code>dc_power_total</code></span></div>
-        <div class="group"><strong>📡 Logger</strong><span class="muted">SN · inverter SN · firmware · MAC · Wi-Fi signal.</span></div>
-        <div class="group"><strong>🩺 Communication</strong><span class="muted">Online state · last success · duration · blocks · failures · manual refresh.</span></div>
-      </div>
-      <div class="notice info"><span>📶</span><div><strong>Wi-Fi signal fix in 1.5.1</strong>The logger reader no longer stops when an earlier valid page lacks RSSI. It continues through the configured pages until <code>cover_sta_rssi</code> is found; a live validation dump read 30% from <code>/status.html</code>.</div></div>
+      <p class="intro">These entities form the common interface where the active protocol adapter provides the corresponding data. Firmware and logger entities are listed individually here so QCPU information is no longer hidden behind a summary.</p>
+
+      <h3>Production and electrical measurements</h3>
+      <div class="table-wrap"><table><thead><tr><th>Entity key</th><th>Home Assistant name</th><th>Default</th></tr></thead><tbody>
+        <tr><td><code>ac_voltage</code></td><td>AC voltage</td><td>✅</td></tr>
+        <tr><td><code>ac_current</code></td><td>AC current</td><td>✅</td></tr>
+        <tr><td><code>ac_frequency</code></td><td>AC frequency</td><td>✅</td></tr>
+        <tr><td><code>ac_power</code></td><td>AC power</td><td>✅</td></tr>
+        <tr><td><code>ac_energy_today</code></td><td>AC energy today</td><td>✅</td></tr>
+        <tr><td><code>ac_energy_total</code></td><td>Total AC energy</td><td>✅</td></tr>
+        <tr><td><code>dc_power_total</code></td><td>Total DC power</td><td>✅</td></tr>
+      </tbody></table></div>
+
+      <h3>Device, logger and firmware</h3>
+      <div class="table-wrap"><table><thead><tr><th>Entity key</th><th>Home Assistant name</th><th>1511 source</th><th>Default</th></tr></thead><tbody>
+        <tr><td><code>label_serial_number</code></td><td>SN</td><td>Logger identity</td><td>✅</td></tr>
+        <tr><td><code>inverter_serial_number</code></td><td>Micro-inverter SN</td><td>Logger status page</td><td>✅</td></tr>
+        <tr><td><code>logger_firmware_version</code></td><td>Logger firmware version</td><td>Logger status page</td><td>✅</td></tr>
+        <tr><td><code>dsp_firmware_version</code></td><td>DSP firmware version</td><td><code>3008 / 0x0BC0</code></td><td>✅</td></tr>
+        <tr><td><code>qcpu1_firmware_version</code></td><td>QCPU1 firmware version</td><td><code>3622 / 0x0E26</code></td><td>✅</td></tr>
+        <tr><td><code>qcpu2_firmware_version</code></td><td>QCPU2 firmware version</td><td><code>3822 / 0x0EEE</code></td><td>✅</td></tr>
+        <tr><td><code>logger_mac_address</code></td><td>Logger MAC address</td><td>Logger status page</td><td>✅</td></tr>
+        <tr><td><code>logger_wifi_signal</code></td><td>Logger Wi-Fi signal</td><td>Logger status page</td><td>✅</td></tr>
+      </tbody></table></div>
+      <div class="notice info"><span>ℹ️</span><div><strong>FCPU is intentionally absent</strong>No local 1511 source register has been identified yet, so TSUN Local does not invent an FCPU firmware entity.</div></div>
+
+      <h3>Status, power and communication</h3>
+      <div class="table-wrap"><table><thead><tr><th>Entity key</th><th>Home Assistant name</th><th>Default</th></tr></thead><tbody>
+        <tr><td><code>inverter_status_raw</code></td><td>Raw inverter status</td><td>✅</td></tr>
+        <tr><td><code>rated_power</code></td><td>Rated inverter power</td><td>✅</td></tr>
+        <tr><td><code>max_designed_power</code></td><td>Maximum designed power</td><td>✅</td></tr>
+        <tr><td><code>communication_online</code></td><td>Micro-inverter online</td><td>✅</td></tr>
+        <tr><td><code>communication_last_success</code></td><td>Last successful communication</td><td>✅</td></tr>
+        <tr><td><code>communication_duration</code></td><td>Communication duration</td><td>✅</td></tr>
+        <tr><td><code>communication_blocks</code></td><td>Blocks received</td><td>✅</td></tr>
+        <tr><td><code>communication_failures</code></td><td>Consecutive communication failures</td><td>✅</td></tr>
+        <tr><td><code>refresh_data</code></td><td>Refresh data</td><td>✅</td></tr>
+      </tbody></table></div>
     </section>
 
     <section id="p1511">
-      <h2>1511 · TITAN</h2>
-      <p class="intro">Validated on the TSOL-MP3000, with up to six PV inputs detected progressively.</p>
-      <div class="status-row"><span class="pill">✅ Validated core</span><span class="pill blue">🔄 Up to 6 PV inputs</span><span class="pill blue">108 entities with 6 PV inputs</span><span class="pill warn">🔬 Field-validation diagnostics</span></div>
-      <div class="groups">
-        <div class="group"><strong>☀️ Each detected PV input</strong><span class="muted">Voltage · current · power · daily energy · total energy · optional raw alarm word.</span></div>
-        <div class="group"><strong>🚨 Clear alarm interface</strong><span class="muted">Inverter alarm · active count · dedicated localized alarm names.</span></div>
-        <div class="group"><strong>🛡️ Advanced diagnostics</strong><span class="muted">22 core grid protections · 10 field-validation values · temperatures · raw country/profile candidate.</span></div>
-      </div>
+      <h2>1511 · TITAN / TSOL-MP3000</h2>
+      <p class="intro">Validated on the MP3000, with up to six PV inputs detected progressively.</p>
+      <div class="status-row"><span class="pill">✅ Validated core</span><span class="pill blue">🔄 Up to 6 PV inputs</span><span class="pill blue">108 entities with 6 PV inputs</span><span class="pill warn">🔬 Field validation</span></div>
 
-      <h3 style="margin-top:32px">How 1511 alarms appear in Home Assistant</h3>
-      <p class="intro">The MP3000 alarm interface stays compact: active positions are decoded through three everyday entities, while the fourteen original words remain available as optional expert diagnostics.</p>
-      <div class="groups">
-        <div class="group"><strong>🚨 Inverter alarm</strong><span class="muted">A problem binary sensor that turns on when an alarm position is active.</span></div>
-        <div class="group"><strong>🔢 Active alarms</strong><span class="muted">Counts every active position, including positions whose exact physical meaning is still awaiting validation.</span></div>
-        <div class="group"><strong>📝 Active alarm names</strong><span class="muted">Publishes localized alarm text directly. Internal Axxx identifiers remain diagnostic-only.</span></div>
-        <div class="group"><strong>🧰 Fourteen raw words</strong><span class="muted">Four inverter words, four secondary words and six PV words. They are disabled by default.</span></div>
-      </div>
-      <div class="metrics">
-        <div class="metric good"><strong>12</strong><span>hardware-observed alarm mappings</span></div>
-        <div class="metric"><strong>64</strong><span>inverter positions</span></div>
-        <div class="metric"><strong>64</strong><span>secondary positions</span></div>
-        <div class="metric"><strong>96</strong><span>PV positions</span></div>
-      </div>
-      <div class="notice info"><span>ℹ️</span><div><strong>No alarm-position regression</strong>All 224 source positions remain covered. The six PV alarm words are decoded independently of PV-topology discovery, and the 1.5.1 field-validation work adds no duplicate alarm entities.</div></div>
+      <h3>1511-specific everyday and alarm entities</h3>
+      <div class="table-wrap"><table><thead><tr><th>Entity key</th><th>Home Assistant name</th><th>Default</th></tr></thead><tbody>
+        <tr><td><code>inverter_operating_state</code></td><td>Inverter operating state</td><td>✅</td></tr>
+        <tr><td><code>alarm_active_count</code></td><td>Active alarms</td><td>✅</td></tr>
+        <tr><td><code>active_alarm_names</code></td><td>Active alarm names</td><td>✅</td></tr>
+        <tr><td><code>inverter_alarm</code></td><td>Inverter alarm</td><td>✅</td></tr>
+        <tr><td><code>register_3018_raw</code></td><td>Raw register 3018</td><td>✅</td></tr>
+        <tr><td><code>alarm_global_0_raw</code> … <code>alarm_global_3_raw</code></td><td>Four raw global alarm words</td><td>🛡️</td></tr>
+        <tr><td><code>alarm_secondary_0_raw</code> … <code>alarm_secondary_3_raw</code></td><td>Four raw controller alarm words</td><td>🛡️</td></tr>
+        <tr><td><code>pv1_alarm_raw</code> … <code>pv6_alarm_raw</code></td><td>Six raw PV alarm words</td><td>🛡️ 🔄</td></tr>
+      </tbody></table></div>
 
-      <details>
-        <summary>Show the 22 core grid-protection entities</summary>
-        <div class="inside table-wrap">
-          <table>
-            <thead><tr><th>Entity keys</th><th>Group</th><th>Unit</th></tr></thead>
-            <tbody>
-              <tr><td><code>grid_overvoltage_recovery_voltage</code><br><code>grid_undervoltage_recovery_voltage</code></td><td>Voltage recovery</td><td>V</td></tr>
-              <tr><td><code>grid_overfrequency_recovery_frequency</code><br><code>grid_underfrequency_recovery_frequency</code></td><td>Frequency recovery</td><td>Hz</td></tr>
-              <tr><td><code>grid_undervoltage_level_1</code><br><code>grid_undervoltage_level_2</code><br><code>grid_undervoltage_level_3</code></td><td>Undervoltage levels</td><td>V</td></tr>
-              <tr><td><code>grid_undervoltage_time_1</code><br><code>grid_undervoltage_time_2</code><br><code>grid_undervoltage_time_3</code></td><td>Undervoltage times</td><td>s</td></tr>
-              <tr><td><code>grid_overvoltage_level_1</code><br><code>grid_overvoltage_level_2</code></td><td>Overvoltage levels</td><td>V</td></tr>
-              <tr><td><code>grid_overvoltage_time_1</code><br><code>grid_overvoltage_time_2</code></td><td>Overvoltage times</td><td>s</td></tr>
-              <tr><td><code>grid_underfrequency_level_1</code><br><code>grid_underfrequency_level_2</code></td><td>Underfrequency levels</td><td>Hz</td></tr>
-              <tr><td><code>grid_underfrequency_time_1</code><br><code>grid_underfrequency_time_2</code></td><td>Underfrequency times</td><td>s</td></tr>
-              <tr><td><code>grid_overfrequency_level_1</code><br><code>grid_overfrequency_level_2</code></td><td>Overfrequency levels</td><td>Hz</td></tr>
-              <tr><td><code>grid_overfrequency_time_1</code><br><code>grid_overfrequency_time_2</code></td><td>Overfrequency times</td><td>s</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </details>
+      <h3>PV telemetry</h3>
+      <div class="table-wrap"><table><thead><tr><th>PV</th><th>Voltage</th><th>Current</th><th>Power</th><th>Daily energy</th><th>Total energy</th><th>Raw alarm</th></tr></thead><tbody>
+        <tr><td>1</td><td><code>pv1_voltage</code></td><td><code>pv1_current</code></td><td><code>pv1_power</code></td><td><code>pv1_energy_today</code></td><td><code>pv1_energy_total</code></td><td><code>pv1_alarm_raw</code></td></tr>
+        <tr><td>2</td><td><code>pv2_voltage</code></td><td><code>pv2_current</code></td><td><code>pv2_power</code></td><td><code>pv2_energy_today</code></td><td><code>pv2_energy_total</code></td><td><code>pv2_alarm_raw</code></td></tr>
+        <tr><td>3</td><td><code>pv3_voltage</code></td><td><code>pv3_current</code></td><td><code>pv3_power</code></td><td><code>pv3_energy_today</code></td><td><code>pv3_energy_total</code></td><td><code>pv3_alarm_raw</code></td></tr>
+        <tr><td>4</td><td><code>pv4_voltage</code></td><td><code>pv4_current</code></td><td><code>pv4_power</code></td><td><code>pv4_energy_today</code></td><td><code>pv4_energy_total</code></td><td><code>pv4_alarm_raw</code></td></tr>
+        <tr><td>5</td><td><code>pv5_voltage</code></td><td><code>pv5_current</code></td><td><code>pv5_power</code></td><td><code>pv5_energy_today</code></td><td><code>pv5_energy_total</code></td><td><code>pv5_alarm_raw</code></td></tr>
+        <tr><td>6</td><td><code>pv6_voltage</code></td><td><code>pv6_current</code></td><td><code>pv6_power</code></td><td><code>pv6_energy_today</code></td><td><code>pv6_energy_total</code></td><td><code>pv6_alarm_raw</code></td></tr>
+      </tbody></table></div>
 
-      <details open>
-        <summary>Show the 1.5.1 beta field-validation diagnostics</summary>
-        <div class="inside">
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Entity key</th><th>Register</th><th>Observed / decode</th></tr></thead>
-              <tbody>
-                <tr><td><code>grid_recovery_rate</code></td><td><code>0x07D3</code></td><td>1280 × 0.5 = 640.0 s</td></tr>
-                <tr><td><code>grid_overvoltage_10min</code></td><td><code>0x07E1</code></td><td>2530 × 0.1 = 253.0 V</td></tr>
-                <tr><td><code>grid_overfrequency_reduction_frequency</code></td><td><code>0x07EE</code></td><td>5020 × 0.01 = 50.20 Hz</td></tr>
-                <tr><td><code>grid_overfrequency_reduction_coefficient</code></td><td><code>0x07EF</code></td><td>4000 × 0.01 = 40.00 %/Hz</td></tr>
-                <tr><td><code>overtemperature_protection_temperature</code></td><td><code>0x07F0</code></td><td>79 °C</td></tr>
-                <tr><td><code>grid_start_upper_voltage_limit</code></td><td><code>0x07FB</code></td><td>251.0 V</td></tr>
-                <tr><td><code>grid_start_lower_voltage_limit</code></td><td><code>0x07FC</code></td><td>196.0 V</td></tr>
-                <tr><td><code>grid_start_upper_frequency_limit</code></td><td><code>0x07FD</code></td><td>50.09 Hz</td></tr>
-                <tr><td><code>grid_start_lower_frequency_limit</code></td><td><code>0x07FE</code></td><td>49.51 Hz</td></tr>
-                <tr><td><code>grid_qp_voltage_threshold</code></td><td><code>0x0800</code></td><td>105 V</td></tr>
-                <tr><td><code>country_profile_raw</code></td><td><code>0x07D0</code> candidate</td><td>8 observed on France-configured MP3000</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </details>
+      <details><summary>Show the 22 core grid-protection entities</summary><div class="inside table-wrap"><table><thead><tr><th>Entity keys</th><th>Group</th></tr></thead><tbody>
+        <tr><td><code>grid_overvoltage_recovery_voltage</code><br><code>grid_undervoltage_recovery_voltage</code></td><td>Voltage recovery</td></tr>
+        <tr><td><code>grid_overfrequency_recovery_frequency</code><br><code>grid_underfrequency_recovery_frequency</code></td><td>Frequency recovery</td></tr>
+        <tr><td><code>grid_undervoltage_level_1</code><br><code>grid_undervoltage_level_2</code><br><code>grid_undervoltage_level_3</code></td><td>Undervoltage levels</td></tr>
+        <tr><td><code>grid_undervoltage_time_1</code><br><code>grid_undervoltage_time_2</code><br><code>grid_undervoltage_time_3</code></td><td>Undervoltage times</td></tr>
+        <tr><td><code>grid_overvoltage_level_1</code><br><code>grid_overvoltage_level_2</code><br><code>grid_overvoltage_time_1</code><br><code>grid_overvoltage_time_2</code></td><td>Overvoltage</td></tr>
+        <tr><td><code>grid_underfrequency_level_1</code><br><code>grid_underfrequency_level_2</code><br><code>grid_underfrequency_time_1</code><br><code>grid_underfrequency_time_2</code></td><td>Underfrequency</td></tr>
+        <tr><td><code>grid_overfrequency_level_1</code><br><code>grid_overfrequency_level_2</code><br><code>grid_overfrequency_time_1</code><br><code>grid_overfrequency_time_2</code></td><td>Overfrequency</td></tr>
+      </tbody></table></div></details>
 
-      <details>
-        <summary>Show 1511 temperature and power diagnostics</summary>
-        <div class="inside table-wrap">
-          <table>
-            <thead><tr><th>Entity key</th><th>Name</th><th>Unit</th></tr></thead>
-            <tbody>
-              <tr><td><code>inverter_temperature</code></td><td>Inverter temperature</td><td>°C</td></tr>
-              <tr><td><code>ambient_temperature</code></td><td>Inverter ambient temperature</td><td>°C</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </details>
+      <details open><summary>Show 1.5.1 field-validation diagnostics</summary><div class="inside table-wrap"><table><thead><tr><th>Entity key</th><th>Register</th><th>Decode / status</th></tr></thead><tbody>
+        <tr><td><code>grid_recovery_rate</code></td><td><code>0x07D3</code></td><td>×0.5 s</td></tr>
+        <tr><td><code>grid_overvoltage_10min</code></td><td><code>0x07E1</code></td><td>×0.1 V</td></tr>
+        <tr><td><code>grid_overfrequency_reduction_frequency</code></td><td><code>0x07EE</code></td><td>×0.01 Hz</td></tr>
+        <tr><td><code>grid_overfrequency_reduction_coefficient</code></td><td><code>0x07EF</code></td><td>×0.01 %/Hz</td></tr>
+        <tr><td><code>overtemperature_protection_temperature</code></td><td><code>0x07F0</code></td><td>°C</td></tr>
+        <tr><td><code>grid_start_upper_voltage_limit</code></td><td><code>0x07FB</code></td><td>×0.1 V</td></tr>
+        <tr><td><code>grid_start_lower_voltage_limit</code></td><td><code>0x07FC</code></td><td>×0.1 V</td></tr>
+        <tr><td><code>grid_start_upper_frequency_limit</code></td><td><code>0x07FD</code></td><td>×0.01 Hz</td></tr>
+        <tr><td><code>grid_start_lower_frequency_limit</code></td><td><code>0x07FE</code></td><td>×0.01 Hz</td></tr>
+        <tr><td><code>grid_qp_voltage_threshold</code></td><td><code>0x0800</code></td><td>V</td></tr>
+        <tr><td><code>country_profile_raw</code></td><td><code>0x07D0</code> candidate</td><td>Raw; field validation pending</td></tr>
+      </tbody></table></div></details>
+
+      <details><summary>Show temperature diagnostics</summary><div class="inside table-wrap"><table><thead><tr><th>Entity key</th><th>Name</th></tr></thead><tbody><tr><td><code>inverter_temperature</code></td><td>Inverter temperature</td></tr><tr><td><code>ambient_temperature</code></td><td>Inverter ambient temperature</td></tr></tbody></table></div></details>
     </section>
 
-    <section id="p02b0">
-      <h2>02B0 · GEN3 / GEN3 PLUS</h2>
-      <p class="intro">Validated on the TSOL-MX500, with up to four PV inputs detected dynamically.</p>
-      <div class="status-row"><span class="pill">✅ Validated</span><span class="pill blue">🔄 Up to 4 PV inputs</span></div>
-      <div class="groups">
-        <div class="group"><strong>☀️ Dynamic PV telemetry</strong><span class="muted">Voltage · current · power · daily energy · total energy.</span></div>
-        <div class="group"><strong>🚨 Raw alarm diagnostics</strong><span class="muted"><code>alarm_code_1_raw</code> through <code>alarm_code_4_raw</code>, disabled by default.</span></div>
-        <div class="group"><strong>🛡️ Grid protection</strong><span class="muted">Core local protection diagnostics plus confirmed power level.</span></div>
-      </div>
-    </section>
+    <section id="p02b0"><h2>02B0 · GEN3 / GEN3 PLUS</h2><p class="intro">Validated on TSOL-MX500, with up to four PV inputs detected dynamically.</p><div class="groups"><div class="group"><strong>☀️ Dynamic PV telemetry</strong><span class="muted">Voltage, current, power, daily energy and total energy for PV1–PV4.</span></div><div class="group"><strong>🚨 Raw alarm diagnostics</strong><span class="muted"><code>alarm_code_1_raw</code> through <code>alarm_code_4_raw</code>.</span></div><div class="group"><strong>🛡️ Grid protection</strong><span class="muted">Advanced read-only protection diagnostics.</span></div></div></section>
 
-    <section id="p1097">
-      <h2>1097 · GEN3 / GEN3 PLUS</h2>
-      <p class="intro">Experimental support with up to six dynamically detected PV inputs. Public mapping research used by this adapter is explicitly credited to Stefan Allius.</p>
-      <div class="status-row"><span class="pill warn">🧪 Experimental</span><span class="pill blue">🔄 Up to 6 PV inputs</span></div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Protocol-specific entity</th><th>Name</th><th>Default</th></tr></thead>
-          <tbody>
-            <tr><td><code>alarm_code_1_raw</code> … <code>alarm_code_4_raw</code></td><td>Four raw alarm codes</td><td>🛡️</td></tr>
-            <tr><td><code>protocol_version</code></td><td>Protocol version</td><td>🛡️</td></tr>
-            <tr><td><code>inverter_version</code></td><td>Inverter version</td><td>🛡️</td></tr>
-            <tr><td><code>insulation_impedance_rx</code></td><td>Insulation impedance RX</td><td>🛡️</td></tr>
-            <tr><td><code>insulation_impedance_ry</code></td><td>Insulation impedance RY</td><td>🛡️</td></tr>
-            <tr><td><code>inverter_temperature</code></td><td>Inverter temperature</td><td>🛡️</td></tr>
-            <tr><td><code>output_coefficient</code></td><td>Power level</td><td>🛡️</td></tr>
-            <tr><td><code>country_profile_raw</code></td><td>Country/profile code</td><td>🛡️</td></tr>
-            <tr><td><code>pv1_*</code> … <code>pv6_*</code></td><td>Five production sensors per detected PV input</td><td>✅ 🔄</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <section id="p1097"><h2>1097 · GEN3 / GEN3 PLUS</h2><p class="intro">Experimental support with up to six dynamically detected PV inputs.</p><div class="table-wrap"><table><thead><tr><th>Protocol-specific entity</th><th>Name</th><th>Default</th></tr></thead><tbody><tr><td><code>alarm_code_1_raw</code> … <code>alarm_code_4_raw</code></td><td>Four raw alarm codes</td><td>🛡️</td></tr><tr><td><code>protocol_version</code></td><td>Protocol version</td><td>🛡️</td></tr><tr><td><code>inverter_version</code></td><td>Inverter version</td><td>🛡️</td></tr><tr><td><code>insulation_impedance_rx</code></td><td>Insulation impedance RX</td><td>🛡️</td></tr><tr><td><code>insulation_impedance_ry</code></td><td>Insulation impedance RY</td><td>🛡️</td></tr><tr><td><code>inverter_temperature</code></td><td>Inverter temperature</td><td>🛡️</td></tr><tr><td><code>output_coefficient</code></td><td>Power level</td><td>🛡️</td></tr><tr><td><code>country_profile_raw</code></td><td>Country/profile code</td><td>🛡️</td></tr><tr><td><code>pv1_*</code> … <code>pv6_*</code></td><td>Five production sensors per detected PV input</td><td>✅ 🔄</td></tr></tbody></table></div></section>
 
-    <section id="advanced">
-      <h2>Enable only what you need</h2>
-      <p class="intro">Advanced entities are deliberately disabled by default. Enable them from Home Assistant when deeper diagnostics are useful.</p>
-      <div class="notice info"><span>⚙️</span><div><strong>Home Assistant</strong>Settings → Devices &amp; services → TSUN Local → Device → Entities → Disabled entities</div></div>
-      <div class="actions"><a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a></div>
-    </section>
+    <section id="advanced"><h2>Enable only what you need</h2><p class="intro">Advanced entities are deliberately disabled by default. Enable them from Home Assistant when deeper diagnostics are useful.</p><div class="notice info"><span>⚙️</span><div><strong>Home Assistant</strong>Settings → Devices &amp; services → TSUN Local → Device → Entities → Disabled entities</div></div></section>
   </main>
-
   <footer class="wrap">TSUN Local · <a href="index.html">Home</a> · <a href="https://github.com/jptstar/tsun-local">Source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a> · <a href="https://github.com/jptstar/tsun-local/releases">Releases</a></footer>
 </body>
 </html>
