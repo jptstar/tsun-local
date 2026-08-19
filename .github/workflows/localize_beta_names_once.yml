@@ -4,17 +4,24 @@ on:
   push:
     branches:
       - beta-1097
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: contains(github.event.head_commit.message, '[localize-beta]')
+    if: >-
+      (github.event_name == 'push' && contains(github.event.head_commit.message, '[localize-beta]')) ||
+      (github.event_name == 'pull_request' && github.head_ref == 'beta-1097')
     runs-on: ubuntu-latest
     steps:
       - name: Check out beta branch
         uses: actions/checkout@v6
+        with:
+          ref: beta-1097
 
       - name: Localize field-validation entity display names
         run: |
