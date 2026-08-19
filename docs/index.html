@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local, a read-only HACS integration for MP3000, MX500 and 1511/02B0/1097.">
+  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1-beta.3, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
@@ -41,7 +41,7 @@
         "@type": "SoftwareSourceCode",
         "@id": "https://jptstar.github.io/tsun-local/#software",
         "name": "TSUN Local",
-        "softwareVersion": "1.5.0",
+        "softwareVersion": "1.5.1-beta.3",
         "description": "Open-source HACS integration for direct, local and read-only monitoring of compatible TSUN solar microinverters in Home Assistant.",
         "url": "https://jptstar.github.io/tsun-local/",
         "codeRepository": "https://github.com/jptstar/tsun-local",
@@ -151,7 +151,7 @@
     <div class="wrap">
       <nav>
         <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a><a href="#faq">FAQ</a></div>
+        <div class="navlinks"><a href="#features">Features</a><a href="#beta">1.5.1 beta</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
       </nav>
       <div class="hero" id="top">
         <div>
@@ -162,17 +162,17 @@
           <div class="actions">
             <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
             <a class="button secondary" href="https://github.com/jptstar/tsun-local">Source &amp; README</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.0">Release 1.5.0</a>
+            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.3">Release 1.5.1-beta.3</a>
           </div>
         </div>
         <aside class="preview-card" aria-label="MP3000 entity and alarm summary">
-          <span class="preview-kicker">🚨 NEW IN 1.5.0</span>
-          <div class="preview-primary"><span class="big">94</span><strong>MP3000 entities</strong></div>
+          <span class="preview-kicker">🧪 NEW IN 1.5.1 BETA 3</span>
+          <div class="preview-primary"><span class="big">105</span><strong>MP3000 entities</strong></div>
           <div class="preview-stats">
-            <div class="preview-stat"><strong>55</strong><span>enabled by default</span></div>
-            <div class="preview-stat"><strong>39</strong><span>advanced diagnostics</span></div>
-            <div class="preview-stat"><strong>12</strong><span>physically verified alarm mappings</span></div>
-            <div class="preview-stat"><strong>224</strong><span>alarm positions</span></div>
+            <div class="preview-stat"><strong>56</strong><span>enabled by default</span></div>
+            <div class="preview-stat"><strong>49</strong><span>advanced diagnostics</span></div>
+            <div class="preview-stat"><strong>10</strong><span>new A1/21 field-validation entities</span></div>
+            <div class="preview-stat"><strong>224</strong><span>alarm positions preserved</span></div>
           </div>
         </aside>
       </div>
@@ -184,12 +184,23 @@
       <h2>TSUN Local at a glance</h2>
       <p class="intro">One clean integration for three local TSUN protocol families, with everyday entities visible and expert diagnostics kept out of the way.</p>
       <div class="grid">
-        <div class="card"><strong>🔌 1511 · 02B0 · 1097</strong><span class="muted">TITAN, GEN3 PLUS and experimental GEN3 support.</span></div>
-        <div class="card"><strong>🔍 Plug &amp; play identification</strong><span class="muted">No protocol configuration in most cases. TSUN Local identifies a supported local protocol from the logger—typically in about 20 seconds when the logger is reachable.</span></div>
+        <div class="card"><strong>🔌 1511 · 02B0 · 1097</strong><span class="muted">TITAN, GEN3 / GEN3 PLUS and experimental 1097 support.</span></div>
+        <div class="card"><strong>🔍 Plug &amp; play identification</strong><span class="muted">No protocol configuration in most cases. TSUN Local identifies a supported local protocol from the logger.</span></div>
         <div class="card"><strong>☀️ Dynamic PV detection</strong><span class="muted">PV inputs appear progressively as the inverter exposes them.</span></div>
-        <div class="card"><strong>🚨 Clear alarms</strong><span class="muted">Active names and local codes without a wall of permanent entities.</span></div>
+        <div class="card"><strong>🚨 Clear alarms</strong><span class="muted">Localized active alarm names without a wall of permanent entities.</span></div>
         <div class="card"><strong>🌍 Eight languages</strong><span class="muted">Entities and active alarm wording follow Home Assistant.</span></div>
         <div class="card"><strong>🔒 Read-only</strong><span class="muted">No inverter configuration or protection-setting writes.</span></div>
+      </div>
+    </section>
+
+    <section id="beta">
+      <h2>1.5.1 beta: MP3000 field-validation update</h2>
+      <p class="intro">The 1.5.0 presentation and alarm architecture stay intact. Beta 3 consolidates the MP3000 diagnostics, localized alarm-name entity and logger RSSI fixes.</p>
+      <div class="grid">
+        <div class="card"><strong>📶 Wi-Fi RSSI fallback fixed</strong><span class="muted">A valid index page without RSSI no longer stops the search. TSUN Local continues until `/status.html` exposes `cover_sta_rssi`.</span></div>
+        <div class="card"><strong>🛡️ 10 A1/21 diagnostics</strong><span class="muted">Ten additional MP3000 field-validation sensors are available as advanced entities and remain disabled by default.</span></div>
+        <div class="card"><strong>🚨 Active alarm names</strong><span class="muted">A dedicated sensor exposes localized active alarm text directly in Home Assistant. Internal Axxx identifiers stay diagnostic-only.</span></div>
+        <div class="card"><strong>📐 Corrected coefficient</strong><span class="muted"><code>0x07EF</code> raw 4000 is decoded with ×0.01 as <strong>40.00 %/Hz</strong>.</span></div>
       </div>
     </section>
 
@@ -210,7 +221,7 @@
         </article>
         <article class="alarm">
           <div class="row"><strong>Pending example</strong><span class="pill pending">PHYSICAL CHECK</span></div>
-          <h3>Unidentified inverter alarm (A030)</h3>
+          <h3>Unidentified inverter alarm</h3>
           <p>The active position remains visible without inventing its exact cause.</p>
         </article>
       </div>
@@ -222,7 +233,7 @@
           <tr><td><code>A129–A224</code></td><td>96 PV positions</td><td>12 validated · 84 require control-hardware validation</td></tr>
         </tbody>
       </table>
-      <div class="notice"><span>⚠️</span><div><strong>Validation remains explicit</strong>The remaining 212 positions are fully operational entries with unique neutral codes. Their exact functional meaning will be added only after a physical test on suitable control hardware. The eight translations are independent TSUN Local wording, not vendor-certified server terminology.</div></div>
+      <div class="notice"><span>⚠️</span><div><strong>No alarm regression in the beta feature set</strong>The 224-position catalogue, stable internal positions, six PV alarm words and compact Home Assistant presentation remain unchanged from 1.5.0. The new beta diagnostics do not create duplicate alarm entities.</div></div>
     </section>
 
     <section id="compatibility">
@@ -250,7 +261,7 @@
           <ul>
             <li>PV voltage, current, power and energy</li>
             <li>AC voltage, current, frequency, power and energy</li>
-            <li>Inverter alarm and active alarm count</li>
+            <li>Inverter alarm, active alarm count and localized active alarm names</li>
             <li>Communication and logger information</li>
             <li>Online state and manual refresh</li>
           </ul>
@@ -258,11 +269,11 @@
         <div class="column">
           <h3>Advanced diagnostics</h3>
           <ul>
-            <li>Grid-protection thresholds and timing</li>
+            <li>22 core grid-protection thresholds and timing values</li>
+            <li>10 additional MP3000 field-validation diagnostics</li>
+            <li>1511 country/profile raw candidate</li>
             <li>Inverter and ambient temperature where available</li>
-            <li>Power, protocol and insulation diagnostics</li>
             <li>Complete raw alarm words, disabled by default</li>
-            <li>Read-only throughout</li>
           </ul>
         </div>
       </div>
@@ -271,7 +282,7 @@
 
     <section id="install">
       <h2>Install through HACS</h2>
-      <p class="intro">Home Assistant 2026.3.0 or later. Add the custom repository, install TSUN Local, restart Home Assistant, then add the integration from Settings → Devices &amp; services. In most installations there is no protocol to configure: automatic identification typically completes in about 20 seconds when the logger is reachable.</p>
+      <p class="intro">Home Assistant 2026.3.0 or later. Add the custom repository, install TSUN Local, restart Home Assistant, then add the integration from Settings → Devices &amp; services.</p>
       <div class="actions">
         <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Open the HACS repository</a>
         <a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local">Read the installation guide</a>
@@ -284,7 +295,7 @@
       <div class="grid">
         <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
         <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
-        <div class="card"><strong>How is TSUN Local installed?</strong><span class="muted">Add the repository to HACS, install the integration, restart Home Assistant and add TSUN Local from Devices &amp; services.</span></div>
+        <div class="card"><strong>What is beta in 1.5.1-beta.3?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the new MP3000 semantic diagnostics are intentionally labelled as field-validation candidates.</span></div>
       </div>
     </section>
 
@@ -306,7 +317,7 @@
     <section>
       <h2>Independent community project</h2>
       <p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN. TSUN and its product names remain the property of their respective owners.</p>
-      <p>Created and maintained by <a href="https://github.com/jptstar">Jean-Philippe TESTART (jptstar)</a> for the Home Assistant community. Distributed under GPL-3.0-or-later.</p>
+      <p>Created and maintained by <a href="https://github.com/jptstar">Jean-Philippe TESTART (jptstar)</a> for the Home Assistant community. Public 1097 country/profile research used by the experimental adapter is credited to <a href="https://github.com/s-allius/tsun-gen3-proxy">Stefan Allius</a>. Distributed under GPL-3.0-or-later.</p>
     </section>
   </main>
 

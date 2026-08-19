@@ -15,12 +15,13 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 | 🛡️ | Advanced diagnostic entity, **disabled by default** |
 | 🔄 | Created dynamically when the corresponding PV input is detected |
 | 🧪 | Experimental protocol support |
+| 🔬 | Field-validation candidate; live read confirmed but semantic validation still pending |
 
 ---
 
 ## MP3000 entity summary — 1511 with six PV inputs
 
-The maximum current MP3000 configuration exposes **94 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
+The maximum 1.5.1-beta.3 MP3000 configuration exposes **105 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.
 
 | Group | Maximum | Examples |
 |---|---:|---|
@@ -29,20 +30,21 @@ The maximum current MP3000 configuration exposes **94 Home Assistant entities**.
 | Temperatures | 2 | inverter and inverter ambient temperature |
 | Communication | 5 | online state, last success, duration, blocks, failures |
 | Operating state and control | 3 | raw inverter status, operating state, manual refresh |
-| Power and capacity diagnostics | 3 | rated power, maximum designed power, candidate power level |
+| Power and capacity diagnostics | 2 | rated power, maximum designed power |
 | Grid protection | 22 | voltage/frequency thresholds, recovery values and delays |
-| Alarm interface | 16 | inverter alarm, active-alarm count, 14 complete raw words |
+| MP3000 field-validation diagnostics | 11 | ten additional A1/21 fields plus raw country/profile candidate |
+| Alarm interface | 17 | inverter alarm, active-alarm count, active alarm names, 14 complete raw words |
 | Unconfirmed raw diagnostic | 1 | raw register 3018 |
-| **Total** | **94** | Maximum after detection of PV1 through PV6 |
+| **Total** | **105** | **56 enabled by default · 49 advanced/disabled by default** |
 
 > [!NOTE]
-> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
+> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state, localized alarm-name sensor and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
 
 ---
 
 ## Common entities — 1511 · 02B0 · 1097
 
-These entities are available across all three supported protocol families.
+These entities are available across the supported protocol families when the corresponding data is provided by the active adapter.
 
 ### AC / production sensors
 
@@ -85,7 +87,7 @@ These entities are available across all three supported protocol families.
 
 # 1511 · TITAN
 
-**Status:** ✅ Validated  
+**Status:** ✅ Validated on TSOL-MP3000  
 **PV inputs:** up to 6, detected progressively
 
 ## 1511-specific diagnostics
@@ -93,22 +95,20 @@ These entities are available across all three supported protocol families.
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
 | `alarm_active_count` | Active alarms | ✅ |
+| `active_alarm_names` | Active alarm names | ✅ |
 | `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
 | `inverter_operating_state` | Inverter operating state | ✅ |
-| `alarm_global_0_raw` | Raw global alarm 0 | 🛡️ |
-| `alarm_global_1_raw` | Raw global alarm 1 | 🛡️ |
-| `alarm_global_2_raw` | Raw global alarm 2 | 🛡️ |
-| `alarm_global_3_raw` | Raw global alarm 3 | 🛡️ |
-| `alarm_secondary_0_raw` | Raw controller alarm 0 | 🛡️ |
-| `alarm_secondary_1_raw` | Raw controller alarm 1 | 🛡️ |
-| `alarm_secondary_2_raw` | Raw controller alarm 2 | 🛡️ |
-| `alarm_secondary_3_raw` | Raw controller alarm 3 | 🛡️ |
+| `alarm_global_0_raw` … `alarm_global_3_raw` | Four raw global alarm words | 🛡️ |
+| `alarm_secondary_0_raw` … `alarm_secondary_3_raw` | Four raw controller alarm words | 🛡️ |
+| `pv1_alarm_raw` … `pv6_alarm_raw` | Six raw PV alarm words | 🛡️ 🔄 |
 
 ### Field-observation notes
 
 - Register 3017 is exposed as **Inverter temperature** and register 3028 as **Inverter ambient temperature**, both decoded with `raw - 40 °C`.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
-- Decimal register `2028` (`0x07EC`) is exposed as `output_coefficient_candidate`, displayed as **Power level (candidate)**. The candidate label is intentional until field validation confirms the mapping.
+- In 1.5.1-beta.3, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
+- `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.
+- The adjacent `0x07D1 = 80` and `0x07D2 = 80` values are documented as the leading pair for the two TSUN/Talent 40.0 s grid connection/reconnection settings with candidate scaling `×0.5 s`. They are **not exposed as separately named Home Assistant entities yet**, because their individual order cannot be proven while both settings have the same value.
 - On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.
 
 ## 1511 MP3000 alarm catalogue
@@ -121,7 +121,7 @@ The independent local catalogue contains all **224 positions** exposed by the 14
 | `A065`–`A128` | 64 controller positions | Control-hardware validation required |
 | `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
 
-The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `alarm_active_count` entity lists the localized names and stable local codes of current alarms. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
+The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `active_alarm_names` entity publishes the localized alarm text directly; `alarm_active_count` remains the numeric count. Stable Axxx codes are retained only as internal/debug identifiers. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
 
 ## 1511 PV entities
 
@@ -138,7 +138,7 @@ Every detected PV input exposes voltage, current, power, daily energy, total ene
 
 All rows above are **🔄 dynamic**: only PV inputs detected by TSUN Local are created.
 
-## 1511 advanced diagnostics
+## 1511 core grid-protection diagnostics
 
 All entities below are **🛡️ disabled by default**.
 
@@ -166,15 +166,41 @@ All entities below are **🛡️ disabled by default**.
 | `grid_overfrequency_time_2` | Grid overfrequency time 2 | s |
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
 | `grid_undervoltage_time_3` | Grid undervoltage time 3 | s |
+
+## 1511 field-validation diagnostics — 1.5.1 beta
+
+All entries are **🛡️ disabled by default** and carry the evidence status **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING** unless noted otherwise.
+
+| Entity key | Name | Local register | Unit / decode |
+|---|---|---:|---|
+| `grid_recovery_rate` | Recovery rate | `2003 / 0x07D3` | s · ×0.5 |
+| `grid_overvoltage_10min` | Grid Over Voltage 10 Minutes Protection | `2017 / 0x07E1` | V · ×0.1 |
+| `grid_overfrequency_reduction_frequency` | Overfrequency reduction value | `2030 / 0x07EE` | Hz · ×0.01 |
+| `grid_overfrequency_reduction_coefficient` | Overfrequency reduction coefficient | `2031 / 0x07EF` | %/Hz · ×0.01 (`4000` → `40.00`) |
+| `overtemperature_protection_temperature` | Overtemperature protection value | `2032 / 0x07F0` | °C |
+| `grid_start_upper_voltage_limit` | Upper startup voltage limit | `2043 / 0x07FB` | V · ×0.1 |
+| `grid_start_lower_voltage_limit` | Lower startup voltage limit | `2044 / 0x07FC` | V · ×0.1 |
+| `grid_start_upper_frequency_limit` | Upper startup frequency limit | `2045 / 0x07FD` | Hz · ×0.01 |
+| `grid_start_lower_frequency_limit` | Lower startup frequency limit | `2046 / 0x07FE` | Hz · ×0.01 |
+| `grid_qp_voltage_threshold` | QP voltage threshold | `2048 / 0x0800` | V |
+| `country_profile_raw` | Country/profile code | `2000 / 0x07D0` candidate | raw (`8` observed for France) |
+
+The exported TSUN/Talent country `raw_value = 1008` is retained as profile evidence only and is **not** used as the local country enum. The local semantic reference used for research is France=`8` from Stefan Allius's public 1097 country table.
+
+Additional 1511 advanced diagnostics also include:
+
+| Entity key | Home Assistant name | Unit |
+|---|---|---:|
 | `inverter_temperature` | Inverter temperature | °C |
 | `ambient_temperature` | Inverter ambient temperature | °C |
-| `output_coefficient_candidate` | Power level (candidate) | % |
+
+See [MP3000 / TITAN 1511 field-validation diagnostics](MP3000_FIELD_VALIDATION.md) for the evidence details.
 
 ---
 
-# 02B0 · GEN3 PLUS
+# 02B0 · GEN3 / GEN3 PLUS
 
-**Status:** ✅ Validated  
+**Status:** ✅ Validated on TSOL-MX500  
 **PV inputs:** up to 4, detected dynamically
 
 ## 02B0-specific diagnostics
@@ -229,10 +255,12 @@ All entities below are **🛡️ disabled by default**.
 
 ---
 
-# 1097 · GEN3
+# 1097 · GEN3 / GEN3 PLUS
 
 **Status:** 🧪 Experimental  
 **PV inputs:** up to 6, detected dynamically
+
+The experimental 1097 mapping is informed by public protocol research from **Stefan Allius / `s-allius/tsun-gen3-proxy`**. This includes the country/profile mapping and enumeration used as an external semantic reference; TSUN Local does not present those findings as its own discovery.
 
 ## 1097-specific diagnostics
 
