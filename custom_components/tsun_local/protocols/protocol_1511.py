@@ -88,6 +88,8 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
 
 ADVANCED_GRID_KEYS = frozenset(
     {
+        "grid_qp_voltage_threshold",
+        "grid_recovery_rate",
         "grid_overvoltage_recovery_voltage",
         "grid_undervoltage_recovery_voltage",
         "grid_overfrequency_recovery_frequency",
@@ -100,6 +102,7 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overvoltage_level_2",
         "grid_overvoltage_time_1",
         "grid_overvoltage_time_2",
+        "grid_overvoltage_10min",
         "grid_underfrequency_level_1",
         "grid_underfrequency_level_2",
         "grid_underfrequency_time_1",
@@ -110,11 +113,23 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overfrequency_time_2",
         "grid_undervoltage_level_3",
         "grid_undervoltage_time_3",
+        "grid_overfrequency_reduction_frequency",
+        "grid_overfrequency_reduction_coefficient",
+        "overtemperature_protection_temperature",
+        "grid_start_upper_voltage_limit",
+        "grid_start_lower_voltage_limit",
+        "grid_start_upper_frequency_limit",
+        "grid_start_lower_frequency_limit",
         "output_coefficient_candidate",
     }
 )
 
 ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
+    # The ten fields marked "field validation" below correlate one-to-one
+    # between a real MP3000 A1/21 dump and the names/values exposed by the
+    # TSUN/Talent device profile. Their local addresses still require an
+    # independent physical change/test before being considered validated.
+    "grid_recovery_rate": (0x07D3, 0.5),  # field validation
     "grid_overvoltage_recovery_voltage": (0x07D4, 0.1),
     "grid_undervoltage_recovery_voltage": (0x07D5, 0.1),
     "grid_overfrequency_recovery_frequency": (0x07D6, 0.01),
@@ -127,6 +142,7 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overvoltage_level_2": (0x07DE, 0.1),
     "grid_overvoltage_time_1": (0x07DF, 0.02),
     "grid_overvoltage_time_2": (0x07E0, 0.02),
+    "grid_overvoltage_10min": (0x07E1, 0.1),  # field validation
     "grid_underfrequency_level_1": (0x07E2, 0.01),
     "grid_underfrequency_level_2": (0x07E3, 0.01),
     "grid_underfrequency_time_1": (0x07E4, 0.02),
@@ -140,6 +156,14 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     # Candidate inferred from the adjacent protocol layout; keep the
     # candidate label until confirmed independently on 1511 hardware.
     "output_coefficient_candidate": (0x07EC, 100 / 1024),
+    "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),  # field validation
+    "grid_overfrequency_reduction_coefficient": (0x07EF, 1.0),  # field validation
+    "overtemperature_protection_temperature": (0x07F0, 1.0),  # field validation
+    "grid_start_upper_voltage_limit": (0x07FB, 0.1),  # field validation
+    "grid_start_lower_voltage_limit": (0x07FC, 0.1),  # field validation
+    "grid_start_upper_frequency_limit": (0x07FD, 0.01),  # field validation
+    "grid_start_lower_frequency_limit": (0x07FE, 0.01),  # field validation
+    "grid_qp_voltage_threshold": (0x0800, 1.0),  # field validation
 }
 
 
