@@ -78,7 +78,17 @@ Country enumeration documented by Stefan Allius:
 
 This 1097 discovery is credited to **Stefan Allius**. TSUN Local reuses that public research for its experimental 1097 support.
 
-For protocol **1511 / MP3000**, France=`8` is now the correct semantic country code to look for, but no local 1511 register has yet been demonstrated to carry that value. Therefore a 1511 `country_profile` entity remains deliberately unmapped until a local address is proven.
+### MP3000 / 1511 country candidate
+
+After correcting the expected France value from `1008` to the country enum `8`, the live MP3000 A1/21 dump reveals an exact candidate at the first register of the block:
+
+| TSUN/Talent setting | Expected semantic value | Local 1511 candidate | Live raw value | Status |
+|---|---:|---:|---:|---|
+| Country / Réglages du Pays = France | `8` | 2000 (`0x07D0`) | `8` (`0x0008`) | ✅ Live device read confirmed; independent validation pending |
+
+The immediately following live values are `0x07D1 = 80` and `0x07D2 = 80`, which also fit the two 40.0 s grid connection/reconnection profile values with a candidate ×0.5 s scaling. This sequence makes `0x07D0` a **very strong 1511 country/profile candidate**, but it is not promoted to fully validated status from a single France device alone.
+
+Changing a grid-country profile solely for reverse-engineering is not required for validation. A safer independent confirmation would be a dump from another MP3000 configured for a different known country, or another authoritative 1511 mapping showing the same field position.
 
 ## Evidence level
 
@@ -86,12 +96,12 @@ The evidence is intentionally split into three parts:
 
 1. **Semantic identification:** TSUN/Talent exposes the parameter name and its decoded value for the same MP3000 device.
 2. **Live local read:** the proposed A1/21 address is successfully read on the physical MP3000 and decodes to the same value.
-3. **Configuration-change validation:** still pending for the ten additional protection fields. A mapping becomes fully demonstrated when changing the official setting changes the proposed local register as expected and restoring it restores the original raw value.
+3. **Independent validation:** still pending for additional candidate fields. A mapping becomes fully demonstrated when an independent observation distinguishes the field unambiguously, for example a controlled configuration change or a second device/profile with a different known value.
 
 The six PV daily-generation addresses are stronger: they are present in the TSUN Smart 1511 parameter CSV, are read correctly in the native A3/A4 blocks, and their live sum closely matches the TSUN Smart daily-production display.
 
 ## Deliberately not mapped yet
 
-`Grid Connection Time` / `Temps de Connexion au Réseau` and `Grid Reconnection Time` / `Temps de Reconnexion au Réseau` are visible in the TSUN/Talent profile, but their local A1/21 addresses cannot yet be identified with sufficient confidence. They remain out of the integration until an address can be demonstrated.
+`Grid Connection Time` / `Temps de Connexion au Réseau` and `Grid Reconnection Time` / `Temps de Reconnexion au Réseau` now have strong adjacent candidates at `0x07D1` and `0x07D2` (`80 × 0.5 = 40.0 s`), but their individual order cannot be proven while both configured values are identical. They remain candidate mappings until an independent observation distinguishes them.
 
-Likewise, country code `8` means France according to Stefan Allius's public 1097 country table, but it is not assigned to a 1511 local register without direct evidence.
+Likewise, `0x07D0 = 8` matches France according to Stefan Allius's public country table and is now documented as the leading 1511 country/profile candidate, but it remains under independent validation rather than being presented as definitively proven.
