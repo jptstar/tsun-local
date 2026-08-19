@@ -45,8 +45,6 @@ jobs:
           )
           protocol.write_text(text, encoding='utf-8')
 
-          # Use the existing isolated protocol test loader instead of importing
-          # the full Home Assistant integration package in the new regression.
           Path('tests/test_mp3000_firmware_versions.py').unlink(missing_ok=True)
           test_path = Path('tests/test_protocol_1511_diagnostics.py')
           test = test_path.read_text(encoding='utf-8')
@@ -68,32 +66,33 @@ jobs:
           if old_import not in test:
               raise SystemExit('Expected protocol 1511 test import block not found')
           test = test.replace(old_import, new_import, 1)
-          marker = '''    def test_decodes_3017_and_3028_as_temperatures_and_keeps_3018_raw(self) -> None:
-          '''
-          firmware_test = '''    def test_decodes_mp3000_packed_firmware_versions(self) -> None:
-              self.assertEqual(firmware_version(0x1172), "V1.1.72")
-              self.assertEqual(firmware_version(0x1154), "V1.1.54")
-              self.assertEqual(firmware_version(0x1304), "V1.3.04")
-              self.assertEqual(
-                  FIRMWARE_VERSION_REGISTERS,
-                  {
-                      "dsp_firmware_version": 0x0BC0,
-                      "qcpu1_firmware_version": 0x0E26,
-                      "qcpu2_firmware_version": 0x0EEE,
-                  },
-              )
-              self.assertEqual(
-                  decode_firmware_versions(
-                      {0x0BC0: 0x1172, 0x0E26: 0x1154, 0x0EEE: 0x1154}
-                  ),
-                  {
-                      "dsp_firmware_version": "V1.1.72",
-                      "qcpu1_firmware_version": "V1.1.54",
-                      "qcpu2_firmware_version": "V1.1.54",
-                  },
-              )
-
-          '''
+          marker = '    def test_decodes_3017_and_3028_as_temperatures_and_keeps_3018_raw(self) -> None:\n'
+          firmware_test = '\n'.join([
+              '    def test_decodes_mp3000_packed_firmware_versions(self) -> None:',
+              '        self.assertEqual(firmware_version(0x1172), "V1.1.72")',
+              '        self.assertEqual(firmware_version(0x1154), "V1.1.54")',
+              '        self.assertEqual(firmware_version(0x1304), "V1.3.04")',
+              '        self.assertEqual(',
+              '            FIRMWARE_VERSION_REGISTERS,',
+              '            {',
+              '                "dsp_firmware_version": 0x0BC0,',
+              '                "qcpu1_firmware_version": 0x0E26,',
+              '                "qcpu2_firmware_version": 0x0EEE,',
+              '            },',
+              '        )',
+              '        self.assertEqual(',
+              '            decode_firmware_versions(',
+              '                {0x0BC0: 0x1172, 0x0E26: 0x1154, 0x0EEE: 0x1154}',
+              '            ),',
+              '            {',
+              '                "dsp_firmware_version": "V1.1.72",',
+              '                "qcpu1_firmware_version": "V1.1.54",',
+              '                "qcpu2_firmware_version": "V1.1.54",',
+              '            },',
+              '        )',
+              '',
+              '',
+          ])
           if marker not in test:
               raise SystemExit('Expected insertion point not found in protocol test')
           test = test.replace(marker, firmware_test + marker, 1)
