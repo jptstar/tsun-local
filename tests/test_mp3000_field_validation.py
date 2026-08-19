@@ -5,9 +5,23 @@
 
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
+import sys
 import unittest
 
-from custom_components.tsun_local.protocols.protocol_1511 import (
+PROTOCOLS_PATH = Path(__file__).parents[1] / "custom_components" / "tsun_local" / "protocols"
+SPEC = importlib.util.spec_from_file_location(
+    "tsun_local_mp3000_field_validation_tests",
+    PROTOCOLS_PATH / "__init__.py",
+    submodule_search_locations=[str(PROTOCOLS_PATH)],
+)
+assert SPEC is not None and SPEC.loader is not None
+PKG = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = PKG
+SPEC.loader.exec_module(PKG)
+
+from tsun_local_mp3000_field_validation_tests.protocol_1511 import (  # noqa: E402
     ADVANCED_GRID_REGISTERS,
     COUNTRY_PROFILE_REGISTER,
     TITAN_DIAGNOSTIC_KEYS,
