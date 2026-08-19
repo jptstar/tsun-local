@@ -1,0 +1,104 @@
+name: Cleanup Actions history
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only (recommended first run)"
+        required: true
+        default: true
+        type: boolean
+      days_to_keep:
+        description: "Always keep runs newer than this many days"
+        required: true
+        default: "30"
+        type: string
+      keep_recent_per_workflow:
+        description: "Always keep this many most recent runs per workflow"
+        required: true
+        default: "10"
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    name: Clean old workflow runs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old workflow runs safely
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const currentRunId = context.runId;
+
+            const dryRun = String('${{ inputs.dry_run }}') === 'true';
+            const daysToKeep = Number('${{ inputs.days_to_keep }}');
+            const keepRecent = Number('${{ inputs.keep_recent_per_workflow }}');
+
+            if (!Number.isInteger(daysToKeep) || daysToKeep < 1 || daysToKeep > 3650) {
+              core.setFailed('days_to_keep must be an integer between 1 and 3650');
+              return;
+            }
+            if (!Number.isInteger(keepRecent) || keepRecent < 1 || keepRecent > 100) {
+              core.setFailed('keep_recent_per_workflow must be an integer between 1 and 100');
+              return;
+            }
+
+            const cutoff = Date.now() - daysToKeep * 24 * 60 * 60 * 1000;
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              { owner, repo, per_page: 100 }
+            );
+
+            runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const seenPerWorkflow = new Map();
+            const candidates = [];
+            const kept = [];
+
+            for (const run of runs) {
+              const workflowId = run.workflow_id;
+              const seen = seenPerWorkflow.get(workflowId) || 0;
+              seenPerWorkflow.set(workflowId, seen + 1);
+
+              const isCurrentRun = run.id === currentRunId;
+              const isRecentByCount = seen < keepRecent;
+              const isRecentByAge = new Date(run.created_at).getTime() >= cutoff;
+              const isActive = run.status !== 'completed';
+
+              if (isCurrentRun || isRecentByCount || isRecentByAge || isActive) {
+                kept.push(run);
+                continue;
+              }
+
+              candidates.push(run);
+            }
+
+            core.info(`Found ${runs.length} total runs.`);
+            core.info(`Keeping ${kept.length} runs.`);
+            core.info(`${dryRun ? 'Would delete' : 'Deleting'} ${candidates.length} old runs.`);
+
+            for (const run of candidates) {
+              core.info(`${dryRun ? '[DRY RUN] ' : ''}${run.name} #${run.run_number} | ${run.conclusion || run.status} | ${run.created_at} | id=${run.id}`);
+              if (!dryRun) {
+                await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
+              }
+            }
+
+            await core.summary
+              .addHeading('GitHub Actions history cleanup')
+              .addTable([
+                [{data:'Mode', header:true}, dryRun ? 'Dry run' : 'Delete'],
+                [{data:'Total runs', header:true}, String(runs.length)],
+                [{data:'Kept', header:true}, String(kept.length)],
+                [{data: dryRun ? 'Would delete' : 'Deleted', header:true}, String(candidates.length)],
+                [{data:'Age protection', header:true}, `${daysToKeep} days`],
+                [{data:'Recent runs kept per workflow', header:true}, String(keepRecent)],
+              ])
+              .addRaw('\nThis workflow deletes workflow-run history only. It never deletes workflow YAML files, releases, tags, or GitHub Releases.\n')
+              .write();
