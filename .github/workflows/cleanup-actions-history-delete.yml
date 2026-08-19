@@ -1,0 +1,101 @@
+name: Deep cleanup Actions history - DELETE
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    name: Delete obsolete workflow-run history
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete obsolete workflow-run history
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const currentRunId = context.runId;
+            const keepRecent = 5;
+
+            const workflows = await github.paginate(
+              github.rest.actions.listRepoWorkflows,
+              { owner, repo, per_page: 100 }
+            );
+            const activeWorkflows = workflows.filter(w => w.state === 'active');
+            const activeWorkflowIds = new Set(activeWorkflows.map(w => w.id));
+
+            const runs = await github.paginate(
+              github.rest.actions.listWorkflowRunsForRepo,
+              { owner, repo, per_page: 100 }
+            );
+            runs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            const seenActive = new Map();
+            const candidates = [];
+            const kept = [];
+            let orphanCandidates = 0;
+            let activeCandidates = 0;
+
+            for (const run of runs) {
+              const isCurrentRun = run.id === currentRunId;
+              const isRunning = run.status !== 'completed';
+              const workflowStillExists = activeWorkflowIds.has(run.workflow_id);
+
+              if (isCurrentRun || isRunning) {
+                kept.push(run);
+                continue;
+              }
+
+              if (!workflowStillExists) {
+                candidates.push({ run, reason: 'obsolete workflow' });
+                orphanCandidates += 1;
+                continue;
+              }
+
+              const seen = seenActive.get(run.workflow_id) || 0;
+              seenActive.set(run.workflow_id, seen + 1);
+              if (seen < keepRecent) {
+                kept.push(run);
+              } else {
+                candidates.push({ run, reason: `older than latest ${keepRecent}` });
+                activeCandidates += 1;
+              }
+            }
+
+            let deleted = 0;
+            let skipped404 = 0;
+            for (const item of candidates) {
+              const run = item.run;
+              core.info(`[DELETE] ${item.reason} | ${run.name} #${run.run_number} | ${run.conclusion || run.status} | ${run.created_at} | id=${run.id}`);
+              try {
+                await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
+                deleted += 1;
+              } catch (error) {
+                if (error.status === 404) {
+                  skipped404 += 1;
+                  core.warning(`Run ${run.id} was already gone; continuing.`);
+                } else {
+                  throw error;
+                }
+              }
+            }
+
+            await core.summary
+              .addHeading('Deep GitHub Actions cleanup')
+              .addTable([
+                [{data:'Mode', header:true}, 'DELETE'],
+                [{data:'Active workflow files', header:true}, String(activeWorkflows.length)],
+                [{data:'Total historical runs', header:true}, String(runs.length)],
+                [{data:'Runs kept', header:true}, String(kept.length)],
+                [{data:'Obsolete-workflow runs', header:true}, String(orphanCandidates)],
+                [{data:'Old active-workflow runs', header:true}, String(activeCandidates)],
+                [{data:'Deleted', header:true}, String(deleted)],
+                [{data:'Already absent', header:true}, String(skipped404)],
+                [{data:'Recent runs kept per active workflow', header:true}, String(keepRecent)],
+              ])
+              .addRaw('\nProtection: workflow YAML files, releases, tags, the current cleanup run and queued/in-progress runs are never deleted.\n')
+              .write();
