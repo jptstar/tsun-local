@@ -1,0 +1,51 @@
+name: Cleanup stable 1.5.1
+
+on:
+  push:
+    branches:
+      - beta-1097
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, '[cleanup-151]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Apply stable documentation cleanup
+        run: python3 .github/scripts/cleanup_151_stable.py
+
+      - name: Check generated diff
+        run: git diff --check
+
+      - name: Run complete unit-test suite
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Validate Home Assistant integration
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Commit validated stable cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/scripts/cleanup_151_stable.py .github/workflows/cleanup-151-stable.yml .github/cleanup-151-trigger.txt
+          git add -A
+          git commit -m "Finalize TSUN Local 1.5.1 documentation"
+          git push origin HEAD:beta-1097
