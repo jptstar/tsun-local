@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Preview only (recommended first run)"
+        description: "Preview only before deleting"
         required: true
         default: true
         type: boolean
       days_to_keep:
         description: "Always keep runs newer than this many days"
         required: true
-        default: "30"
+        default: "14"
         type: string
       keep_recent_per_workflow:
         description: "Always keep this many most recent runs per workflow"
         required: true
-        default: "10"
+        default: "5"
         type: string
 
 permissions:
@@ -100,5 +100,5 @@ jobs:
                 [{data:'Age protection', header:true}, `${daysToKeep} days`],
                 [{data:'Recent runs kept per workflow', header:true}, String(keepRecent)],
               ])
-              .addRaw('\nThis workflow deletes workflow-run history only. It never deletes workflow YAML files, releases, tags, or GitHub Releases.\n')
+              .addRaw('\nThis workflow deletes workflow-run history only. It never deletes workflow YAML files, release workflows, tags, or GitHub Releases.\n')
               .write();
