@@ -35,7 +35,6 @@ jobs:
           component = root / 'custom_components' / 'tsun_local'
           key = 'output_coefficient_candidate'
 
-          # Remove the unvalidated entity description and protocol mapping.
           sensor_path = component / 'sensor.py'
           sensor = sensor_path.read_text(encoding='utf-8')
           sensor_block = '''    _advanced_diagnostic(\n        "output_coefficient_candidate",\n        "output_coefficient_candidate",\n        unit=PERCENTAGE,\n        precision=1,\n    ),\n'''
@@ -61,14 +60,12 @@ jobs:
           )
           protocol_path.write_text(protocol, encoding='utf-8')
 
-          # Remove the translation key from canonical strings and all 8 locales.
           json_paths = [component / 'strings.json', *sorted((component / 'translations').glob('*.json'))]
           for path in json_paths:
               data = json.loads(path.read_text(encoding='utf-8'))
               data.get('entity', {}).get('sensor', {}).pop(key, None)
               path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
-          # Remove the obsolete entity from user registries during beta upgrade.
           init_path = component / '__init__.py'
           init = init_path.read_text(encoding='utf-8')
           helper_marker = '''def _async_remove_legacy_raw_profile_entity(\n    hass: HomeAssistant, logger_sn: str\n) -> None:\n'''
@@ -85,7 +82,6 @@ jobs:
               init = init.replace(setup_marker, setup_replacement, 1)
           init_path.write_text(init, encoding='utf-8')
 
-          # Remove public documentation for the discarded candidate.
           entities_md = root / 'docs' / 'ENTITIES.md'
           text = entities_md.read_text(encoding='utf-8')
           text = re.sub(r'^- Decimal register `2028` \(`0x07EC`\).*?\n', '', text, flags=re.MULTILINE)
@@ -97,23 +93,18 @@ jobs:
           html = re.sub(r'^\s*<tr><td><code>output_coefficient_candidate</code></td>.*?</tr>\s*\n', '', html, flags=re.MULTILINE)
           entities_html.write_text(html, encoding='utf-8')
 
-          # Update the old 1.4.1 test: the 1511 candidate must now stay absent.
           release_test = root / 'tests' / 'test_release_141_field_updates.py'
           test = release_test.read_text(encoding='utf-8')
           old = '''    def test_1511_power_level_is_explicitly_candidate(self) -> None:\n        data = decode_1511_advanced({0x07EC: 1024})\n        self.assertEqual(data["output_coefficient_candidate"], 100.0)\n        fr = json.loads(\n            (ROOT / "custom_components/tsun_local/translations/fr.json").read_text(\n                encoding="utf-8"\n            )\n        )\n        self.assertEqual(\n            fr["entity"]["sensor"]["output_coefficient_candidate"]["name"],\n            "Niveau de puissance (candidat)",\n        )\n\n'''
           new = '''    def test_1511_unvalidated_power_level_candidate_is_removed(self) -> None:\n        data = decode_1511_advanced({0x07EC: 1024})\n        self.assertNotIn("output_coefficient_candidate", data)\n\n'''
           if old not in test:
               raise SystemExit('old candidate release test not found')
-          test = test.replace(old, new, 1).replace('import json\n', '', 1)
-          release_test.write_text(test, encoding='utf-8')
+          release_test.write_text(test.replace(old, new, 1), encoding='utf-8')
 
-          # Strict translation coverage: every canonical entity gets a non-empty
-          # display name in every supported language; alarm wording covers all 8.
           coverage = root / 'tests' / 'test_translation_coverage.py'
           coverage.write_text('''from __future__ import annotations\n\nimport ast\nimport json\nfrom pathlib import Path\nimport unittest\n\nROOT = Path(__file__).parents[1]\nCOMPONENT = ROOT / "custom_components" / "tsun_local"\nTRANSLATIONS = COMPONENT / "translations"\nSUPPORTED = {"en.json", "fr.json", "de.json", "es.json", "it.json", "nl.json", "pl.json", "zh-Hans.json"}\n\n\nclass TranslationCoverageTests(unittest.TestCase):\n    def test_all_supported_translation_files_exist(self) -> None:\n        self.assertEqual({path.name for path in TRANSLATIONS.glob("*.json")}, SUPPORTED)\n\n    def test_every_entity_key_has_a_name_in_every_language(self) -> None:\n        canonical = json.loads((COMPONENT / "strings.json").read_text(encoding="utf-8"))\n        expected = canonical["entity"]\n        for path in sorted(TRANSLATIONS.glob("*.json")):\n            translated = json.loads(path.read_text(encoding="utf-8"))["entity"]\n            for platform, definitions in expected.items():\n                self.assertIn(platform, translated, f"{path.name}: missing {platform}")\n                for key in definitions:\n                    self.assertIn(key, translated[platform], f"{path.name}: missing {platform}.{key}")\n                    name = translated[platform][key].get("name")\n                    self.assertIsInstance(name, str, f"{path.name}: missing name for {platform}.{key}")\n                    self.assertTrue(name.strip(), f"{path.name}: empty name for {platform}.{key}")\n\n    def test_removed_candidate_is_not_exposed(self) -> None:\n        key = "output_coefficient_candidate"\n        self.assertNotIn(key, (COMPONENT / "sensor.py").read_text(encoding="utf-8"))\n        self.assertNotIn(key, (COMPONENT / "protocols" / "protocol_1511.py").read_text(encoding="utf-8"))\n        for path in [COMPONENT / "strings.json", *TRANSLATIONS.glob("*.json")]:\n            data = json.loads(path.read_text(encoding="utf-8"))\n            self.assertNotIn(key, data.get("entity", {}).get("sensor", {}), path.name)\n\n    def test_alarm_catalog_has_all_eight_languages_and_same_text_keys(self) -> None:\n        tree = ast.parse((COMPONENT / "alarm_catalog.py").read_text(encoding="utf-8"))\n        texts = None\n        for node in tree.body:\n            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == "_TEXTS":\n                texts = ast.literal_eval(node.value)\n                break\n        self.assertIsNotNone(texts)\n        assert texts is not None\n        self.assertEqual(set(texts), {"en", "fr", "de", "es", "it", "nl", "pl", "zh-hans"})\n        expected = set(texts["en"])\n        for language, values in texts.items():\n            self.assertEqual(set(values), expected, language)\n            self.assertTrue(all(isinstance(value, str) and value.strip() for value in values.values()))\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
           PY
 
-          # The old key may remain only in the internal registry cleanup and tests.
           if git grep -n 'output_coefficient_candidate' -- custom_components/tsun_local/sensor.py custom_components/tsun_local/protocols custom_components/tsun_local/strings.json custom_components/tsun_local/translations docs/ENTITIES.md docs/entities.html; then
             echo 'Removed candidate is still publicly exposed.' >&2
             exit 1
