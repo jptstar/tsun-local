@@ -131,19 +131,45 @@ Corresponding `-D` variants may also be compatible where applicable.
 
 ## 🚨 MP3000 alarm catalogue
 
-TSUN Local now models every bit exposed by the MP3000 alarm words. **All 224 positions are included, counted and displayed when active.** No active position is discarded.
+TSUN Local models every bit exposed by the MP3000/TITAN alarm words. **All 224 positions are included, counted and displayed when active.** No active position is discarded.
 
-| Local catalogue | Positions | Status |
+The current MP3000/TITAN alarm export provides functional names for **52 positions**. Home Assistant displays those functional names directly. Physical-validation status is intentionally kept out of the Home Assistant alarm wording and documented here instead.
+
+| Local catalogue | Positions | Current status |
 |---|---:|---|
-| `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
-| `A065`–`A128` | 64 controller positions | Control-hardware validation required |
-| `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
+| `A001`–`A064` | 64 inverter positions | 1 named mapping to verify · 63 neutral |
+| `A065`–`A128` | 64 controller positions | 3 named mappings to verify · 61 neutral |
+| `A129`–`A224` | 96 PV positions | 12 physically validated · 36 named mappings to verify · 48 neutral |
+| **Total** | **224** | **52 named · 12 validated · 40 to verify · 172 neutral** |
 
-The **12 validated functional mappings** cover low PV input voltage and PV DSP faults for PV1 through PV6. The remaining **212 positions are fully operational catalogue entries**: each receives a stable neutral TSUN Local code and appears in Home Assistant if it becomes active. Its functional description is added only after physical validation on suitable control hardware.
+### Physically validated mappings
+
+PV1 through PV6:
+- bit 8 → **PV input voltage too low**
+- bit 10 → **PV DSP fault**
+
+These 12 positions have been confirmed by direct physical observations.
+
+### Named mappings still requiring physical verification
+
+The following functional names come from the MP3000/TITAN alarm export and are placed according to the observed rule sequence. They are shown as normal alarm names in Home Assistant, but their exact local bit position still requires a controlled physical check:
+
+- `A001` → **Grid voltage too low**
+- `A065` → **DSP initialization incomplete**
+- `A069` → **CPU2 communication lost**
+- `A071` → **DSP communication lost**
+- PV1 through PV6, bit 1 → **PV output overvoltage**
+- PV1 through PV6, bit 2 → **PV output overcurrent**
+- PV1 through PV6, bit 3 → **PV input overvoltage**
+- PV1 through PV6, bit 5 → **PV self-test fault**
+- PV1 through PV6, bit 6 → **PV watchdog reset**
+- PV1 through PV6, bit 7 → **PV bus overvoltage**
+
+The remaining **172 positions** do not yet have a functional name in the current MP3000/TITAN alarm export. They remain active and visible with a stable neutral `Axxx` label until an additional mapping is available.
 
 Home Assistant shows one clear **Inverter alarm** state plus an **Active alarms** count and list. The 14 complete raw words remain available as disabled-by-default diagnostics, without creating 224 permanent entities.
 
-Alarm wording is translated into all eight TSUN Local languages. These are independent TSUN Local translations based on the confirmed meanings; they are not presented as vendor-certified server wording.
+Alarm wording is translated into all eight TSUN Local languages. Validation status is documentation-only; it is not appended to the alarm name shown in Home Assistant.
 
 ---
 
@@ -224,8 +250,10 @@ Version 1.5.0 adds a clean Home Assistant alarm interface while preserving every
 | | |
 |---|---|
 | 🚨 | **224 alarm positions included** |
-| ✅ | 12 hardware-validated functional mappings |
-| 🔎 | 212 neutral entries awaiting physical validation |
+| 🏷️ | **52 functional alarm names available** |
+| ✅ | **12 physically validated mappings** |
+| 🔎 | **40 named mappings awaiting physical verification** |
+| ◻️ | **172 neutral positions awaiting a functional name** |
 | 📊 | Active-alarm count, names and stable local codes |
 | 🛡️ | 14 complete raw words available but disabled by default |
 | 🌍 | Alarm presentation in 8 languages |
@@ -235,9 +263,9 @@ Version 1.5.0 adds a clean Home Assistant alarm interface while preserving every
 
 ## Validation policy
 
-Functional names and model support are labelled as validated only after repeatable checks on real hardware.
+Functional names recovered from the MP3000/TITAN alarm export may be exposed before their local bit position has been physically reproduced. The documentation distinguishes those candidate positions from the 12 mappings confirmed by direct hardware observation.
 
-Compatibility candidates are intentionally labelled separately from validated hardware.
+Home Assistant alarm text remains clean: validation markers are not appended to active alarm names.
 
 ---
 
