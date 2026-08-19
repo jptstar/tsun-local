@@ -20,6 +20,8 @@ jobs:
             const repo = context.repo.repo;
             const currentRunId = context.runId;
             const keepRecent = 5;
+            const maxDeletesPerRun = 75;
+            const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
             const workflows = await github.paginate(
               github.rest.actions.listRepoWorkflows,
@@ -37,22 +39,16 @@ jobs:
             const seenActive = new Map();
             const candidates = [];
             const kept = [];
-            let orphanCandidates = 0;
-            let activeCandidates = 0;
 
             for (const run of runs) {
-              const isCurrentRun = run.id === currentRunId;
-              const isRunning = run.status !== 'completed';
-              const workflowStillExists = activeWorkflowIds.has(run.workflow_id);
-
-              if (isCurrentRun || isRunning) {
+              if (run.id === currentRunId || run.status !== 'completed') {
                 kept.push(run);
                 continue;
               }
 
+              const workflowStillExists = activeWorkflowIds.has(run.workflow_id);
               if (!workflowStillExists) {
                 candidates.push({ run, reason: 'obsolete workflow' });
-                orphanCandidates += 1;
                 continue;
               }
 
@@ -62,40 +58,65 @@ jobs:
                 kept.push(run);
               } else {
                 candidates.push({ run, reason: `older than latest ${keepRecent}` });
-                activeCandidates += 1;
               }
             }
 
+            const batch = candidates.slice(0, maxDeletesPerRun);
             let deleted = 0;
-            let skipped404 = 0;
-            for (const item of candidates) {
-              const run = item.run;
-              core.info(`[DELETE] ${item.reason} | ${run.name} #${run.run_number} | ${run.conclusion || run.status} | ${run.created_at} | id=${run.id}`);
-              try {
-                await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
-                deleted += 1;
-              } catch (error) {
-                if (error.status === 404) {
-                  skipped404 += 1;
-                  core.warning(`Run ${run.id} was already gone; continuing.`);
-                } else {
+            let alreadyGone = 0;
+            let deferred = 0;
+
+            async function deleteWithRetry(run) {
+              const delays = [0, 2000, 5000, 10000, 20000];
+              for (let attempt = 0; attempt < delays.length; attempt += 1) {
+                if (delays[attempt]) await sleep(delays[attempt]);
+                try {
+                  await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: run.id });
+                  return 'deleted';
+                } catch (error) {
+                  if (error.status === 404) return 'gone';
+                  if ([403, 429].includes(error.status) && attempt < delays.length - 1) {
+                    core.warning(`Rate limited on run ${run.id}; retry ${attempt + 1}/${delays.length - 1}.`);
+                    continue;
+                  }
+                  if ([403, 422, 429].includes(error.status)) {
+                    core.warning(`Deferring run ${run.id}: HTTP ${error.status}.`);
+                    return 'deferred';
+                  }
                   throw error;
                 }
               }
+              return 'deferred';
+            }
+
+            for (const item of batch) {
+              const run = item.run;
+              core.info(`[DELETE] ${item.reason} | ${run.name} #${run.run_number} | ${run.created_at} | id=${run.id}`);
+              const result = await deleteWithRetry(run);
+              if (result === 'deleted') deleted += 1;
+              else if (result === 'gone') alreadyGone += 1;
+              else deferred += 1;
+              await sleep(250);
+            }
+
+            const remainingEstimate = Math.max(0, candidates.length - deleted - alreadyGone);
+            core.info(`Deleted ${deleted}; already gone ${alreadyGone}; deferred ${deferred}; remaining candidates about ${remainingEstimate}.`);
+            if (remainingEstimate > 0) {
+              core.notice('Run this cleanup workflow again until Remaining candidates reaches 0. Batching avoids GitHub API throttling.');
             }
 
             await core.summary
               .addHeading('Deep GitHub Actions cleanup')
               .addTable([
-                [{data:'Mode', header:true}, 'DELETE'],
                 [{data:'Active workflow files', header:true}, String(activeWorkflows.length)],
                 [{data:'Total historical runs', header:true}, String(runs.length)],
-                [{data:'Runs kept', header:true}, String(kept.length)],
-                [{data:'Obsolete-workflow runs', header:true}, String(orphanCandidates)],
-                [{data:'Old active-workflow runs', header:true}, String(activeCandidates)],
-                [{data:'Deleted', header:true}, String(deleted)],
-                [{data:'Already absent', header:true}, String(skipped404)],
+                [{data:'Candidates found', header:true}, String(candidates.length)],
+                [{data:'Batch size', header:true}, String(batch.length)],
+                [{data:'Deleted this run', header:true}, String(deleted)],
+                [{data:'Already absent', header:true}, String(alreadyGone)],
+                [{data:'Deferred / rate limited', header:true}, String(deferred)],
+                [{data:'Remaining candidates', header:true}, String(remainingEstimate)],
                 [{data:'Recent runs kept per active workflow', header:true}, String(keepRecent)],
               ])
-              .addRaw('\nProtection: workflow YAML files, releases, tags, the current cleanup run and queued/in-progress runs are never deleted.\n')
+              .addRaw('\nThis workflow deletes run history only. It never deletes workflow YAML files, releases, tags, the current cleanup run, or queued/in-progress runs. If candidates remain, run it again.\n')
               .write();
