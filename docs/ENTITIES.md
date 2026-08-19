@@ -30,15 +30,15 @@ The maximum 1.5.1-beta.1 MP3000 configuration exposes **105 Home Assistant entit
 | Temperatures | 2 | inverter and inverter ambient temperature |
 | Communication | 5 | online state, last success, duration, blocks, failures |
 | Operating state and control | 3 | raw inverter status, operating state, manual refresh |
-| Power and capacity diagnostics | 3 | rated power, maximum designed power, candidate power level |
+| Power and capacity diagnostics | 2 | rated power, maximum designed power |
 | Grid protection | 22 | voltage/frequency thresholds, recovery values and delays |
 | MP3000 field-validation diagnostics | 11 | ten additional A1/21 fields plus raw country/profile candidate |
-| Alarm interface | 16 | inverter alarm, active-alarm count, 14 complete raw words |
+| Alarm interface | 17 | inverter alarm, active-alarm count, active alarm names, 14 complete raw words |
 | Unconfirmed raw diagnostic | 1 | raw register 3018 |
-| **Total** | **105** | **55 enabled by default · 50 advanced/disabled by default** |
+| **Total** | **105** | **56 enabled by default · 49 advanced/disabled by default** |
 
 > [!NOTE]
-> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
+> The alarm catalogue contains **224 bit positions**, not 224 permanent Home Assistant entities. Active positions are presented through the alarm state, localized alarm-name sensor and count; the 14 complete raw words remain available as disabled diagnostics. Only the logger firmware is currently exposed. FCPU, DSP, QCPU1 and QCPU2 firmware entities are intentionally not listed until a reliable local mapping has been confirmed.
 
 ---
 
@@ -95,6 +95,7 @@ These entities are available across the supported protocol families when the cor
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
 | `alarm_active_count` | Active alarms | ✅ |
+| `active_alarm_names` | Active alarm names | ✅ |
 | `register_3018_raw` | Raw register 3018 (meaning unconfirmed) | ✅ |
 | `inverter_operating_state` | Inverter operating state | ✅ |
 | `alarm_global_0_raw` … `alarm_global_3_raw` | Four raw global alarm words | 🛡️ |
@@ -120,7 +121,7 @@ The independent local catalogue contains all **224 positions** exposed by the 14
 | `A065`–`A128` | 64 controller positions | Control-hardware validation required |
 | `A129`–`A224` | 96 PV positions | 12 validated · 84 require control-hardware validation |
 
-The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `alarm_active_count` entity lists the localized names and stable local codes of current alarms. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
+The 12 validated mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `active_alarm_names` entity publishes the localized alarm text directly; `alarm_active_count` remains the numeric count. Stable Axxx codes are retained only as internal/debug identifiers. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
 
 ## 1511 PV entities
 
@@ -175,7 +176,7 @@ All entries are **🛡️ disabled by default** and carry the evidence status **
 | `grid_recovery_rate` | Recovery rate | `2003 / 0x07D3` | s · ×0.5 |
 | `grid_overvoltage_10min` | Grid Over Voltage 10 Minutes Protection | `2017 / 0x07E1` | V · ×0.1 |
 | `grid_overfrequency_reduction_frequency` | Overfrequency reduction value | `2030 / 0x07EE` | Hz · ×0.01 |
-| `grid_overfrequency_reduction_coefficient` | Overfrequency reduction coefficient | `2031 / 0x07EF` | raw |
+| `grid_overfrequency_reduction_coefficient` | Overfrequency reduction coefficient | `2031 / 0x07EF` | %/Hz · ×0.01 (`4000` → `40.00`) |
 | `overtemperature_protection_temperature` | Overtemperature protection value | `2032 / 0x07F0` | °C |
 | `grid_start_upper_voltage_limit` | Upper startup voltage limit | `2043 / 0x07FB` | V · ×0.1 |
 | `grid_start_lower_voltage_limit` | Lower startup voltage limit | `2044 / 0x07FC` | V · ×0.1 |

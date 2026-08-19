@@ -101,58 +101,66 @@ _TEXTS: dict[str, dict[str, str]] = {
     "en": {
         "pv_input_undervoltage": "PV{pv} input voltage too low",
         "pv_dsp_fault": "PV{pv} DSP fault",
-        "unknown_inverter": "Unidentified inverter alarm ({code})",
-        "unknown_controller": "Unidentified controller alarm ({code})",
-        "unknown_pv": "Unidentified PV{pv} alarm ({code})",
+        "no_active_alarm": "No active alarm",
+        "unknown_inverter": "Unidentified inverter alarm",
+        "unknown_controller": "Unidentified controller alarm",
+        "unknown_pv": "Unidentified PV{pv} alarm",
     },
     "fr": {
         "pv_input_undervoltage": "Tension d’entrée PV{pv} trop faible",
         "pv_dsp_fault": "Défaut du DSP PV{pv}",
-        "unknown_inverter": "Alarme onduleur non identifiée ({code})",
-        "unknown_controller": "Alarme contrôleur non identifiée ({code})",
-        "unknown_pv": "Alarme PV{pv} non identifiée ({code})",
+        "no_active_alarm": "Aucune alarme active",
+        "unknown_inverter": "Alarme onduleur non identifiée",
+        "unknown_controller": "Alarme contrôleur non identifiée",
+        "unknown_pv": "Alarme PV{pv} non identifiée",
     },
     "de": {
         "pv_input_undervoltage": "PV{pv}-Eingangsspannung zu niedrig",
         "pv_dsp_fault": "PV{pv}-DSP-Fehler",
-        "unknown_inverter": "Nicht identifizierter Wechselrichteralarm ({code})",
-        "unknown_controller": "Nicht identifizierter Steuerungsalarm ({code})",
-        "unknown_pv": "Nicht identifizierter PV{pv}-Alarm ({code})",
+        "no_active_alarm": "Kein aktiver Alarm",
+        "unknown_inverter": "Nicht identifizierter Wechselrichteralarm",
+        "unknown_controller": "Nicht identifizierter Steuerungsalarm",
+        "unknown_pv": "Nicht identifizierter PV{pv}-Alarm",
     },
     "es": {
         "pv_input_undervoltage": "Tensión de entrada PV{pv} demasiado baja",
         "pv_dsp_fault": "Fallo del DSP de PV{pv}",
-        "unknown_inverter": "Alarma del inversor sin identificar ({code})",
-        "unknown_controller": "Alarma del controlador sin identificar ({code})",
-        "unknown_pv": "Alarma de PV{pv} sin identificar ({code})",
+        "no_active_alarm": "Ninguna alarma activa",
+        "unknown_inverter": "Alarma del inversor sin identificar",
+        "unknown_controller": "Alarma del controlador sin identificar",
+        "unknown_pv": "Alarma de PV{pv} sin identificar",
     },
     "it": {
         "pv_input_undervoltage": "Tensione di ingresso PV{pv} troppo bassa",
         "pv_dsp_fault": "Guasto DSP PV{pv}",
-        "unknown_inverter": "Allarme inverter non identificato ({code})",
-        "unknown_controller": "Allarme controller non identificato ({code})",
-        "unknown_pv": "Allarme PV{pv} non identificato ({code})",
+        "no_active_alarm": "Nessun allarme attivo",
+        "unknown_inverter": "Allarme inverter non identificato",
+        "unknown_controller": "Allarme controller non identificato",
+        "unknown_pv": "Allarme PV{pv} non identificato",
     },
     "nl": {
         "pv_input_undervoltage": "PV{pv}-ingangsspanning te laag",
         "pv_dsp_fault": "PV{pv}-DSP-storing",
-        "unknown_inverter": "Niet-geïdentificeerd omvormeralarm ({code})",
-        "unknown_controller": "Niet-geïdentificeerd besturingsalarm ({code})",
-        "unknown_pv": "Niet-geïdentificeerd PV{pv}-alarm ({code})",
+        "no_active_alarm": "Geen actief alarm",
+        "unknown_inverter": "Niet-geïdentificeerd omvormeralarm",
+        "unknown_controller": "Niet-geïdentificeerd besturingsalarm",
+        "unknown_pv": "Niet-geïdentificeerd PV{pv}-alarm",
     },
     "pl": {
         "pv_input_undervoltage": "Zbyt niskie napięcie wejściowe PV{pv}",
         "pv_dsp_fault": "Usterka DSP PV{pv}",
-        "unknown_inverter": "Nierozpoznany alarm falownika ({code})",
-        "unknown_controller": "Nierozpoznany alarm sterownika ({code})",
-        "unknown_pv": "Nierozpoznany alarm PV{pv} ({code})",
+        "no_active_alarm": "Brak aktywnych alarmów",
+        "unknown_inverter": "Nierozpoznany alarm falownika",
+        "unknown_controller": "Nierozpoznany alarm sterownika",
+        "unknown_pv": "Nierozpoznany alarm PV{pv}",
     },
     "zh-hans": {
         "pv_input_undervoltage": "PV{pv} 输入电压过低",
         "pv_dsp_fault": "PV{pv} DSP 故障",
-        "unknown_inverter": "未识别的逆变器报警（{code}）",
-        "unknown_controller": "未识别的控制器报警（{code}）",
-        "unknown_pv": "未识别的 PV{pv} 报警（{code}）",
+        "no_active_alarm": "无活动报警",
+        "unknown_inverter": "未识别的逆变器报警",
+        "unknown_controller": "未识别的控制器报警",
+        "unknown_pv": "未识别的 PV{pv} 报警",
     },
 }
 
@@ -201,6 +209,28 @@ def decode_active_alarms(
                 )
             )
     return tuple(active)
+
+
+def active_alarm_state(
+    measurements: dict[str, Any], language: str
+) -> str:
+    """Return a localized, bounded state string for active alarm names."""
+    active = decode_active_alarms(measurements, language)
+    if not active:
+        return _language_texts(language)["no_active_alarm"]
+
+    names = [alarm.name for alarm in active]
+    state = names[0]
+    for index, name in enumerate(names[1:], start=1):
+        candidate = f"{state} · {name}"
+        if len(candidate) <= 255:
+            state = candidate
+            continue
+        remaining = len(names) - index
+        suffix = f" · +{remaining}"
+        room = max(0, 255 - len(suffix))
+        return f"{state[:room].rstrip()}{suffix}"[:255]
+    return state[:255]
 
 
 def alarm_state_attributes(

@@ -38,7 +38,7 @@ class Mp3000FieldValidationTests(unittest.TestCase):
             "grid_recovery_rate": (0x07D3, 0.5),
             "grid_overvoltage_10min": (0x07E1, 0.1),
             "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),
-            "grid_overfrequency_reduction_coefficient": (0x07EF, 1.0),
+            "grid_overfrequency_reduction_coefficient": (0x07EF, 0.01),
             "overtemperature_protection_temperature": (0x07F0, 1.0),
             "grid_start_upper_voltage_limit": (0x07FB, 0.1),
             "grid_start_lower_voltage_limit": (0x07FC, 0.1),
@@ -69,7 +69,7 @@ class Mp3000FieldValidationTests(unittest.TestCase):
             decoded["grid_overfrequency_reduction_frequency"], 50.2
         )
         self.assertEqual(
-            decoded["grid_overfrequency_reduction_coefficient"], 4000.0
+            decoded["grid_overfrequency_reduction_coefficient"], 40.0
         )
         self.assertEqual(
             decoded["overtemperature_protection_temperature"], 79.0

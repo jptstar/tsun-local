@@ -33,7 +33,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import TsunConfigEntry
-from .alarm_catalog import alarm_state_attributes
+from .alarm_catalog import active_alarm_state, alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 
@@ -458,7 +458,8 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
     _field_validation_diagnostic(
         "grid_overfrequency_reduction_coefficient",
         "grid_overfrequency_reduction_coefficient",
-        precision=0,
+        unit="%/Hz",
+        precision=2,
         state_class=None,
     ),
     _field_validation_diagnostic(
@@ -695,6 +696,12 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:alert-circle-outline",
     ),
+    TsunSensorDescription(
+        key="active_alarm_names",
+        suggested_object_id="active_alarm_names",
+        translation_key="active_alarm_names",
+        icon="mdi:alert-circle",
+    ),
     *(
         _raw_alarm(
             f"alarm_global_{index}_raw",
@@ -850,6 +857,13 @@ async def async_setup_entry(
             and (
                 description.key in DIAGNOSTIC_SENSOR_KEYS
                 or description.key in coordinator.client.measurement_keys
+                or (
+                    description.key == "active_alarm_names"
+                    and str(
+                        getattr(coordinator.client, "protocol_name", "")
+                    ) == "1511"
+                    and "alarm_active" in coordinator.client.measurement_keys
+                )
             )
         ]
         if not descriptions:
@@ -914,6 +928,11 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         """Return the latest decoded value."""
         if self.entity_description.key == "label_serial_number":
             return self._label_serial_number
+        if self.entity_description.key == "active_alarm_names":
+            return active_alarm_state(
+                self.coordinator.data,
+                self.coordinator.hass.config.language,
+            )
         return self.coordinator.data.get(self.entity_description.key)
 
     def _source_register_address(self) -> str | None:
@@ -926,6 +945,12 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Expose active alarm names or compact raw diagnostics."""
+        if self.entity_description.key == "active_alarm_names":
+            attributes = alarm_state_attributes(
+                self.coordinator.data,
+                self.coordinator.hass.config.language,
+            )
+            return {"active_alarm_names": attributes["active_alarm_names"]}
         if self.entity_description.key == "alarm_active_count":
             return alarm_state_attributes(
                 self.coordinator.data,

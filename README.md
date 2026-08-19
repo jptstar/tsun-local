@@ -141,7 +141,7 @@ TSUN Local models every bit exposed by the MP3000 alarm words. **All 224 positio
 
 The **12 validated functional mappings** cover low PV input voltage and PV DSP faults for PV1 through PV6. The remaining **212 positions are fully operational catalogue entries**: each receives a stable neutral TSUN Local code and appears in Home Assistant if it becomes active. Its functional description is added only after physical validation on suitable control hardware.
 
-Home Assistant shows one clear **Inverter alarm** state plus an **Active alarms** count and list. The 14 complete raw words remain available as disabled-by-default diagnostics, without creating 224 permanent entities.
+Home Assistant shows one clear **Inverter alarm** state, an **Active alarms** count, and a dedicated **Active alarm names** sensor containing the localized alarm text. The 14 complete raw words remain available as disabled-by-default diagnostics, without creating 224 permanent entities.
 
 Alarm wording is translated into all eight TSUN Local languages. These are independent TSUN Local translations based on the confirmed meanings; they are not presented as vendor-certified server wording.
 

@@ -28,6 +28,12 @@ class TranslationCoverageTests(unittest.TestCase):
                     self.assertIsInstance(name, str, f"{path.name}: missing name for {platform}.{key}")
                     self.assertTrue(name.strip(), f"{path.name}: empty name for {platform}.{key}")
 
+    def test_active_alarm_names_entity_is_declared(self) -> None:
+        source = (COMPONENT / "sensor.py").read_text(encoding="utf-8")
+        self.assertIn('key="active_alarm_names"', source)
+        self.assertIn('translation_key="active_alarm_names"', source)
+        self.assertIn('suggested_object_id="active_alarm_names"', source)
+
     def test_removed_candidate_is_not_exposed(self) -> None:
         key = "output_coefficient_candidate"
         self.assertNotIn(key, (COMPONENT / "sensor.py").read_text(encoding="utf-8"))

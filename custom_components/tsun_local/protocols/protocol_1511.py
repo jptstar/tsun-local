@@ -155,7 +155,7 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_undervoltage_level_3": (0x07EA, 0.1),
     "grid_undervoltage_time_3": (0x07EB, 0.02),
     "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),  # field validation
-    "grid_overfrequency_reduction_coefficient": (0x07EF, 1.0),  # field validation
+    "grid_overfrequency_reduction_coefficient": (0x07EF, 0.01),  # field validation
     "overtemperature_protection_temperature": (0x07F0, 1.0),  # field validation
     "grid_start_upper_voltage_limit": (0x07FB, 0.1),  # field validation
     "grid_start_lower_voltage_limit": (0x07FC, 0.1),  # field validation

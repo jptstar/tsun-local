@@ -416,6 +416,9 @@
       },
       "grid_start_lower_frequency_limit": {
         "name": "启动频率下限"
+      },
+      "active_alarm_names": {
+        "name": "活动报警名称"
       }
     },
     "binary_sensor": {

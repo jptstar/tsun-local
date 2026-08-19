@@ -416,6 +416,9 @@
       },
       "grid_start_lower_frequency_limit": {
         "name": "Limite inferiore frequenza di avvio"
+      },
+      "active_alarm_names": {
+        "name": "Nomi degli allarmi attivi"
       }
     },
     "binary_sensor": {
