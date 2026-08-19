@@ -134,6 +134,8 @@ class MetadataTests(unittest.TestCase):
         index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         entities = (ROOT / "docs" / "entities.html").read_text(encoding="utf-8")
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
+        text_sitemap = (ROOT / "docs" / "sitemap.txt").read_text(encoding="utf-8")
+        robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
         self.assertIn('href="entities.html"', index)
         self.assertIn("Plug &amp; play identification", index)
@@ -161,6 +163,15 @@ class MetadataTests(unittest.TestCase):
         self.assertIn('"@type": "WebSite"', index)
         self.assertIn('"@type": "BreadcrumbList"', entities)
         self.assertIn('name="twitter:card"', entities)
+        self.assertEqual(
+            text_sitemap.splitlines(),
+            [
+                "https://jptstar.github.io/tsun-local/",
+                "https://jptstar.github.io/tsun-local/entities.html",
+            ],
+        )
+        self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.xml", robots)
+        self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.txt", robots)
 
 
 if __name__ == "__main__":

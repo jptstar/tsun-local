@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://jptstar.github.io/tsun-local/sitemap.xml
+Sitemap: https://jptstar.github.io/tsun-local/sitemap.txt
