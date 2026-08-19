@@ -87,11 +87,30 @@ class AlarmCatalogueTests(unittest.TestCase):
         self.assertEqual(
             [alarm.name for alarm in active],
             [
-                "Alarme onduleur non identifiée (A003)",
+                "Alarme onduleur non identifiée",
                 "Tension d’entrée PV1 trop faible",
                 "Défaut du DSP PV1",
             ],
         )
+
+    def test_active_alarm_state_is_localized_and_code_free(self) -> None:
+        self.assertEqual(
+            CATALOGUE.active_alarm_state({"pv1_alarm_raw": 1 << 10}, "fr"),
+            "Défaut du DSP PV1",
+        )
+        self.assertEqual(CATALOGUE.active_alarm_state({}, "fr"), "Aucune alarme active")
+        unknown = CATALOGUE.active_alarm_state(
+            {"alarm_global_0_raw": 1 << 2}, "fr"
+        )
+        self.assertEqual(unknown, "Alarme onduleur non identifiée")
+        self.assertNotIn("A003", unknown)
+
+    def test_active_alarm_state_is_bounded_for_many_alarms(self) -> None:
+        measurements = {
+            source.key: 0xFFFF for source in CATALOGUE.ALARM_SOURCES
+        }
+        state = CATALOGUE.active_alarm_state(measurements, "fr")
+        self.assertLessEqual(len(state), 255)
 
     def test_all_supported_languages_have_complete_wording(self) -> None:
         for language in ("en", "fr", "de", "es", "it", "nl", "pl", "zh-Hans"):

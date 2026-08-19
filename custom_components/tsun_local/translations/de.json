@@ -384,11 +384,50 @@
           "fault": "Fehler"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Leistungsniveau (Kandidat)"
-      },
       "ambient_temperature": {
         "name": "Umgebungstemperatur des Wechselrichters"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "QP-Spannungsschwelle"
+      },
+      "grid_recovery_rate": {
+        "name": "Netz-Wiederherstellungszeit"
+      },
+      "grid_overvoltage_10min": {
+        "name": "10-Minuten-Netzüberspannungsschutz"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Wert der Überfrequenz-Leistungsreduzierung"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Koeffizient der Überfrequenz-Leistungsreduzierung"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Übertemperatur-Schutzschwelle"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Obere Startspannungsgrenze"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Untere Startspannungsgrenze"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Obere Startfrequenzgrenze"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Untere Startfrequenzgrenze"
+      },
+      "active_alarm_names": {
+        "name": "Namen aktiver Alarme"
+      },
+      "dsp_firmware_version": {
+        "name": "DSP-Firmwareversion"
+      },
+      "qcpu1_firmware_version": {
+        "name": "QCPU1-Firmwareversion"
+      },
+      "qcpu2_firmware_version": {
+        "name": "QCPU2-Firmwareversion"
       }
     },
     "binary_sensor": {

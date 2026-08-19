@@ -4,13 +4,93 @@ on:
   push:
     branches:
       - main
+      - beta-1097
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
 
 permissions:
   contents: write
 
 jobs:
+  beta:
+    name: Publish beta release
+    if: github.ref == 'refs/heads/beta-1097' && contains(github.event.head_commit.message, '[beta-release]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Verify beta version metadata
+        id: version
+        run: |
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          manifest = json.loads(
+              Path("custom_components/tsun_local/manifest.json").read_text(encoding="utf-8")
+          )
+          version = manifest["version"]
+          if re.fullmatch(r"\d+\.\d+\.\d+-beta\.\d+", version) is None:
+              raise SystemExit(f"{version!r} is not a beta release version")
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          if f"## [{version}]" not in changelog:
+              raise SystemExit(f"CHANGELOG.md has no section for {version}")
+          notes = Path("docs/releases") / f"{version}.md"
+          if not notes.is_file():
+              raise SystemExit(f"Missing beta release notes: {notes}")
+          Path("release_version.txt").write_text(version, encoding="utf-8")
+          print(f"Beta version {version} is consistent")
+          PY
+          echo "version=$(cat release_version.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Run beta unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate beta HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Validate beta Home Assistant integration
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Create beta tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists; refusing to move a published beta tag."
+          else
+            git tag -a "${TAG}" -m "Version ${VERSION}"
+            git push origin "${TAG}"
+          fi
+
+      - name: Create beta GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          TAG="v${VERSION}"
+          NOTES="docs/releases/${VERSION}.md"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; nothing to do."
+            exit 0
+          fi
+          gh release create "${TAG}" --verify-tag --prerelease --title "Version ${VERSION}" --notes-file "${NOTES}"
+
   tag:
     name: Publish stable release
     if: github.ref == 'refs/heads/main' && (contains(github.event.head_commit.message, '[release]') || contains(github.event.head_commit.message, '[release-notes]') || contains(github.event.head_commit.message, '[release-retag]'))
@@ -197,8 +277,12 @@ jobs:
             echo "Release ${GITHUB_REF_NAME} already exists; nothing to do."
             exit 0
           fi
+          EXTRA_ARGS=()
+          case "${VERSION}" in
+            *-beta.*) EXTRA_ARGS+=(--prerelease) ;;
+          esac
           if [ -f "${NOTES}" ]; then
-            gh release create "${GITHUB_REF_NAME}" --verify-tag --title "Version ${VERSION}" --notes-file "${NOTES}"
+            gh release create "${GITHUB_REF_NAME}" --verify-tag "${EXTRA_ARGS[@]}" --title "Version ${VERSION}" --notes-file "${NOTES}"
           else
-            gh release create "${GITHUB_REF_NAME}" --verify-tag --generate-notes --title "Version ${VERSION}"
+            gh release create "${GITHUB_REF_NAME}" --verify-tag "${EXTRA_ARGS[@]}" --generate-notes --title "Version ${VERSION}"
           fi

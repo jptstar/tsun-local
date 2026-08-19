@@ -124,11 +124,20 @@ class MetadataTests(unittest.TestCase):
         version = _load_json(INTEGRATION / "manifest.json")["version"]
         self.assertIn(f"**{version}**", root_readme)
         documentation_version = version.split("-beta.", 1)[0]
-        for name in localized:
+        if "-beta." in version:
+            # The beta README and French beta notes are updated immediately;
+            # the remaining localized long-form READMEs may continue to
+            # describe the latest stable release until the beta is promoted.
             self.assertIn(
                 documentation_version,
-                (ROOT / "docs" / name).read_text(encoding="utf-8"),
+                (ROOT / "docs" / "README_FR.md").read_text(encoding="utf-8"),
             )
+        else:
+            for name in localized:
+                self.assertIn(
+                    documentation_version,
+                    (ROOT / "docs" / name).read_text(encoding="utf-8"),
+                )
 
     def test_public_site_links_visual_entity_reference(self) -> None:
         index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
@@ -139,25 +148,36 @@ class MetadataTests(unittest.TestCase):
 
         self.assertIn('href="entities.html"', index)
         self.assertIn("Plug &amp; play identification", index)
-        self.assertIn("about 20 seconds", index)
-        self.assertIn('<strong>55</strong><span>enabled by default</span>', index)
-        self.assertIn('<strong>39</strong><span>advanced diagnostics</span>', index)
-        self.assertIn('<strong>224</strong><span>alarm positions</span>', index)
-        self.assertIn("physically verified alarm mappings", index)
+        self.assertIn("1.5.1: MP3000 field-validation update", index)
+        self.assertIn('<strong>59</strong><span>enabled by default</span>', index)
+        self.assertIn('<strong>49</strong><span>advanced diagnostics</span>', index)
+        self.assertIn('<strong>224</strong><span>alarm positions preserved</span>', index)
+        self.assertIn("hardware-observed mappings", index)
         self.assertIn("Local TSUN microinverter monitoring for Home Assistant.", index)
         self.assertIn("TSUN Local and Home Assistant FAQ", index)
+        self.assertIn("Stefan Allius", index)
         self.assertIn("TSUN MP3000 and microinverter entities for Home Assistant.", entities)
-        self.assertIn("94", entities)
-        self.assertIn("55", entities)
-        self.assertIn("39", entities)
+        self.assertIn("108", entities)
+        self.assertIn("59", entities)
+        self.assertIn("49", entities)
         self.assertIn("224", entities)
         self.assertIn("total MP3000 entities", entities)
         self.assertIn("total with 6 PV inputs", entities)
         self.assertIn("How 1511 alarms appear in Home Assistant", entities)
-        self.assertIn("PV6 input voltage too low", entities)
-        self.assertIn("PV6 DSP fault", entities)
-        self.assertIn("other 212 positions", entities)
+        self.assertIn("hardware-observed alarm mappings", entities)
+        self.assertIn("All 224 source positions remain covered", entities)
+        self.assertIn("country_profile_raw", entities)
+        self.assertIn("0x07D0", entities)
+        self.assertIn("Stefan Allius", entities)
         self.assertNotIn("Profile-only data", entities)
+        self.assertNotIn("1.5.1 beta", index)
+        self.assertNotIn("1.5.1-beta", index)
+        self.assertNotIn("105 entities with 6 PV inputs", entities)
+        self.assertNotIn("New semantic diagnostics in beta", entities)
+        self.assertIn("108 entities with 6 PV inputs", entities)
+        self.assertIn("Device and logger</td><td>8</td>", entities)
+        self.assertIn("59 enabled · 49 advanced", entities)
+        self.assertNotIn("beta field-validation work", entities)
         self.assertIn("entities.html", sitemap)
         self.assertEqual(sitemap.count("<lastmod>2026-08-19</lastmod>"), 2)
         self.assertIn('"@type": "WebSite"', index)
@@ -172,6 +192,17 @@ class MetadataTests(unittest.TestCase):
         )
         self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.xml", robots)
         self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.txt", robots)
+
+    def test_brand_assets_and_web_icon_are_synchronized(self) -> None:
+        brand = INTEGRATION / "brand"
+        expected = ("icon.png", "icon@2x.png", "logo.png", "logo@2x.png")
+        for name in expected:
+            data = (brand / name).read_bytes()
+            self.assertTrue(data.startswith(b"\x89PNG\r\n\x1a\n"), name)
+            self.assertGreater(len(data), 1024, name)
+        self.assertEqual((brand / "icon.png").read_bytes(), (brand / "logo.png").read_bytes())
+        self.assertEqual((brand / "icon@2x.png").read_bytes(), (brand / "logo@2x.png").read_bytes())
+        self.assertEqual((ROOT / "docs" / "icon.png").read_bytes(), (brand / "icon.png").read_bytes())
 
 
 if __name__ == "__main__":

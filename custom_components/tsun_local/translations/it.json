@@ -384,11 +384,50 @@
           "fault": "Guasto"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Livello di potenza (candidato)"
-      },
       "ambient_temperature": {
         "name": "Temperatura ambiente inverter"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "Soglia tensione QP"
+      },
+      "grid_recovery_rate": {
+        "name": "Tempo di ripristino rete"
+      },
+      "grid_overvoltage_10min": {
+        "name": "Protezione sovratensione rete 10 minuti"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Valore riduzione sovrafrequenza"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Coefficiente riduzione sovrafrequenza"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Soglia protezione sovratemperatura"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Limite superiore tensione di avvio"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Limite inferiore tensione di avvio"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Limite superiore frequenza di avvio"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Limite inferiore frequenza di avvio"
+      },
+      "active_alarm_names": {
+        "name": "Nomi degli allarmi attivi"
+      },
+      "dsp_firmware_version": {
+        "name": "Versione firmware DSP"
+      },
+      "qcpu1_firmware_version": {
+        "name": "Versione firmware QCPU1"
+      },
+      "qcpu2_firmware_version": {
+        "name": "Versione firmware QCPU2"
       }
     },
     "binary_sensor": {

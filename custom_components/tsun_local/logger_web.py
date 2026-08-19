@@ -317,6 +317,7 @@ async def async_read_logger_web_data(
                     metadata.inverter_serial_number,
                     metadata.firmware_version,
                     metadata.mac_address,
+                    metadata.wifi_signal is not None,
                 )
             ):
                 break
@@ -326,6 +327,7 @@ async def async_read_logger_web_data(
                 metadata.inverter_serial_number,
                 metadata.firmware_version,
                 metadata.mac_address,
+                metadata.wifi_signal is not None,
             )
         ):
             break
@@ -368,19 +370,15 @@ async def async_read_logger_wifi_signal(
         BasicAuth(LOGGER_WEB_USERNAME, LOGGER_WEB_PASSWORD),
     )
     for path in LOGGER_STATUS_PATHS:
-        page_found = False
         for auth in credentials:
             document = await _async_read_logger_document(
                 session, host, path, auth
             )
             if document is None:
                 continue
-            page_found = True
             signal = _parse_wifi_signal(document)
             if signal is not None:
                 return signal
-        if page_found:
-            return None
     return None
 
 

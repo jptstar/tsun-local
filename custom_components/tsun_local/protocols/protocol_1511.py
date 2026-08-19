@@ -22,6 +22,12 @@ PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
 MAX_PV_COUNT = 6
 DIAGNOSTIC_INTERVAL = 300.0
+COUNTRY_PROFILE_REGISTER = 0x07D0
+FIRMWARE_VERSION_REGISTERS = {
+    "dsp_firmware_version": 0x0BC0,
+    "qcpu1_firmware_version": 0x0E26,
+    "qcpu2_firmware_version": 0x0EEE,
+}
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -83,11 +89,17 @@ TITAN_DIAGNOSTIC_KEYS = frozenset(
         "register_3018_raw",
         "inverter_temperature",
         "ambient_temperature",
+        "country_profile_raw",
+        "dsp_firmware_version",
+        "qcpu1_firmware_version",
+        "qcpu2_firmware_version",
     }
 )
 
 ADVANCED_GRID_KEYS = frozenset(
     {
+        "grid_qp_voltage_threshold",
+        "grid_recovery_rate",
         "grid_overvoltage_recovery_voltage",
         "grid_undervoltage_recovery_voltage",
         "grid_overfrequency_recovery_frequency",
@@ -100,6 +112,7 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overvoltage_level_2",
         "grid_overvoltage_time_1",
         "grid_overvoltage_time_2",
+        "grid_overvoltage_10min",
         "grid_underfrequency_level_1",
         "grid_underfrequency_level_2",
         "grid_underfrequency_time_1",
@@ -110,11 +123,22 @@ ADVANCED_GRID_KEYS = frozenset(
         "grid_overfrequency_time_2",
         "grid_undervoltage_level_3",
         "grid_undervoltage_time_3",
-        "output_coefficient_candidate",
+        "grid_overfrequency_reduction_frequency",
+        "grid_overfrequency_reduction_coefficient",
+        "overtemperature_protection_temperature",
+        "grid_start_upper_voltage_limit",
+        "grid_start_lower_voltage_limit",
+        "grid_start_upper_frequency_limit",
+        "grid_start_lower_frequency_limit",
     }
 )
 
 ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
+    # The ten fields marked "field validation" below correlate one-to-one
+    # between a real MP3000 A1/21 dump and the names/values exposed by the
+    # TSUN/Talent device profile. Their local addresses still require an
+    # independent physical change/test before being considered validated.
+    "grid_recovery_rate": (0x07D3, 0.5),  # field validation
     "grid_overvoltage_recovery_voltage": (0x07D4, 0.1),
     "grid_undervoltage_recovery_voltage": (0x07D5, 0.1),
     "grid_overfrequency_recovery_frequency": (0x07D6, 0.01),
@@ -127,6 +151,7 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overvoltage_level_2": (0x07DE, 0.1),
     "grid_overvoltage_time_1": (0x07DF, 0.02),
     "grid_overvoltage_time_2": (0x07E0, 0.02),
+    "grid_overvoltage_10min": (0x07E1, 0.1),  # field validation
     "grid_underfrequency_level_1": (0x07E2, 0.01),
     "grid_underfrequency_level_2": (0x07E3, 0.01),
     "grid_underfrequency_time_1": (0x07E4, 0.02),
@@ -137,9 +162,14 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overfrequency_time_2": (0x07E9, 0.02),
     "grid_undervoltage_level_3": (0x07EA, 0.1),
     "grid_undervoltage_time_3": (0x07EB, 0.02),
-    # Candidate inferred from the adjacent protocol layout; keep the
-    # candidate label until confirmed independently on 1511 hardware.
-    "output_coefficient_candidate": (0x07EC, 100 / 1024),
+    "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),  # field validation
+    "grid_overfrequency_reduction_coefficient": (0x07EF, 0.01),  # field validation
+    "overtemperature_protection_temperature": (0x07F0, 1.0),  # field validation
+    "grid_start_upper_voltage_limit": (0x07FB, 0.1),  # field validation
+    "grid_start_lower_voltage_limit": (0x07FC, 0.1),  # field validation
+    "grid_start_upper_frequency_limit": (0x07FD, 0.01),  # field validation
+    "grid_start_lower_frequency_limit": (0x07FE, 0.01),  # field validation
+    "grid_qp_voltage_threshold": (0x0800, 1.0),  # field validation
 }
 
 
@@ -200,6 +230,21 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
     return (registers[high_address] << 16) | registers[high_address + 1]
 
 
+def firmware_version(value: int) -> str:
+    """Decode a packed TSUN 16-bit firmware version."""
+    raw = f"{value:04X}"
+    return f"V{raw[0]}.{raw[1]}.{raw[2:]}"
+
+
+def decode_firmware_versions(registers: dict[int, int]) -> dict[str, str]:
+    """Decode MP3000 DSP/QCPU firmware versions found in live 1511 blocks."""
+    return {
+        key: firmware_version(registers[address])
+        for key, address in FIRMWARE_VERSION_REGISTERS.items()
+        if address in registers
+    }
+
+
 def _measurement_keys(pv_count: int) -> frozenset[str]:
     """Return keys exposed for the detected number of PV inputs."""
     return (
@@ -230,9 +275,9 @@ def detect_pv_count(registers: dict[int, int]) -> int:
 
 def decode_measurements(
     registers: dict[int, int], pv_count: int = 1
-) -> dict[str, float | int]:
+) -> dict[str, float | int | str]:
     """Decode the validated AC and PV register map."""
-    data: dict[str, float | int] = {
+    data: dict[str, float | int | str] = {
         "inverter_status_raw": registers[0x0BB8],
         "ac_voltage": registers[0x0BC4] * 0.1,
         "ac_current": registers[0x0BC5] * 0.01,
@@ -243,6 +288,7 @@ def decode_measurements(
         "ac_energy_today": registers[0x0BCE] * 0.01,
         "ac_energy_total": _u32_type5(registers, 0x0BCF) * 0.01,
     }
+    data.update(decode_firmware_versions(registers))
     if 0x0BCA in registers:
         data["register_3018_raw"] = registers[0x0BCA]
     if 0x0BD4 in registers:
@@ -267,13 +313,23 @@ def decode_measurements(
     return data
 
 
-def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float]:
-    """Decode read-only grid protection diagnostics."""
-    return {
+def decode_advanced_diagnostics(
+    registers: dict[int, int],
+) -> dict[str, float | int]:
+    """Decode read-only grid protection and field-validation diagnostics."""
+    data: dict[str, float | int] = {
         key: round(registers[address] * factor, 2)
         for key, (address, factor) in ADVANCED_GRID_REGISTERS.items()
         if address in registers
     }
+
+    # Stefan Allius's public 1097 country table identifies code 8 as France.
+    # The live MP3000 1511 A1/21 block repeatedly reports raw 8 at 0x07D0.
+    # Expose the raw candidate only; independent validation is still pending.
+    if COUNTRY_PROFILE_REGISTER in registers:
+        data["country_profile_raw"] = registers[COUNTRY_PROFILE_REGISTER]
+
+    return data
 
 
 def decode_alarms(

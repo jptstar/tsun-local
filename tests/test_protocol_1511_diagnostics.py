@@ -29,9 +29,12 @@ SPEC.loader.exec_module(PROTOCOLS)
 
 from tsun_local_1511_diagnostic_tests.protocol_1511 import (  # noqa: E402
     DIAGNOSTIC_BLOCKS,
+    FIRMWARE_VERSION_REGISTERS,
     Tsun1511Client,
     build_1511_request,
+    decode_firmware_versions,
     decode_measurements,
+    firmware_version,
 )
 
 
@@ -47,6 +50,29 @@ class Protocol1511DiagnosticTests(unittest.TestCase):
         self.assertEqual(
             build_1511_request(0xA1, 0x21, 2000, 2095),
             bytes.fromhex("A1 21 00 07 D0 00 02 00 60 3E 5D"),
+        )
+
+    def test_decodes_mp3000_packed_firmware_versions(self) -> None:
+        self.assertEqual(firmware_version(0x1172), "V1.1.72")
+        self.assertEqual(firmware_version(0x1154), "V1.1.54")
+        self.assertEqual(firmware_version(0x1304), "V1.3.04")
+        self.assertEqual(
+            FIRMWARE_VERSION_REGISTERS,
+            {
+                "dsp_firmware_version": 0x0BC0,
+                "qcpu1_firmware_version": 0x0E26,
+                "qcpu2_firmware_version": 0x0EEE,
+            },
+        )
+        self.assertEqual(
+            decode_firmware_versions(
+                {0x0BC0: 0x1172, 0x0E26: 0x1154, 0x0EEE: 0x1154}
+            ),
+            {
+                "dsp_firmware_version": "V1.1.72",
+                "qcpu1_firmware_version": "V1.1.54",
+                "qcpu2_firmware_version": "V1.1.54",
+            },
         )
 
     def test_decodes_3017_and_3028_as_temperatures_and_keeps_3018_raw(self) -> None:

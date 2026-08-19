@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
 <p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
-<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.0</strong></p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -33,8 +33,8 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 | Protokoll | Familie / validierte Referenz | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validiert** |
-| **02B0** | GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
-| **1097** | GEN3 | 🧪 **Experimentell** |
+| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
+| **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimentell** |
 
 > [!TIP]
 > **Nicht aufgeführt bedeutet nicht automatisch nicht unterstützt.** Wenn dein Wechselrichter **1511, 02B0 oder 1097** verwendet, könnte er bereits funktionieren.
@@ -84,10 +84,10 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 |---|---|
 | ☀️ **PV** | Bis zu 6 Eingänge · Spannung · Strom · Leistung · Tages- & Gesamtenergie |
 | ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tages- & Gesamtenergie |
-| 🚨 **Diagnose** | Wechselrichteralarme |
-| 🛡️ **Erweitert** | Netzschutz-Schwellenwerte und Zeitdiagnosen · Wechselrichtertemperatur · Umgebungstemperatur des Wechselrichters · Leistungsniveau (Kandidat) |
+| 🚨 **Diagnose** | Wechselrichteralarm · Anzahl und Namen aktiver Alarme · DSP/QCPU-Firmwareversionen |
+| 🛡️ **Erweitert** | Netzschutz-Schwellenwerte und Zeitdiagnosen · 10 zusätzliche A1/21-Feldvalidierungsdiagnosen · Rohwert für Land/Profil als Kandidat · Wechselrichter- und Umgebungstemperatur |
 
-### 02B0 · GEN3 PLUS — ✅ Validiert
+### 02B0 · GEN3 / GEN3 PLUS — ✅ Validiert
 
 **✅ Validiert**  
 `TSOL-MX500`
@@ -107,7 +107,7 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 | 🚨 **Diagnose** | Wechselrichteralarme |
 | 🛡️ **Erweitert** | Netzschutzdiagnosen · Leistungsniveau (%) |
 
-### 1097 · GEN3 — 🧪 Experimentell
+### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimentell
 
 **🔎 Wahrscheinlich kompatibel**  
 `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
@@ -139,9 +139,25 @@ Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der e
 
 ---
 
+## 🆕 TSUN Local 1.5.1
+
+**1.5.1** fasst die komplette MP3000-Alarmoberfläche aus 1.5.0 und alle Korrekturen aus beta1 bis beta4 in einer stabilen Version zusammen:
+
+- alle **224 MP3000-Alarmpositionen** bleiben erhalten; 12 funktionale Zuordnungen beruhen auf direkten Hardware-Beobachtungen;
+- eigener Sensor für **aktive Alarmnamen** mit lokalisierter Anzeige;
+- korrigierter Logger-WLAN-RSSI-Fallback bis `/status.html`;
+- 10 zusätzliche schreibgeschützte A1/21-Feldvalidierungsdiagnosen plus Rohwert für Land/Profil;
+- `0x07EF`: `4000 → 40,00 %/Hz` mit dem Kandidatenfaktor `×0,01`;
+- lokale Firmwareversionen **DSP V1.1.72**, **QCPU1 V1.1.54** und **QCPU2 V1.1.54**; FCPU wird ohne identifiziertes lokales Register nicht geraten;
+- der frühere unbestätigte MP3000-Leistungsniveau-Kandidat bleibt entfernt;
+- technische Entity-IDs bleiben Englisch, Anzeigenamen sind in allen acht Sprachen übersetzt.
+
+Für noch nicht unabhängig bestätigte A1/21-Zuordnungen gilt weiterhin: **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**.
+---
+
 ## 🚨 MP3000-Alarmkatalog
 
-Alle **224 Positionen** der 14 Alarmwörter werden berücksichtigt, gezählt und bei Aktivierung angezeigt. **12 funktionale Zuordnungen** sind validiert; die übrigen **212 Positionen** erhalten einen eindeutigen neutralen TSUN-Local-Code und benötigen eine physische Prüfung auf geeigneter Kontrollhardware. Keine aktive Position wird verworfen. Die Texte in acht Sprachen sind unabhängige TSUN-Local-Formulierungen und keine als offiziell ausgegebenen Serverübersetzungen.
+Alle **224 Positionen** der 14 Alarmwörter werden berücksichtigt, gezählt und bei Aktivierung angezeigt. **12 funktionale Zuordnungen** wurden auf realer Hardware beobachtet; die übrigen **212 Positionen** erhalten einen eindeutigen neutralen TSUN-Local-Code und benötigen eine physische Prüfung auf geeigneter Kontrollhardware. Keine aktive Position wird verworfen. Die Texte in acht Sprachen sind unabhängige TSUN-Local-Formulierungen und keine als offiziell ausgegebenen Serverübersetzungen.
 
 ---
 

@@ -33,7 +33,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import TsunConfigEntry
-from .alarm_catalog import alarm_state_attributes
+from .alarm_catalog import active_alarm_state, alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 
@@ -135,6 +135,29 @@ def _advanced_diagnostic(
     )
 
 
+def _field_validation_diagnostic(
+    key: str,
+    translation_key: str,
+    *,
+    device_class: SensorDeviceClass | None = None,
+    unit: str | None = None,
+    precision: int | None = None,
+    state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT,
+) -> TsunSensorDescription:
+    """Describe a named MP3000 diagnostic awaiting physical validation."""
+    return TsunSensorDescription(
+        key=key,
+        suggested_object_id=key,
+        translation_key=translation_key,
+        device_class=device_class,
+        native_unit_of_measurement=unit,
+        state_class=state_class,
+        suggested_display_precision=precision,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    )
+
+
 COMMUNICATION_SENSOR_KEYS = frozenset(
     {
         "communication_last_success",
@@ -173,6 +196,10 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "inverter_status_raw": "3000 (0x0BB8)",
         "rated_power": "3020 (0x0BCC)",
         "max_designed_power": "2042 (0x07FA)",
+        "dsp_firmware_version": "3008 (0x0BC0)",
+        "qcpu1_firmware_version": "3622 (0x0E26)",
+        "qcpu2_firmware_version": "3822 (0x0EEE)",
+        "grid_recovery_rate": "2003 (0x07D3) — field validation",
         "grid_overvoltage_recovery_voltage": "0x07D4",
         "grid_undervoltage_recovery_voltage": "0x07D5",
         "grid_overfrequency_recovery_frequency": "0x07D6",
@@ -185,6 +212,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_overvoltage_level_2": "0x07DE",
         "grid_overvoltage_time_1": "0x07DF",
         "grid_overvoltage_time_2": "0x07E0",
+        "grid_overvoltage_10min": "2017 (0x07E1) — field validation",
         "grid_underfrequency_level_1": "0x07E2",
         "grid_underfrequency_level_2": "0x07E3",
         "grid_underfrequency_time_1": "0x07E4",
@@ -195,7 +223,14 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_overfrequency_time_2": "0x07E9",
         "grid_undervoltage_level_3": "0x07EA",
         "grid_undervoltage_time_3": "0x07EB",
-        "output_coefficient_candidate": "2028 (0x07EC) — candidate",
+        "grid_overfrequency_reduction_frequency": "2030 (0x07EE) — field validation",
+        "grid_overfrequency_reduction_coefficient": "2031 (0x07EF) — field validation",
+        "overtemperature_protection_temperature": "2032 (0x07F0) — field validation",
+        "grid_start_upper_voltage_limit": "2043 (0x07FB) — field validation",
+        "grid_start_lower_voltage_limit": "2044 (0x07FC) — field validation",
+        "grid_start_upper_frequency_limit": "2045 (0x07FD) — field validation",
+        "grid_start_lower_frequency_limit": "2046 (0x07FE) — field validation",
+        "grid_qp_voltage_threshold": "2048 (0x0800) — field validation",
     },
     "02b0": {
         "inverter_status_raw": "0x3000",
@@ -395,15 +430,79 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         unit=UnitOfTime.SECONDS,
         precision=2,
     ),
-    _advanced_diagnostic(
-        "output_coefficient",
-        "output_coefficient",
-        unit=PERCENTAGE,
+    _field_validation_diagnostic(
+        "grid_qp_voltage_threshold",
+        "grid_qp_voltage_threshold",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=0,
+    ),
+    _field_validation_diagnostic(
+        "grid_recovery_rate",
+        "grid_recovery_rate",
+        device_class=SensorDeviceClass.DURATION,
+        unit=UnitOfTime.SECONDS,
         precision=1,
     ),
+    _field_validation_diagnostic(
+        "grid_overvoltage_10min",
+        "grid_overvoltage_10min",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _field_validation_diagnostic(
+        "grid_overfrequency_reduction_frequency",
+        "grid_overfrequency_reduction_frequency",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _field_validation_diagnostic(
+        "grid_overfrequency_reduction_coefficient",
+        "grid_overfrequency_reduction_coefficient",
+        unit="%/Hz",
+        precision=2,
+        state_class=None,
+    ),
+    _field_validation_diagnostic(
+        "overtemperature_protection_temperature",
+        "overtemperature_protection_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        unit=UnitOfTemperature.CELSIUS,
+        precision=0,
+    ),
+    _field_validation_diagnostic(
+        "grid_start_upper_voltage_limit",
+        "grid_start_upper_voltage_limit",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _field_validation_diagnostic(
+        "grid_start_lower_voltage_limit",
+        "grid_start_lower_voltage_limit",
+        device_class=SensorDeviceClass.VOLTAGE,
+        unit=UnitOfElectricPotential.VOLT,
+        precision=1,
+    ),
+    _field_validation_diagnostic(
+        "grid_start_upper_frequency_limit",
+        "grid_start_upper_frequency_limit",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
+    _field_validation_diagnostic(
+        "grid_start_lower_frequency_limit",
+        "grid_start_lower_frequency_limit",
+        device_class=SensorDeviceClass.FREQUENCY,
+        unit=UnitOfFrequency.HERTZ,
+        precision=2,
+    ),
     _advanced_diagnostic(
-        "output_coefficient_candidate",
-        "output_coefficient_candidate",
+        "output_coefficient",
+        "output_coefficient",
         unit=PERCENTAGE,
         precision=1,
     ),
@@ -579,6 +678,24 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(
+        key="dsp_firmware_version",
+        suggested_object_id="dsp_firmware_version",
+        translation_key="dsp_firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="qcpu1_firmware_version",
+        suggested_object_id="qcpu1_firmware_version",
+        translation_key="qcpu1_firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="qcpu2_firmware_version",
+        suggested_object_id="qcpu2_firmware_version",
+        translation_key="qcpu2_firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
         key="logger_mac_address",
         suggested_object_id="logger_mac_address",
         translation_key="logger_mac_address",
@@ -599,6 +716,12 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         translation_key="alarm_active_count",
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:alert-circle-outline",
+    ),
+    TsunSensorDescription(
+        key="active_alarm_names",
+        suggested_object_id="active_alarm_names",
+        translation_key="active_alarm_names",
+        icon="mdi:alert-circle",
     ),
     *(
         _raw_alarm(
@@ -755,6 +878,13 @@ async def async_setup_entry(
             and (
                 description.key in DIAGNOSTIC_SENSOR_KEYS
                 or description.key in coordinator.client.measurement_keys
+                or (
+                    description.key == "active_alarm_names"
+                    and str(
+                        getattr(coordinator.client, "protocol_name", "")
+                    ) == "1511"
+                    and "alarm_active" in coordinator.client.measurement_keys
+                )
             )
         ]
         if not descriptions:
@@ -819,6 +949,11 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         """Return the latest decoded value."""
         if self.entity_description.key == "label_serial_number":
             return self._label_serial_number
+        if self.entity_description.key == "active_alarm_names":
+            return active_alarm_state(
+                self.coordinator.data,
+                self.coordinator.hass.config.language,
+            )
         return self.coordinator.data.get(self.entity_description.key)
 
     def _source_register_address(self) -> str | None:
@@ -831,6 +966,12 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Expose active alarm names or compact raw diagnostics."""
+        if self.entity_description.key == "active_alarm_names":
+            attributes = alarm_state_attributes(
+                self.coordinator.data,
+                self.coordinator.hass.config.language,
+            )
+            return {"active_alarm_names": attributes["active_alarm_names"]}
         if self.entity_description.key == "alarm_active_count":
             return alarm_state_attributes(
                 self.coordinator.data,

@@ -385,11 +385,50 @@
           "fault": "Fault"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "Power level (candidate)"
-      },
       "ambient_temperature": {
         "name": "Inverter ambient temperature"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "QP voltage threshold"
+      },
+      "grid_recovery_rate": {
+        "name": "Grid recovery time"
+      },
+      "grid_overvoltage_10min": {
+        "name": "10-minute grid overvoltage protection"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Overfrequency reduction value"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Overfrequency reduction coefficient"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Overtemperature protection threshold"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Upper startup voltage limit"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Lower startup voltage limit"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Upper startup frequency limit"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Lower startup frequency limit"
+      },
+      "active_alarm_names": {
+        "name": "Active alarm names"
+      },
+      "dsp_firmware_version": {
+        "name": "DSP firmware version"
+      },
+      "qcpu1_firmware_version": {
+        "name": "QCPU1 firmware version"
+      },
+      "qcpu2_firmware_version": {
+        "name": "QCPU2 firmware version"
       }
     },
     "binary_sensor": {

@@ -384,11 +384,50 @@
           "fault": "故障"
         }
       },
-      "output_coefficient_candidate": {
-        "name": "功率水平（候选）"
-      },
       "ambient_temperature": {
         "name": "逆变器环境温度"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "QP 电压阈值"
+      },
+      "grid_recovery_rate": {
+        "name": "电网恢复时间"
+      },
+      "grid_overvoltage_10min": {
+        "name": "10 分钟电网过压保护"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "过频降额值"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "过频降额系数"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "过温保护阈值"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "启动电压上限"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "启动电压下限"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "启动频率上限"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "启动频率下限"
+      },
+      "active_alarm_names": {
+        "name": "活动报警名称"
+      },
+      "dsp_firmware_version": {
+        "name": "DSP 固件版本"
+      },
+      "qcpu1_firmware_version": {
+        "name": "QCPU1 固件版本"
+      },
+      "qcpu2_firmware_version": {
+        "name": "QCPU2 固件版本"
       }
     },
     "binary_sensor": {

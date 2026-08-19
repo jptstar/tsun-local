@@ -2,6 +2,125 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] - 2026-08-19
+
+### Added
+
+- Publish the complete MP3000/1511 alarm interface from 1.5.0: all 224 source positions remain covered without creating 224 permanent Home Assistant entities.
+- Keep 12 alarm mappings based on direct physical observations for PV input undervoltage and PV DSP faults across PV1–PV6; all other positions remain neutral until independently confirmed.
+- Add a dedicated localized `active_alarm_names` sensor while keeping stable A001–A224 identifiers internal/diagnostic.
+- Add ten read-only MP3000/TITAN A1/21 field-validation diagnostics plus the raw 1511 country/profile candidate.
+- Add local MP3000 firmware sensors for DSP (`V1.1.72`), QCPU1 (`V1.1.54`) and QCPU2 (`V1.1.54`). FCPU remains intentionally unexposed until a local register is identified.
+
+### Fixed
+
+- Fix logger Wi-Fi RSSI fallback so a valid page without RSSI no longer prevents reading `/status.html`.
+- Correct MP3000 `0x07EF` raw `4000` to candidate `40.00 %/Hz` (`×0.01`).
+- Remove the discarded MP3000 `output_coefficient_candidate` / Power level candidate entity and clean its beta registry entry.
+- Keep unknown user-facing alarm text free of internal Axxx codes while retaining those identifiers for diagnostics.
+
+### Changed
+
+- Keep technical entity IDs stable in English and provide display-name coverage in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Refresh the main README, all seven localized READMEs, technical entity reference, public website and visual entity page for the stable 1.5.1 feature set.
+- Keep reactive-mode, GFCI, calibration, anti-reflux/zero-export, reduction-signal and insulation correlations in the research backlog only; they are not promoted to semantic Home Assistant entities without independent validation.
+- MP3000 maximum presentation with six detected PV inputs is 108 entities: 59 enabled by default and 49 advanced/disabled by default.
+
+### HACS / branding
+
+- Keep HACS metadata aligned with Home Assistant 2026.3.0 or later.
+- Verify local `brand/icon.png`, `brand/icon@2x.png`, `brand/logo.png`, `brand/logo@2x.png` assets and keep the website favicon synchronized with the integration icon.
+
+### Safety
+
+- All inverter diagnostics, alarm data and firmware reads remain local and read-only.
+- No inverter configuration, protection-setting, country/profile or control write is added.
+
+## [1.5.1-beta.4] - 2026-08-19
+
+### Added
+
+- Add MP3000/1511 DSP, QCPU1 and QCPU2 firmware-version diagnostics from local packed 16-bit words.
+- Add the reusable `firmware_version()` decoder for TSUN packed firmware values.
+
+### Changed
+
+- Keep FCPU unexposed until its local 1511 source register is identified.
+- Refine the research backlog after a new low-power dump: keep reactive mode, GFCI, K1/K2/K3 and anti-reflux candidates out of semantic entities; promote `0x07ED` to the leading overfrequency-reduction signal candidate; track `0x0BD2` as a dynamic insulation-measurement candidate rather than a fixed 60 MΩ setting.
+- Refresh MP3000 documentation to 108 maximum entities, 59 enabled by default and 49 advanced/disabled by default.
+
+### Safety
+
+- All new firmware reads reuse existing local 1511 telemetry blocks and remain read-only.
+- No inverter configuration or control write is added.
+
+## [1.5.1-beta.3] - 2026-08-19
+
+### Added
+
+- Add a dedicated MP3000/1511 `active_alarm_names` sensor so localized active alarm text is directly visible and usable.
+
+### Fixed
+
+- Decode MP3000/1511 `0x07EF` raw `4000` with candidate factor `0.01`, exposing `40.00 %/Hz`.
+- Keep stable `A001`–`A224` identifiers internal/diagnostic and remove them from user-facing unknown alarm text.
+- Refresh web/entity counts to 105 maximum, 56 enabled by default and 49 advanced/disabled by default.
+- Remove stale public references to the discarded MP3000 power-level candidate.
+
+### Changed
+
+- Keep technical entity IDs stable in English while display names and alarm text remain localized in all eight supported languages.
+- Preserve beta1 logger RSSI/A1/21 diagnostics and beta2 localization/removal fixes.
+- Keep newly observed reactive-mode, GFCI, calibration and anti-reflux correlations in the research backlog only.
+- Verify HACS metadata and Home Assistant local icon/logo assets.
+
+### Safety
+
+- All MP3000 alarm and diagnostic access remains local and read-only.
+- No inverter configuration, protection, country/profile or control write is added.
+
+## [1.5.1-beta.2] - 2026-08-19
+
+### Fixed
+
+- Remove the unvalidated MP3000/1511 `output_coefficient_candidate` entity (`0x07EC`) instead of presenting it as **Power level (candidate)**.
+- Use Home Assistant translation keys for the ten 1.5.1 MP3000 field-validation entity names while keeping their technical entity IDs stable in English.
+- Enforce complete entity-name coverage in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Keep the complete 224-position MP3000 alarm catalogue localized in the same eight languages.
+- Remove the discarded candidate from the entity reference and clean the obsolete beta entity from the Home Assistant entity registry on upgrade.
+
+### Safety
+
+- No inverter write or configuration command is added.
+- Alarm and diagnostic access remains local and read-only.
+
+## [1.5.1-beta.1] - 2026-08-19
+
+### Added
+
+- Expose ten additional read-only MP3000 / TITAN A1/21 field-validation diagnostics, disabled by default in Home Assistant.
+- Expose the raw 1511 country/profile candidate from decimal register `2000` (`0x07D0`); the live France-configured MP3000 reports raw value `8`.
+- Document `0x07D1 = 80` and `0x07D2 = 80` as the leading candidate pair for the two 40.0 s grid connection/reconnection settings using a candidate `×0.5 s` scale, without assigning their individual semantic order yet.
+- Add beta-release automation for `1.5.1-beta.N` prereleases from the `beta-1097` branch.
+
+### Fixed
+
+- Fix **Logger Wi-Fi signal** remaining unknown when an earlier valid logger page does not contain RSSI; the parser now continues to `/status.html` and other configured status paths until `cover_sta_rssi` is found.
+- Stop treating the TSUN/Talent exported country `raw_value` `1008` as the local country enumeration in validation documentation. The live 1511 dump shows that `1008` can independently occur at `0x0BCE` as the AC daily-energy counter.
+
+### Changed
+
+- Keep the complete 1.5.0 MP3000 alarm architecture unchanged: all 224 positions remain covered, the fourteen source words remain optional diagnostics, and no 224-entity wall is created.
+- Update the README, entity reference, field-validation documentation and project website while preserving the existing 1.5.0 presentation and layout.
+- Explicitly credit **Stefan Allius / `s-allius/tsun-gen3-proxy`** for the public 1097 country/profile research and country enumeration where France is code `8`.
+- Keep all new 1511 semantic candidates at evidence status **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING** until independently distinguished.
+
+### Safety
+
+- All added MP3000 diagnostics are local and read-only.
+- Logger metadata remains HTTP GET only.
+- No inverter configuration, country/profile, grid-protection or control write has been added.
+
 ## [1.5.0] - 2026-08-18
 
 ### Added
@@ -324,6 +443,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.5.1-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.1
 [1.5.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.0
 [1.4.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.1
 [1.4.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.0
