@@ -4,12 +4,14 @@
 
 """Standalone, privacy-safe, strictly read-only TSUN hardware dump tool.
 
-This file intentionally has no dependency on Home Assistant or the TSUN Local
-package. It uses only the Python standard library and implements read paths
-only for the TSUN local protocol families currently researched by TSUN Local:
+The tool uses only the Python standard library. It implements read paths only
+for the local TSUN protocol families currently researched by TSUN Local:
 1511, 02B0 and 1097.
 
-No Modbus write function and no inverter configuration command is implemented.
+Without --host, every TSUN logger discovered on the local network is captured
+and written to a separate JSON file. --host intentionally switches to a single
+logger. No Modbus write function and no inverter configuration command exists
+in this file.
 """
 
 from __future__ import annotations
@@ -27,8 +29,7 @@ import sys
 import time
 from typing import Any, Iterable
 
-
-TOOL_VERSION = "2.0.0"
+TOOL_VERSION = "2.1.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 2
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -70,13 +71,16 @@ def safe_error_details(error: Exception) -> dict[str, str]:
     return result
 
 
+# ---------------------------------------------------------------------------
+# AP envelope + protocol framing (READ ONLY)
+# ---------------------------------------------------------------------------
+
 def checksum_ap(data: bytes) -> int:
-    """Return the AP additive checksum."""
     return sum(data) & 0xFF
 
 
 def build_ap_frame(logger_sn: int, payload: bytes, sensor_list: int = 0) -> bytes:
-    """Wrap a read payload in the local TSUN AP envelope."""
+    """Wrap one read payload in the local TSUN AP envelope."""
     data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
     scope = (
         len(data).to_bytes(2, "little")
@@ -98,7 +102,6 @@ def _recv_exact(sock: socket.socket, count: int) -> bytes:
 
 
 def read_ap_frame(sock: socket.socket) -> bytes:
-    """Read one complete AP response frame."""
     header = _recv_exact(sock, 3)
     if header[0] != 0xA5:
         raise TsunProtocolError("Invalid AP start marker")
@@ -107,11 +110,10 @@ def read_ap_frame(sock: socket.socket) -> bytes:
 
 
 def parse_ap_frame(frame: bytes) -> bytes:
-    """Validate an AP response and return only the embedded protocol payload."""
     if len(frame) < 27 or frame[0] != 0xA5 or frame[-1] != 0x15:
         raise TsunProtocolError("Invalid AP frame markers or length")
-    expected_length = int.from_bytes(frame[1:3], "little") + 13
-    if len(frame) != expected_length:
+    expected = int.from_bytes(frame[1:3], "little") + 13
+    if len(frame) != expected:
         raise TsunProtocolError("Invalid AP frame length")
     if checksum_ap(frame[1:-2]) != frame[-2]:
         raise TsunProtocolError("Invalid AP checksum")
@@ -123,7 +125,6 @@ def parse_ap_frame(frame: bytes) -> bytes:
 
 
 def crc16_modbus(data: bytes) -> bytes:
-    """Return standard Modbus CRC16 in low-byte-first order."""
     crc = 0xFFFF
     for byte in data:
         crc ^= byte
@@ -133,14 +134,13 @@ def crc16_modbus(data: bytes) -> bytes:
 
 
 def build_modbus_request(start: int, end: int) -> bytes:
-    """Build one FC03 Modbus RTU read request."""
+    """Build an FC03 register read. No write function is implemented."""
     count = end - start + 1
     body = b"\x01\x03" + start.to_bytes(2, "big") + count.to_bytes(2, "big")
     return body + crc16_modbus(body)
 
 
 def parse_modbus_response(frame: bytes, start: int, end: int) -> dict[int, int]:
-    """Validate one FC03 Modbus response."""
     if len(frame) < 5 or frame[0] != 0x01:
         raise TsunProtocolError("Invalid Modbus frame")
     if crc16_modbus(frame[:-2]) != frame[-2:]:
@@ -161,7 +161,6 @@ def parse_modbus_response(frame: bytes, start: int, end: int) -> dict[int, int]:
 
 
 def crc16_1511(data: bytes) -> bytes:
-    """Return CRC16 in TSUN 1511 non-swapped byte order."""
     crc = 0xFFFF
     for byte in data:
         crc ^= byte
@@ -171,7 +170,6 @@ def crc16_1511(data: bytes) -> bytes:
 
 
 def build_1511_request(address_tag: int, function: int, start: int, end: int) -> bytes:
-    """Build one validated native 1511 read request."""
     count = end - start + 1
     body = bytes((address_tag, function, 0x00)) + start.to_bytes(2, "big")
     body += b"\x00\x02" + count.to_bytes(2, "big")
@@ -181,7 +179,6 @@ def build_1511_request(address_tag: int, function: int, start: int, end: int) ->
 def parse_1511_response(
     frame: bytes, address_tag: int, function: int, start: int, end: int
 ) -> dict[int, int]:
-    """Validate one native 1511 response and decode little-endian registers."""
     if len(frame) < 11 or frame[0] != 0x7E:
         raise TsunProtocolError("Invalid 1511 frame")
     if crc16_1511(frame[1:-2]) != frame[-2:]:
@@ -212,7 +209,6 @@ def exchange_ap(
     sensor_list: int = 0,
     timeout: float = DEFAULT_TIMEOUT,
 ) -> bytes:
-    """Perform one AP-wrapped read exchange."""
     request = build_ap_frame(logger_sn, payload, sensor_list=sensor_list)
     with socket.create_connection((host, port), timeout=timeout) as sock:
         sock.settimeout(timeout)
@@ -232,12 +228,7 @@ def read_modbus_block(
 ) -> tuple[dict[int, int], bytes, bytes]:
     payload = build_modbus_request(start, end)
     response = exchange_ap(
-        host,
-        port,
-        logger_sn,
-        payload,
-        sensor_list=sensor_list,
-        timeout=timeout,
+        host, port, logger_sn, payload, sensor_list=sensor_list, timeout=timeout
     )
     return parse_modbus_response(response, start, end), payload, response
 
@@ -261,6 +252,10 @@ def read_1511_block(
         response,
     )
 
+
+# ---------------------------------------------------------------------------
+# Network discovery / target resolution
+# ---------------------------------------------------------------------------
 
 def _valid_monitor_sn(value: int) -> bool:
     return 0 < value <= 0xFFFFFFFF
@@ -307,7 +302,7 @@ def serial_candidates_from_payload(payload: bytes) -> set[int]:
 def discover_devices(
     *, port: int = DEFAULT_DISCOVERY_PORT, timeout: float = DEFAULT_DISCOVERY_TIMEOUT
 ) -> list[DiscoveryDevice]:
-    """Discover local loggers with read-only UDP broadcast probes."""
+    """Return every logger answering the read-only UDP discovery probes."""
     devices: dict[str, DiscoveryDevice] = {}
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -332,77 +327,136 @@ def discover_devices(
         return []
     finally:
         sock.close()
-    return sorted(devices.values(), key=lambda item: item.host)
+    return sorted(devices.values(), key=lambda item: tuple(int(p) for p in item.host.split(".")))
 
 
-def _prompt_monitor_sn() -> int:
+def _prompt_monitor_sn(prompt: str = "Monitor SN: ", *, allow_skip: bool = False) -> int | None:
     while True:
-        answer = getpass.getpass("Monitor SN: ").strip()
+        answer = getpass.getpass(prompt).strip()
+        if allow_skip and not answer:
+            return None
         try:
             number = int(answer)
         except ValueError:
-            print("Monitor SN must be numeric.")
+            print("Monitor SN must be numeric." + (" Press Enter to skip." if allow_skip else ""))
             continue
         if _valid_monitor_sn(number):
             return number
         print("Monitor SN must fit the four-byte logger field.")
 
 
-def resolve_target(args: argparse.Namespace) -> tuple[str, int, dict[str, Any]]:
-    """Resolve IP and Monitor SN automatically, then ask only for missing data."""
-    host = args.host
-    monitor_sn = args.serial
-    report: dict[str, Any] = {
-        "attempted": False,
-        "devices_found": 0,
-        "host_discovered": False,
-        "monitor_sn_discovered": False,
-    }
-    selected: DiscoveryDevice | None = None
+def resolve_targets(
+    args: argparse.Namespace,
+) -> tuple[list[tuple[str, int, dict[str, Any]]], dict[str, int]]:
+    """Resolve all discovered targets; --host deliberately restricts to one."""
+    summary = {"devices_found": 0, "targets_resolved": 0, "targets_skipped": 0}
 
-    if host is None or monitor_sn is None:
-        print("Searching the local network for TSUN loggers (read-only UDP)...")
-        report["attempted"] = True
-        devices = discover_devices(timeout=args.discovery_timeout)
-        report["devices_found"] = len(devices)
-        if host is not None:
+    # Explicit IP means deliberate single-device mode.
+    if args.host is not None:
+        host = args.host.strip()
+        if not host:
+            raise ValueError("A logger IP address is required")
+        monitor_sn = args.serial
+        report: dict[str, Any] = {
+            "attempted": monitor_sn is None,
+            "devices_found": 0,
+            "host_discovered": False,
+            "monitor_sn_discovered": False,
+            "target_index": 1,
+            "multi_device_scan": False,
+        }
+        if monitor_sn is None:
+            print("Searching the local network for the supplied logger (read-only UDP)...")
+            devices = discover_devices(timeout=args.discovery_timeout)
+            report["devices_found"] = len(devices)
+            summary["devices_found"] = len(devices)
             selected = next((item for item in devices if item.host == host), None)
-        elif len(devices) == 1:
-            selected = devices[0]
-        elif len(devices) > 1:
-            print(f"{len(devices)} candidate loggers found:")
-            for index, item in enumerate(devices, 1):
-                sn_state = "Monitor SN found" if len(item.serial_candidates) == 1 else "Monitor SN unresolved"
-                print(f"  {index}. {item.host} ({sn_state})")
-            while selected is None:
-                answer = input("Select logger number: ").strip()
-                try:
-                    index = int(answer)
-                except ValueError:
-                    continue
-                if 1 <= index <= len(devices):
-                    selected = devices[index - 1]
-
-        if selected is not None:
-            if host is None:
-                host = selected.host
-                report["host_discovered"] = True
-            if monitor_sn is None and len(selected.serial_candidates) == 1:
+            if selected is not None and len(selected.serial_candidates) == 1:
                 monitor_sn = next(iter(selected.serial_candidates))
                 report["monitor_sn_discovered"] = True
+        if monitor_sn is None:
+            print("Monitor SN could not be resolved automatically.")
+            monitor_sn = _prompt_monitor_sn()
+        assert monitor_sn is not None
+        summary["targets_resolved"] = 1
+        return [(host, monitor_sn, report)], summary
 
-    if host is None:
+    print("Searching the local network for all TSUN loggers (read-only UDP)...")
+    devices = discover_devices(timeout=args.discovery_timeout)
+    summary["devices_found"] = len(devices)
+
+    # No discovery response: manual fallback for one device.
+    if not devices:
         host = input("Logger IP address: ").strip()
-    if not host:
-        raise ValueError("A logger IP address is required")
-    if monitor_sn is None:
-        print("Monitor SN could not be resolved automatically.")
-        monitor_sn = _prompt_monitor_sn()
-    return host, monitor_sn, report
+        if not host:
+            raise ValueError("A logger IP address is required")
+        monitor_sn = args.serial
+        if monitor_sn is None:
+            print("Monitor SN could not be resolved automatically.")
+            monitor_sn = _prompt_monitor_sn()
+        assert monitor_sn is not None
+        report = {
+            "attempted": True,
+            "devices_found": 0,
+            "host_discovered": False,
+            "monitor_sn_discovered": False,
+            "target_index": 1,
+            "multi_device_scan": False,
+        }
+        summary["targets_resolved"] = 1
+        return [(host, monitor_sn, report)], summary
 
+    if args.serial is not None and len(devices) > 1:
+        raise ValueError(
+            "--serial without --host is ambiguous when multiple loggers are discovered; "
+            "omit --serial to scan all devices or add --host for one device"
+        )
+
+    print(f"{len(devices)} candidate logger(s) found. Every discovered logger will be captured.")
+    targets: list[tuple[str, int, dict[str, Any]]] = []
+    multi = len(devices) > 1
+    for index, device in enumerate(devices, 1):
+        monitor_sn: int | None
+        discovered_sn = False
+        if len(device.serial_candidates) == 1:
+            monitor_sn = next(iter(device.serial_candidates))
+            discovered_sn = True
+        elif args.serial is not None and len(devices) == 1:
+            monitor_sn = args.serial
+        else:
+            state = "ambiguous" if device.serial_candidates else "missing"
+            print(f"Logger {index}/{len(devices)} at {device.host}: Monitor SN {state}.")
+            prompt = (
+                f"Monitor SN for logger {index}/{len(devices)} at {device.host}"
+                + (" (Enter to skip): " if multi else ": ")
+            )
+            monitor_sn = _prompt_monitor_sn(prompt, allow_skip=multi)
+            if monitor_sn is None:
+                print(f"Skipping logger {index}/{len(devices)}; no Monitor SN supplied.")
+                summary["targets_skipped"] += 1
+                continue
+
+        report = {
+            "attempted": True,
+            "devices_found": len(devices),
+            "host_discovered": True,
+            "monitor_sn_discovered": discovered_sn,
+            "target_index": index,
+            "multi_device_scan": multi,
+        }
+        targets.append((device.host, monitor_sn, report))
+
+    if not targets:
+        raise ValueError("No discovered logger has a usable Monitor SN")
+    summary["targets_resolved"] = len(targets)
+    return targets, summary
+
+
+# ---------------------------------------------------------------------------
+# Capture plans / protocol detection
+# ---------------------------------------------------------------------------
 
 def split_modbus_range(start: int, end: int) -> list[tuple[int, int]]:
-    """Split a safe range into conservative FC03 requests."""
     blocks: list[tuple[int, int]] = []
     cursor = start
     while cursor <= end:
@@ -413,7 +467,6 @@ def split_modbus_range(start: int, end: int) -> list[tuple[int, int]]:
 
 
 def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
-    """Return dynamic and supplemental read plans."""
     if protocol == "02b0":
         dynamic = split_modbus_range(0x3000, 0x302F)
         supplemental = (
@@ -422,7 +475,6 @@ def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
             else [(0x2007, 0x2007), *split_modbus_range(0x2014, 0x202C)]
         )
         return dynamic, supplemental
-
     if protocol == "1097":
         dynamic = [
             *split_modbus_range(0x1100, 0x110F),
@@ -440,7 +492,6 @@ def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
             ]
         )
         return dynamic, supplemental
-
     if protocol == "1511":
         dynamic = [
             (0xA1, 0x01, 0x0BB8, 0x0BD7),
@@ -448,39 +499,35 @@ def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
             (0xA3, 0x03, 0x0E10, 0x0E2D),
             (0xA4, 0x04, 0x0ED8, 0x0EF5),
         ]
-        supplemental = [(0xA1, 0x21, 0x07D0, 0x082F)]
-        return dynamic, supplemental
-
+        return dynamic, [(0xA1, 0x21, 0x07D0, 0x082F)]
     raise ValueError(f"Unsupported protocol: {protocol}")
 
 
-def _probe_protocol(protocol: str, host: str, port: int, logger_sn: int, timeout: float) -> None:
-    """Perform one minimal safe read proving a protocol family responds."""
+def _probe_protocol(protocol: str, host: str, port: int, sn: int, timeout: float) -> None:
     if protocol == "1511":
-        read_1511_block(host, port, logger_sn, 0xA1, 0x01, 0x0BB8, 0x0BB8, timeout=timeout)
-        return
-    if protocol == "02b0":
-        read_modbus_block(host, port, logger_sn, 0x3000, 0x3000, sensor_list=0, timeout=timeout)
-        return
-    if protocol == "1097":
-        read_modbus_block(host, port, logger_sn, 0x1100, 0x1100, sensor_list=0x1097, timeout=timeout)
-        return
-    raise ValueError(f"Unsupported protocol: {protocol}")
+        read_1511_block(host, port, sn, 0xA1, 0x01, 0x0BB8, 0x0BB8, timeout=timeout)
+    elif protocol == "02b0":
+        read_modbus_block(host, port, sn, 0x3000, 0x3000, sensor_list=0, timeout=timeout)
+    elif protocol == "1097":
+        read_modbus_block(host, port, sn, 0x1100, 0x1100, sensor_list=0x1097, timeout=timeout)
+    else:
+        raise ValueError(f"Unsupported protocol: {protocol}")
 
 
 def detect_protocol(
-    requested: str, host: str, port: int, logger_sn: int, timeout: float
+    requested: str, host: str, port: int, sn: int, timeout: float
 ) -> tuple[str, list[dict[str, Any]]]:
-    """Detect one supported protocol using only minimal read requests."""
     attempts: list[dict[str, Any]] = []
     candidates = (requested,) if requested != "auto" else SUPPORTED_PROTOCOLS
     last_error: Exception | None = None
     for protocol in candidates:
         try:
-            _probe_protocol(protocol, host, port, logger_sn, timeout)
+            _probe_protocol(protocol, host, port, sn, timeout)
         except Exception as err:
             last_error = err
-            attempts.append({"protocol": protocol, "result": "failure", "error": safe_error_details(err)})
+            attempts.append(
+                {"protocol": protocol, "result": "failure", "error": safe_error_details(err)}
+            )
             continue
         attempts.append({"protocol": protocol, "result": "success"})
         return protocol, attempts
@@ -489,16 +536,16 @@ def detect_protocol(
 
 def register_key(protocol: str, block: tuple, address: int) -> str:
     if protocol == "1511":
-        address_tag, function, _start, _end = block
-        return f"{address_tag:02X}/{function:02X}:0x{address:04X}"
+        tag, function, _start, _end = block
+        return f"{tag:02X}/{function:02X}:0x{address:04X}"
     return f"0x{address:04X}"
 
 
 def _block_descriptor(protocol: str, block: tuple) -> dict[str, Any]:
     if protocol == "1511":
-        address_tag, function, start, end = block
+        tag, function, start, end = block
         return {
-            "address_tag": f"0x{address_tag:02X}",
+            "address_tag": f"0x{tag:02X}",
             "function": f"0x{function:02X}",
             "start": f"0x{start:04X}",
             "end": f"0x{end:04X}",
@@ -511,11 +558,10 @@ def read_plan(
     protocol: str,
     host: str,
     port: int,
-    logger_sn: int,
+    sn: int,
     plan: Iterable[tuple],
     timeout: float,
 ) -> tuple[dict[str, int], list[dict[str, Any]], list[dict[str, Any]]]:
-    """Read a plan while keeping all successful evidence if another block fails."""
     registers: dict[str, int] = {}
     blocks: list[dict[str, Any]] = []
     trace: list[dict[str, Any]] = []
@@ -523,28 +569,15 @@ def read_plan(
         record = _block_descriptor(protocol, block)
         try:
             if protocol == "1511":
-                address_tag, function, start, end = block
+                tag, function, start, end = block
                 values, request_payload, response_payload = read_1511_block(
-                    host,
-                    port,
-                    logger_sn,
-                    address_tag,
-                    function,
-                    start,
-                    end,
-                    timeout=timeout,
+                    host, port, sn, tag, function, start, end, timeout=timeout
                 )
             else:
                 start, end = block
                 sensor_list = 0x1097 if protocol == "1097" else 0
                 values, request_payload, response_payload = read_modbus_block(
-                    host,
-                    port,
-                    logger_sn,
-                    start,
-                    end,
-                    sensor_list=sensor_list,
-                    timeout=timeout,
+                    host, port, sn, start, end, sensor_list=sensor_list, timeout=timeout
                 )
         except Exception as err:
             record["result"] = "failure"
@@ -577,42 +610,36 @@ def read_plan(
     return registers, blocks, trace
 
 
+# ---------------------------------------------------------------------------
+# Analysis / known decoding
+# ---------------------------------------------------------------------------
+
 def analyze_snapshots(snapshots: list[dict[str, Any]]) -> dict[str, list[str]]:
+    result = {
+        "changing_registers": [],
+        "stable_registers": [],
+        "zero_registers": [],
+        "ffff_registers": [],
+        "incomplete_registers": [],
+    }
     if not snapshots:
-        return {
-            "changing_registers": [],
-            "stable_registers": [],
-            "zero_registers": [],
-            "ffff_registers": [],
-            "incomplete_registers": [],
-        }
+        return result
     maps = [snapshot.get("registers", {}) for snapshot in snapshots]
     all_keys = sorted(set().union(*(mapping.keys() for mapping in maps)))
-    changing: list[str] = []
-    stable: list[str] = []
-    zero: list[str] = []
-    ffff: list[str] = []
-    incomplete: list[str] = []
     for key in all_keys:
         if not all(key in mapping for mapping in maps):
-            incomplete.append(key)
+            result["incomplete_registers"].append(key)
             continue
         values = [mapping[key] for mapping in maps]
         if len(set(values)) > 1:
-            changing.append(key)
+            result["changing_registers"].append(key)
         elif values[0] == 0:
-            zero.append(key)
+            result["zero_registers"].append(key)
         elif values[0] == 0xFFFF:
-            ffff.append(key)
+            result["ffff_registers"].append(key)
         else:
-            stable.append(key)
-    return {
-        "changing_registers": changing,
-        "stable_registers": stable,
-        "zero_registers": zero,
-        "ffff_registers": ffff,
-        "incomplete_registers": incomplete,
-    }
+            result["stable_registers"].append(key)
+    return result
 
 
 def _address_map(raw: dict[str, int]) -> dict[int, int]:
@@ -626,10 +653,10 @@ def _address_map(raw: dict[str, int]) -> dict[int, int]:
     return result
 
 
-def _u32(registers: dict[int, int], high_address: int) -> int | None:
-    if high_address not in registers or high_address + 1 not in registers:
+def _u32(registers: dict[int, int], high: int) -> int | None:
+    if high not in registers or high + 1 not in registers:
         return None
-    return (registers[high_address] << 16) | registers[high_address + 1]
+    return (registers[high] << 16) | registers[high + 1]
 
 
 def firmware_version(value: int) -> str:
@@ -637,33 +664,33 @@ def firmware_version(value: int) -> str:
     return f"V{raw[0]}.{raw[1]}.{raw[2:]}"
 
 
-def _detect_pv_count(protocol: str, registers: dict[int, int]) -> int:
+def _detect_pv_count(protocol: str, r: dict[int, int]) -> int:
     if protocol == "1511":
         bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
         totals = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
         detected = 1
         for number, (base, total) in enumerate(zip(bases, totals), 1):
-            if any(0 < registers.get(address, 0) < 0xFFFF for address in (base, base + 1, base + 2, base + 5, total, total + 1)):
+            if any(0 < r.get(a, 0) < 0xFFFF for a in (base, base + 1, base + 2, base + 5, total, total + 1)):
                 detected = number
         return detected
     if protocol == "1097":
         detected = 0
         for number in range(1, 7):
             base = 0x1302 + (number - 1) * 7
-            if any(0 < registers.get(address, 0) < 0xFFFF for address in range(base, base + 7)):
+            if any(0 < r.get(a, 0) < 0xFFFF for a in range(base, base + 7)):
                 detected = number
         return max(detected, 1)
     detected = 1
     for number in range(1, 5):
         base = 0x3010 + (number - 1) * 3
         energy = 0x301F + (number - 1) * 3
-        if any(0 < registers.get(address, 0) < 0xFFFF for address in (base, base + 1, base + 2, energy)):
+        if any(0 < r.get(a, 0) < 0xFFFF for a in (base, base + 1, base + 2, energy)):
             detected = number
     return detected
 
 
 def decode_known(protocol: str, raw: dict[str, int]) -> dict[str, Any]:
-    """Decode only established fields; unknown research registers stay raw."""
+    """Decode established fields only; research candidates remain raw evidence."""
     r = _address_map(raw)
     data: dict[str, Any] = {}
     pv_count = _detect_pv_count(protocol, r)
@@ -678,6 +705,7 @@ def decode_known(protocol: str, raw: dict[str, int]) -> dict[str, Any]:
             "rated_power": (0x300E, 1),
             "ac_power": (0x300F, 0.1),
             "ac_energy_today": (0x301C, 0.01),
+            "max_designed_power": (0x2007, 1),
         }
         for key, (address, scale) in mapping.items():
             if address in r:
@@ -685,21 +713,16 @@ def decode_known(protocol: str, raw: dict[str, int]) -> dict[str, Any]:
                 if key == "inverter_temperature":
                     value = r[address] - 40
                 data[key] = round(value, 3) if isinstance(value, float) else value
-        for index, address in enumerate(range(0x3003, 0x3007), 1):
-            if address in r:
-                data[f"alarm_code_{index}_raw"] = r[address]
+        if 0x202C in r:
+            data["output_coefficient"] = round(r[0x202C] * 100 / 1024, 2)
         for number in range(1, pv_count + 1):
             base = 0x3010 + (number - 1) * 3
             if base + 2 in r:
                 data[f"pv{number}_voltage"] = round(r[base] * 0.1, 2)
                 data[f"pv{number}_current"] = round(r[base + 1] * 0.01, 2)
                 data[f"pv{number}_power"] = round(r[base + 2] * 0.1, 2)
-            daily = 0x301F + (number - 1) * 3
-            if daily in r:
-                data[f"pv{number}_energy_today"] = round(r[daily] * 0.01, 2)
         data["note_02b0_total_energy"] = (
-            "Total-energy width is intentionally left raw in this standalone tool so "
-            "different GEN3/GEN3 PLUS implementations can be validated independently."
+            "Total-energy width is intentionally left raw so device variants can be validated independently."
         )
 
     elif protocol == "1097":
@@ -740,12 +763,6 @@ def decode_known(protocol: str, raw: dict[str, int]) -> dict[str, Any]:
                 data[f"pv{number}_voltage"] = round(r[base] * 0.1, 2)
                 data[f"pv{number}_current"] = round(r[base + 1] * 0.01, 2)
                 data[f"pv{number}_power"] = round(r[base + 2] * 0.1, 2)
-            today = _u32(r, base + 3)
-            total = _u32(r, base + 5)
-            if today is not None:
-                data[f"pv{number}_energy_today"] = round(today * 0.01, 2)
-            if total is not None:
-                data[f"pv{number}_energy_total"] = round(total * 0.01, 2)
 
     else:
         mapping = {
@@ -780,46 +797,61 @@ def decode_known(protocol: str, raw: dict[str, int]) -> dict[str, Any]:
             data["country_profile_raw"] = r[0x07D0]
         if 0x07FA in r:
             data["max_designed_power"] = r[0x07FA]
-        advanced = {
-            "grid_recovery_rate": (0x07D3, 0.5),
-            "grid_overvoltage_10min": (0x07E1, 0.1),
-            "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),
-            "grid_overfrequency_reduction_coefficient": (0x07EF, 0.01),
-            "overtemperature_protection_temperature": (0x07F0, 1),
-            "grid_start_upper_voltage_limit": (0x07FB, 0.1),
-            "grid_start_lower_voltage_limit": (0x07FC, 0.1),
-            "grid_start_upper_frequency_limit": (0x07FD, 0.01),
-            "grid_start_lower_frequency_limit": (0x07FE, 0.01),
-            "grid_qp_voltage_threshold": (0x0800, 1),
-        }
-        for key, (address, scale) in advanced.items():
-            if address in r:
-                data[key] = round(r[address] * scale, 3)
-        pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
-        totals = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
-        for number, (base, total_base) in enumerate(zip(pv_bases[:pv_count], totals[:pv_count]), 1):
+        bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
+        for number, base in enumerate(bases[:pv_count], 1):
             if base + 2 in r:
                 data[f"pv{number}_voltage"] = round(r[base] * 0.1, 2)
                 data[f"pv{number}_current"] = round(r[base + 1] * 0.01, 2)
                 data[f"pv{number}_power"] = round(r[base + 2] * 0.1, 2)
-            if base + 5 in r:
-                data[f"pv{number}_energy_today"] = round(r[base + 5] * 0.01, 2)
-            total_value = _u32(r, total_base)
-            if total_value is not None:
-                data[f"pv{number}_energy_total"] = round(total_value * 0.01, 2)
 
     data["detected_pv_count"] = pv_count
     return data
 
+
+# ---------------------------------------------------------------------------
+# Dump document / comparison / filenames
+# ---------------------------------------------------------------------------
 
 def _safe_filename_part(value: str) -> str:
     normalized = _SAFE_NAME.sub("-", value.lower()).strip("-._")
     return normalized or "unknown"
 
 
-def default_output_path(model: str | None, protocol: str, timestamp: datetime) -> Path:
+def default_output_path(
+    model: str | None,
+    protocol: str,
+    timestamp: datetime,
+    *,
+    device_index: int | None = None,
+) -> Path:
     stamp = timestamp.strftime("%Y%m%dT%H%M%SZ")
-    return Path(f"tsun_{_safe_filename_part(model or 'unknown')}_{protocol}_{stamp}.json")
+    device = f"device-{device_index:02d}_" if device_index is not None else ""
+    return Path(
+        f"tsun_{device}{_safe_filename_part(model or 'unknown')}_{protocol}_{stamp}.json"
+    )
+
+
+def output_path_for_target(
+    requested: Path | None,
+    model: str | None,
+    protocol: str,
+    timestamp: datetime,
+    *,
+    device_index: int,
+    total_targets: int,
+) -> Path:
+    if requested is None:
+        return default_output_path(
+            model,
+            protocol,
+            timestamp,
+            device_index=device_index if total_targets > 1 else None,
+        )
+    if total_targets == 1:
+        return requested
+    suffix = requested.suffix or ".json"
+    stem = requested.stem if requested.suffix else requested.name
+    return requested.parent / f"{stem}_device-{device_index:02d}{suffix}"
 
 
 def _script_sha256() -> str | None:
@@ -836,22 +868,24 @@ def _flatten_raw_registers(registers: dict[str, int]) -> list[dict[str, Any]]:
     ]
 
 
-def capture(args: argparse.Namespace, host: str, logger_sn: int, discovery: dict[str, Any]) -> dict[str, Any]:
-    """Create one standalone hardware-validation capture."""
-    protocol, detection_attempts = detect_protocol(args.protocol, host, args.port, logger_sn, args.timeout)
+def capture(
+    args: argparse.Namespace, host: str, sn: int, discovery: dict[str, Any]
+) -> dict[str, Any]:
+    protocol, detection_attempts = detect_protocol(
+        args.protocol, host, args.port, sn, args.timeout
+    )
     print(f"Protocol detected: {protocol}")
     dynamic_plan, supplemental_plan = capture_plans(protocol, args.full)
-
     supplemental_registers, supplemental_blocks, supplemental_trace = read_plan(
-        protocol, host, args.port, logger_sn, supplemental_plan, args.timeout
+        protocol, host, args.port, sn, supplemental_plan, args.timeout
     )
+
     snapshots: list[dict[str, Any]] = []
     snapshot_blocks: list[dict[str, Any]] = []
     protocol_trace = list(supplemental_trace)
-
     for index in range(args.snapshots):
         registers, blocks, trace = read_plan(
-            protocol, host, args.port, logger_sn, dynamic_plan, args.timeout
+            protocol, host, args.port, sn, dynamic_plan, args.timeout
         )
         snapshots.append(
             {
@@ -868,8 +902,8 @@ def capture(args: argparse.Namespace, host: str, logger_sn: int, discovery: dict
         if index + 1 < args.snapshots and args.interval:
             time.sleep(args.interval)
 
-    latest_dynamic = snapshots[-1]["registers"] if snapshots else {}
-    merged = {**supplemental_registers, **latest_dynamic}
+    latest = snapshots[-1]["registers"] if snapshots else {}
+    merged = {**supplemental_registers, **latest}
     supplemental_blocks = [
         {**block, "snapshot": None, "scope": "supplemental"}
         for block in supplemental_blocks
@@ -878,7 +912,7 @@ def capture(args: argparse.Namespace, host: str, logger_sn: int, discovery: dict
     successful = sum(block["result"] == "success" for block in all_blocks)
     failed = len(all_blocks) - successful
     created_at = datetime.now(UTC)
-    model_family = {
+    family = {
         "1511": "TITAN",
         "02b0": "GEN3 / GEN3 PLUS",
         "1097": "GEN3 / GEN3 PLUS (1097)",
@@ -898,7 +932,7 @@ def capture(args: argparse.Namespace, host: str, logger_sn: int, discovery: dict
             "read_only": True,
             "capture_mode": "full" if args.full else "standard",
             "detected_protocol": protocol,
-            "model_family": model_family,
+            "model_family": family,
             "model_supplied_by_user": args.model,
             "pv_count": _detect_pv_count(protocol, _address_map(merged)),
             "port": args.port,
@@ -942,7 +976,6 @@ def _raw_map(document: dict[str, Any]) -> dict[str, int]:
 
 
 def compare_documents(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
-    """Compare raw dumps without assigning semantic meaning to changes."""
     before_map = _raw_map(before)
     after_map = _raw_map(after)
     common = sorted(before_map.keys() & after_map.keys())
@@ -965,9 +998,13 @@ def compare_documents(before: dict[str, Any], after: dict[str, Any]) -> dict[str
         "changed_registers": changed,
         "added_registers": sorted(after_map.keys() - before_map.keys()),
         "removed_registers": sorted(before_map.keys() - after_map.keys()),
-        "unchanged_register_count": sum(before_map[key] == after_map[key] for key in common),
+        "unchanged_register_count": sum(before_map[k] == after_map[k] for k in common),
     }
 
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
 
 def _positive_port(value: str) -> int:
     port = int(value)
@@ -993,12 +1030,19 @@ def _non_negative_float(value: str) -> float:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Standalone, privacy-safe, strictly read-only TSUN hardware dump "
-            "for protocols 1511, 02B0 and 1097."
+            "Standalone, privacy-safe, strictly read-only TSUN hardware dump for "
+            "1511, 02B0 and 1097. Without --host, all discovered loggers are captured."
         )
     )
-    parser.add_argument("--host", help="logger IP address; discovered/prompted if omitted")
-    parser.add_argument("--serial", type=int, help="numeric Monitor SN; discovered/prompted if omitted")
+    parser.add_argument(
+        "--host",
+        help="logger IP address; when omitted, every discovered logger is captured",
+    )
+    parser.add_argument(
+        "--serial",
+        type=int,
+        help="numeric Monitor SN for single-target use; normally discovered/prompted",
+    )
     parser.add_argument("--port", type=_positive_port, default=DEFAULT_PORT)
     parser.add_argument(
         "--protocol",
@@ -1007,12 +1051,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="force a protocol or detect automatically",
     )
     parser.add_argument("--model", help="exact physical model for metadata/file name")
-    parser.add_argument("--full", action="store_true", help="read additional known-safe research ranges")
+    parser.add_argument(
+        "--full", action="store_true", help="read additional known-safe research ranges"
+    )
     parser.add_argument("--snapshots", type=_positive_int, default=DEFAULT_SNAPSHOTS)
-    parser.add_argument("--interval", type=_non_negative_float, default=DEFAULT_SNAPSHOT_INTERVAL)
+    parser.add_argument(
+        "--interval", type=_non_negative_float, default=DEFAULT_SNAPSHOT_INTERVAL
+    )
     parser.add_argument("--timeout", type=_non_negative_float, default=DEFAULT_TIMEOUT)
-    parser.add_argument("--discovery-timeout", type=_non_negative_float, default=DEFAULT_DISCOVERY_TIMEOUT)
-    parser.add_argument("--output", type=Path, help="output JSON path")
+    parser.add_argument(
+        "--discovery-timeout",
+        type=_non_negative_float,
+        default=DEFAULT_DISCOVERY_TIMEOUT,
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="output JSON path; multi-device scans add _device-NN automatically",
+    )
     parser.add_argument(
         "--compare",
         nargs=2,
@@ -1022,13 +1078,34 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _print_dump_summary(document: dict[str, Any], output: Path) -> None:
+    summary = document["capture_summary"]
+    privacy = document["metadata"]["privacy"]
+    print("Dump completed.")
+    print(f"Protocol : {document['metadata']['detected_protocol']}")
+    print(
+        f"Blocks   : {summary['successful_block_reads']} successful / "
+        f"{summary['failed_block_reads']} failed"
+    )
+    print(f"Registers: {summary['unique_raw_registers']} unique raw registers")
+    print(f"Snapshots: {summary['snapshots']}")
+    print("Writes   : 0")
+    print(
+        "Privacy  : host={}, Monitor SN={}, inverter SN={}".format(
+            "excluded" if not privacy["host_in_output"] else "included",
+            "excluded" if not privacy["logger_sn_in_output"] else "included",
+            "excluded" if not privacy["inverter_serial_in_output"] else "included",
+        )
+    )
+    print(f"Output   : {output}")
+
+
 def main() -> int:
     if sys.version_info < (3, 10):
         print("ERROR: Python 3.10 or newer is required. Use python3.", file=sys.stderr)
         return 2
 
     args = build_parser().parse_args()
-
     if args.compare:
         before_path, after_path = map(Path, args.compare)
         try:
@@ -1042,7 +1119,10 @@ def main() -> int:
         for item in result["changed_registers"]:
             print(f"  {item['key']}: {item['before']} -> {item['after']}")
         if args.output:
-            args.output.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            args.output.write_text(
+                json.dumps(result, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
             print(f"Comparison JSON: {args.output}")
         return 0
 
@@ -1051,8 +1131,7 @@ def main() -> int:
     print("No inverter configuration write operation is implemented.\n")
 
     try:
-        host, monitor_sn, discovery = resolve_target(args)
-        document = capture(args, host, monitor_sn, discovery)
+        targets, resolution = resolve_targets(args)
     except (KeyboardInterrupt, EOFError):
         print("\nCancelled.")
         return 130
@@ -1060,31 +1139,62 @@ def main() -> int:
         print(f"ERROR: {type(err).__name__}: {err}", file=sys.stderr)
         return 1
 
-    timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])
-    output = args.output or default_output_path(args.model, document["metadata"]["detected_protocol"], timestamp)
-    try:
-        output.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    except OSError as err:
-        print(f"ERROR: could not write {output}: {err}", file=sys.stderr)
-        return 2
+    total = len(targets)
+    completed: list[Path] = []
+    failed = 0
+    if total > 1 and args.model:
+        print("Note: --model is applied to every captured logger in this scan.")
 
-    summary = document["capture_summary"]
-    privacy = document["metadata"]["privacy"]
-    print("\nDump completed.")
-    print(f"Protocol : {document['metadata']['detected_protocol']}")
-    print(f"Blocks   : {summary['successful_block_reads']} successful / {summary['failed_block_reads']} failed")
-    print(f"Registers: {summary['unique_raw_registers']} unique raw registers")
-    print(f"Snapshots: {summary['snapshots']}")
-    print("Writes   : 0")
-    print(
-        "Privacy  : host={}, Monitor SN={}, inverter SN={}".format(
-            "excluded" if not privacy["host_in_output"] else "included",
-            "excluded" if not privacy["logger_sn_in_output"] else "included",
-            "excluded" if not privacy["inverter_serial_in_output"] else "included",
+    for sequence, (host, sn, discovery) in enumerate(targets, 1):
+        discovered_index = int(discovery.get("target_index", sequence))
+        print(f"\n=== Device {sequence}/{total} (discovery #{discovered_index}) ===")
+        print(f"Logger   : {host}")
+        try:
+            document = capture(args, host, sn, discovery)
+        except (KeyboardInterrupt, EOFError):
+            print("\nCancelled.")
+            return 130
+        except Exception as err:
+            failed += 1
+            print(
+                f"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}",
+                file=sys.stderr,
+            )
+            continue
+
+        timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])
+        output = output_path_for_target(
+            args.output,
+            args.model,
+            document["metadata"]["detected_protocol"],
+            timestamp,
+            device_index=discovered_index,
+            total_targets=total,
         )
-    )
-    print(f"Output   : {output}")
-    return 0
+        try:
+            output.write_text(
+                json.dumps(document, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as err:
+            failed += 1
+            print(f"ERROR: could not write {output}: {err}", file=sys.stderr)
+            continue
+        completed.append(output)
+        _print_dump_summary(document, output)
+
+    print("\n=== Scan summary ===")
+    print(f"Discovered: {resolution['devices_found']}")
+    print(f"Resolved  : {resolution['targets_resolved']}")
+    print(f"Skipped   : {resolution['targets_skipped']}")
+    print(f"Captured  : {len(completed)}")
+    print(f"Failed    : {failed}")
+    if completed:
+        print("Generated files:")
+        for output in completed:
+            print(f"  {output}")
+        return 0
+    return 1
 
 
 if __name__ == "__main__":
