@@ -1,0 +1,572 @@
+name: Patch universal dump discovery
+
+on:
+  push:
+    branches:
+      - fix/universal-dump-discovery
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, 'temporary workflow')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix/universal-dump-discovery
+      - name: Patch standalone dumper
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('tools/tsun_dump.py')
+          text = p.read_text()
+
+          text = text.replace(
+              'import argparse\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\n',
+              'import argparse\nimport base64\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\n'
+          )
+          text = text.replace(
+              'import hashlib\nfrom ipaddress import IPv4Address, IPv4Network, ip_network\n',
+              'import hashlib\nimport http.client\nfrom ipaddress import IPv4Address, IPv4Network, ip_network\n'
+          )
+          text = text.replace('TOOL_VERSION = "2.2.0"', 'TOOL_VERSION = "2.3.0"')
+          text = text.replace(
+              'DEFAULT_TCP_SCAN_TIMEOUT = 0.45\nDEFAULT_DISCOVERY_CONCURRENCY = 64\n',
+              'DEFAULT_TCP_SCAN_TIMEOUT = 0.45\nDEFAULT_HTTP_SCAN_TIMEOUT = 0.35\nDEFAULT_HTTP_PAGE_TIMEOUT = 1.5\nMAX_HTTP_PAGE_SIZE = 512 * 1024\nDEFAULT_DISCOVERY_CONCURRENCY = 64\n'
+          )
+          text = text.replace(
+              'DISCOVERY_MESSAGES = (\n    b"WIFIKIT-214028-READ",\n    b"HF-A11ASSISTHREAD",\n    b"devicelinkfind",\n)\n',
+              'DISCOVERY_MESSAGES = (\n    b"WIFIKIT-214028-READ",\n    b"HF-A11ASSISTHREAD",\n    b"devicelinkfind",\n)\nLOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")\nLOGGER_WEB_AUTH = base64.b64encode(b"admin:admin").decode("ascii")\n_FIRMWARE_PROTOCOL_TOKEN = re.compile(\n    r"(?:^|[_-])(1511|1097|02b0)(?=[_-]|$)", re.IGNORECASE\n)\n_FIRMWARE_PATTERNS = (\n    re.compile(\n        r"\\b(?:webdata|cover)[_-]ver\\s*[:=]\\s*[\\\"\']"\n        r"([A-Za-z0-9][A-Za-z0-9._-]{1,79})", re.IGNORECASE\n    ),\n    re.compile(\n        r"firmware\\s*version[^A-Za-z0-9]+"\n        r"([A-Za-z0-9][A-Za-z0-9._-]{1,79})", re.IGNORECASE\n    ),\n)\n_LOGGER_SN_PATTERNS = (\n    re.compile(\n        r"\\bcover[_-]mid\\b[\\s\\S]{0,160}?([1-9]\\d{7,9})", re.IGNORECASE\n    ),\n    re.compile(\n        r"\\b(?:device|logger|monitor)[_-]?(?:serial(?:_number)?|sn)\\b"\n        r"[\\s\\S]{0,160}?([1-9]\\d{7,9})", re.IGNORECASE\n    ),\n    re.compile(r"\\bAP_([1-9]\\d{7,9})\\b", re.IGNORECASE),\n)\n'
+          )
+
+          old_dataclass = '''@dataclass(slots=True)\nclass DiscoveryDevice:\n    """One logger discovered on the local network."""\n\n    host: str\n    serial_candidates: set[int] = field(default_factory=set)\n    replies: int = 0\n'''
+          new_dataclass = '''@dataclass(slots=True)\nclass DiscoveryDevice:\n    """One logger candidate found by one or more read-only discovery methods."""\n\n    host: str\n    serial_candidates: set[int] = field(default_factory=set)\n    replies: int = 0\n    sources: set[str] = field(default_factory=set)\n    firmware_version: str | None = None\n    protocol_hint: str | None = None\n    tcp_8899_open: bool = False\n    http_open: bool = False\n'''
+          if old_dataclass not in text:
+              raise SystemExit('DiscoveryDevice block not found')
+          text = text.replace(old_dataclass, new_dataclass)
+
+          old_parse = '''def parse_ap_frame(frame: bytes) -> bytes:\n    if len(frame) < 27 or frame[0] != 0xA5 or frame[-1] != 0x15:\n        raise TsunProtocolError("Invalid AP frame markers or length")\n    expected = int.from_bytes(frame[1:3], "little") + 13\n    if len(frame) != expected:\n        raise TsunProtocolError("Invalid AP frame length")\n    if checksum_ap(frame[1:-2]) != frame[-2]:\n        raise TsunProtocolError("Invalid AP checksum")\n    if frame[11] != 0x02:\n        raise TsunProtocolError("Unexpected AP frame type")\n    if frame[12] != 0x01:\n        raise TsunProtocolError(f"AP returned status 0x{frame[12]:02X}")\n    return frame[25:-2]\n'''
+          new_parse = '''def _validate_ap_frame(frame: bytes) -> None:\n    if len(frame) < 27 or frame[0] != 0xA5 or frame[-1] != 0x15:\n        raise TsunProtocolError("Invalid AP frame markers or length")\n    expected = int.from_bytes(frame[1:3], "little") + 13\n    if len(frame) != expected:\n        raise TsunProtocolError("Invalid AP frame length")\n    if checksum_ap(frame[1:-2]) != frame[-2]:\n        raise TsunProtocolError("Invalid AP checksum")\n\n\ndef extract_ap_logger_sn(frame: bytes) -> int:\n    """Extract the logger identity from a validated AP response envelope."""\n    _validate_ap_frame(frame)\n    logger_sn = int.from_bytes(frame[7:11], "little")\n    if not _valid_monitor_sn(logger_sn):\n        raise TsunProtocolError("AP response does not contain a logger identifier")\n    return logger_sn\n\n\ndef parse_ap_frame(frame: bytes) -> bytes:\n    _validate_ap_frame(frame)\n    if frame[11] != 0x02:\n        raise TsunProtocolError("Unexpected AP frame type")\n    if frame[12] != 0x01:\n        raise TsunProtocolError(f"AP returned status 0x{frame[12]:02X}")\n    return frame[25:-2]\n'''
+          if old_parse not in text:
+              raise SystemExit('parse_ap_frame block not found')
+          text = text.replace(old_parse, new_parse)
+
+          start = text.index('def _host_sort_key(')
+          end = text.index('def _prompt_monitor_sn(', start)
+          discovery = r'''def _host_sort_key(host: str) -> tuple[int, int, int, int]:
+    return tuple(int(part) for part in host.split("."))  # type: ignore[return-value]
+
+
+def protocol_from_firmware(firmware: str | None) -> str | None:
+    if not firmware:
+        return None
+    match = _FIRMWARE_PROTOCOL_TOKEN.search(firmware)
+    return match.group(1).lower() if match else None
+
+
+def _merge_device(target: DiscoveryDevice, incoming: DiscoveryDevice) -> None:
+    target.serial_candidates.update(incoming.serial_candidates)
+    target.replies += incoming.replies
+    target.sources.update(incoming.sources)
+    target.tcp_8899_open = target.tcp_8899_open or incoming.tcp_8899_open
+    target.http_open = target.http_open or incoming.http_open
+    if target.firmware_version is None:
+        target.firmware_version = incoming.firmware_version
+    if target.protocol_hint is None:
+        target.protocol_hint = incoming.protocol_hint
+
+
+def discover_udp_targets(
+    targets: Iterable[str],
+    *,
+    port: int = DEFAULT_DISCOVERY_PORT,
+    timeout: float = DEFAULT_DISCOVERY_TIMEOUT,
+) -> list[DiscoveryDevice]:
+    """Collect every logger answering read-only UDP probes sent to targets."""
+    devices: dict[str, DiscoveryDevice] = {}
+    destinations = tuple(dict.fromkeys(targets))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    try:
+        sock.bind(("", port))
+        for _attempt in range(2):
+            for target in destinations:
+                for message in DISCOVERY_MESSAGES:
+                    try:
+                        sock.sendto(message, (target, port))
+                    except OSError:
+                        continue
+            if _attempt == 0:
+                time.sleep(0.12)
+        deadline = time.monotonic() + timeout
+        while (remaining := deadline - time.monotonic()) > 0:
+            sock.settimeout(remaining)
+            try:
+                payload, (source, _source_port) = sock.recvfrom(4096)
+            except socket.timeout:
+                break
+            if payload in DISCOVERY_MESSAGES:
+                continue
+            device = devices.setdefault(source, DiscoveryDevice(host=source))
+            device.replies += 1
+            device.sources.add("udp48899")
+            device.serial_candidates.update(serial_candidates_from_payload(payload))
+    except OSError:
+        return []
+    finally:
+        sock.close()
+    return sorted(devices.values(), key=lambda item: _host_sort_key(item.host))
+
+
+def discover_devices(
+    *, port: int = DEFAULT_DISCOVERY_PORT, timeout: float = DEFAULT_DISCOVERY_TIMEOUT
+) -> list[DiscoveryDevice]:
+    """Backward-compatible global-broadcast UDP discovery helper."""
+    return discover_udp_targets(("255.255.255.255",), port=port, timeout=timeout)
+
+
+def _parse_scan_network(value: str) -> IPv4Network:
+    network = ip_network(value.strip(), strict=False)
+    if not isinstance(network, IPv4Network):
+        raise ValueError("An IPv4 network is required")
+    if network.prefixlen < MIN_SCAN_PREFIX:
+        raise ValueError("Discovery network must be /24 or smaller")
+    return network
+
+
+def _network_around_host(host: str) -> IPv4Network:
+    return ip_network(f"{IPv4Address(host)}/{MIN_SCAN_PREFIX}", strict=False)
+
+
+def local_ipv4_networks() -> set[IPv4Network]:
+    """Infer safe local /24 networks without external commands or packages."""
+    addresses: set[str] = set()
+    try:
+        for item in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            addresses.add(item[4][0])
+    except OSError:
+        pass
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # UDP connect selects a route but sends no application payload.
+        sock.connect(("192.0.2.1", 9))
+        addresses.add(sock.getsockname()[0])
+    except OSError:
+        pass
+    finally:
+        sock.close()
+    networks: set[IPv4Network] = set()
+    for value in addresses:
+        try:
+            address = IPv4Address(value)
+        except ValueError:
+            continue
+        if address.is_loopback or address.is_link_local or address.is_multicast or address.is_unspecified:
+            continue
+        networks.add(_network_around_host(str(address)))
+    return networks
+
+
+def _tcp_port_open(host: str, port: int, timeout: float) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def scan_tcp_network(
+    network: IPv4Network,
+    port: int,
+    *,
+    timeout: float = DEFAULT_TCP_SCAN_TIMEOUT,
+) -> list[str]:
+    """Find hosts accepting one TCP port without sending application data."""
+    hosts = [str(host) for host in network.hosts()]
+    if not hosts:
+        return []
+    found: list[str] = []
+    workers = min(DEFAULT_DISCOVERY_CONCURRENCY, len(hosts))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(_tcp_port_open, host, port, timeout): host for host in hosts}
+        for future in as_completed(futures):
+            host = futures[future]
+            try:
+                if future.result():
+                    found.append(host)
+            except OSError:
+                pass
+    return sorted(found, key=_host_sort_key)
+
+
+def _http_document(host: str, path: str, timeout: float, authenticated: bool) -> str | None:
+    connection = http.client.HTTPConnection(host, 80, timeout=timeout)
+    headers = {"User-Agent": "TSUN-Local-Dump-Discovery", "Connection": "close"}
+    if authenticated:
+        headers["Authorization"] = f"Basic {LOGGER_WEB_AUTH}"
+    try:
+        connection.request("GET", path, headers=headers)
+        response = connection.getresponse()
+        if response.status != 200:
+            response.read()
+            return None
+        body = response.read(MAX_HTTP_PAGE_SIZE + 1)
+        if len(body) > MAX_HTTP_PAGE_SIZE:
+            return None
+        return body.decode("utf-8", errors="replace")
+    except (OSError, http.client.HTTPException):
+        return None
+    finally:
+        connection.close()
+
+
+def _web_identity_from_document(document: str) -> tuple[set[int], str | None, str | None, bool]:
+    serials: set[int] = set()
+    for pattern in _LOGGER_SN_PATTERNS:
+        for match in pattern.finditer(document):
+            candidate = int(match.group(1))
+            if _valid_monitor_sn(candidate):
+                serials.add(candidate)
+    firmware: str | None = None
+    for pattern in _FIRMWARE_PATTERNS:
+        match = pattern.search(document)
+        if match:
+            firmware = match.group(1)
+            break
+    hint = protocol_from_firmware(firmware)
+    recognized = bool(
+        serials
+        or hint
+        or re.search(r"\b(?:webdata|cover)[_-](?:ver|mid|sn)\b", document, re.IGNORECASE)
+    )
+    return serials, firmware, hint, recognized
+
+
+def probe_logger_web(host: str, timeout: float) -> DiscoveryDevice | None:
+    """Identify TSUN logger metadata from local web pages, with admin/admin fallback."""
+    aggregate = DiscoveryDevice(host=host, http_open=True)
+    recognized = False
+    for path in LOGGER_STATUS_PATHS:
+        for authenticated in (False, True):
+            document = _http_document(host, path, timeout, authenticated)
+            if document is None:
+                continue
+            serials, firmware, hint, is_tsun = _web_identity_from_document(document)
+            aggregate.serial_candidates.update(serials)
+            aggregate.firmware_version = aggregate.firmware_version or firmware
+            aggregate.protocol_hint = aggregate.protocol_hint or hint
+            recognized = recognized or is_tsun
+            if aggregate.serial_candidates and aggregate.protocol_hint:
+                break
+        if aggregate.serial_candidates and aggregate.protocol_hint:
+            break
+    if not recognized:
+        return None
+    aggregate.sources.add("http80")
+    return aggregate
+
+
+def probe_ap_identity(host: str, port: int, timeout: float) -> int | None:
+    """Ask a logger for its AP-envelope identity using read-only probes and SN=0."""
+    probes = (
+        (build_1511_request(0xA1, 0x01, 0x0BB8, 0x0BD0), 0),
+        (build_modbus_request(0x3009, 0x301E), 0),
+        (build_modbus_request(0x1100, 0x1100), 0x1097),
+    )
+    for payload, sensor_list in probes:
+        try:
+            request = build_ap_frame(0, payload, sensor_list=sensor_list)
+            with socket.create_connection((host, port), timeout=timeout) as sock:
+                sock.settimeout(timeout)
+                sock.sendall(request)
+                frame = read_ap_frame(sock)
+            return extract_ap_logger_sn(frame)
+        except (OSError, TsunProtocolError, ValueError):
+            continue
+    return None
+
+
+def _parallel_map(hosts: Iterable[str], function, workers: int = 24) -> dict[str, Any]:
+    host_list = list(dict.fromkeys(hosts))
+    if not host_list:
+        return {}
+    result: dict[str, Any] = {}
+    with ThreadPoolExecutor(max_workers=min(workers, len(host_list))) as executor:
+        futures = {executor.submit(function, host): host for host in host_list}
+        for future in as_completed(futures):
+            host = futures[future]
+            try:
+                result[host] = future.result()
+            except Exception:
+                result[host] = None
+    return result
+
+
+def discover_candidates(
+    args: argparse.Namespace,
+) -> tuple[list[DiscoveryDevice], dict[str, int]]:
+    """Combine UDP, TCP 8899, HTTP identity and AP identity discovery."""
+    explicit_networks = {_parse_scan_network(value) for value in (args.network or [])}
+    networks = set(explicit_networks)
+    networks.update(local_ipv4_networks())
+
+    udp_targets = {"255.255.255.255"}
+    udp_targets.update(str(network.broadcast_address) for network in networks)
+    initial_udp = discover_udp_targets(udp_targets, timeout=args.discovery_timeout)
+    devices: dict[str, DiscoveryDevice] = {device.host: device for device in initial_udp}
+    networks.update(_network_around_host(device.host) for device in initial_udp)
+
+    tcp_hosts: set[str] = set()
+    http_hosts: set[str] = set()
+    for network in sorted(networks, key=lambda item: (int(item.network_address), item.prefixlen)):
+        print(f"Network discovery: scanning {network} on TCP {args.port} and HTTP 80...")
+        tcp_hosts.update(scan_tcp_network(network, args.port, timeout=args.tcp_scan_timeout))
+        http_hosts.update(scan_tcp_network(network, 80, timeout=args.http_scan_timeout))
+
+    candidate_hosts = sorted(tcp_hosts | http_hosts, key=_host_sort_key)
+    if candidate_hosts:
+        directed = discover_udp_targets(
+            candidate_hosts, timeout=min(args.discovery_timeout, 2.5)
+        )
+        for incoming in directed:
+            current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))
+            _merge_device(current, incoming)
+
+    web_results = _parallel_map(
+        sorted(http_hosts, key=_host_sort_key),
+        lambda host: probe_logger_web(host, args.http_page_timeout),
+    )
+    for host, incoming in web_results.items():
+        if incoming is None:
+            continue
+        current = devices.setdefault(host, DiscoveryDevice(host=host))
+        _merge_device(current, incoming)
+
+    ap_results = _parallel_map(
+        sorted(tcp_hosts, key=_host_sort_key),
+        lambda host: probe_ap_identity(host, args.port, min(args.timeout, 3.0)),
+    )
+    for host, logger_sn in ap_results.items():
+        if logger_sn is None:
+            continue
+        current = devices.setdefault(host, DiscoveryDevice(host=host))
+        current.serial_candidates.add(int(logger_sn))
+        current.sources.add("ap_identity")
+
+    # Preserve port-8899 candidates even if one logger is temporarily too busy
+    # to answer identity probes. They are validated later by the protocol read.
+    for host in tcp_hosts:
+        current = devices.setdefault(host, DiscoveryDevice(host=host))
+        current.tcp_8899_open = True
+        current.sources.add("tcp8899")
+    for host in http_hosts:
+        if host in devices:
+            devices[host].http_open = True
+
+    return (
+        sorted(devices.values(), key=lambda item: _host_sort_key(item.host)),
+        {
+            "udp_devices": len(initial_udp),
+            "tcp_candidates": len(tcp_hosts),
+            "http_candidates": len(http_hosts),
+            "identified_candidates": len(devices),
+            "networks_scanned": len(networks),
+        },
+    )
+
+
+def resolve_single_host_identity(args: argparse.Namespace, host: str) -> DiscoveryDevice:
+    """Resolve one explicit host through UDP, HTTP and AP identity paths."""
+    device = DiscoveryDevice(host=host)
+    for incoming in discover_udp_targets((host,), timeout=min(args.discovery_timeout, 2.5)):
+        if incoming.host == host:
+            _merge_device(device, incoming)
+    web = probe_logger_web(host, args.http_page_timeout)
+    if web is not None:
+        _merge_device(device, web)
+    if _tcp_port_open(host, args.port, args.tcp_scan_timeout):
+        device.tcp_8899_open = True
+        device.sources.add("tcp8899")
+        logger_sn = probe_ap_identity(host, args.port, min(args.timeout, 3.0))
+        if logger_sn is not None:
+            device.serial_candidates.add(logger_sn)
+            device.sources.add("ap_identity")
+    return device
+
+
+'''
+          text = text[:start] + discovery + text[end:]
+
+          start = text.index('def resolve_targets(')
+          end = text.index('# ---------------------------------------------------------------------------\n# Capture plans / protocol detection', start)
+          resolve = r'''def resolve_targets(
+    args: argparse.Namespace,
+) -> tuple[list[tuple[str, int, dict[str, Any]]], dict[str, int]]:
+    """Resolve every TSUN candidate; --host deliberately restricts to one."""
+    summary = {"devices_found": 0, "targets_resolved": 0, "targets_skipped": 0}
+
+    if args.host is not None:
+        host = args.host.strip()
+        if not host:
+            raise ValueError("A logger IP address is required")
+        print("Identifying the supplied logger (UDP + TCP + HTTP + AP identity)...")
+        device = resolve_single_host_identity(args, host)
+        monitor_sn = args.serial
+        discovered_sn = False
+        if monitor_sn is None and len(device.serial_candidates) == 1:
+            monitor_sn = next(iter(device.serial_candidates))
+            discovered_sn = True
+        if monitor_sn is None:
+            print("Monitor SN could not be resolved automatically.")
+            monitor_sn = _prompt_monitor_sn()
+        assert monitor_sn is not None
+        summary["devices_found"] = 1
+        summary["targets_resolved"] = 1
+        report = {
+            "attempted": True,
+            "devices_found": 1,
+            "host_discovered": bool(device.sources),
+            "monitor_sn_discovered": discovered_sn,
+            "target_index": 1,
+            "multi_device_scan": False,
+            "sources": sorted(device.sources),
+            "firmware_version": device.firmware_version,
+            "protocol_hint": device.protocol_hint,
+        }
+        return [(host, monitor_sn, report)], summary
+
+    print("Searching for TSUN loggers (UDP + TCP 8899 + HTTP + AP identity)...")
+    devices, stats = discover_candidates(args)
+    summary["devices_found"] = len(devices)
+    print(
+        "Discovery results: "
+        f"UDP={stats['udp_devices']}, TCP8899={stats['tcp_candidates']}, "
+        f"HTTP={stats['http_candidates']}, identified={stats['identified_candidates']}, "
+        f"networks={stats['networks_scanned']}"
+    )
+
+    if not devices:
+        host = input("Logger IP address: ").strip()
+        if not host:
+            raise ValueError("A logger IP address is required")
+        device = resolve_single_host_identity(args, host)
+        monitor_sn = args.serial
+        if monitor_sn is None and len(device.serial_candidates) == 1:
+            monitor_sn = next(iter(device.serial_candidates))
+        if monitor_sn is None:
+            print("Monitor SN could not be resolved automatically.")
+            monitor_sn = _prompt_monitor_sn()
+        assert monitor_sn is not None
+        report = {
+            "attempted": True,
+            "devices_found": 1,
+            "host_discovered": bool(device.sources),
+            "monitor_sn_discovered": len(device.serial_candidates) == 1,
+            "target_index": 1,
+            "multi_device_scan": False,
+            "sources": sorted(device.sources),
+            "firmware_version": device.firmware_version,
+            "protocol_hint": device.protocol_hint,
+        }
+        summary["devices_found"] = 1
+        summary["targets_resolved"] = 1
+        return [(host, monitor_sn, report)], summary
+
+    if args.serial is not None and len(devices) > 1:
+        raise ValueError(
+            "--serial without --host is ambiguous when multiple loggers are found; "
+            "omit --serial or add --host"
+        )
+
+    print(f"{len(devices)} candidate logger(s) found. Every candidate will be validated.")
+    targets: list[tuple[str, int, dict[str, Any]]] = []
+    multi = len(devices) > 1
+    for index, device in enumerate(devices, 1):
+        sources = ", ".join(sorted(device.sources)) or "network scan"
+        hint = f", firmware hint={device.protocol_hint}" if device.protocol_hint else ""
+        print(f"Logger {index}/{len(devices)}: {device.host} [{sources}{hint}]")
+        monitor_sn: int | None = None
+        discovered_sn = False
+        if len(device.serial_candidates) == 1:
+            monitor_sn = next(iter(device.serial_candidates))
+            discovered_sn = True
+        elif args.serial is not None and len(devices) == 1:
+            monitor_sn = args.serial
+        else:
+            state = "ambiguous" if device.serial_candidates else "missing"
+            print(f"  Monitor SN {state}.")
+            prompt = (
+                f"Monitor SN for logger {index}/{len(devices)} at {device.host}"
+                + (" (Enter to skip): " if multi else ": ")
+            )
+            monitor_sn = _prompt_monitor_sn(prompt, allow_skip=multi)
+            if monitor_sn is None:
+                print(f"Skipping logger {index}/{len(devices)}; no Monitor SN supplied.")
+                summary["targets_skipped"] += 1
+                continue
+        report = {
+            "attempted": True,
+            "devices_found": len(devices),
+            "host_discovered": True,
+            "monitor_sn_discovered": discovered_sn,
+            "target_index": index,
+            "multi_device_scan": multi,
+            "sources": sorted(device.sources),
+            "firmware_version": device.firmware_version,
+            "protocol_hint": device.protocol_hint,
+        }
+        targets.append((device.host, monitor_sn, report))
+
+    if not targets:
+        raise ValueError("No discovered logger has a usable Monitor SN")
+    summary["targets_resolved"] = len(targets)
+    return targets, summary
+
+
+'''
+          text = text[:start] + resolve + text[end:]
+
+          old_detect_head = '''def detect_protocol(\n    requested: str, host: str, port: int, sn: int, timeout: float\n) -> tuple[str, list[dict[str, Any]]]:\n    attempts: list[dict[str, Any]] = []\n    candidates = (requested,) if requested != "auto" else SUPPORTED_PROTOCOLS\n'''
+          new_detect_head = '''def detect_protocol(\n    requested: str, host: str, port: int, sn: int, timeout: float, hint: str | None = None\n) -> tuple[str, list[dict[str, Any]]]:\n    attempts: list[dict[str, Any]] = []\n    if requested != "auto":\n        candidates = (requested,)\n    elif hint in SUPPORTED_PROTOCOLS:\n        candidates = (hint, *(item for item in SUPPORTED_PROTOCOLS if item != hint))\n    else:\n        candidates = SUPPORTED_PROTOCOLS\n'''
+          if old_detect_head not in text:
+              raise SystemExit('detect_protocol head not found')
+          text = text.replace(old_detect_head, new_detect_head)
+
+          text = text.replace(
+              '        args.protocol, host, args.port, sn, args.timeout\n    )\n',
+              '        args.protocol, host, args.port, sn, args.timeout, discovery.get("protocol_hint")\n    )\n',
+              1,
+          )
+
+          parser_anchor = '''    parser.add_argument(\n        "--tcp-scan-timeout",\n        type=_non_negative_float,\n        default=DEFAULT_TCP_SCAN_TIMEOUT,\n        help="TCP connect timeout used by bounded discovery fallback",\n    )\n'''
+          parser_repl = parser_anchor + '''    parser.add_argument(\n        "--http-scan-timeout",\n        type=_non_negative_float,\n        default=DEFAULT_HTTP_SCAN_TIMEOUT,\n        help="HTTP port-80 connect timeout used by universal discovery",\n    )\n    parser.add_argument(\n        "--http-page-timeout",\n        type=_non_negative_float,\n        default=DEFAULT_HTTP_PAGE_TIMEOUT,\n        help="timeout for local logger status-page identity reads",\n    )\n'''
+          if parser_anchor not in text:
+              raise SystemExit('parser tcp timeout anchor not found')
+          text = text.replace(parser_anchor, parser_repl)
+
+          text = text.replace(
+              '            "1511, 02B0 and 1097. Without --host, all discovered loggers are captured."\n',
+              '            "1511, 02B0 and 1097. Discovery combines UDP, TCP 8899, HTTP and AP identity."\n'
+          )
+
+          p.write_text(text)
+
+          # Tests: update version and add focused identity/discovery parser coverage.
+          t = Path('tests/test_tsun_dump_tool.py')
+          tests = t.read_text().replace('self.assertEqual(TOOL.TOOL_VERSION, "2.1.0")', 'self.assertEqual(TOOL.TOOL_VERSION, "2.3.0")')
+          marker = '    def test_known_1511_firmware_decoder(self) -> None:\n'
+          extra = '''    def test_protocol_hint_from_firmware(self) -> None:\n        self.assertEqual(TOOL.protocol_from_firmware("LSW5_SSL_1511_1.03"), "1511")\n        self.assertEqual(TOOL.protocol_from_firmware("LSW5_SSL_02B0_1.00"), "02b0")\n        self.assertEqual(TOOL.protocol_from_firmware("LSW5_SSL_1097_1.00"), "1097")\n\n    def test_logger_web_identity_cover_mid(self) -> None:\n        serials, firmware, hint, recognized = TOOL._web_identity_from_document(\n            'var cover_mid="1234567890"; var cover_ver="LSW5_SSL_1511_1.03";'\n        )\n        self.assertEqual(serials, {1234567890})\n        self.assertEqual(firmware, "LSW5_SSL_1511_1.03")\n        self.assertEqual(hint, "1511")\n        self.assertTrue(recognized)\n\n    def test_ap_identity_extraction(self) -> None:\n        payload = TOOL.build_modbus_request(0x3000, 0x3000)\n        frame = bytearray(TOOL.build_ap_frame(1234567890, payload))\n        frame[3:7] = b"\\x10\\x15\\x00\\x00"\n        frame[11] = 0x02\n        frame[12] = 0x01\n        frame[-2] = TOOL.checksum_ap(frame[1:-2])\n        self.assertEqual(TOOL.extract_ap_logger_sn(bytes(frame)), 1234567890)\n\n'''
+          if marker not in tests:
+              raise SystemExit('test marker not found')
+          tests = tests.replace(marker, extra + marker)
+          t.write_text(tests)
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tools/tsun_dump.py tests/test_tsun_dump_tool.py
+          git commit -m "Make dump discovery universal across TSUN logger variants"
+          git push origin HEAD:fix/universal-dump-discovery
