@@ -2,13 +2,12 @@
 
 [← Back to the entity reference](ENTITIES.md)
 
-This page documents additional read-only MP3000 / TITAN 1511 diagnostics exposed in **TSUN Local 1.5.1-beta.1**.
+This page documents additional read-only MP3000 / TITAN 1511 diagnostics exposed in **TSUN Local 1.5.1**.
 
 > [!IMPORTANT]
 > The **names are taken from the TSUN/Talent device profile** and the proposed local addresses have been **read successfully on a live MP3000**. The decoded values match the corresponding profile values. For the additional semantic mappings below, the remaining validation step is an independent observation that distinguishes the field unambiguously, normally a controlled configuration change or a second device/profile with a different known value.
 
 All entities below are diagnostics, read-only, and **disabled by default** in Home Assistant.
-
 
 ## Published raw PR #654 field dump
 
@@ -52,7 +51,7 @@ The 2026-08-19 13:31 UTC read-only dump completed every requested native block:
 | A3/03 — PV1…PV3 | 30 | 30 |
 | A4/04 — PV4…PV6 | 30 | 30 |
 
-The same dump read the logger RSSI successfully as **30% from `/status.html`**, confirming the logger page-fallback fix used by 1.5.1-beta.1.
+The same dump read the logger RSSI successfully as **30% from `/status.html`**, confirming the logger page-fallback fix used by 1.5.1.
 
 ## Live PV daily-generation validation
 
@@ -116,7 +115,7 @@ After using the correct semantic France value `8`, the live MP3000 A1/21 block r
 |---|---:|---:|---:|---|
 | Country / Réglages du Pays = France | `8` | 2000 (`0x07D0`) | `8` (`0x0008`) | LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING |
 
-TSUN Local 1.5.1-beta.1 exposes this value only as the raw advanced diagnostic `country_profile_raw`. It does **not** claim that the 1511 semantic address has been fully proven from one France-configured device.
+TSUN Local 1.5.1 exposes this value only as the raw advanced diagnostic `country_profile_raw`. It does **not** claim that the 1511 semantic address has been fully proven from one France-configured device.
 
 A safer independent confirmation would be a complete dump from another MP3000 configured for a different known country, or another authoritative 1511 mapping showing the same field position.
 
@@ -140,11 +139,11 @@ Grid Reconnection Time    = 40.0 s
 
 With candidate scaling `×0.5 s`, both `0x07D1` and `0x07D2` decode to **40.0 s**. This makes them a strong adjacent candidate pair, but because both official settings currently have the same value the dump cannot prove which register is connection and which is reconnection.
 
-For that reason **1.5.1-beta.1 does not expose two separately named Home Assistant entities for these fields yet**. Their individual semantic order remains pending an independent observation.
+For that reason **1.5.1 does not expose two separately named Home Assistant entities for these fields yet**. Their individual semantic order remains pending an independent observation.
 
-## Other strong profile correlations not promoted in beta.1
+## Other strong profile correlations not promoted in 1.5.1
 
-The full 126-row TSUN/Talent profile also reveals additional numerical correlations in the A1/21 block, including reactive-mode, GFCI/calibration and anti-reflux related fields. They remain research candidates only and are deliberately not promoted to Home Assistant entities in 1.5.1-beta.1.
+The full 126-row TSUN/Talent profile also reveals additional numerical correlations in the A1/21 block, including reactive-mode, GFCI/calibration and anti-reflux related fields. They remain research candidates only and are deliberately not promoted to Home Assistant entities in 1.5.1.
 
 ## Evidence level
 
