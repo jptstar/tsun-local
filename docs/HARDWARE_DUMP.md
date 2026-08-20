@@ -40,7 +40,7 @@ Python **3.10 or newer** is required.
 
 ## Automatic discovery: all devices by default
 
-The tool sends read-only UDP discovery probes on the local network. **When `--host` is not supplied, every discovered TSUN logger is processed automatically and a separate JSON dump is generated for each one.**
+The tool first sends repeated read-only UDP discovery probes. It then performs a **bounded TCP scan on port 8899** for each discovered `/24` (and for each network supplied with `--network`) and directly UDP-probes TCP-only candidates. **When `--host` is not supplied, every resulting candidate is validated and a separate JSON dump is generated for each supported TSUN logger.**
 
 Example with three discovered loggers:
 
@@ -90,7 +90,13 @@ python3 tsun_dump.py --host 192.168.1.50 --serial 1234567890 --full
 For a dump intended for publication, interactive entry is preferable because `--serial` can remain in shell history.
 
 > [!NOTE]
-> UDP broadcast discovery normally stays inside the local broadcast domain. Devices behind another VLAN/subnet may require an explicit `--host` unless broadcast forwarding is configured.
+> UDP broadcast discovery normally stays inside the local broadcast domain. For a routed VLAN/subnet, use a bounded network scan such as:
+>
+> ```bash
+> python3 tsun_dump.py --network 10.89.10.0/24 --full
+> ```
+>
+> `--network` accepts only `/24` or smaller IPv4 networks and may be repeated. If one logger is found by UDP, its `/24` is scanned automatically, which can reveal neighboring TSUN loggers that do not answer broadcast discovery.
 
 ## Exact model
 
@@ -227,6 +233,9 @@ Unknown research registers are never assigned speculative semantic names by the 
 - one standalone auditable Python file;
 - Python standard library only;
 - read-only UDP discovery;
+- repeated UDP discovery plus bounded `/24` TCP fallback on port 8899;
+- direct UDP retry for TCP-only candidates;
+- protocol detection retried before a candidate is rejected;
 - all discovered loggers processed sequentially, avoiding simultaneous high-rate polling;
 - Modbus capture implements FC03 reads only;
 - **no FC06/FC16 write implementation**;
