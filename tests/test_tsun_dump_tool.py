@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 2)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.2.0")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.3.0")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
         network = TOOL._parse_scan_network("10.89.10.0/24")
@@ -55,6 +55,29 @@ class TsunDumpToolTests(unittest.TestCase):
             TOOL.serial_candidates_from_payload(payload),
             {123456789, 987654321},
         )
+
+    def test_protocol_hint_from_logger_firmware(self) -> None:
+        self.assertEqual(TOOL.protocol_from_firmware("LSW5_SSL_1511_1.03"), "1511")
+        self.assertEqual(TOOL.protocol_from_firmware("LSW5_SSL_02B0_1.00"), "02b0")
+        self.assertEqual(TOOL.protocol_from_firmware("LSW5_SSL_1097_1.00"), "1097")
+        self.assertIsNone(TOOL.protocol_from_firmware("unknown"))
+
+    def test_logger_web_identity_extracts_monitor_sn_and_protocol(self) -> None:
+        document = (
+            'var cover_mid="1234567890"; '
+            'var cover_ver="LSW5_SSL_1511_1.03"; '
+            'var webdata_sn="Y000000000000000";'
+        )
+        serials, firmware, hint, recognized = TOOL._web_identity_from_document(document)
+        self.assertEqual(serials, {1234567890})
+        self.assertEqual(firmware, "LSW5_SSL_1511_1.03")
+        self.assertEqual(hint, "1511")
+        self.assertTrue(recognized)
+
+    def test_ap_identity_extraction_uses_envelope_sn(self) -> None:
+        payload = TOOL.build_modbus_request(0x3000, 0x3000)
+        frame = TOOL.build_ap_frame(1234567890, payload)
+        self.assertEqual(TOOL.extract_ap_logger_sn(frame), 1234567890)
 
     def test_modbus_capture_plans_are_bounded_fc03_ranges(self) -> None:
         for protocol in ("02b0", "1097"):
