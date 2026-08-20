@@ -1,0 +1,66 @@
+name: Prepare standalone dump README
+
+on:
+  push:
+    branches:
+      - feature/standalone-tsun-dump
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, '[standalone-readme]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Update README dump instructions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('README.md')
+          text = path.read_text(encoding='utf-8')
+          old = '''**⬇️ [Download TSUN Local + Hardware Validation Dump Tool (ZIP)](https://github.com/jptstar/tsun-local/archive/refs/heads/main.zip)**
+
+After extracting the ZIP:
+
+```bash
+cd tsun-local-main
+python tools/tsun_dump.py
+```
+
+For the most complete known-safe capture:
+
+```bash
+python tools/tsun_dump.py --full
+```
+'''
+          new = '''**⬇️ [Download the standalone `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
+
+**One file only.** No Home Assistant installation, repository clone, pip package or Node.js is required. Python 3.10+ is enough.
+
+macOS / Linux:
+
+```bash
+cd ~/Downloads
+python3 tsun_dump.py --full
+```
+
+Windows:
+
+```powershell
+py tsun_dump.py --full
+```
+'''
+          if old not in text:
+              raise SystemExit('Expected README dump block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+      - name: Commit final README and remove one-shot workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f .github/workflows/prepare-standalone-dump-readme.yml .github/standalone-readme-trigger.txt
+          git add README.md
+          git commit -m 'Document standalone one-file TSUN dump'
+          git push origin HEAD:feature/standalone-tsun-dump
