@@ -9,9 +9,36 @@
 
 The goal is to make real-device validation reproducible across models such as TSOL-MS800, MS1600, MS2000, MX-series devices and TITAN/MP-series hardware.
 
+## ⬇️ Download
+
+**[Download TSUN Local + Hardware Validation Dump Tool (ZIP)](https://github.com/jptstar/tsun-local/archive/refs/heads/main.zip)**
+
+The dump tool reuses the TSUN Local protocol modules, so downloading the repository ZIP is the simplest standalone installation method. No Home Assistant installation is required.
+
+After downloading and extracting the ZIP:
+
+```bash
+cd tsun-local-main
+python tools/tsun_dump.py
+```
+
+For the most complete known-safe hardware-validation capture:
+
+```bash
+python tools/tsun_dump.py --full
+```
+
+If you know the exact inverter model, include it in the dump metadata and filename:
+
+```bash
+python tools/tsun_dump.py --model TSOL-MS800 --full
+```
+
+The generated JSON is the file to attach to the relevant TSUN Local testing issue.
+
 ## Simplest use
 
-From a clone of the TSUN Local repository:
+From a clone or extracted ZIP of the TSUN Local repository:
 
 ```bash
 python tools/tsun_dump.py
