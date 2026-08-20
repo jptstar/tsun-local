@@ -2,7 +2,7 @@
 
 [← Back to the project README](../README.md)
 
-`tsun_dump.py` creates a standardized hardware-validation capture for TSUN micro-inverters without Home Assistant and without installing TSUN Local.
+`tsun_dump.py` creates standardized hardware-validation captures for TSUN micro-inverters without Home Assistant and without installing TSUN Local.
 
 > [!IMPORTANT]
 > The tool is **strictly read-only**. It contains no inverter configuration write path. It only implements the local read operations needed for hardware validation.
@@ -38,25 +38,59 @@ py tsun_dump.py --full
 
 Python **3.10 or newer** is required.
 
-## Automatic discovery and fallback
+## Automatic discovery: all devices by default
 
-The tool first sends read-only UDP discovery probes on the local network.
+The tool sends read-only UDP discovery probes on the local network. **When `--host` is not supplied, every discovered TSUN logger is processed automatically and a separate JSON dump is generated for each one.**
 
-- IP + Monitor SN found → capture starts automatically.
-- IP found but Monitor SN missing → only the Monitor SN is requested.
-- IP supplied manually and Monitor SN discovered → the supplied IP is used.
-- Discovery fails → the tool asks for the logger IP and then the Monitor SN.
-- Several loggers found → the user selects one.
+Example with three discovered loggers:
+
+```text
+Searching the local network for all TSUN loggers (read-only UDP)...
+3 candidate logger(s) found. Every discovered logger will be captured.
+
+=== Device 1/3 ===
+...
+=== Device 2/3 ===
+...
+=== Device 3/3 ===
+...
+```
+
+Typical multi-device output files are kept distinct automatically:
+
+```text
+tsun_device-01_unknown_02b0_20260820T100412Z.json
+tsun_device-02_unknown_1511_20260820T100438Z.json
+tsun_device-03_unknown_1097_20260820T100501Z.json
+```
+
+Discovery behavior:
+
+- all discovered loggers with a resolved Monitor SN → all are captured automatically;
+- one discovered logger with a missing Monitor SN → only that SN is requested;
+- several discovered loggers and one has a missing/ambiguous Monitor SN → the SN is requested for that logger; pressing Enter skips only that logger and continues with the others;
+- one device fails during protocol detection or capture → the script continues with the remaining devices;
+- no logger is discovered → the tool falls back to asking for one logger IP and Monitor SN;
+- `--host` supplied → intentional single-device mode.
 
 The interactive Monitor SN entry is hidden on screen.
 
-Manual parameters remain available:
+To target only one known logger:
+
+```bash
+python3 tsun_dump.py --host 192.168.1.50 --full
+```
+
+Or provide both values manually:
 
 ```bash
 python3 tsun_dump.py --host 192.168.1.50 --serial 1234567890 --full
 ```
 
 For a dump intended for publication, interactive entry is preferable because `--serial` can remain in shell history.
+
+> [!NOTE]
+> UDP broadcast discovery normally stays inside the local broadcast domain. Devices behind another VLAN/subnet may require an explicit `--host` unless broadcast forwarding is configured.
 
 ## Exact model
 
@@ -66,13 +100,15 @@ If the physical inverter model is known, include it in the generated metadata an
 python3 tsun_dump.py --model TSOL-MS800 --full
 ```
 
-Example output:
+When several devices are discovered, the same `--model` value applies to every generated dump, so omit it if the network contains different models unless you are certain they are identical.
+
+Single-device example output:
 
 ```text
 tsun_tsol-ms800_02b0_20260820T100412Z.json
 ```
 
-That JSON is the file to attach to the relevant TSUN Local testing issue.
+The generated JSON files are what should be attached to the relevant TSUN Local testing issue.
 
 ## Standard and full modes
 
@@ -129,7 +165,7 @@ No generic Modbus sweep is attempted on 1511.
 
 ## Multiple snapshots
 
-By default three dynamic snapshots are taken three seconds apart. This separates registers that are changing from registers that remain stable, zero or `0xFFFF`.
+By default three dynamic snapshots are taken three seconds apart for **each captured device**. This separates registers that are changing from registers that remain stable, zero or `0xFFFF`.
 
 ```bash
 python3 tsun_dump.py --snapshots 5 --interval 5
@@ -181,7 +217,8 @@ It does include:
 - established decoded values separately from raw evidence;
 - detected protocol and PV-input count;
 - dump-tool version;
-- the **SHA-256 of the exact `tsun_dump.py` file** used to create the dump.
+- the **SHA-256 of the exact `tsun_dump.py` file** used to create the dump;
+- a non-sensitive discovery index so multi-device files can be correlated without storing IP or Monitor SN.
 
 Unknown research registers are never assigned speculative semantic names by the dumper.
 
@@ -190,10 +227,12 @@ Unknown research registers are never assigned speculative semantic names by the 
 - one standalone auditable Python file;
 - Python standard library only;
 - read-only UDP discovery;
+- all discovered loggers processed sequentially, avoiding simultaneous high-rate polling;
 - Modbus capture implements FC03 reads only;
 - **no FC06/FC16 write implementation**;
 - 02B0/1097 requests are limited to 16 registers each;
 - 1511 uses only known native read commands;
+- failure of one logger does not stop dumps for the others;
 - failed optional blocks do not discard successful evidence;
 - no address-space brute force;
 - no inverter configuration command.
