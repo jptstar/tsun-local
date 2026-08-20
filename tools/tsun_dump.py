@@ -118,10 +118,11 @@ def serial_candidates_from_payload(payload: bytes) -> set[int]:
     # Several logger generations answer with simple CSV/text rather than JSON.
     # Restrict the fallback to 8-10 digit values that still fit the four-byte
     # AP envelope field. Ambiguous results are never selected automatically.
-    for match in _SERIAL_TOKEN.finditer(text):
-        candidate = int(match.group(1))
-        if _valid_monitor_sn(candidate):
-            found.add(candidate)
+    if parsed is None:
+        for match in _SERIAL_TOKEN.finditer(text):
+            candidate = int(match.group(1))
+            if _valid_monitor_sn(candidate):
+                found.add(candidate)
     return found
 
 
@@ -289,12 +290,12 @@ def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
         ]
         if full:
             supplemental = [
-                *split_modbus_range(0x1000, 0x100F),
+                *split_modbus_range(0x1008, 0x100F),
                 *split_modbus_range(0x1400, 0x143F),
             ]
         else:
             supplemental = [
-                *split_modbus_range(0x1000, 0x100F),
+                *split_modbus_range(0x1008, 0x100F),
                 (0x03, 0x1400, 0x1400),
                 (0x03, 0x1423, 0x1423),
                 (0x03, 0x1437, 0x1437),
@@ -527,6 +528,7 @@ async def capture(args: argparse.Namespace, host: str, monitor_sn: int, discover
             "privacy": {
                 "host_in_output": False,
                 "logger_sn_in_output": False,
+                "inverter_serial_in_output": False,
                 "ap_envelope_in_output": False,
                 "udp_discovery_payload_in_output": False,
             },
