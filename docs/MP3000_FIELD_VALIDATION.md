@@ -9,6 +9,22 @@ This page documents additional read-only MP3000 / TITAN 1511 diagnostics exposed
 
 All entities below are diagnostics, read-only, and **disabled by default** in Home Assistant.
 
+
+## Published raw PR #654 field dump
+
+The original MP3000 / 1511 field capture used during the PR #654 investigation is now preserved directly in this repository instead of depending on a GitHub `user-attachments` URL:
+
+- [`tsun_mp3000_1511_pr654_20260816T170853Z.json`](evidence/tsun_mp3000_1511_pr654_20260816T170853Z.json)
+- captured: **2026-08-16T17:08:53.109355Z**;
+- firmware: **LSW5_SSL_1511_1.03**;
+- protocol: **1511 native TITAN**;
+- source layout: **s-allius/tsun-gen3-proxy PR #654**;
+- acquisition: **read-only**;
+- host and logger serial number are absent from the published output;
+- SHA-256: `7d44b5c718fee6d03974f345476da8a21831139f90400944b242cf0e80e840cf`.
+
+This file is the original field dump, republished unchanged. It is raw evidence: semantic register labels remain subject to the validation status documented on this page.
+
 ## Additional A1/21 field-validation entities
 
 | Entity key | TSUN/Talent name | Local 1511 register | Decode | Observed MP3000 value | Status |
