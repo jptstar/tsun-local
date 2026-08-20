@@ -4,16 +4,21 @@ on:
   push:
     branches:
       - feature/standalone-tsun-dump
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
   update:
-    if: github.actor != 'github-actions[bot]' && contains(github.event.head_commit.message, '[standalone-readme]')
+    if: github.actor != 'github-actions[bot]' && (github.event_name == 'pull_request' || contains(github.event.head_commit.message, '[standalone-readme]'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: feature/standalone-tsun-dump
       - name: Update README dump instructions
         run: |
           python3 - <<'PY'
