@@ -17,10 +17,12 @@ in this file.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 import getpass
 import hashlib
+from ipaddress import IPv4Address, IPv4Network, ip_network
 import json
 from pathlib import Path
 import re
@@ -29,13 +31,18 @@ import sys
 import time
 from typing import Any, Iterable
 
-TOOL_VERSION = "2.1.0"
+TOOL_VERSION = "2.2.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 2
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
 DEFAULT_PORT = 8899
 DEFAULT_DISCOVERY_PORT = 48899
 DEFAULT_DISCOVERY_TIMEOUT = 4.0
+DEFAULT_TCP_SCAN_TIMEOUT = 0.45
+DEFAULT_DISCOVERY_CONCURRENCY = 64
+MIN_SCAN_PREFIX = 24
+PROTOCOL_PROBE_RETRIES = 2
+PROTOCOL_RETRY_DELAY = 0.35
 DEFAULT_TIMEOUT = 6.0
 DEFAULT_SNAPSHOTS = 3
 DEFAULT_SNAPSHOT_INTERVAL = 3.0
@@ -299,18 +306,35 @@ def serial_candidates_from_payload(payload: bytes) -> set[int]:
     return found
 
 
-def discover_devices(
-    *, port: int = DEFAULT_DISCOVERY_PORT, timeout: float = DEFAULT_DISCOVERY_TIMEOUT
+def _host_sort_key(host: str) -> tuple[int, int, int, int]:
+    return tuple(int(part) for part in host.split("."))  # type: ignore[return-value]
+
+
+def discover_udp_targets(
+    targets: Iterable[str],
+    *,
+    port: int = DEFAULT_DISCOVERY_PORT,
+    timeout: float = DEFAULT_DISCOVERY_TIMEOUT,
 ) -> list[DiscoveryDevice]:
-    """Return every logger answering the read-only UDP discovery probes."""
+    """Collect every logger answering read-only UDP probes sent to targets."""
     devices: dict[str, DiscoveryDevice] = {}
+    destinations = tuple(dict.fromkeys(targets))
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     try:
         sock.bind(("", port))
-        for message in DISCOVERY_MESSAGES:
-            sock.sendto(message, ("255.255.255.255", port))
+        # Send the three known probes twice. Some embedded loggers occasionally
+        # miss the first datagram while busy serving TCP/cloud traffic.
+        for _attempt in range(2):
+            for target in destinations:
+                for message in DISCOVERY_MESSAGES:
+                    try:
+                        sock.sendto(message, (target, port))
+                    except OSError:
+                        continue
+            if _attempt == 0:
+                time.sleep(0.12)
         deadline = time.monotonic() + timeout
         while (remaining := deadline - time.monotonic()) > 0:
             sock.settimeout(remaining)
@@ -327,7 +351,107 @@ def discover_devices(
         return []
     finally:
         sock.close()
-    return sorted(devices.values(), key=lambda item: tuple(int(p) for p in item.host.split(".")))
+    return sorted(devices.values(), key=lambda item: _host_sort_key(item.host))
+
+
+def discover_devices(
+    *, port: int = DEFAULT_DISCOVERY_PORT, timeout: float = DEFAULT_DISCOVERY_TIMEOUT
+) -> list[DiscoveryDevice]:
+    """Backward-compatible global-broadcast UDP discovery helper."""
+    return discover_udp_targets(("255.255.255.255",), port=port, timeout=timeout)
+
+
+def _parse_scan_network(value: str) -> IPv4Network:
+    network = ip_network(value.strip(), strict=False)
+    if not isinstance(network, IPv4Network):
+        raise ValueError("An IPv4 network is required")
+    if network.prefixlen < MIN_SCAN_PREFIX:
+        raise ValueError("Discovery network must be /24 or smaller")
+    return network
+
+
+def _network_around_host(host: str) -> IPv4Network:
+    return ip_network(f"{IPv4Address(host)}/{MIN_SCAN_PREFIX}", strict=False)
+
+
+def _tcp_port_open(host: str, port: int, timeout: float) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def scan_tcp_network(
+    network: IPv4Network,
+    port: int,
+    *,
+    timeout: float = DEFAULT_TCP_SCAN_TIMEOUT,
+) -> list[str]:
+    """Find hosts accepting the TSUN TCP port without sending application data."""
+    hosts = [str(host) for host in network.hosts()]
+    if not hosts:
+        return []
+    found: list[str] = []
+    workers = min(DEFAULT_DISCOVERY_CONCURRENCY, len(hosts))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(_tcp_port_open, host, port, timeout): host for host in hosts}
+        for future in as_completed(futures):
+            host = futures[future]
+            try:
+                if future.result():
+                    found.append(host)
+            except OSError:
+                pass
+    return sorted(found, key=_host_sort_key)
+
+
+def discover_candidates(
+    args: argparse.Namespace,
+) -> tuple[list[DiscoveryDevice], dict[str, int]]:
+    """Combine UDP discovery with bounded TCP /24 fallback like TSUN Local."""
+    explicit_networks = {_parse_scan_network(value) for value in (args.network or [])}
+    udp_targets = {"255.255.255.255"}
+    udp_targets.update(str(network.broadcast_address) for network in explicit_networks)
+
+    initial_udp = discover_udp_targets(udp_targets, timeout=args.discovery_timeout)
+    devices = {device.host: device for device in initial_udp}
+
+    networks = set(explicit_networks)
+    networks.update(_network_around_host(device.host) for device in initial_udp)
+
+    tcp_hosts: set[str] = set()
+    for network in sorted(networks, key=lambda item: (int(item.network_address), item.prefixlen)):
+        print(f"TCP discovery: scanning {network} on port {args.port}...")
+        tcp_hosts.update(
+            scan_tcp_network(network, args.port, timeout=args.tcp_scan_timeout)
+        )
+
+    # A logger may ignore broadcast discovery but answer a direct UDP probe.
+    # Probe every TCP candidate directly so its Monitor SN can still be learned.
+    if tcp_hosts:
+        directed = discover_udp_targets(
+            sorted(tcp_hosts, key=_host_sort_key),
+            timeout=min(args.discovery_timeout, 2.5),
+        )
+        for incoming in directed:
+            current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))
+            current.replies += incoming.replies
+            current.serial_candidates.update(incoming.serial_candidates)
+
+    # Keep TCP-only candidates too. They are still validated later by a real
+    # read-only protocol probe; a non-TSUN service simply fails and is skipped.
+    for host in tcp_hosts:
+        devices.setdefault(host, DiscoveryDevice(host=host))
+
+    return (
+        sorted(devices.values(), key=lambda item: _host_sort_key(item.host)),
+        {
+            "udp_devices": len(initial_udp),
+            "tcp_candidates": len(tcp_hosts),
+            "networks_scanned": len(networks),
+        },
+    )
 
 
 def _prompt_monitor_sn(prompt: str = "Monitor SN: ", *, allow_skip: bool = False) -> int | None:
@@ -367,7 +491,7 @@ def resolve_targets(
         }
         if monitor_sn is None:
             print("Searching the local network for the supplied logger (read-only UDP)...")
-            devices = discover_devices(timeout=args.discovery_timeout)
+            devices = discover_udp_targets((host, "255.255.255.255"), timeout=args.discovery_timeout)
             report["devices_found"] = len(devices)
             summary["devices_found"] = len(devices)
             selected = next((item for item in devices if item.host == host), None)
@@ -381,9 +505,15 @@ def resolve_targets(
         summary["targets_resolved"] = 1
         return [(host, monitor_sn, report)], summary
 
-    print("Searching the local network for all TSUN loggers (read-only UDP)...")
-    devices = discover_devices(timeout=args.discovery_timeout)
+    print("Searching the local network for all TSUN loggers (UDP + bounded TCP fallback)...")
+    devices, discovery_stats = discover_candidates(args)
     summary["devices_found"] = len(devices)
+    print(
+        "Discovery results: "
+        f"UDP={discovery_stats['udp_devices']}, "
+        f"TCP candidates={discovery_stats['tcp_candidates']}, "
+        f"networks scanned={discovery_stats['networks_scanned']}"
+    )
 
     # No discovery response: manual fallback for one device.
     if not devices:
@@ -412,7 +542,7 @@ def resolve_targets(
             "omit --serial to scan all devices or add --host for one device"
         )
 
-    print(f"{len(devices)} candidate logger(s) found. Every discovered logger will be captured.")
+    print(f"{len(devices)} candidate logger(s) found. Every candidate will be validated and captured.")
     targets: list[tuple[str, int, dict[str, Any]]] = []
     multi = len(devices) > 1
     for index, device in enumerate(devices, 1):
@@ -521,17 +651,26 @@ def detect_protocol(
     candidates = (requested,) if requested != "auto" else SUPPORTED_PROTOCOLS
     last_error: Exception | None = None
     for protocol in candidates:
-        try:
-            _probe_protocol(protocol, host, port, sn, timeout)
-        except Exception as err:
-            last_error = err
+        failures: list[dict[str, Any]] = []
+        for attempt in range(1, PROTOCOL_PROBE_RETRIES + 1):
+            try:
+                _probe_protocol(protocol, host, port, sn, timeout)
+            except Exception as err:
+                last_error = err
+                failures.append({"attempt": attempt, "error": safe_error_details(err)})
+                if attempt < PROTOCOL_PROBE_RETRIES:
+                    time.sleep(PROTOCOL_RETRY_DELAY)
+                continue
             attempts.append(
-                {"protocol": protocol, "result": "failure", "error": safe_error_details(err)}
+                {"protocol": protocol, "result": "success", "attempt": attempt}
             )
-            continue
-        attempts.append({"protocol": protocol, "result": "success"})
-        return protocol, attempts
-    raise RuntimeError("No supported TSUN local protocol detected") from last_error
+            return protocol, attempts
+        attempts.append(
+            {"protocol": protocol, "result": "failure", "attempts": failures}
+        )
+    raise RuntimeError(
+        f"No supported TSUN local protocol detected after {PROTOCOL_PROBE_RETRIES} attempts per protocol"
+    ) from last_error
 
 
 def register_key(protocol: str, block: tuple, address: int) -> str:
@@ -1063,6 +1202,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--discovery-timeout",
         type=_non_negative_float,
         default=DEFAULT_DISCOVERY_TIMEOUT,
+    )
+    parser.add_argument(
+        "--tcp-scan-timeout",
+        type=_non_negative_float,
+        default=DEFAULT_TCP_SCAN_TIMEOUT,
+        help="TCP connect timeout used by bounded discovery fallback",
+    )
+    parser.add_argument(
+        "--network",
+        action="append",
+        default=[],
+        metavar="CIDR",
+        help="additional IPv4 /24-or-smaller network to scan, e.g. 10.89.10.0/24; may be repeated",
     )
     parser.add_argument(
         "--output",

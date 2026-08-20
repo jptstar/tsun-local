@@ -29,7 +29,21 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 2)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.1.0")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.2.0")
+
+    def test_bounded_network_parser_accepts_24(self) -> None:
+        network = TOOL._parse_scan_network("10.89.10.0/24")
+        self.assertEqual(str(network), "10.89.10.0/24")
+
+    def test_bounded_network_parser_rejects_wide_network(self) -> None:
+        with self.assertRaises(ValueError):
+            TOOL._parse_scan_network("10.89.0.0/16")
+
+    def test_network_around_discovered_host_is_24(self) -> None:
+        self.assertEqual(
+            str(TOOL._network_around_host("10.89.10.14")),
+            "10.89.10.0/24",
+        )
 
     def test_extracts_single_monitor_sn_from_json_discovery(self) -> None:
         payload = b'{"ip":"192.168.1.25","logger_sn":"1234567890"}'

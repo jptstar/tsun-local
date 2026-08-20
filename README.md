@@ -248,9 +248,11 @@ Windows:
 py tsun_dump.py --full
 ```
 
-**All TSUN loggers discovered on the local network are captured automatically.** The tool processes them sequentially and creates **one JSON per device**. If an individual Monitor SN is missing, it asks only for that device; with several devices, Enter skips that logger and continues with the others. `--host` intentionally limits the run to a single logger.
+**All TSUN loggers discovered on the local network are captured automatically.** Discovery now combines repeated UDP probes with a **bounded TCP port-8899 scan** of each discovered `/24`, so a logger that ignores broadcast discovery can still be found. TCP candidates are then probed directly by UDP to recover the Monitor SN where possible.
 
-IP addresses and Monitor SN values are never stored in the generated JSON. One failed device does not stop the remaining network scan.
+For routed VLANs where no UDP reply is received at all, specify the network explicitly, for example `python3 tsun_dump.py --network 10.89.10.0/24 --full`. The scan is deliberately limited to `/24` or smaller networks. The tool processes candidates sequentially and creates **one JSON per device**; one failed device does not stop the others. `--host` intentionally limits the run to a single logger.
+
+IP addresses and Monitor SN values are never stored in the generated JSON. Protocol detection is retried before a device is declared unsupported.
 
 Use `--compare before.json after.json` for controlled before/after register validation. No brute-force scan and no inverter write operation are implemented.
 
