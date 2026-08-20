@@ -1,0 +1,1590 @@
+{
+  "metadata": {
+    "timestamp_utc": "2026-08-16T17:08:53.109355+00:00",
+    "firmware": "LSW5_SSL_1511_1.03",
+    "read_only": true,
+    "protocol": "1511 native TITAN",
+    "source_layout": "s-allius/tsun-gen3-proxy PR #654",
+    "port": 8899,
+    "privacy": {
+      "host_in_output": false,
+      "logger_sn_in_output": false
+    },
+    "blocks": [
+      {
+        "name": "block_2000_decimal",
+        "start_decimal": 2000,
+        "start_hex": "0x07D0",
+        "count": 96,
+        "end_decimal": 2095,
+        "end_hex": "0x082F",
+        "address_tag": "0xA1",
+        "function": "0x21",
+        "registers_read": 96
+      },
+      {
+        "name": "block_3000_decimal",
+        "start_decimal": 3000,
+        "start_hex": "0x0BB8",
+        "count": 32,
+        "end_decimal": 3031,
+        "end_hex": "0x0BD7",
+        "address_tag": "0xA1",
+        "function": "0x01",
+        "registers_read": 32
+      },
+      {
+        "name": "block_3300_decimal",
+        "start_decimal": 3300,
+        "start_hex": "0x0CE4",
+        "count": 4,
+        "end_decimal": 3303,
+        "end_hex": "0x0CE7",
+        "address_tag": "0xA2",
+        "function": "0x02",
+        "registers_read": 4
+      },
+      {
+        "name": "block_3600_decimal",
+        "start_decimal": 3600,
+        "start_hex": "0x0E10",
+        "count": 32,
+        "end_decimal": 3631,
+        "end_hex": "0x0E2F",
+        "address_tag": "0xA3",
+        "function": "0x03",
+        "registers_read": 32
+      },
+      {
+        "name": "block_3800_decimal",
+        "start_decimal": 3800,
+        "start_hex": "0x0ED8",
+        "count": 32,
+        "end_decimal": 3831,
+        "end_hex": "0x0EF7",
+        "address_tag": "0xA4",
+        "function": "0x04",
+        "registers_read": 32
+      }
+    ]
+  },
+  "blocks": {
+    "block_2000_decimal": {
+      "2000": {
+        "decimal": 2000,
+        "hex": "0x07D0",
+        "raw": 8,
+        "raw_hex": "0x0008"
+      },
+      "2001": {
+        "decimal": 2001,
+        "hex": "0x07D1",
+        "raw": 80,
+        "raw_hex": "0x0050"
+      },
+      "2002": {
+        "decimal": 2002,
+        "hex": "0x07D2",
+        "raw": 80,
+        "raw_hex": "0x0050"
+      },
+      "2003": {
+        "decimal": 2003,
+        "hex": "0x07D3",
+        "raw": 1280,
+        "raw_hex": "0x0500"
+      },
+      "2004": {
+        "decimal": 2004,
+        "hex": "0x07D4",
+        "raw": 2510,
+        "raw_hex": "0x09CE"
+      },
+      "2005": {
+        "decimal": 2005,
+        "hex": "0x07D5",
+        "raw": 1960,
+        "raw_hex": "0x07A8"
+      },
+      "2006": {
+        "decimal": 2006,
+        "hex": "0x07D6",
+        "raw": 5009,
+        "raw_hex": "0x1391"
+      },
+      "2007": {
+        "decimal": 2007,
+        "hex": "0x07D7",
+        "raw": 4951,
+        "raw_hex": "0x1357"
+      },
+      "2008": {
+        "decimal": 2008,
+        "hex": "0x07D8",
+        "raw": 1,
+        "raw_hex": "0x0001"
+      },
+      "2009": {
+        "decimal": 2009,
+        "hex": "0x07D9",
+        "raw": 1935,
+        "raw_hex": "0x078F"
+      },
+      "2010": {
+        "decimal": 2010,
+        "hex": "0x07DA",
+        "raw": 1830,
+        "raw_hex": "0x0726"
+      },
+      "2011": {
+        "decimal": 2011,
+        "hex": "0x07DB",
+        "raw": 62,
+        "raw_hex": "0x003E"
+      },
+      "2012": {
+        "decimal": 2012,
+        "hex": "0x07DC",
+        "raw": 6,
+        "raw_hex": "0x0006"
+      },
+      "2013": {
+        "decimal": 2013,
+        "hex": "0x07DD",
+        "raw": 2660,
+        "raw_hex": "0x0A64"
+      },
+      "2014": {
+        "decimal": 2014,
+        "hex": "0x07DE",
+        "raw": 2700,
+        "raw_hex": "0x0A8C"
+      },
+      "2015": {
+        "decimal": 2015,
+        "hex": "0x07DF",
+        "raw": 6,
+        "raw_hex": "0x0006"
+      },
+      "2016": {
+        "decimal": 2016,
+        "hex": "0x07E0",
+        "raw": 6,
+        "raw_hex": "0x0006"
+      },
+      "2017": {
+        "decimal": 2017,
+        "hex": "0x07E1",
+        "raw": 2530,
+        "raw_hex": "0x09E2"
+      },
+      "2018": {
+        "decimal": 2018,
+        "hex": "0x07E2",
+        "raw": 4748,
+        "raw_hex": "0x128C"
+      },
+      "2019": {
+        "decimal": 2019,
+        "hex": "0x07E3",
+        "raw": 4700,
+        "raw_hex": "0x125C"
+      },
+      "2020": {
+        "decimal": 2020,
+        "hex": "0x07E4",
+        "raw": 16,
+        "raw_hex": "0x0010"
+      },
+      "2021": {
+        "decimal": 2021,
+        "hex": "0x07E5",
+        "raw": 6,
+        "raw_hex": "0x0006"
+      },
+      "2022": {
+        "decimal": 2022,
+        "hex": "0x07E6",
+        "raw": 5202,
+        "raw_hex": "0x1452"
+      },
+      "2023": {
+        "decimal": 2023,
+        "hex": "0x07E7",
+        "raw": 5250,
+        "raw_hex": "0x1482"
+      },
+      "2024": {
+        "decimal": 2024,
+        "hex": "0x07E8",
+        "raw": 16,
+        "raw_hex": "0x0010"
+      },
+      "2025": {
+        "decimal": 2025,
+        "hex": "0x07E9",
+        "raw": 6,
+        "raw_hex": "0x0006"
+      },
+      "2026": {
+        "decimal": 2026,
+        "hex": "0x07EA",
+        "raw": 340,
+        "raw_hex": "0x0154"
+      },
+      "2027": {
+        "decimal": 2027,
+        "hex": "0x07EB",
+        "raw": 5,
+        "raw_hex": "0x0005"
+      },
+      "2028": {
+        "decimal": 2028,
+        "hex": "0x07EC",
+        "raw": 1024,
+        "raw_hex": "0x0400"
+      },
+      "2029": {
+        "decimal": 2029,
+        "hex": "0x07ED",
+        "raw": 1,
+        "raw_hex": "0x0001"
+      },
+      "2030": {
+        "decimal": 2030,
+        "hex": "0x07EE",
+        "raw": 5020,
+        "raw_hex": "0x139C"
+      },
+      "2031": {
+        "decimal": 2031,
+        "hex": "0x07EF",
+        "raw": 4000,
+        "raw_hex": "0x0FA0"
+      },
+      "2032": {
+        "decimal": 2032,
+        "hex": "0x07F0",
+        "raw": 79,
+        "raw_hex": "0x004F"
+      },
+      "2033": {
+        "decimal": 2033,
+        "hex": "0x07F1",
+        "raw": 102,
+        "raw_hex": "0x0066"
+      },
+      "2034": {
+        "decimal": 2034,
+        "hex": "0x07F2",
+        "raw": 1000,
+        "raw_hex": "0x03E8"
+      },
+      "2035": {
+        "decimal": 2035,
+        "hex": "0x07F3",
+        "raw": 1024,
+        "raw_hex": "0x0400"
+      },
+      "2036": {
+        "decimal": 2036,
+        "hex": "0x07F4",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2037": {
+        "decimal": 2037,
+        "hex": "0x07F5",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2038": {
+        "decimal": 2038,
+        "hex": "0x07F6",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2039": {
+        "decimal": 2039,
+        "hex": "0x07F7",
+        "raw": 1024,
+        "raw_hex": "0x0400"
+      },
+      "2040": {
+        "decimal": 2040,
+        "hex": "0x07F8",
+        "raw": 1024,
+        "raw_hex": "0x0400"
+      },
+      "2041": {
+        "decimal": 2041,
+        "hex": "0x07F9",
+        "raw": 1003,
+        "raw_hex": "0x03EB"
+      },
+      "2042": {
+        "decimal": 2042,
+        "hex": "0x07FA",
+        "raw": 3000,
+        "raw_hex": "0x0BB8"
+      },
+      "2043": {
+        "decimal": 2043,
+        "hex": "0x07FB",
+        "raw": 2510,
+        "raw_hex": "0x09CE"
+      },
+      "2044": {
+        "decimal": 2044,
+        "hex": "0x07FC",
+        "raw": 1960,
+        "raw_hex": "0x07A8"
+      },
+      "2045": {
+        "decimal": 2045,
+        "hex": "0x07FD",
+        "raw": 5009,
+        "raw_hex": "0x1391"
+      },
+      "2046": {
+        "decimal": 2046,
+        "hex": "0x07FE",
+        "raw": 4951,
+        "raw_hex": "0x1357"
+      },
+      "2047": {
+        "decimal": 2047,
+        "hex": "0x07FF",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2048": {
+        "decimal": 2048,
+        "hex": "0x0800",
+        "raw": 105,
+        "raw_hex": "0x0069"
+      },
+      "2049": {
+        "decimal": 2049,
+        "hex": "0x0801",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2050": {
+        "decimal": 2050,
+        "hex": "0x0802",
+        "raw": 47974,
+        "raw_hex": "0xBB66"
+      },
+      "2051": {
+        "decimal": 2051,
+        "hex": "0x0803",
+        "raw": 24445,
+        "raw_hex": "0x5F7D"
+      },
+      "2052": {
+        "decimal": 2052,
+        "hex": "0x0804",
+        "raw": 59104,
+        "raw_hex": "0xE6E0"
+      },
+      "2053": {
+        "decimal": 2053,
+        "hex": "0x0805",
+        "raw": 30320,
+        "raw_hex": "0x7670"
+      },
+      "2054": {
+        "decimal": 2054,
+        "hex": "0x0806",
+        "raw": 47862,
+        "raw_hex": "0xBAF6"
+      },
+      "2055": {
+        "decimal": 2055,
+        "hex": "0x0807",
+        "raw": 16381,
+        "raw_hex": "0x3FFD"
+      },
+      "2056": {
+        "decimal": 2056,
+        "hex": "0x0808",
+        "raw": 54970,
+        "raw_hex": "0xD6BA"
+      },
+      "2057": {
+        "decimal": 2057,
+        "hex": "0x0809",
+        "raw": 1,
+        "raw_hex": "0x0001"
+      },
+      "2058": {
+        "decimal": 2058,
+        "hex": "0x080A",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2059": {
+        "decimal": 2059,
+        "hex": "0x080B",
+        "raw": 3000,
+        "raw_hex": "0x0BB8"
+      },
+      "2060": {
+        "decimal": 2060,
+        "hex": "0x080C",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2061": {
+        "decimal": 2061,
+        "hex": "0x080D",
+        "raw": 10,
+        "raw_hex": "0x000A"
+      },
+      "2062": {
+        "decimal": 2062,
+        "hex": "0x080E",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2063": {
+        "decimal": 2063,
+        "hex": "0x080F",
+        "raw": 63805,
+        "raw_hex": "0xF93D"
+      },
+      "2064": {
+        "decimal": 2064,
+        "hex": "0x0810",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2065": {
+        "decimal": 2065,
+        "hex": "0x0811",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2066": {
+        "decimal": 2066,
+        "hex": "0x0812",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2067": {
+        "decimal": 2067,
+        "hex": "0x0813",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2068": {
+        "decimal": 2068,
+        "hex": "0x0814",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2069": {
+        "decimal": 2069,
+        "hex": "0x0815",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2070": {
+        "decimal": 2070,
+        "hex": "0x0816",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2071": {
+        "decimal": 2071,
+        "hex": "0x0817",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2072": {
+        "decimal": 2072,
+        "hex": "0x0818",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2073": {
+        "decimal": 2073,
+        "hex": "0x0819",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2074": {
+        "decimal": 2074,
+        "hex": "0x081A",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2075": {
+        "decimal": 2075,
+        "hex": "0x081B",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2076": {
+        "decimal": 2076,
+        "hex": "0x081C",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2077": {
+        "decimal": 2077,
+        "hex": "0x081D",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2078": {
+        "decimal": 2078,
+        "hex": "0x081E",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2079": {
+        "decimal": 2079,
+        "hex": "0x081F",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2080": {
+        "decimal": 2080,
+        "hex": "0x0820",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2081": {
+        "decimal": 2081,
+        "hex": "0x0821",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2082": {
+        "decimal": 2082,
+        "hex": "0x0822",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2083": {
+        "decimal": 2083,
+        "hex": "0x0823",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2084": {
+        "decimal": 2084,
+        "hex": "0x0824",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2085": {
+        "decimal": 2085,
+        "hex": "0x0825",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2086": {
+        "decimal": 2086,
+        "hex": "0x0826",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2087": {
+        "decimal": 2087,
+        "hex": "0x0827",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2088": {
+        "decimal": 2088,
+        "hex": "0x0828",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2089": {
+        "decimal": 2089,
+        "hex": "0x0829",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2090": {
+        "decimal": 2090,
+        "hex": "0x082A",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2091": {
+        "decimal": 2091,
+        "hex": "0x082B",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2092": {
+        "decimal": 2092,
+        "hex": "0x082C",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2093": {
+        "decimal": 2093,
+        "hex": "0x082D",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2094": {
+        "decimal": 2094,
+        "hex": "0x082E",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "2095": {
+        "decimal": 2095,
+        "hex": "0x082F",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      }
+    },
+    "block_3000_decimal": {
+      "3000": {
+        "decimal": 3000,
+        "hex": "0x0BB8",
+        "raw": 1,
+        "raw_hex": "0x0001"
+      },
+      "3001": {
+        "decimal": 3001,
+        "hex": "0x0BB9",
+        "raw": 19456,
+        "raw_hex": "0x4C00"
+      },
+      "3002": {
+        "decimal": 3002,
+        "hex": "0x0BBA",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3003": {
+        "decimal": 3003,
+        "hex": "0x0BBB",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3004": {
+        "decimal": 3004,
+        "hex": "0x0BBC",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3005": {
+        "decimal": 3005,
+        "hex": "0x0BBD",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3006": {
+        "decimal": 3006,
+        "hex": "0x0BBE",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3007": {
+        "decimal": 3007,
+        "hex": "0x0BBF",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3008": {
+        "decimal": 3008,
+        "hex": "0x0BC0",
+        "raw": 4466,
+        "raw_hex": "0x1172"
+      },
+      "3009": {
+        "decimal": 3009,
+        "hex": "0x0BC1",
+        "raw": 11,
+        "raw_hex": "0x000B"
+      },
+      "3010": {
+        "decimal": 3010,
+        "hex": "0x0BC2",
+        "raw": 4121,
+        "raw_hex": "0x1019"
+      },
+      "3011": {
+        "decimal": 3011,
+        "hex": "0x0BC3",
+        "raw": 12,
+        "raw_hex": "0x000C"
+      },
+      "3012": {
+        "decimal": 3012,
+        "hex": "0x0BC4",
+        "raw": 2253,
+        "raw_hex": "0x08CD"
+      },
+      "3013": {
+        "decimal": 3013,
+        "hex": "0x0BC5",
+        "raw": 226,
+        "raw_hex": "0x00E2"
+      },
+      "3014": {
+        "decimal": 3014,
+        "hex": "0x0BC6",
+        "raw": 2,
+        "raw_hex": "0x0002"
+      },
+      "3015": {
+        "decimal": 3015,
+        "hex": "0x0BC7",
+        "raw": 4998,
+        "raw_hex": "0x1386"
+      },
+      "3016": {
+        "decimal": 3016,
+        "hex": "0x0BC8",
+        "raw": 3,
+        "raw_hex": "0x0003"
+      },
+      "3017": {
+        "decimal": 3017,
+        "hex": "0x0BC9",
+        "raw": 92,
+        "raw_hex": "0x005C"
+      },
+      "3018": {
+        "decimal": 3018,
+        "hex": "0x0BCA",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3019": {
+        "decimal": 3019,
+        "hex": "0x0BCB",
+        "raw": 4120,
+        "raw_hex": "0x1018"
+      },
+      "3020": {
+        "decimal": 3020,
+        "hex": "0x0BCC",
+        "raw": 3000,
+        "raw_hex": "0x0BB8"
+      },
+      "3021": {
+        "decimal": 3021,
+        "hex": "0x0BCD",
+        "raw": 5529,
+        "raw_hex": "0x1599"
+      },
+      "3022": {
+        "decimal": 3022,
+        "hex": "0x0BCE",
+        "raw": 680,
+        "raw_hex": "0x02A8"
+      },
+      "3023": {
+        "decimal": 3023,
+        "hex": "0x0BCF",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3024": {
+        "decimal": 3024,
+        "hex": "0x0BD0",
+        "raw": 49544,
+        "raw_hex": "0xC188"
+      },
+      "3025": {
+        "decimal": 3025,
+        "hex": "0x0BD1",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3026": {
+        "decimal": 3026,
+        "hex": "0x0BD2",
+        "raw": 60000,
+        "raw_hex": "0xEA60"
+      },
+      "3027": {
+        "decimal": 3027,
+        "hex": "0x0BD3",
+        "raw": 1230,
+        "raw_hex": "0x04CE"
+      },
+      "3028": {
+        "decimal": 3028,
+        "hex": "0x0BD4",
+        "raw": 90,
+        "raw_hex": "0x005A"
+      },
+      "3029": {
+        "decimal": 3029,
+        "hex": "0x0BD5",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3030": {
+        "decimal": 3030,
+        "hex": "0x0BD6",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3031": {
+        "decimal": 3031,
+        "hex": "0x0BD7",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      }
+    },
+    "block_3300_decimal": {
+      "3300": {
+        "decimal": 3300,
+        "hex": "0x0CE4",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3301": {
+        "decimal": 3301,
+        "hex": "0x0CE5",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3302": {
+        "decimal": 3302,
+        "hex": "0x0CE6",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3303": {
+        "decimal": 3303,
+        "hex": "0x0CE7",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      }
+    },
+    "block_3600_decimal": {
+      "3600": {
+        "decimal": 3600,
+        "hex": "0x0E10",
+        "raw": 350,
+        "raw_hex": "0x015E"
+      },
+      "3601": {
+        "decimal": 3601,
+        "hex": "0x0E11",
+        "raw": 301,
+        "raw_hex": "0x012D"
+      },
+      "3602": {
+        "decimal": 3602,
+        "hex": "0x0E12",
+        "raw": 1053,
+        "raw_hex": "0x041D"
+      },
+      "3603": {
+        "decimal": 3603,
+        "hex": "0x0E13",
+        "raw": 775,
+        "raw_hex": "0x0307"
+      },
+      "3604": {
+        "decimal": 3604,
+        "hex": "0x0E14",
+        "raw": 130,
+        "raw_hex": "0x0082"
+      },
+      "3605": {
+        "decimal": 3605,
+        "hex": "0x0E15",
+        "raw": 130,
+        "raw_hex": "0x0082"
+      },
+      "3606": {
+        "decimal": 3606,
+        "hex": "0x0E16",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3607": {
+        "decimal": 3607,
+        "hex": "0x0E17",
+        "raw": 357,
+        "raw_hex": "0x0165"
+      },
+      "3608": {
+        "decimal": 3608,
+        "hex": "0x0E18",
+        "raw": 205,
+        "raw_hex": "0x00CD"
+      },
+      "3609": {
+        "decimal": 3609,
+        "hex": "0x0E19",
+        "raw": 731,
+        "raw_hex": "0x02DB"
+      },
+      "3610": {
+        "decimal": 3610,
+        "hex": "0x0E1A",
+        "raw": 576,
+        "raw_hex": "0x0240"
+      },
+      "3611": {
+        "decimal": 3611,
+        "hex": "0x0E1B",
+        "raw": 124,
+        "raw_hex": "0x007C"
+      },
+      "3612": {
+        "decimal": 3612,
+        "hex": "0x0E1C",
+        "raw": 124,
+        "raw_hex": "0x007C"
+      },
+      "3613": {
+        "decimal": 3613,
+        "hex": "0x0E1D",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3614": {
+        "decimal": 3614,
+        "hex": "0x0E1E",
+        "raw": 353,
+        "raw_hex": "0x0161"
+      },
+      "3615": {
+        "decimal": 3615,
+        "hex": "0x0E1F",
+        "raw": 285,
+        "raw_hex": "0x011D"
+      },
+      "3616": {
+        "decimal": 3616,
+        "hex": "0x0E20",
+        "raw": 1006,
+        "raw_hex": "0x03EE"
+      },
+      "3617": {
+        "decimal": 3617,
+        "hex": "0x0E21",
+        "raw": 748,
+        "raw_hex": "0x02EC"
+      },
+      "3618": {
+        "decimal": 3618,
+        "hex": "0x0E22",
+        "raw": 126,
+        "raw_hex": "0x007E"
+      },
+      "3619": {
+        "decimal": 3619,
+        "hex": "0x0E23",
+        "raw": 126,
+        "raw_hex": "0x007E"
+      },
+      "3620": {
+        "decimal": 3620,
+        "hex": "0x0E24",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3621": {
+        "decimal": 3621,
+        "hex": "0x0E25",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3622": {
+        "decimal": 3622,
+        "hex": "0x0E26",
+        "raw": 4436,
+        "raw_hex": "0x1154"
+      },
+      "3623": {
+        "decimal": 3623,
+        "hex": "0x0E27",
+        "raw": 1,
+        "raw_hex": "0x0001"
+      },
+      "3624": {
+        "decimal": 3624,
+        "hex": "0x0E28",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3625": {
+        "decimal": 3625,
+        "hex": "0x0E29",
+        "raw": 9400,
+        "raw_hex": "0x24B8"
+      },
+      "3626": {
+        "decimal": 3626,
+        "hex": "0x0E2A",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3627": {
+        "decimal": 3627,
+        "hex": "0x0E2B",
+        "raw": 9032,
+        "raw_hex": "0x2348"
+      },
+      "3628": {
+        "decimal": 3628,
+        "hex": "0x0E2C",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3629": {
+        "decimal": 3629,
+        "hex": "0x0E2D",
+        "raw": 9251,
+        "raw_hex": "0x2423"
+      },
+      "3630": {
+        "decimal": 3630,
+        "hex": "0x0E2E",
+        "raw": 8192,
+        "raw_hex": "0x2000"
+      },
+      "3631": {
+        "decimal": 3631,
+        "hex": "0x0E2F",
+        "raw": 4,
+        "raw_hex": "0x0004"
+      }
+    },
+    "block_3800_decimal": {
+      "3800": {
+        "decimal": 3800,
+        "hex": "0x0ED8",
+        "raw": 360,
+        "raw_hex": "0x0168"
+      },
+      "3801": {
+        "decimal": 3801,
+        "hex": "0x0ED9",
+        "raw": 179,
+        "raw_hex": "0x00B3"
+      },
+      "3802": {
+        "decimal": 3802,
+        "hex": "0x0EDA",
+        "raw": 644,
+        "raw_hex": "0x0284"
+      },
+      "3803": {
+        "decimal": 3803,
+        "hex": "0x0EDB",
+        "raw": 488,
+        "raw_hex": "0x01E8"
+      },
+      "3804": {
+        "decimal": 3804,
+        "hex": "0x0EDC",
+        "raw": 128,
+        "raw_hex": "0x0080"
+      },
+      "3805": {
+        "decimal": 3805,
+        "hex": "0x0EDD",
+        "raw": 128,
+        "raw_hex": "0x0080"
+      },
+      "3806": {
+        "decimal": 3806,
+        "hex": "0x0EDE",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3807": {
+        "decimal": 3807,
+        "hex": "0x0EDF",
+        "raw": 348,
+        "raw_hex": "0x015C"
+      },
+      "3808": {
+        "decimal": 3808,
+        "hex": "0x0EE0",
+        "raw": 321,
+        "raw_hex": "0x0141"
+      },
+      "3809": {
+        "decimal": 3809,
+        "hex": "0x0EE1",
+        "raw": 1117,
+        "raw_hex": "0x045D"
+      },
+      "3810": {
+        "decimal": 3810,
+        "hex": "0x0EE2",
+        "raw": 768,
+        "raw_hex": "0x0300"
+      },
+      "3811": {
+        "decimal": 3811,
+        "hex": "0x0EE3",
+        "raw": 131,
+        "raw_hex": "0x0083"
+      },
+      "3812": {
+        "decimal": 3812,
+        "hex": "0x0EE4",
+        "raw": 131,
+        "raw_hex": "0x0083"
+      },
+      "3813": {
+        "decimal": 3813,
+        "hex": "0x0EE5",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3814": {
+        "decimal": 3814,
+        "hex": "0x0EE6",
+        "raw": 360,
+        "raw_hex": "0x0168"
+      },
+      "3815": {
+        "decimal": 3815,
+        "hex": "0x0EE7",
+        "raw": 292,
+        "raw_hex": "0x0124"
+      },
+      "3816": {
+        "decimal": 3816,
+        "hex": "0x0EE8",
+        "raw": 1051,
+        "raw_hex": "0x041B"
+      },
+      "3817": {
+        "decimal": 3817,
+        "hex": "0x0EE9",
+        "raw": 765,
+        "raw_hex": "0x02FD"
+      },
+      "3818": {
+        "decimal": 3818,
+        "hex": "0x0EEA",
+        "raw": 127,
+        "raw_hex": "0x007F"
+      },
+      "3819": {
+        "decimal": 3819,
+        "hex": "0x0EEB",
+        "raw": 127,
+        "raw_hex": "0x007F"
+      },
+      "3820": {
+        "decimal": 3820,
+        "hex": "0x0EEC",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3821": {
+        "decimal": 3821,
+        "hex": "0x0EED",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3822": {
+        "decimal": 3822,
+        "hex": "0x0EEE",
+        "raw": 4436,
+        "raw_hex": "0x1154"
+      },
+      "3823": {
+        "decimal": 3823,
+        "hex": "0x0EEF",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3824": {
+        "decimal": 3824,
+        "hex": "0x0EF0",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3825": {
+        "decimal": 3825,
+        "hex": "0x0EF1",
+        "raw": 9233,
+        "raw_hex": "0x2411"
+      },
+      "3826": {
+        "decimal": 3826,
+        "hex": "0x0EF2",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3827": {
+        "decimal": 3827,
+        "hex": "0x0EF3",
+        "raw": 9317,
+        "raw_hex": "0x2465"
+      },
+      "3828": {
+        "decimal": 3828,
+        "hex": "0x0EF4",
+        "raw": 0,
+        "raw_hex": "0x0000"
+      },
+      "3829": {
+        "decimal": 3829,
+        "hex": "0x0EF5",
+        "raw": 9351,
+        "raw_hex": "0x2487"
+      },
+      "3830": {
+        "decimal": 3830,
+        "hex": "0x0EF6",
+        "raw": 8192,
+        "raw_hex": "0x2000"
+      },
+      "3831": {
+        "decimal": 3831,
+        "hex": "0x0EF7",
+        "raw": 4,
+        "raw_hex": "0x0004"
+      }
+    }
+  },
+  "decoded_pr654_mapping": {
+    "max_designed_power": {
+      "register_decimal": 2042,
+      "register_hex": "0x07FA",
+      "raw": 3000,
+      "value": 3000.0
+    },
+    "inverter_status": {
+      "register_decimal": 3000,
+      "register_hex": "0x0BB8",
+      "raw": 1,
+      "value": 1.0
+    },
+    "grid_voltage": {
+      "register_decimal": 3012,
+      "register_hex": "0x0BC4",
+      "raw": 2253,
+      "value": 225.3
+    },
+    "grid_current": {
+      "register_decimal": 3013,
+      "register_hex": "0x0BC5",
+      "raw": 226,
+      "value": 2.26
+    },
+    "grid_frequency": {
+      "register_decimal": 3015,
+      "register_hex": "0x0BC7",
+      "raw": 4998,
+      "value": 49.98
+    },
+    "inverter_temperature": {
+      "register_decimal": 3017,
+      "register_hex": "0x0BC9",
+      "raw": 92,
+      "value": 52.0
+    },
+    "rated_power": {
+      "register_decimal": 3020,
+      "register_hex": "0x0BCC",
+      "raw": 3000,
+      "value": 3000.0
+    },
+    "output_power": {
+      "register_decimal": 3021,
+      "register_hex": "0x0BCD",
+      "raw": 5529,
+      "value": 552.9
+    },
+    "daily_generation": {
+      "register_decimal": 3022,
+      "register_hex": "0x0BCE",
+      "raw": 680,
+      "value": 6.8
+    },
+    "ambient_temperature": {
+      "register_decimal": 3028,
+      "register_hex": "0x0BD4",
+      "raw": 90,
+      "value": 50.0
+    },
+    "pv1_voltage": {
+      "register_decimal": 3600,
+      "register_hex": "0x0E10",
+      "raw": 350,
+      "value": 35.0
+    },
+    "pv1_current": {
+      "register_decimal": 3601,
+      "register_hex": "0x0E11",
+      "raw": 301,
+      "value": 3.01
+    },
+    "pv1_power": {
+      "register_decimal": 3602,
+      "register_hex": "0x0E12",
+      "raw": 1053,
+      "value": 105.3
+    },
+    "pv1_daily_generation": {
+      "register_decimal": 3603,
+      "register_hex": "0x0E13",
+      "raw": 775,
+      "value": 7.75
+    },
+    "pv2_voltage": {
+      "register_decimal": 3607,
+      "register_hex": "0x0E17",
+      "raw": 357,
+      "value": 35.7
+    },
+    "pv2_current": {
+      "register_decimal": 3608,
+      "register_hex": "0x0E18",
+      "raw": 205,
+      "value": 2.05
+    },
+    "pv2_power": {
+      "register_decimal": 3609,
+      "register_hex": "0x0E19",
+      "raw": 731,
+      "value": 73.1
+    },
+    "pv2_daily_generation": {
+      "register_decimal": 3610,
+      "register_hex": "0x0E1A",
+      "raw": 576,
+      "value": 5.76
+    },
+    "pv3_voltage": {
+      "register_decimal": 3614,
+      "register_hex": "0x0E1E",
+      "raw": 353,
+      "value": 35.3
+    },
+    "pv3_current": {
+      "register_decimal": 3615,
+      "register_hex": "0x0E1F",
+      "raw": 285,
+      "value": 2.85
+    },
+    "pv3_power": {
+      "register_decimal": 3616,
+      "register_hex": "0x0E20",
+      "raw": 1006,
+      "value": 100.6
+    },
+    "pv3_daily_generation": {
+      "register_decimal": 3617,
+      "register_hex": "0x0E21",
+      "raw": 748,
+      "value": 7.48
+    },
+    "pv4_voltage": {
+      "register_decimal": 3800,
+      "register_hex": "0x0ED8",
+      "raw": 360,
+      "value": 36.0
+    },
+    "pv4_current": {
+      "register_decimal": 3801,
+      "register_hex": "0x0ED9",
+      "raw": 179,
+      "value": 1.79
+    },
+    "pv4_power": {
+      "register_decimal": 3802,
+      "register_hex": "0x0EDA",
+      "raw": 644,
+      "value": 64.4
+    },
+    "pv4_daily_generation": {
+      "register_decimal": 3803,
+      "register_hex": "0x0EDB",
+      "raw": 488,
+      "value": 4.88
+    },
+    "pv5_voltage": {
+      "register_decimal": 3807,
+      "register_hex": "0x0EDF",
+      "raw": 348,
+      "value": 34.8
+    },
+    "pv5_current": {
+      "register_decimal": 3808,
+      "register_hex": "0x0EE0",
+      "raw": 321,
+      "value": 3.21
+    },
+    "pv5_power": {
+      "register_decimal": 3809,
+      "register_hex": "0x0EE1",
+      "raw": 1117,
+      "value": 111.7
+    },
+    "pv5_daily_generation": {
+      "register_decimal": 3810,
+      "register_hex": "0x0EE2",
+      "raw": 768,
+      "value": 7.68
+    },
+    "pv6_voltage": {
+      "register_decimal": 3814,
+      "register_hex": "0x0EE6",
+      "raw": 360,
+      "value": 36.0
+    },
+    "pv6_current": {
+      "register_decimal": 3815,
+      "register_hex": "0x0EE7",
+      "raw": 292,
+      "value": 2.92
+    },
+    "pv6_power": {
+      "register_decimal": 3816,
+      "register_hex": "0x0EE8",
+      "raw": 1051,
+      "value": 105.1
+    },
+    "pv6_daily_generation": {
+      "register_decimal": 3817,
+      "register_hex": "0x0EE9",
+      "raw": 765,
+      "value": 7.65
+    },
+    "total_generation": {
+      "register_decimal": 3023,
+      "register_hex": "0x0BCF",
+      "raw_words": [
+        0,
+        49544
+      ],
+      "value": 495.44
+    },
+    "pv1_total_generation": {
+      "register_decimal": 3624,
+      "register_hex": "0x0E28",
+      "raw_words": [
+        0,
+        9400
+      ],
+      "value": 94.0
+    },
+    "pv2_total_generation": {
+      "register_decimal": 3626,
+      "register_hex": "0x0E2A",
+      "raw_words": [
+        0,
+        9032
+      ],
+      "value": 90.32
+    },
+    "pv3_total_generation": {
+      "register_decimal": 3628,
+      "register_hex": "0x0E2C",
+      "raw_words": [
+        0,
+        9251
+      ],
+      "value": 92.51
+    },
+    "pv4_total_generation": {
+      "register_decimal": 3824,
+      "register_hex": "0x0EF0",
+      "raw_words": [
+        0,
+        9233
+      ],
+      "value": 92.33
+    },
+    "pv5_total_generation": {
+      "register_decimal": 3826,
+      "register_hex": "0x0EF2",
+      "raw_words": [
+        0,
+        9317
+      ],
+      "value": 93.17
+    },
+    "pv6_total_generation": {
+      "register_decimal": 3828,
+      "register_hex": "0x0EF4",
+      "raw_words": [
+        0,
+        9351
+      ],
+      "value": 93.51
+    }
+  },
+  "transactions": [
+    {
+      "block": "block_2000_decimal",
+      "decimal_start": 2000,
+      "hex_start": "0x07D0",
+      "count": 96,
+      "address_tag": "0xA1",
+      "function": "0x21",
+      "ok": true,
+      "request_payload_hex": "A1 21 00 07 D0 00 02 00 60 3E 5D",
+      "response_payload_hex": "7E A1 A1 01 07 D0 00 C0 08 00 50 00 50 00 00 05 CE 09 A8 07 91 13 57 13 01 00 8F 07 26 07 3E 00 06 00 64 0A 8C 0A 06 00 06 00 E2 09 8C 12 5C 12 10 00 06 00 52 14 82 14 10 00 06 00 54 01 05 00 00 04 01 00 9C 13 A0 0F 4F 00 66 00 E8 03 00 04 00 00 00 00 00 00 00 04 00 04 EB 03 B8 0B CE 09 A8 07 91 13 57 13 00 00 69 00 00 00 66 BB 7D 5F E0 E6 70 76 F6 BA FD 3F BA D6 01 00 00 00 B8 0B 00 00 0A 00 00 00 3D F9 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 87 9E",
+      "error": null
+    },
+    {
+      "block": "block_3000_decimal",
+      "decimal_start": 3000,
+      "hex_start": "0x0BB8",
+      "count": 32,
+      "address_tag": "0xA1",
+      "function": "0x01",
+      "ok": true,
+      "request_payload_hex": "A1 01 00 0B B8 00 02 00 20 D3 3F",
+      "response_payload_hex": "7E A1 81 01 0B B8 00 40 01 00 00 4C 00 00 00 00 00 00 00 00 00 00 00 00 72 11 0B 00 19 10 0C 00 CD 08 E2 00 02 00 86 13 03 00 5C 00 00 00 18 10 B8 0B 99 15 A8 02 00 00 88 C1 00 00 60 EA CE 04 5A 00 00 00 00 00 00 00 F2 93",
+      "error": null
+    },
+    {
+      "block": "block_3300_decimal",
+      "decimal_start": 3300,
+      "hex_start": "0x0CE4",
+      "count": 4,
+      "address_tag": "0xA2",
+      "function": "0x02",
+      "ok": true,
+      "request_payload_hex": "A2 02 00 0C E4 00 02 00 04 97 BA",
+      "response_payload_hex": "7E A2 82 01 0C E4 00 08 00 00 00 00 00 00 00 00 E6 D7",
+      "error": null
+    },
+    {
+      "block": "block_3600_decimal",
+      "decimal_start": 3600,
+      "hex_start": "0x0E10",
+      "count": 32,
+      "address_tag": "0xA3",
+      "function": "0x03",
+      "ok": true,
+      "request_payload_hex": "A3 03 00 0E 10 00 02 00 20 E7 C6",
+      "response_payload_hex": "7E A3 83 01 0E 10 00 40 5E 01 2D 01 1D 04 07 03 82 00 82 00 00 00 65 01 CD 00 DB 02 40 02 7C 00 7C 00 00 00 61 01 1D 01 EE 03 EC 02 7E 00 7E 00 00 00 00 00 54 11 01 00 00 00 B8 24 00 00 48 23 00 00 23 24 00 20 04 00 D3 DC",
+      "error": null
+    },
+    {
+      "block": "block_3800_decimal",
+      "decimal_start": 3800,
+      "hex_start": "0x0ED8",
+      "count": 32,
+      "address_tag": "0xA4",
+      "function": "0x04",
+      "ok": true,
+      "request_payload_hex": "A4 04 00 0E D8 00 02 00 20 E1 40",
+      "response_payload_hex": "7E A4 84 01 0E D8 00 40 68 01 B3 00 84 02 E8 01 80 00 80 00 00 00 5C 01 41 01 5D 04 00 03 83 00 83 00 00 00 68 01 24 01 1B 04 FD 02 7F 00 7F 00 00 00 00 00 54 11 00 00 00 00 11 24 00 00 65 24 00 00 87 24 00 20 04 00 76 AE",
+      "error": null
+    }
+  ]
+}
