@@ -227,6 +227,22 @@ Direct local polling only.
 
 ---
 
+## 🔬 Hardware validation dump tool
+
+Help validate another TSUN model with one standardized, privacy-safe, **strictly read-only** capture:
+
+```bash
+python tools/tsun_dump.py
+```
+
+The tool first searches the local network for a TSUN logger. If automatic discovery cannot resolve everything, it asks only for the missing **IP address and/or Monitor SN**. Neither value is stored in the generated JSON.
+
+Use `--full` for the additional known-safe research ranges or `--compare before.json after.json` for controlled before/after register validation. No brute-force scan and no inverter write operation are implemented.
+
+📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)**
+
+---
+
 ## Test another TSUN model
 
 Your inverter does not have to be listed above.
