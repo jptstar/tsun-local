@@ -4,15 +4,23 @@ Diagnostic and validation utilities for TSUN Local.
 
 ## Hardware validation dump
 
-Use [`tsun_dump.py`](tsun_dump.py) to create a standardized, privacy-safe, strictly read-only hardware dump for protocol **1511**, **02B0** or **1097**.
+[`tsun_dump.py`](tsun_dump.py) is a **single-file, standalone, privacy-safe, strictly read-only** hardware dumper for protocol **1511**, **02B0** and **1097**.
+
+It uses only the Python standard library and does not require Home Assistant or the rest of the TSUN Local repository.
+
+Direct download:
+
+[`https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)
+
+Run it with Python 3.10+:
 
 ```bash
-python tools/tsun_dump.py
+python3 tsun_dump.py --full
 ```
 
-The tool tries local UDP discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them.
+The tool tries local UDP discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON.
 
-For the complete safety model, capture ranges, full mode, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
+For the capture ranges, safety model, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
 
 ## Existing focused diagnostics
 

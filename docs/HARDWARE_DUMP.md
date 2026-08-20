@@ -2,85 +2,97 @@
 
 [← Back to the project README](../README.md)
 
-`tools/tsun_dump.py` creates a standardized hardware-validation capture for TSUN micro-inverters without Home Assistant.
+`tsun_dump.py` creates a standardized hardware-validation capture for TSUN micro-inverters without Home Assistant and without installing TSUN Local.
 
 > [!IMPORTANT]
-> The tool is **strictly read-only**. It contains no inverter configuration write path. It only uses the local read operations already used by TSUN Local.
+> The tool is **strictly read-only**. It contains no inverter configuration write path. It only implements the local read operations needed for hardware validation.
 
-The goal is to make real-device validation reproducible across models such as TSOL-MS800, MS1600, MS2000, MX-series devices and TITAN/MP-series hardware.
+## ⬇️ Download one file
 
-## ⬇️ Download
+**[Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
-**[Download TSUN Local + Hardware Validation Dump Tool (ZIP)](https://github.com/jptstar/tsun-local/archive/refs/heads/main.zip)**
+That single Python file is enough. It uses **only the Python standard library**: no Home Assistant, pip package, Node.js or cloned repository is required.
 
-The dump tool reuses the TSUN Local protocol modules, so downloading the repository ZIP is the simplest standalone installation method. No Home Assistant installation is required.
+### macOS / Linux
 
-After downloading and extracting the ZIP:
-
-```bash
-cd tsun-local-main
-python tools/tsun_dump.py
-```
-
-For the most complete known-safe hardware-validation capture:
+Save the file as `tsun_dump.py`, open Terminal in the same folder, then run:
 
 ```bash
-python tools/tsun_dump.py --full
+python3 tsun_dump.py --full
 ```
 
-If you know the exact inverter model, include it in the dump metadata and filename:
+For example, when the file is in Downloads:
 
 ```bash
-python tools/tsun_dump.py --model TSOL-MS800 --full
+cd ~/Downloads
+python3 tsun_dump.py --full
 ```
 
-The generated JSON is the file to attach to the relevant TSUN Local testing issue.
+### Windows
 
-## Simplest use
+From PowerShell or Command Prompt in the folder containing the file:
 
-From a clone or extracted ZIP of the TSUN Local repository:
+```powershell
+py tsun_dump.py --full
+```
+
+Python **3.10 or newer** is required.
+
+## Automatic discovery and fallback
+
+The tool first sends read-only UDP discovery probes on the local network.
+
+- IP + Monitor SN found → capture starts automatically.
+- IP found but Monitor SN missing → only the Monitor SN is requested.
+- IP supplied manually and Monitor SN discovered → the supplied IP is used.
+- Discovery fails → the tool asks for the logger IP and then the Monitor SN.
+- Several loggers found → the user selects one.
+
+The interactive Monitor SN entry is hidden on screen.
+
+Manual parameters remain available:
 
 ```bash
-python tools/tsun_dump.py
+python3 tsun_dump.py --host 192.168.1.50 --serial 1234567890 --full
 ```
 
-The tool first sends the same read-only UDP discovery probes used by the TSUN Local diagnostic utilities.
+For a dump intended for publication, interactive entry is preferable because `--serial` can remain in shell history.
 
-- If one logger and its Monitor SN can be resolved, capture starts automatically.
-- If the IP is found but the Monitor SN is not, only the Monitor SN is requested.
-- If the Monitor SN is known but an IP was supplied manually, the supplied IP is used.
-- If discovery fails completely, the tool asks for the logger IP and then the numeric Monitor SN.
-- If several loggers answer, the user chooses which IP to use.
+## Exact model
 
-The Monitor SN prompt does not echo the value in the terminal.
-
-Manual parameters remain available when preferred:
+If the physical inverter model is known, include it in the generated metadata and filename:
 
 ```bash
-python tools/tsun_dump.py --host 192.168.1.50 --serial 1234567890
+python3 tsun_dump.py --model TSOL-MS800 --full
 ```
 
-Using `--serial` can leave the value in shell history, so interactive discovery/prompting is preferred for a dump intended for publication.
+Example output:
+
+```text
+tsun_tsol-ms800_02b0_20260820T100412Z.json
+```
+
+That JSON is the file to attach to the relevant TSUN Local testing issue.
 
 ## Standard and full modes
 
-The default **standard** mode reads only the established TSUN Local telemetry and diagnostic areas.
+The default mode reads established TSUN Local telemetry/diagnostic areas:
 
 ```bash
-python tools/tsun_dump.py
+python3 tsun_dump.py
 ```
 
-The explicit **full** mode adds only known-safe read ranges useful for protocol research:
+The explicit `--full` mode adds only known-safe research ranges:
 
 ```bash
-python tools/tsun_dump.py --full
+python3 tsun_dump.py --full
 ```
 
-`--full` is **not a brute-force scanner**. It does not walk the complete Modbus address space and does not try unknown function codes.
+`--full` is **not a brute-force scanner**. It does not walk the complete register address space and does not try unknown function codes.
 
 ### 02B0
 
-Standard dynamic capture:
+Dynamic capture:
 
 - FC03 `0x3000–0x302F`, split into conservative 16-register requests.
 
@@ -101,11 +113,11 @@ Dynamic capture:
 - FC03 `0x1200–0x121F`;
 - FC03 `0x1300–0x132F`.
 
-Supplemental capture includes the known version/profile/diagnostic area. The output deliberately avoids publishing the inverter serial-number words.
+Supplemental capture includes `0x1008–0x100F` and the known profile/diagnostic area. The inverter serial-number words `0x1000–0x1007` are deliberately excluded from published dumps.
 
 ### 1511 / TITAN
 
-Only the validated native TITAN read operations are used:
+Only validated native TITAN read operations are used:
 
 - A1/01 `0x0BB8–0x0BD7`;
 - A1/21 `0x07D0–0x082F`;
@@ -113,127 +125,81 @@ Only the validated native TITAN read operations are used:
 - A3/03 `0x0E10–0x0E2D`;
 - A4/04 `0x0ED8–0x0EF5`.
 
-No generic Modbus sweep is attempted on protocol 1511.
+No generic Modbus sweep is attempted on 1511.
 
 ## Multiple snapshots
 
-By default the tool takes three dynamic snapshots separated by three seconds:
-
-```text
-snapshot 1
-snapshot 2  +3 s
-snapshot 3  +3 s
-```
-
-This lets the JSON classify registers as:
-
-- changing;
-- stable;
-- always zero;
-- always `0xFFFF`;
-- incomplete because a read failed.
-
-The number and interval can be changed:
+By default three dynamic snapshots are taken three seconds apart. This separates registers that are changing from registers that remain stable, zero or `0xFFFF`.
 
 ```bash
-python tools/tsun_dump.py --snapshots 5 --interval 5
+python3 tsun_dump.py --snapshots 5 --interval 5
 ```
 
-Use sensible intervals. The purpose is evidence collection, not high-rate polling.
+The purpose is evidence collection, not high-rate polling.
 
-## Output privacy
+## Before / after validation
 
-The generated JSON does **not** store:
-
-- the logger IP address;
-- the Monitor SN used in the AP envelope;
-- UDP discovery payloads;
-- the AP envelope itself.
-
-The tool keeps raw protocol payloads/register values required for technical validation. Known decoded fields are separated from raw evidence, and unknown registers are not given speculative semantic names.
-
-Typical output name:
-
-```text
-tsun_tsol-ms800_02b0_20260820T100412Z.json
-```
-
-If no exact model is known:
-
-```text
-tsun_gen3-gen3-plus_02b0_20260820T100412Z.json
-```
-
-You may explicitly supply the physical model for the metadata/file name:
+Two dumps can be compared without automatically assigning semantic meaning:
 
 ```bash
-python tools/tsun_dump.py --model TSOL-MS800 --full
+python3 tsun_dump.py --compare before.json after.json
 ```
 
-## Before / after configuration validation
-
-Two dumps can be compared without assigning semantic meaning automatically:
-
-```bash
-python tools/tsun_dump.py --compare before.json after.json
-```
-
-The output lists only raw register changes, for example:
+Example:
 
 ```text
 Changed raw registers: 1
   0x2048: 0 -> 1
 ```
 
-This is intentionally neutral. A changed raw value becomes a semantic mapping only after the external configuration change is known and independently verified.
-
 A comparison JSON can also be saved:
 
 ```bash
-python tools/tsun_dump.py \
+python3 tsun_dump.py \
   --compare before.json after.json \
   --output comparison.json
 ```
 
-## Useful commands
+This is useful for controlled setting-change validation while keeping the result neutral until the changed register has been independently identified.
 
-Automatic safe capture:
+## Output privacy
 
-```bash
-python tools/tsun_dump.py
-```
+The generated JSON does **not** store:
 
-Full known-safe research capture:
+- logger IP address;
+- Monitor SN used by the AP envelope;
+- known inverter serial-number register words;
+- UDP discovery payloads;
+- the AP envelope itself.
 
-```bash
-python tools/tsun_dump.py --full
-```
+It does include:
 
-Force a known protocol if automatic detection needs help:
+- raw decimal and hexadecimal register values;
+- successful and failed read blocks;
+- multiple timestamped snapshots;
+- stable/changing/zero/`FFFF` classification;
+- established decoded values separately from raw evidence;
+- detected protocol and PV-input count;
+- dump-tool version;
+- the **SHA-256 of the exact `tsun_dump.py` file** used to create the dump.
 
-```bash
-python tools/tsun_dump.py --host 192.168.1.50 --protocol 02b0 --full
-```
-
-Specify the exact physical model:
-
-```bash
-python tools/tsun_dump.py --model TSOL-MS800 --full
-```
+Unknown research registers are never assigned speculative semantic names by the dumper.
 
 ## Safety design
 
+- one standalone auditable Python file;
+- Python standard library only;
 - read-only UDP discovery;
-- no FC06/FC16 Modbus write path;
-- Modbus capture plans use FC03 only;
-- 02B0/1097 reads are limited to 16 registers per raw request;
-- 1511 uses only known native read blocks;
-- one failed optional block does not discard successful evidence;
+- Modbus capture implements FC03 reads only;
+- **no FC06/FC16 write implementation**;
+- 02B0/1097 requests are limited to 16 registers each;
+- 1511 uses only known native read commands;
+- failed optional blocks do not discard successful evidence;
 - no address-space brute force;
-- no inverter configuration command is implemented.
+- no inverter configuration command.
 
-The safest default remains simply:
+The normal developer/tester command is simply:
 
 ```bash
-python tools/tsun_dump.py
+python3 tsun_dump.py --full
 ```

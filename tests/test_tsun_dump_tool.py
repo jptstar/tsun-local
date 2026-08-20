@@ -20,7 +20,15 @@ SPEC.loader.exec_module(TOOL)
 
 
 class TsunDumpToolTests(unittest.TestCase):
-    """Verify privacy helpers, capture plans and comparison behavior."""
+    """Verify standalone packaging, privacy, plans and comparison behavior."""
+
+    def test_tool_is_really_standalone(self) -> None:
+        source = TOOL_PATH.read_text(encoding="utf-8")
+        self.assertNotIn("custom_components", source)
+        self.assertNotIn("importlib.util", source)
+        self.assertNotIn("from tsun_local", source)
+        self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
+        self.assertEqual(TOOL.SCHEMA_VERSION, 2)
 
     def test_extracts_single_monitor_sn_from_json_discovery(self) -> None:
         payload = b'{"ip":"192.168.1.25","logger_sn":"1234567890"}'
@@ -33,17 +41,26 @@ class TsunDumpToolTests(unittest.TestCase):
             {123456789, 987654321},
         )
 
-    def test_modbus_capture_plans_are_read_only_fc03(self) -> None:
+    def test_modbus_capture_plans_are_bounded_fc03_ranges(self) -> None:
         for protocol in ("02b0", "1097"):
             for full in (False, True):
                 dynamic, supplemental = TOOL.capture_plans(protocol, full)
-                for function, start, end in (*dynamic, *supplemental):
-                    self.assertEqual(function, 0x03)
+                for start, end in (*dynamic, *supplemental):
                     self.assertLessEqual(start, end)
                     self.assertLessEqual(
                         end - start + 1,
                         TOOL.MAX_MODBUS_REGISTERS_PER_READ,
                     )
+
+    def test_1097_plan_excludes_serial_number_words(self) -> None:
+        _dynamic, supplemental = TOOL.capture_plans("1097", True)
+        addresses = {
+            address
+            for start, end in supplemental
+            for address in range(start, end + 1)
+        }
+        self.assertFalse(any(address in addresses for address in range(0x1000, 0x1008)))
+        self.assertIn(0x1008, addresses)
 
     def test_1511_plan_uses_only_known_native_read_blocks(self) -> None:
         dynamic, supplemental = TOOL.capture_plans("1511", True)
@@ -62,7 +79,7 @@ class TsunDumpToolTests(unittest.TestCase):
         _dynamic, supplemental = TOOL.capture_plans("02b0", True)
         addresses = {
             address
-            for _function, start, end in supplemental
+            for start, end in supplemental
             for address in range(start, end + 1)
         }
         self.assertIn(0x2047, addresses)
@@ -119,6 +136,10 @@ class TsunDumpToolTests(unittest.TestCase):
             datetime(2026, 8, 20, 8, 0, tzinfo=UTC),
         )
         self.assertEqual(path.name, "tsun_tsol-ms800-test_02b0_20260820T080000Z.json")
+
+    def test_known_1511_firmware_decoder(self) -> None:
+        self.assertEqual(TOOL.firmware_version(0x1172), "V1.1.72")
+        self.assertEqual(TOOL.firmware_version(0x1154), "V1.1.54")
 
 
 if __name__ == "__main__":

@@ -231,19 +231,21 @@ Direct local polling only.
 
 Help validate another TSUN model with one standardized, privacy-safe, **strictly read-only** capture.
 
-**⬇️ [Download TSUN Local + Hardware Validation Dump Tool (ZIP)](https://github.com/jptstar/tsun-local/archive/refs/heads/main.zip)**
+**⬇️ [Download the standalone `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
-After extracting the ZIP:
+**One file only.** No Home Assistant installation, repository clone, pip package or Node.js is required. Python 3.10+ is enough.
+
+macOS / Linux:
 
 ```bash
-cd tsun-local-main
-python tools/tsun_dump.py
+cd ~/Downloads
+python3 tsun_dump.py --full
 ```
 
-For the most complete known-safe capture:
+Windows:
 
-```bash
-python tools/tsun_dump.py --full
+```powershell
+py tsun_dump.py --full
 ```
 
 The tool first searches the local network for a TSUN logger. If automatic discovery cannot resolve everything, it asks only for the missing **IP address and/or Monitor SN**. Neither value is stored in the generated JSON.
