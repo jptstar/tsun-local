@@ -229,7 +229,7 @@ Direct local polling only.
 
 ## 🔬 Hardware validation dump tool
 
-Help validate another TSUN model with one standardized, privacy-safe, **strictly read-only** capture.
+Help validate another TSUN model with standardized, privacy-safe, **strictly read-only** captures.
 
 **⬇️ [Download the standalone `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
@@ -248,7 +248,9 @@ Windows:
 py tsun_dump.py --full
 ```
 
-The tool first searches the local network for a TSUN logger. If automatic discovery cannot resolve everything, it asks only for the missing **IP address and/or Monitor SN**. Neither value is stored in the generated JSON.
+**All TSUN loggers discovered on the local network are captured automatically.** The tool processes them sequentially and creates **one JSON per device**. If an individual Monitor SN is missing, it asks only for that device; with several devices, Enter skips that logger and continues with the others. `--host` intentionally limits the run to a single logger.
+
+IP addresses and Monitor SN values are never stored in the generated JSON. One failed device does not stop the remaining network scan.
 
 Use `--compare before.json after.json` for controlled before/after register validation. No brute-force scan and no inverter write operation are implemented.
 
