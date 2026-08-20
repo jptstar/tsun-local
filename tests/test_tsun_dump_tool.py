@@ -29,6 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 2)
+        self.assertEqual(TOOL.TOOL_VERSION, "2.1.0")
 
     def test_extracts_single_monitor_sn_from_json_discovery(self) -> None:
         payload = b'{"ip":"192.168.1.25","logger_sn":"1234567890"}'
@@ -136,6 +137,29 @@ class TsunDumpToolTests(unittest.TestCase):
             datetime(2026, 8, 20, 8, 0, tzinfo=UTC),
         )
         self.assertEqual(path.name, "tsun_tsol-ms800-test_02b0_20260820T080000Z.json")
+
+    def test_multi_device_output_names_are_unique(self) -> None:
+        from datetime import UTC, datetime
+
+        stamp = datetime(2026, 8, 20, 8, 0, tzinfo=UTC)
+        first = TOOL.default_output_path("TSOL-MS800", "02b0", stamp, device_index=1)
+        second = TOOL.default_output_path("TSOL-MS800", "02b0", stamp, device_index=2)
+        self.assertNotEqual(first, second)
+        self.assertIn("device-01", first.name)
+        self.assertIn("device-02", second.name)
+
+    def test_multi_device_explicit_output_gets_index_suffix(self) -> None:
+        from datetime import UTC, datetime
+
+        path = TOOL.output_path_for_target(
+            Path("dump.json"),
+            None,
+            "1097",
+            datetime(2026, 8, 20, 8, 0, tzinfo=UTC),
+            device_index=2,
+            total_targets=3,
+        )
+        self.assertEqual(path.name, "dump_device-02.json")
 
     def test_known_1511_firmware_decoder(self) -> None:
         self.assertEqual(TOOL.firmware_version(0x1172), "V1.1.72")
