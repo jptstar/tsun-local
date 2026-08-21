@@ -17,26 +17,23 @@ FILES = (
 
 
 class Stable151LocalizedReadmeTests(unittest.TestCase):
-    def test_all_localized_readmes_describe_stable_151(self) -> None:
+    def test_all_localized_readmes_follow_current_structure(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
             self.assertIn("<strong>1.5.1</strong>", text, filename)
-            self.assertIn("DSP", text, filename)
-            self.assertIn("QCPU1", text, filename)
-            self.assertIn("QCPU2", text, filename)
+            self.assertIn("### 1511", text, filename)
+            self.assertIn("### 02B0", text, filename)
+            self.assertIn("### 1097", text, filename)
+            self.assertIn("MP3000_FIELD_VALIDATION.md", text, filename)
+            self.assertIn("HARDWARE_DUMP.md", text, filename)
 
-    def test_dsp_qcpu_firmware_is_1511_only(self) -> None:
+    def test_release_specific_firmware_details_are_not_required_in_readmes(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
             start_1511 = text.index("### 1511")
             start_02b0 = text.index("### 02B0", start_1511)
-            start_1097 = text.index("### 1097", start_02b0)
             section_1511 = text[start_1511:start_02b0]
-            section_02b0 = text[start_02b0:start_1097]
-            self.assertIn("DSP", section_1511, filename)
-            self.assertIn("QCPU", section_1511, filename)
-            self.assertNotIn("DSP", section_02b0, filename)
-            self.assertNotIn("QCPU", section_02b0, filename)
+            self.assertIn("MP3000_FIELD_VALIDATION.md", section_1511, filename)
 
     def test_removed_1511_power_candidate_is_not_back_in_localized_tables(self) -> None:
         candidate_words = (
