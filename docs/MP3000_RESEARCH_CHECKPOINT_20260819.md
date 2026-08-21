@@ -6,7 +6,7 @@ This page preserves a dated, reproducible checkpoint of the MP3000 / TITAN 1511 
 
 - Device family: TSUN MP3000 / TITAN 1511
 - Capture timestamp: `2026-08-19T17:37:34.800815Z`
-- Acquisition script: `tsun_mp3000_full_readonly_dump_v1.3.2_wifi.py`
+- Acquisition script: `tsun_mp3000_full_readonly_dump_v1.3.3_wifi.py`
 - Script version: `1.3.3`
 - Mode: `focused`
 - Acquisition: **read-only**
