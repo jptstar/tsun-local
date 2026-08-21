@@ -119,10 +119,16 @@ class MetadataTests(unittest.TestCase):
         for name in localized:
             self.assertTrue((ROOT / "docs" / name).is_file())
         root_readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("[Français](docs/README_FR.md)", root_readme)
-        self.assertIn("[Deutsch](docs/README_DE.md)", root_readme)
+        self.assertIn(
+            'href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a>',
+            root_readme,
+        )
+        self.assertIn(
+            'href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a>',
+            root_readme,
+        )
         version = _load_json(INTEGRATION / "manifest.json")["version"]
-        self.assertIn(f"**{version}**", root_readme)
+        self.assertIn(f"<strong>{version}</strong>", root_readme)
         documentation_version = version.split("-beta.", 1)[0]
         if "-beta." in version:
             # The beta README and French beta notes are updated immediately;
