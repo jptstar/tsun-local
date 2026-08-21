@@ -33,7 +33,7 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 | Protokoll | Familie / validierte Referenz | Status |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validiert** |
-| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validiert** |
 | **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimentell** |
 
 > [!TIP]
@@ -45,8 +45,6 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
   </a>
 </p>
 
-<p align="center"><strong>Installieren. TSUN Local das Protokoll erkennen lassen. Prüfen, was dein Wechselrichter bereitstellt.</strong></p>
-
 ---
 
 ## Auf einen Blick
@@ -55,11 +53,11 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 |---|---|
 | ☀️ **PV** | Spannung · Strom · Leistung · Tagesenergie · Gesamtenergie |
 | ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tagesenergie · Gesamtenergie |
-| 🚨 **Diagnose** | Alarme · Kommunikation · Logger-Informationen |
-| 🛡️ **Erweitert** | Netzschutz · Wechselrichterdiagnose · Standardmäßig deaktiviert |
+| 🚨 **Diagnose** | Aktive Alarme · Kommunikation · Logger-Informationen |
+| 🛡️ **Erweitert** | Netzschutz · Firmware · Wechselrichterdiagnose · Experimentelle Feldvalidierungsdaten |
 | 🔒 **Sicherheit** | Nur lesen · Keine Konfigurationsschreibzugriffe auf den Wechselrichter |
 
-📚 **[Vollständige Entitätsreferenz nach Protokoll](ENTITIES.md)** — Sensoren, Binärsensoren und Schaltflächen für **1511, 02B0 und 1097**.
+📚 **[Vollständige Entitätsreferenz nach Protokoll](ENTITIES.md)**
 
 ---
 
@@ -69,7 +67,7 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 
 > [!NOTE]
 > **✅ Validiert** = mit TSUN Local auf echter Hardware bestätigt.  
-> **🔎 Wahrscheinlich kompatibel** = die Protokollfamilie wird unterstützt, dieses genaue Modell wurde mit TSUN Local aber noch nicht validiert.  
+> **🔎 Wahrscheinlich kompatibel** = die Protokollfamilie wird unterstützt, dieses genaue Modell wurde aber noch nicht validiert.  
 > **🧪 Experimentell** = Protokollunterstützung ist vorhanden, benötigt jedoch weitere Validierung auf realen Geräten.
 
 ### 1511 · TITAN — ✅ Validiert
@@ -80,12 +78,9 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 **🔎 Wahrscheinlich kompatibel**  
 `TSOL-MP2250` · `TSOL-MS3000` *(TITAN-Generation)*
 
-| | Verfügbare Daten |
-|---|---|
-| ☀️ **PV** | Bis zu 6 Eingänge · Spannung · Strom · Leistung · Tages- & Gesamtenergie |
-| ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Tages- & Gesamtenergie |
-| 🚨 **Diagnose** | Wechselrichteralarm · Anzahl und Namen aktiver Alarme · DSP/QCPU-Firmwareversionen |
-| 🛡️ **Erweitert** | Netzschutz-Schwellenwerte und Zeitdiagnosen · 10 zusätzliche A1/21-Feldvalidierungsdiagnosen · Rohwert für Land/Profil als Kandidat · Wechselrichter- und Umgebungstemperatur |
+Bis zu 6 PV-Eingänge, AC/PV-Telemetrie, Energie, Wechselrichterdiagnose, Firmwareversionen, Alarme und erweiterte schreibgeschützte Netzdiagnose.
+
+📚 **[MP3000 / TITAN Feldvalidierungsdetails](MP3000_FIELD_VALIDATION.md)**
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validiert
 
@@ -94,18 +89,11 @@ TSUN Local unterstützt **drei lokale TSUN-Protokollfamilien**.
 
 **🔎 Wahrscheinlich kompatibel**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
-`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`
+
 Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden.
 
-> [!NOTE]
-> Öffentliche GEN3-PLUS-Forschung ordnet diese Geräte im Allgemeinen der Seriennummernfamilie **Y17 / Y47** zu. Das hilft bei der Unterscheidung von Modellen, deren Namen auch bei älteren GEN3-Varianten vorkommen.
-
-| | Verfügbare Daten |
-|---|---|
-| ☀️ **PV** | Dynamische PV-Eingangserkennung · Spannung · Strom · Leistung · Energie |
-| ⚡ **AC** | Spannung · Strom · Frequenz · Leistung · Energie |
-| 🚨 **Diagnose** | Wechselrichteralarme |
-| 🛡️ **Erweitert** | Netzschutzdiagnosen · Leistungsniveau (%) |
+Dynamische PV-Eingangserkennung, AC/PV-Telemetrie, Wechselrichteralarme und erweiterte schreibgeschützte Diagnose.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimentell
 
@@ -114,62 +102,35 @@ Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
 `TSOL-MS3000` · `TSOL-MX3000D`
 
+Die Protokollunterstützung ist implementiert, benötigt aber weitere Validierung auf realen Geräten.
+
 > [!NOTE]
-> Öffentliche GEN3-Forschung ordnet diese Geräte im Allgemeinen der Seriennummernfamilie **R17 / R47** zu. Die Kompatibilität mit dem TSUN-Local-Protokoll **1097** bleibt experimentell, bis sie auf mehr echter Hardware bestätigt wurde.
-
-| | Verfügbare Daten |
-|---|---|
-| ☀️ **PV** | Standard-PV-Telemetrie |
-| ⚡ **AC** | Standard-Wechselrichter-/AC-Telemetrie |
-| 🚨 **Diagnose** | Verfügbare Wechselrichterdiagnosen |
-| 🛡️ **Erweitert** | Protokollversion · Wechselrichterversion · Temperatur · Isolationswiderstand RX/RY · Leistungsniveau (experimentell) · Rohwert Land/Profil · Auslegungsleistung |
-
-> **🔎 Wahrscheinlich kompatibel bedeutet nicht validiert.** Es bedeutet, dass TSUN Local die passende Protokollfamilie bereits implementiert und das Gerät damit ein guter Kompatibilitätskandidat ist.
+> Ein Handelsmodellname kann mehrere Hardware- oder Loggergenerationen umfassen. **Für die TSUN-Local-Kompatibilität ist das lokal erkannte Protokoll maßgeblich.**
 
 ---
 
-## Feldvalidierungs-Korrekturen in 1.4.1
+## 🚨 MP3000-Alarme
 
-Die Validierung an realen MP3000 / 1511- und MX500 / 02B0-Geräten hat vor der erneuten Veröffentlichung von 1.4.1 einige Diagnosewerte präzisiert:
+TSUN Local unterstützt das vollständige MP3000-Alarmbitfeld und hält die Home-Assistant-Oberfläche trotzdem kompakt. **Alle 224 Alarmpositionen werden erhalten und ausgewertet, wenn sie aktiv werden.**
 
-- Netzschutz-Zeitwerte bleiben nativ in **Sekunden**; automatisch gespeicherte `ms`-Anzeigeeinheiten aus älteren Betas werden auf `s` migriert;
-- beim validierten MP3000 bleibt das bei Dämmerung und sehr geringer Einstrahlung beobachtete Rohbit `0x2000` (`8192`) sichtbar, wird gezählt und mit einem neutralen lokalen Code gemeldet; der Betriebszustand zeigt **Standby — geringe PV-Eingangsleistung**, bis seine genaue Bedeutung auf Kontrollhardware bestätigt ist;
-- die TITAN-Register **3017** und **3028** werden jetzt als **Wechselrichtertemperatur** bzw. **Umgebungstemperatur des Wechselrichters** mit `raw - 40 °C` dekodiert; die Rohwerte bleiben zur Prüfung erhalten;
-- das 02B0-Register `0x202C` wird jetzt als **Leistungsniveau** mit der bestätigten Skalierung `raw × 100 / 1024` (`1024 = 100 %`) angezeigt;
+Die **12 auf Hardware beobachteten funktionalen Zuordnungen** umfassen niedrige PV-Eingangsspannung und PV-DSP-Fehler für PV1 bis PV6. Die übrigen **212 Positionen** behalten stabile neutrale TSUN-Local-Kennungen, bis ihre funktionale Bedeutung physisch validiert ist.
 
----
-
-## 🆕 TSUN Local 1.5.1
-
-**1.5.1** fasst die komplette MP3000-Alarmoberfläche aus 1.5.0 und alle Korrekturen aus beta1 bis beta4 in einer stabilen Version zusammen:
-
-- alle **224 MP3000-Alarmpositionen** bleiben erhalten; 12 funktionale Zuordnungen beruhen auf direkten Hardware-Beobachtungen;
-- eigener Sensor für **aktive Alarmnamen** mit lokalisierter Anzeige;
-- korrigierter Logger-WLAN-RSSI-Fallback bis `/status.html`;
-- 10 zusätzliche schreibgeschützte A1/21-Feldvalidierungsdiagnosen plus Rohwert für Land/Profil;
-- `0x07EF`: `4000 → 40,00 %/Hz` mit dem Kandidatenfaktor `×0,01`;
-- lokale Firmwareversionen **DSP V1.1.72**, **QCPU1 V1.1.54** und **QCPU2 V1.1.54**; FCPU wird ohne identifiziertes lokales Register nicht geraten;
-- der frühere unbestätigte MP3000-Leistungsniveau-Kandidat bleibt entfernt;
-- technische Entity-IDs bleiben Englisch, Anzeigenamen sind in allen acht Sprachen übersetzt.
-
-Für noch nicht unabhängig bestätigte A1/21-Zuordnungen gilt weiterhin: **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**.
----
-
-## 🚨 MP3000-Alarmkatalog
-
-Alle **224 Positionen** der 14 Alarmwörter werden berücksichtigt, gezählt und bei Aktivierung angezeigt. **12 funktionale Zuordnungen** wurden auf realer Hardware beobachtet; die übrigen **212 Positionen** erhalten einen eindeutigen neutralen TSUN-Local-Code und benötigen eine physische Prüfung auf geeigneter Kontrollhardware. Keine aktive Position wird verworfen. Die Texte in acht Sprachen sind unabhängige TSUN-Local-Formulierungen und keine als offiziell ausgegebenen Serverübersetzungen.
+Home Assistant zeigt einen **Wechselrichteralarm**, die Anzahl **Aktiver Alarme** und einen Sensor **Namen aktiver Alarme**. Die 14 vollständigen Rohwörter bleiben als standardmäßig deaktivierte Diagnose verfügbar, ohne 224 permanente Entitäten anzulegen.
 
 ---
 
 ## 🛡️ Erweiterte Diagnose
 
-Erweiterte Entitäten sind absichtlich **standardmäßig deaktiviert**. Dadurch bleibt die normale Geräteseite übersichtlich, während technische Informationen bei Bedarf verfügbar bleiben.
+Erweiterte Entitäten sind absichtlich **standardmäßig deaktiviert**. Dazu gehören je nach Protokoll Netzschutzwerte, Firmware- und Wechselrichterdiagnosen sowie ausgewählte experimentelle Feldvalidierungswerte.
 
 Aktivierung:
 
 **Einstellungen → Geräte & Dienste → TSUN Local → Gerät → Entitäten → Deaktivierte Entitäten**
 
-Es sind keine Schreibzugriffe zur Konfiguration des Wechselrichters implementiert.
+Experimentelle semantische Zuordnungen bleiben bis zur unabhängigen Validierung ausdrücklich gekennzeichnet. Es sind keine Konfigurationsschreibzugriffe auf den Wechselrichter implementiert.
+
+📚 **[MP3000 Feldvalidierungsnachweise](MP3000_FIELD_VALIDATION.md)**  
+📚 **[Vollständige Entitätsreferenz](ENTITIES.md)**
 
 ---
 
@@ -210,67 +171,72 @@ Nur direkte lokale Abfrage.
 
 ---
 
-## Ein anderes TSUN-Modell testen
+## 🔬 Ein anderes TSUN-Modell validieren
 
-Dein Wechselrichter muss nicht oben aufgeführt sein.
+TSUN Local enthält ein eigenständiges, datenschutzfreundliches und **streng schreibgeschütztes** Hardware-Dump-Werkzeug.
 
-Wenn TSUN Local eines dieser Protokolle erkennt:
+**⬇️ [`tsun_dump.py` herunterladen](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
-```text
-1511
-02B0
-1097
+Python 3.10+ genügt.
+
+macOS / Linux:
+
+```bash
+cd ~/Downloads
+python3 tsun_dump.py --full
 ```
 
-lass die Integration laufen und prüfe die erkannten Entitäten.
+Windows:
 
-> [!TIP]
-> **Dein Wechselrichter könnte das nächste validierte Modell werden.** Hilfreich sind das genaue Modell, das erkannte Protokoll, die Anzahl der PV-Eingänge, die Firmwareversion und welche Entitäten plausible Werte liefern.
+```powershell
+py tsun_dump.py --full
+```
+
+Das Werkzeug kann kompatible TSUN-Logger entdecken, unterstützte Protokollfamilien erkennen und pro Gerät einen datenschutzfreundlichen JSON-Dump erzeugen. Es implementiert keine Schreiboperation auf den Wechselrichter.
+
+Für VLANs, gezielte Erkennung, Vorher/Nachher-Vergleiche und erweiterte Validierung:
+
+📚 **[Hardware Validation Dump Tool Leitfaden](HARDWARE_DUMP.md)**
 
 ---
 
-## TSUN Local 1.4
+## Einen nicht aufgeführten Wechselrichter testen
 
-### Ein breiteres TSUN Local
+Wenn TSUN Local `1511`, `02B0` oder `1097` erkennt, lass die Integration laufen und prüfe die entdeckten Entitäten.
 
-Version 1.4 entwickelt TSUN Local von einzelnen bekannten Modellen hin zu **Kompatibilität auf Protokollfamilien-Ebene**.
+Hilfreiches Feedback umfasst das genaue Modell, das erkannte Protokoll, die Firmwareversion, die Anzahl der PV-Eingänge und welche Entitäten plausible Werte liefern.
 
-| | |
-|---|---|
-| 🔌 | **1511 · 02B0 · 1097** |
-| 🔍 | Automatische Protokollerkennung |
-| ☀️ | Progressive / dynamische PV-Eingangserkennung |
-| 📊 | Erweiterte lokale Telemetrie |
-| 🛡️ | Erweiterte Nur-Lese-Diagnose |
-| 🌍 | 8 Sprachen |
-| 🧪 | Einfacheres Testen neuer TSUN-Modelle |
+> [!TIP]
+> **Dein Wechselrichter könnte das nächste validierte Modell werden.**
 
 ---
 
 ## Validierungsrichtlinie
 
-Funktionsnamen und Modellunterstützung werden erst nach reproduzierbaren Prüfungen an realer Hardware als validiert gekennzeichnet.
+TSUN Local trennt bestätigte Hardwareunterstützung von experimenteller Protokollforschung.
 
-Kompatibilitätskandidaten werden bewusst getrennt von tatsächlich validierter Hardware gekennzeichnet.
+Funktionsnamen und Modellunterstützung werden erst nach reproduzierbaren Prüfungen auf echter Hardware als validiert gekennzeichnet. Ein Wert, der lediglich zu einem erwarteten Profil passt, gilt als Hinweis und nicht als Beweis; experimentelle Zuordnungen bleiben gekennzeichnet, bis eine unabhängige Beobachtung sie eindeutig unterscheidet.
 
 ---
 
 ## Beiträge
 
-TSUN Local profitiert auch von Beiträgen aus der Community:
+TSUN Local profitiert von öffentlicher Protokollforschung und Community-Tests auf realer Hardware.
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — öffentliche 1097-Protokollforschung, die in die experimentelle Zuordnung von TSUN Local eingeflossen ist.
-- **TheSmartGerman** — Tests an realer Hardware und Kompatibilitätsrückmeldungen für den **TSOL-MP3000 mit 1511**, bei denen das Protokoll **1097** unbeabsichtigt erkannt wurde.
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — öffentliche GEN3-/1097-Protokollforschung als Referenz für ausgewählte experimentelle Zuordnungen.
+- **TheSmartGerman** — Kompatibilitätsfeedback auf realer Hardware.
+
+Detaillierte Herkunft und Validierungsnachweise werden zusammen mit der jeweiligen Protokollforschung dokumentiert.
 
 ---
 
 ## Projekt
 
 > [!IMPORTANT]
-> **Inoffizielles Community-Projekt.** TSUN Local ist unabhängig und wird weder von TSUN entwickelt, genehmigt, unterstützt noch gepflegt.
+> **Inoffizielles Community-Projekt.** TSUN Local ist unabhängig und wird weder von TSUN entwickelt, genehmigt, unterstützt noch gewartet.
 
 Erstellt und gepflegt von **Jean-Philippe TESTART · `jptstar`**  
-*Aus Spaß, technischer Neugier und für die Home-Assistant-Community entwickelt und geteilt.*
+*Entwickelt und geteilt aus Spaß, technischer Neugier und für die Home-Assistant-Community.*
 
 ---
 
@@ -278,4 +244,4 @@ Erstellt und gepflegt von **Jean-Philippe TESTART · `jptstar`**
 
 Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
 
-Veröffentlicht unter der **GNU General Public License v3.0 oder später**. Siehe [LICENSE](../LICENSE).
+Veröffentlicht unter **GNU General Public License v3.0 oder neuer**. Siehe [LICENSE](../LICENSE).
