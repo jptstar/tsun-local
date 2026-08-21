@@ -33,7 +33,7 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 | Protocolo | Familia / referencia validada | Estado |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validado** |
-| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validado** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validado** |
 | **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimental** |
 
 > [!TIP]
@@ -45,8 +45,6 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
   </a>
 </p>
 
-<p align="center"><strong>Instálalo. Deja que TSUN Local identifique el protocolo. Comprueba qué expone tu inversor.</strong></p>
-
 ---
 
 ## De un vistazo
@@ -55,11 +53,11 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 |---|---|
 | ☀️ **PV** | Tensión · Corriente · Potencia · Energía diaria · Energía total |
 | ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía diaria · Energía total |
-| 🚨 **Diagnóstico** | Alarmas · Comunicación · Información del logger |
-| 🛡️ **Avanzado** | Protección de red · Diagnóstico del inversor · Desactivado por defecto |
+| 🚨 **Diagnóstico** | Alarmas activas · Comunicación · Información del logger |
+| 🛡️ **Avanzado** | Protección de red · Firmware · Diagnóstico del inversor · Datos experimentales de validación |
 | 🔒 **Seguridad** | Solo lectura · Sin escrituras de configuración en el inversor |
 
-📚 **[Referencia completa de entidades por protocolo](ENTITIES.md)** — sensores, sensores binarios y botones para **1511, 02B0 y 1097**.
+📚 **[Referencia completa de entidades por protocolo](ENTITIES.md)**
 
 ---
 
@@ -69,7 +67,7 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 
 > [!NOTE]
 > **✅ Validado** = confirmado en hardware real con TSUN Local.  
-> **🔎 Probablemente compatible** = la familia de protocolo está soportada, pero este modelo exacto aún no se ha validado con TSUN Local.  
+> **🔎 Probablemente compatible** = la familia de protocolo está soportada, pero este modelo exacto aún no se ha validado.  
 > **🧪 Experimental** = existe soporte del protocolo, pero todavía necesita más validación en dispositivos reales.
 
 ### 1511 · TITAN — ✅ Validado
@@ -80,12 +78,9 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 **🔎 Probablemente compatible**  
 `TSOL-MP2250` · `TSOL-MS3000` *(generación TITAN)*
 
-| | Datos disponibles |
-|---|---|
-| ☀️ **PV** | Hasta 6 entradas · Tensión · Corriente · Potencia · Energía diaria y total |
-| ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía diaria y total |
-| 🚨 **Diagnóstico** | Alarma del inversor · contador y nombres de alarmas activas · firmware DSP/QCPU |
-| 🛡️ **Avanzado** | Umbrales y tiempos de protección de red · 10 diagnósticos A1/21 adicionales de validación en campo · candidato bruto país/perfil · temperaturas |
+Hasta 6 entradas PV, telemetría AC/PV, energía, diagnóstico del inversor, versiones de firmware, alarmas y diagnóstico avanzado de red de solo lectura.
+
+📚 **[Detalles de validación MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validado
 
@@ -94,18 +89,11 @@ TSUN Local admite **tres familias de protocolos locales TSUN**.
 
 **🔎 Probablemente compatible**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
-`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`
+
 Las variantes `-D` correspondientes también pueden ser compatibles cuando existan.
 
-> [!NOTE]
-> La investigación pública sobre GEN3 PLUS asocia generalmente estos dispositivos con la familia de números de serie **Y17 / Y47**. Esto ayuda a distinguir modelos cuyo nombre también existe en variantes GEN3 anteriores.
-
-| | Datos disponibles |
-|---|---|
-| ☀️ **PV** | Detección dinámica de entradas PV · Tensión · Corriente · Potencia · Energía |
-| ⚡ **AC** | Tensión · Corriente · Frecuencia · Potencia · Energía |
-| 🚨 **Diagnóstico** | Alarmas del inversor |
-| 🛡️ **Avanzado** | Diagnósticos de protección de red · Nivel de potencia (%) |
+Detección dinámica de entradas PV, telemetría AC/PV, alarmas del inversor y diagnóstico avanzado de solo lectura.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 
@@ -114,62 +102,35 @@ Las variantes `-D` correspondientes también pueden ser compatibles cuando exist
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
 `TSOL-MS3000` · `TSOL-MX3000D`
 
+El soporte del protocolo está implementado, pero aún requiere más validación en dispositivos reales.
+
 > [!NOTE]
-> La investigación pública sobre GEN3 asocia generalmente estos dispositivos con la familia de números de serie **R17 / R47**. La compatibilidad con el protocolo **1097** de TSUN Local sigue siendo experimental hasta confirmarse en más hardware real.
-
-| | Datos disponibles |
-|---|---|
-| ☀️ **PV** | Telemetría PV estándar |
-| ⚡ **AC** | Telemetría estándar del inversor / AC |
-| 🚨 **Diagnóstico** | Diagnósticos disponibles del inversor |
-| 🛡️ **Avanzado** | Versión de protocolo · Versión del inversor · Temperatura · Aislamiento RX/RY · Nivel de potencia (experimental) · Valor bruto país/perfil · Potencia de diseño |
-
-> **🔎 Probablemente compatible no significa validado.** Significa que TSUN Local ya implementa la familia de protocolo correspondiente, lo que convierte al dispositivo en un buen candidato de compatibilidad.
+> Un mismo nombre comercial puede cubrir distintas generaciones de hardware o logger. **Para TSUN Local, el protocolo local detectado es la referencia de compatibilidad.**
 
 ---
 
-## Correcciones de validación en campo incluidas en 1.4.1
+## 🚨 Alarmas MP3000
 
-La validación con hardware real MP3000 / 1511 y MX500 / 02B0 permitió afinar varios diagnósticos antes de volver a publicar la versión 1.4.1:
+TSUN Local admite el bitfield completo de alarmas MP3000 manteniendo compacta la interfaz de Home Assistant. **Las 224 posiciones de alarma se conservan y se evalúan cuando se activan.**
 
-- los tiempos de protección de red permanecen nativamente en **segundos**; las unidades automáticas `ms` heredadas de versiones beta se migran a `s`;
-- en el MP3000 validado, el bit bruto `0x2000` (`8192`) observado al amanecer, al anochecer y con irradiancia muy baja sigue visible, se cuenta y se comunica con un código local neutro; el estado muestra **En espera — baja entrada solar** hasta confirmar su significado exacto con hardware de control;
-- los registros TITAN **3017** y **3028** se decodifican ahora como **Temperatura del inversor** y **Temperatura ambiente del inversor** con `raw - 40 °C`; los valores brutos se conservan para verificación;
-- el registro 02B0 `0x202C` se muestra ahora como **Nivel de potencia** con la escala confirmada `raw × 100 / 1024` (`1024 = 100 %`);
+Las **12 correspondencias funcionales observadas en hardware** cubren baja tensión de entrada PV y fallos DSP para PV1 a PV6. Las otras **212 posiciones** conservan identificadores TSUN Local neutros y estables hasta que su significado funcional se valide físicamente.
 
----
-
-## 🆕 TSUN Local 1.5.1
-
-La versión **1.5.1** reúne la interfaz completa de alarmas MP3000 de 1.5.0 y las correcciones de beta1 a beta4 en una versión estable:
-
-- se conservan las **224 posiciones de alarma MP3000**; 12 correspondencias funcionales proceden de observaciones directas en hardware;
-- sensor dedicado de **nombres de alarmas activas**, localizado para Home Assistant;
-- corrección del RSSI Wi-Fi del logger con búsqueda hasta `/status.html`;
-- 10 diagnósticos A1/21 adicionales de solo lectura y candidato bruto país/perfil;
-- `0x07EF`: `4000 → 40,00 %/Hz` con factor candidato `×0,01`;
-- firmware local **DSP V1.1.72**, **QCPU1 V1.1.54** y **QCPU2 V1.1.54**; FCPU no se publica sin un registro 1511 local identificado;
-- el antiguo candidato no validado de nivel de potencia MP3000 permanece eliminado;
-- IDs técnicos en inglés y nombres visibles traducidos en los ocho idiomas.
-
-Las asignaciones A1/21 aún no confirmadas de forma independiente mantienen el estado: **LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**.
----
-
-## 🚨 Catálogo de alarmas MP3000
-
-Las **224 posiciones** de las 14 palabras de alarma se incluyen, se cuentan y se muestran cuando están activas. Hay **12 correspondencias funcionales observadas en hardware real**; las otras **212 posiciones** reciben un código TSUN Local neutro y único y requieren verificación física con hardware de control adecuado. No se descarta ninguna posición activa. Los textos en ocho idiomas son formulaciones independientes de TSUN Local, no traducciones de servidor presentadas como oficiales.
+Home Assistant muestra un estado **Alarma del inversor**, un contador **Alarmas activas** y un sensor **Nombres de alarmas activas**. Las 14 palabras brutas completas permanecen disponibles como diagnóstico desactivado por defecto, sin crear 224 entidades permanentes.
 
 ---
 
 ## 🛡️ Diagnóstico avanzado
 
-Las entidades avanzadas están **desactivadas por defecto** de forma intencionada. Así, la página normal del dispositivo permanece simple, mientras que la información técnica sigue disponible cuando se necesita.
+Las entidades avanzadas están **desactivadas por defecto** de forma intencionada. Según el protocolo incluyen valores de protección de red, firmware, diagnóstico del inversor y algunos valores experimentales de validación.
 
-Para activar una:
+Para activarlas:
 
 **Ajustes → Dispositivos y servicios → TSUN Local → Dispositivo → Entidades → Entidades desactivadas**
 
-No se implementan escrituras de configuración hacia el inversor.
+Las asociaciones semánticas experimentales permanecen claramente marcadas hasta su validación independiente. No se implementan escrituras de configuración hacia el inversor.
+
+📚 **[Evidencias de validación MP3000](MP3000_FIELD_VALIDATION.md)**  
+📚 **[Referencia completa de entidades](ENTITIES.md)**
 
 ---
 
@@ -210,57 +171,62 @@ Solo sondeo local directo.
 
 ---
 
-## Probar otro modelo TSUN
+## 🔬 Validar otro modelo TSUN
 
-Tu inversor no tiene que aparecer en la lista anterior.
+TSUN Local incluye una herramienta autónoma de captura de hardware, respetuosa con la privacidad y **estrictamente de solo lectura**.
 
-Si TSUN Local identifica uno de estos protocolos:
+**⬇️ [Descargar `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
-```text
-1511
-02B0
-1097
+Python 3.10+ es suficiente.
+
+macOS / Linux:
+
+```bash
+cd ~/Downloads
+python3 tsun_dump.py --full
 ```
 
-déjalo funcionar y comprueba las entidades detectadas.
+Windows:
 
-> [!TIP]
-> **Tu inversor podría convertirse en el próximo modelo validado.** Son útiles el modelo exacto, el protocolo detectado, el número de entradas PV, la versión de firmware y qué entidades devuelven valores plausibles.
+```powershell
+py tsun_dump.py --full
+```
+
+La herramienta puede descubrir loggers TSUN compatibles, detectar familias de protocolo soportadas y crear un volcado JSON respetuoso con la privacidad por dispositivo. No implementa ninguna escritura hacia el inversor.
+
+Para VLAN, descubrimiento dirigido, comparaciones antes/después y validación avanzada:
+
+📚 **[Guía Hardware Validation Dump Tool](HARDWARE_DUMP.md)**
 
 ---
 
-## TSUN Local 1.4
+## Probar un inversor no listado
 
-### Un TSUN Local más amplio
+Si TSUN Local detecta `1511`, `02B0` o `1097`, déjalo funcionar y comprueba las entidades descubiertas.
 
-La versión 1.4 lleva TSUN Local desde modelos conocidos individuales hacia la **compatibilidad por familias de protocolos**.
+La información más útil incluye el modelo exacto, el protocolo detectado, la versión de firmware, el número de entradas PV y qué entidades devuelven valores plausibles.
 
-| | |
-|---|---|
-| 🔌 | **1511 · 02B0 · 1097** |
-| 🔍 | Identificación automática del protocolo |
-| ☀️ | Detección progresiva / dinámica de entradas PV |
-| 📊 | Telemetría local ampliada |
-| 🛡️ | Diagnóstico avanzado de solo lectura |
-| 🌍 | 8 idiomas |
-| 🧪 | Pruebas más sencillas de nuevos modelos TSUN |
+> [!TIP]
+> **Tu inversor podría convertirse en el próximo modelo validado.**
 
 ---
 
 ## Política de validación
 
-Los nombres funcionales y la compatibilidad de un modelo solo se marcan como validados tras comprobaciones reproducibles con hardware real.
+TSUN Local separa el soporte de hardware confirmado de la investigación experimental de protocolos.
 
-Los candidatos de compatibilidad se etiquetan de forma intencionadamente separada del hardware realmente validado.
+Los nombres funcionales y el soporte de un modelo solo se marcan como validados tras comprobaciones reproducibles con hardware real. Un valor que simplemente coincide con un perfil esperado es una evidencia, no una prueba definitiva; las asociaciones experimentales permanecen marcadas hasta que una observación independiente las distinga sin ambigüedad.
 
 ---
 
 ## Contribuciones
 
-TSUN Local también se beneficia de contribuciones de la comunidad:
+TSUN Local se beneficia de investigación pública sobre protocolos y pruebas de la comunidad en hardware real.
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — investigación pública del protocolo 1097 que contribuyó al mapeo experimental utilizado por TSUN Local.
-- **TheSmartGerman** — pruebas en hardware real y comentarios de compatibilidad para el **TSOL-MP3000 con 1511**, durante las cuales se detectó involuntariamente el protocolo **1097**.
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — investigación pública GEN3 / 1097 utilizada como referencia para determinadas asociaciones experimentales.
+- **TheSmartGerman** — comentarios de compatibilidad en hardware real.
+
+La procedencia detallada y las evidencias de validación se documentan junto a la investigación de protocolo correspondiente.
 
 ---
 
