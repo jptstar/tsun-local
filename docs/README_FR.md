@@ -33,7 +33,7 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 | Protocole | Famille / référence validée | Statut |
 |:---:|---|:---:|
 | **1511** | TITAN · **TSOL-MP3000** | ✅ **Validé** |
-| **02B0** | GEN3 / GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validé** |
+| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Validé** |
 | **1097** | GEN3 / GEN3 PLUS | 🧪 **Expérimental** |
 
 > [!TIP]
@@ -45,8 +45,6 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
   </a>
 </p>
 
-<p align="center"><strong>Installez-le. Laissez TSUN Local identifier le protocole. Voyez ce que votre onduleur expose.</strong></p>
-
 ---
 
 ## En un coup d’œil
@@ -56,10 +54,10 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 | ☀️ **PV** | Tension · Courant · Puissance · Énergie du jour · Énergie totale |
 | ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie du jour · Énergie totale |
 | 🚨 **Diagnostics** | Alarmes actives · Communication · Informations du logger |
-| 🛡️ **Avancé** | Protection réseau · Diagnostics de validation terrain MP3000 · Désactivés par défaut |
+| 🛡️ **Avancé** | Protection réseau · Firmware · Diagnostics onduleur · Données expérimentales de validation terrain |
 | 🔒 **Sécurité** | Lecture seule · Aucune écriture de configuration vers l’onduleur |
 
-📚 **[Liste complète des entités par protocole](ENTITIES.md)** — capteurs, capteurs binaires et boutons exposés par **1511, 02B0 et 1097**.
+📚 **[Liste complète des entités par protocole](ENTITIES.md)**
 
 ---
 
@@ -69,7 +67,7 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 
 > [!NOTE]
 > **✅ Validé** = confirmé sur du matériel réel avec TSUN Local.  
-> **🔎 Probablement compatible** = la famille de protocole est prise en charge, mais ce modèle précis n’a pas encore été validé avec TSUN Local.  
+> **🔎 Probablement compatible** = la famille de protocole est prise en charge, mais ce modèle précis n’a pas encore été validé.  
 > **🧪 Expérimental** = le protocole est pris en charge, mais nécessite encore davantage de validation sur matériel réel.
 
 ### 1511 · TITAN — ✅ Validé
@@ -80,12 +78,9 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 **🔎 Probablement compatible**  
 `TSOL-MP2250` · `TSOL-MS3000` *(génération TITAN)*
 
-| | Données disponibles |
-|---|---|
-| ☀️ **PV** | Jusqu’à 6 entrées · Tension · Courant · Puissance · Énergie du jour et totale |
-| ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie du jour et totale |
-| 🚨 **Diagnostics** | Alarme onduleur · compteur et noms des alarmes actives · firmwares DSP/QCPU |
-| 🛡️ **Avancé** | Seuils et temporisations de protection réseau · 10 diagnostics A1/21 supplémentaires en validation terrain · code pays/profil brut candidat · températures |
+Jusqu’à 6 entrées PV, télémétrie AC/PV, énergie, diagnostics onduleur, versions firmware, alarmes et diagnostics réseau avancés en lecture seule.
+
+📚 **[Détails de validation MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validé
 
@@ -94,15 +89,11 @@ TSUN Local prend en charge **trois familles de protocoles locaux TSUN**.
 
 **🔎 Probablement compatible**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
-`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
+`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`
+
 Les variantes `-D` correspondantes peuvent également être compatibles lorsqu’elles existent.
 
-| | Données disponibles |
-|---|---|
-| ☀️ **PV** | Détection dynamique des entrées PV · Tension · Courant · Puissance · Énergie |
-| ⚡ **AC** | Tension · Courant · Fréquence · Puissance · Énergie |
-| 🚨 **Diagnostics** | Alarmes onduleur |
-| 🛡️ **Avancé** | Diagnostics de protection réseau · Niveau de puissance (%) |
+Détection dynamique des entrées PV, télémétrie AC/PV, alarmes onduleur et diagnostics avancés en lecture seule.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Expérimental
 
@@ -111,56 +102,35 @@ Les variantes `-D` correspondantes peuvent également être compatibles lorsqu�
 `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
 `TSOL-MS3000` · `TSOL-MX3000D`
 
-| | Données disponibles |
-|---|---|
-| ☀️ **PV** | Télémétrie PV standard |
-| ⚡ **AC** | Télémétrie onduleur / AC standard |
-| 🚨 **Diagnostics** | Diagnostics onduleur disponibles |
-| 🛡️ **Avancé** | Version protocole · Version onduleur · Température · Isolation RX/RY · Niveau de puissance expérimental · Valeur brute pays/profil · Puissance nominale de conception |
+Le protocole est implémenté, mais davantage de validation sur matériel réel est nécessaire.
+
+> [!NOTE]
+> Un même nom commercial peut couvrir plusieurs générations matérielles ou de logger. **Le protocole local détecté fait foi pour la compatibilité TSUN Local.**
 
 ---
 
-## 🚨 Catalogue d’alarmes MP3000
+## 🚨 Alarmes MP3000
 
-Les **224 positions** des 14 mots d’alarme sont toutes intégrées, comptées et affichées lorsqu’elles sont actives. Les **12 correspondances fonctionnelles observées sur matériel** couvrent la tension d’entrée PV trop faible et les défauts DSP pour PV1 à PV6. Les **212 autres positions** restent entièrement opérationnelles avec un code TSUN Local neutre et unique ; leur signification nécessite une validation physique sur un matériel de contrôle adapté.
+TSUN Local prend en charge l’intégralité du champ d’alarmes MP3000 tout en conservant une interface Home Assistant compacte. **Les 224 positions d’alarme sont préservées et évaluées lorsqu’elles deviennent actives.**
 
-Home Assistant conserve une page lisible : un état **Alarme de l’onduleur**, un compteur et une liste **Alarmes actives**, puis les 14 mots bruts complets comme diagnostics désactivés par défaut. Aucune des 224 positions n’est ignorée et 224 entités permanentes ne sont pas créées.
+Les **12 correspondances fonctionnelles observées sur matériel** couvrent la faible tension d’entrée PV et les défauts DSP pour PV1 à PV6. Les **212 autres positions** conservent un identifiant TSUN Local neutre et stable jusqu’à validation physique de leur signification.
 
-La bêta 1.5.1 ne modifie pas cette architecture d’alarmes : les 224 positions, les codes uniques et les six mots d’alarme PV restent inchangés.
+Home Assistant expose un état **Alarme de l’onduleur**, un compteur **Alarmes actives** et un capteur **Noms des alarmes actives**. Les 14 mots bruts complets restent disponibles comme diagnostics désactivés par défaut, sans créer 224 entités permanentes.
 
----
-
-## 🆕 TSUN Local 1.5.1
-
-La version **1.5.1** regroupe les évolutions de la 1.5.0 et des quatre bêtas 1.5.1 dans une version stable :
-
-- catalogue MP3000 complet de **224 positions d’alarme**, avec **12 correspondances fonctionnelles observées sur matériel** et 212 positions conservées avec un libellé neutre ;
-- capteur dédié **Noms des alarmes actives**, localisé et directement exploitable dans Home Assistant ;
-- correction du signal Wi-Fi du logger : la recherche continue jusqu’à `/status.html` lorsqu’une première page valide ne contient pas le RSSI ;
-- **10 diagnostics A1/21** MP3000 supplémentaires et le code pays/profil brut candidat, tous en lecture seule ;
-- correction de `0x07EF` : `4000 → 40,00 %/Hz` avec le facteur candidat `×0,01` ;
-- versions firmware locales **DSP V1.1.72**, **QCPU1 V1.1.54** et **QCPU2 V1.1.54** ; FCPU reste volontairement absent tant que son registre 1511 local n’est pas identifié ;
-- suppression du précédent candidat non validé de niveau de puissance MP3000 ;
-- IDs techniques conservés en anglais et noms d’entités traduits dans les huit langues de TSUN Local.
-
-Pour les correspondances sémantiques A1/21 encore en validation, le statut reste :
-
-**LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING**
-
-Les candidats `0x07F1`, `0x07F2`, `0x07F7–0x07F9`, `0x080B–0x080E`, `0x07ED`, `0x0809` et `0x0BD2` restent documentés comme recherche et ne sont pas publiés comme entités sémantiques tant qu’une validation indépendante n’est pas disponible.
-
-📚 Voir **[MP3000 / TITAN 1511 — diagnostics de validation terrain](MP3000_FIELD_VALIDATION.md)**.
 ---
 
 ## 🛡️ Diagnostics avancés
 
-Les entités avancées sont volontairement **désactivées par défaut**. La page standard de l’appareil reste ainsi simple, tout en permettant d’activer les informations techniques lorsque nécessaire.
+Les entités avancées sont volontairement **désactivées par défaut**. Elles regroupent, selon le protocole, des valeurs de protection réseau, les firmwares, des diagnostics onduleur et certains champs expérimentaux de validation terrain.
 
 Pour en activer une :
 
 **Paramètres → Appareils et services → TSUN Local → Appareil → Entités → Entités désactivées**
 
-Aucune écriture de configuration vers l’onduleur n’est implémentée.
+Les correspondances sémantiques expérimentales restent explicitement signalées jusqu’à validation indépendante. Aucune écriture de configuration vers l’onduleur n’est implémentée.
+
+📚 **[Preuves de validation terrain MP3000](MP3000_FIELD_VALIDATION.md)**  
+📚 **[Liste complète des entités](ENTITIES.md)**
 
 ---
 
@@ -201,20 +171,62 @@ Interrogation locale directe uniquement.
 
 ---
 
+## 🔬 Valider un autre modèle TSUN
+
+TSUN Local inclut un outil autonome de capture matérielle, respectueux de la confidentialité et **strictement en lecture seule**.
+
+**⬇️ [Télécharger `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
+
+Python 3.10+ suffit.
+
+macOS / Linux :
+
+```bash
+cd ~/Downloads
+python3 tsun_dump.py --full
+```
+
+Windows :
+
+```powershell
+py tsun_dump.py --full
+```
+
+L’outil peut découvrir les loggers TSUN compatibles, détecter la famille de protocole et produire un fichier JSON respectueux de la confidentialité pour chaque appareil. Aucune écriture vers l’onduleur n’est implémentée.
+
+Pour les VLAN, la découverte ciblée, les comparaisons avant/après et la validation avancée :
+
+📚 **[Guide de l’outil Hardware Validation Dump](HARDWARE_DUMP.md)**
+
+---
+
+## Tester un onduleur non listé
+
+Si TSUN Local détecte `1511`, `02B0` ou `1097`, laissez-le fonctionner et vérifiez les entités découvertes.
+
+Les retours les plus utiles comprennent le modèle exact, le protocole détecté, la version firmware, le nombre d’entrées PV et les entités qui renvoient des valeurs plausibles.
+
+> [!TIP]
+> **Votre onduleur pourrait devenir le prochain modèle validé.**
+
+---
+
 ## Politique de validation
 
-Les noms fonctionnels et la prise en charge d’un modèle ne sont indiqués comme validés qu’après des contrôles reproductibles sur du matériel réel.
+TSUN Local distingue la prise en charge matérielle confirmée de la recherche protocolaire expérimentale.
 
-Une valeur locale qui correspond numériquement au profil constitue une preuve utile, mais elle reste marquée comme candidate tant qu’une observation indépendante ne permet pas de distinguer le champ sans ambiguïté.
+Les noms fonctionnels et la prise en charge d’un modèle ne sont indiqués comme validés qu’après des contrôles reproductibles sur du matériel réel. Une valeur qui correspond simplement à un profil constitue une preuve, pas une validation définitive ; les correspondances expérimentales restent signalées jusqu’à ce qu’une observation indépendante permette de les distinguer.
 
 ---
 
 ## Contributions
 
-TSUN Local bénéficie également de contributions communautaires :
+TSUN Local bénéficie de recherches protocolaires publiques et de tests communautaires sur matériel réel.
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — recherches publiques sur le protocole 1097 ayant contribué au mapping expérimental utilisé par TSUN Local, notamment la découverte du champ pays/profil et de la table des pays où France = `8`.
-- **TheSmartGerman** — tests sur matériel réel et retours de compatibilité sur le **TSOL-MP3000 en 1511**, au cours desquels le protocole **1097** a été détecté involontairement.
+- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — recherches publiques GEN3 / 1097 utilisées comme référence pour certaines correspondances expérimentales.
+- **TheSmartGerman** — retours de compatibilité sur matériel réel.
+
+La provenance détaillée et les preuves de validation sont documentées avec les recherches protocolaires concernées.
 
 ---
 
