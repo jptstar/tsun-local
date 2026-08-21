@@ -1,6 +1,5 @@
 name: Validate
 
-# TSUN Local 1.5.1-beta.4 validation trigger; no release action.
 on:
   push:
   pull_request:
@@ -31,6 +30,9 @@ jobs:
     name: HACS
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
       - name: Validate HACS repository
         uses: hacs/action@main
         with:
