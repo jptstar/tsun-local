@@ -21,11 +21,11 @@ import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-import getpass
 import hashlib
 import http.client
 from ipaddress import IPv4Address, IPv4Network, ip_network
 import json
+import math
 from pathlib import Path
 import re
 import socket
@@ -34,7 +34,7 @@ import time
 from typing import Any, Callable, Iterable
 
 
-TOOL_VERSION = "2.3.0"
+TOOL_VERSION = "2.3.1"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 2
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -114,10 +114,16 @@ class DiscoveryDevice:
 
 
 def safe_error_details(error: Exception) -> dict[str, str]:
-    """Return error details without addresses, serials or payload identifiers."""
+    """Return useful error details without addresses, serials or payload IDs."""
     result = {"type": type(error).__name__}
     if isinstance(error, TsunProtocolError):
         result["detail"] = str(error)
+    elif isinstance(error, TimeoutError):
+        result["detail"] = "timeout waiting for device response"
+    elif isinstance(error, ConnectionResetError):
+        result["detail"] = "connection reset by device"
+    elif isinstance(error, ConnectionRefusedError):
+        result["detail"] = "connection refused by device"
     return result
 
 
@@ -130,6 +136,10 @@ def checksum_ap(data: bytes) -> int:
 
 
 def build_ap_frame(logger_sn: int, payload: bytes, sensor_list: int = 0) -> bytes:
+    if logger_sn != 0 and not _valid_monitor_sn(logger_sn):
+        raise ValueError("Monitor SN must fit the four-byte logger field")
+    if not 0 <= sensor_list <= 0xFFFF:
+        raise ValueError("sensor_list must fit the two-byte AP field")
     data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
     scope = (
         len(data).to_bytes(2, "little")
@@ -569,22 +579,37 @@ def _web_identity_from_document(
     return serials, firmware, hint, recognized
 
 
-def probe_logger_web(host: str, timeout: float) -> DiscoveryDevice | None:
-    """Identify a TSUN logger from its local web pages."""
+def probe_logger_web(
+    host: str,
+    timeout: float,
+    *,
+    allow_authenticated: bool = False,
+) -> DiscoveryDevice | None:
+    """Identify a TSUN logger from local web pages without credential spraying."""
     aggregate = DiscoveryDevice(host=host, http_open=True)
     recognized = False
     for path in LOGGER_STATUS_PATHS:
-        for authenticated in (False, True):
-            document = _http_document(host, path, timeout, authenticated)
-            if document is None:
-                continue
+        document = _http_document(host, path, timeout, False)
+        if document is not None:
             serials, firmware, hint, is_tsun = _web_identity_from_document(document)
             aggregate.serial_candidates.update(serials)
             aggregate.firmware_version = aggregate.firmware_version or firmware
             aggregate.protocol_hint = aggregate.protocol_hint or hint
             recognized = recognized or is_tsun
-            if aggregate.serial_candidates and aggregate.protocol_hint:
-                break
+
+        # Only send the legacy admin:admin credential to an explicitly targeted
+        # host, or after the unauthenticated page has already identified TSUN.
+        if (allow_authenticated or recognized) and not (
+            aggregate.serial_candidates and aggregate.protocol_hint
+        ):
+            document = _http_document(host, path, timeout, True)
+            if document is not None:
+                serials, firmware, hint, is_tsun = _web_identity_from_document(document)
+                aggregate.serial_candidates.update(serials)
+                aggregate.firmware_version = aggregate.firmware_version or firmware
+                aggregate.protocol_hint = aggregate.protocol_hint or hint
+                recognized = recognized or is_tsun
+
         if aggregate.serial_candidates and aggregate.protocol_hint:
             break
     if not recognized:
@@ -722,7 +747,7 @@ def resolve_single_host_identity(args: argparse.Namespace, host: str) -> Discove
         if incoming.host == host:
             _merge_device(device, incoming)
 
-    web = probe_logger_web(host, args.http_page_timeout)
+    web = probe_logger_web(host, args.http_page_timeout, allow_authenticated=True)
     if web is not None:
         _merge_device(device, web)
 
@@ -739,8 +764,9 @@ def resolve_single_host_identity(args: argparse.Namespace, host: str) -> Discove
 def _prompt_monitor_sn(
     prompt: str = "Monitor SN: ", *, allow_skip: bool = False
 ) -> int | None:
+    """Read a Monitor SN using ordinary stdin for reliable Windows terminals."""
     while True:
-        answer = getpass.getpass(prompt).strip()
+        answer = input(prompt).strip()
         if allow_skip and not answer:
             return None
         try:
@@ -833,8 +859,8 @@ def resolve_targets(
 
     if args.serial is not None and len(devices) > 1:
         raise ValueError(
-            "--serial without --host is ambiguous when several loggers are found; "
-            "omit --serial or add --host"
+            "--serial/--monitor-sn without --host is ambiguous when several loggers "
+            "are found; omit it or add --host"
         )
 
     print(f"{len(devices)} candidate logger(s) found. Every candidate will be validated.")
@@ -847,11 +873,11 @@ def resolve_targets(
 
         monitor_sn: int | None = None
         discovered_sn = False
-        if len(device.serial_candidates) == 1:
+        if args.serial is not None and len(devices) == 1:
+            monitor_sn = args.serial
+        elif len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
-        elif args.serial is not None and len(devices) == 1:
-            monitor_sn = args.serial
         else:
             state = "ambiguous" if device.serial_candidates else "missing"
             print(f"  Monitor SN {state}.")
@@ -1564,10 +1590,29 @@ def _positive_int(value: str) -> int:
     return number
 
 
+def _monitor_sn_arg(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as err:
+        raise argparse.ArgumentTypeError("Monitor SN must be numeric") from err
+    if not _valid_monitor_sn(number):
+        raise argparse.ArgumentTypeError(
+            "Monitor SN must be between 1 and 4294967295"
+        )
+    return number
+
+
 def _non_negative_float(value: str) -> float:
     number = float(value)
-    if number < 0:
-        raise argparse.ArgumentTypeError("value must be >= 0")
+    if not math.isfinite(number) or number < 0:
+        raise argparse.ArgumentTypeError("value must be a finite number >= 0")
+    return number
+
+
+def _positive_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number) or number <= 0:
+        raise argparse.ArgumentTypeError("value must be a finite number > 0")
     return number
 
 
@@ -1584,8 +1629,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--serial",
-        type=int,
-        help="numeric Monitor SN for single-target use; normally auto-resolved",
+        "--monitor-sn",
+        dest="serial",
+        type=_monitor_sn_arg,
+        help=(
+            "numeric Monitor SN for single-target use; --monitor-sn is an alias; "
+            "normally auto-resolved"
+        ),
     )
     parser.add_argument("--port", type=_positive_port, default=DEFAULT_PORT)
     parser.add_argument(
@@ -1606,7 +1656,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=_non_negative_float,
         default=DEFAULT_SNAPSHOT_INTERVAL,
     )
-    parser.add_argument("--timeout", type=_non_negative_float, default=DEFAULT_TIMEOUT)
+    parser.add_argument("--timeout", type=_positive_float, default=DEFAULT_TIMEOUT)
     parser.add_argument(
         "--discovery-timeout",
         type=_non_negative_float,
@@ -1614,19 +1664,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--tcp-scan-timeout",
-        type=_non_negative_float,
+        type=_positive_float,
         default=DEFAULT_TCP_SCAN_TIMEOUT,
         help="TCP 8899 connect timeout used by bounded discovery",
     )
     parser.add_argument(
         "--http-scan-timeout",
-        type=_non_negative_float,
+        type=_positive_float,
         default=DEFAULT_HTTP_SCAN_TIMEOUT,
         help="HTTP port-80 connect timeout used by bounded discovery",
     )
     parser.add_argument(
         "--http-page-timeout",
-        type=_non_negative_float,
+        type=_positive_float,
         default=DEFAULT_HTTP_PAGE_TIMEOUT,
         help="timeout for local logger status-page identity reads",
     )
@@ -1688,18 +1738,20 @@ def main() -> int:
         try:
             before = json.loads(before_path.read_text(encoding="utf-8"))
             after = json.loads(after_path.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as err:
-            print(f"ERROR: could not read comparison files: {err}", file=sys.stderr)
+            result = compare_documents(before, after)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(
+                    json.dumps(result, indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+        except (OSError, TypeError, ValueError) as err:
+            print(f"ERROR: could not compare dump files: {err}", file=sys.stderr)
             return 2
-        result = compare_documents(before, after)
         print(f"Changed raw registers: {len(result['changed_registers'])}")
         for item in result["changed_registers"]:
             print(f"  {item['key']}: {item['before']} -> {item['after']}")
         if args.output:
-            args.output.write_text(
-                json.dumps(result, indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8",
-            )
             print(f"Comparison JSON: {args.output}")
         return 0
 
@@ -1751,6 +1803,7 @@ def main() -> int:
             total_targets=total,
         )
         try:
+            output.parent.mkdir(parents=True, exist_ok=True)
             output.write_text(
                 json.dumps(document, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
