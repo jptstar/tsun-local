@@ -30,11 +30,20 @@ py tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
 
 For the capture ranges, safety model, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
 
-## Sunology PLAY2 diagnostic
+## Sunology PLAY2 super-probe
 
-[`tsun_play2_probe.py`](tsun_play2_probe.py) is a standalone, privacy-safe, **strictly read-only** diagnostic for PLAY2 / MX variants that do not answer the normal TSUN Local protocol detection.
+[`tsun_play2_probe.py`](tsun_play2_probe.py) is a standalone, privacy-safe, **strictly read-only** all-in-one diagnostic for PLAY2 / MX variants that do not answer normal TSUN Local protocol detection.
 
-It tests several local discovery paths and known GEN3 / GEN3+ read variants, including sensor-list **1511**, **02B0**, **1097** and **3026**. It also checks local HTTP/HTTPS identity pages and records detailed TCP 8899 outcomes.
+Version **1.2.0** combines the main evidence-driven hypotheses in one run:
+
+- Sunology/iGEN UDP discovery: `smartlinkfind` on UDP **48899**, replies on **49999**, plus legacy discovery messages;
+- detailed `smart_config` / `##` parsing and correlation of discovered hosts with the supplied Monitor SN;
+- DNS-SD/mDNS discovery of `_solarhome._tcp.local` used by Sunology CONNECT;
+- passive WebSocket handshake/listen on the mDNS-resolved `ws://<host>:<port>/ws`, including detection of `solarEvent`, `pvP`, battery/grid events and product information;
+- HTTP/HTTPS local identity and firmware checks on supplied and discovered candidate hosts;
+- TCP **8899** passive observation plus bounded AP/Solarman sequence variants, sensor-lists **1511**, **02B0**, **1097**, **3026**, direct Modbus-RTU-over-TCP and Modbus-TCP read hypotheses.
+
+The `ws://127.0.0.1:20199` address found in Sunology STREAM 3.2.2 is a **development/local mock only**. The production application resolves the CONNECT endpoint through mDNS, so the probe does not scan port 20199 on the PLAY2.
 
 Run it with Python 3.10+ on Windows:
 
@@ -42,9 +51,16 @@ Run it with Python 3.10+ on Windows:
 py tsun_play2_probe.py --host 192.168.1.50 --monitor-sn 1234567890
 ```
 
-The probe writes a diagnostic JSON even when no protocol is detected. The JSON excludes the target IP address, Monitor SN, MAC address and raw network payloads.
+One run produces two files:
 
-On Windows, Python may need permission through Windows Defender Firewall on the private/local network so UDP discovery replies on ports **48899/49999** can be received. A blocked UDP test is recorded in the diagnostic and does not prevent the other tests or JSON generation.
+- `tsun_play2_superprobe_....json` — rich machine-readable diagnostic;
+- `tsun_play2_superprobe_....log` — detailed human-readable execution log.
+
+The report aliases local IP addresses and redacts Monitor SN, MAC addresses and serial-looking values while retaining packet lengths, hashes, redacted hex/ASCII structure and protocol behaviour useful for reverse engineering.
+
+The probe performs **no cloud request, no BLE/Wi-Fi provisioning, no configuration write and no Modbus write**.
+
+On Windows, Python may need permission through Windows Defender Firewall on the **Private** network so local UDP/mDNS replies can be received. No router port forwarding or Internet-facing port opening is required.
 
 ## Existing focused diagnostics
 
