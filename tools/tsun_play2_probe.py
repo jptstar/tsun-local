@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Sunology PLAY2 / TSUN read-only local super-probe v1.3.
+"""Sunology PLAY2 / TSUN read-only local super-probe.
 
-Python >=3.10, standard library only.
+Python >= 3.10, standard library only.
 
-Goals:
-- identify the actual logger through iGEN UDP discovery (48899/49999);
-- recognise compact 12-hex MAC identifiers returned by smart_config;
-- inspect local HTTP identity pages, including read-only Basic admin/admin GETs;
-- probe TCP 8899/48899/49999 without any write command;
-- fully decode Solarman V5 response envelopes (0x1510), including sequence,
-  logger SN correlation, checksum, timestamps and embedded payload;
-- preserve mDNS/_solarhome and passive WebSocket checks for Sunology CONNECT.
+This tool is intentionally diagnostic and privacy-safe. It never sends inverter
+configuration writes, BLE/Wi-Fi provisioning data, cloud requests, Modbus write
+functions or WebSocket application messages.
 
-No configuration writes, no BLE/Wi-Fi provisioning, no cloud login,
-no Modbus write functions, no WebSocket application messages.
+Main goals:
+- discover the actual local logger through iGEN UDP discovery (48899/49999);
+- distinguish a real MAC address from an opaque 12-hex module identifier;
+- inspect read-only local HTTP identity pages;
+- probe TCP 8899 and decode Solarman V5 request/response envelopes;
+- identify the protocol carried inside the V5 response payload;
+- keep mDNS/WebSocket checks for Sunology CONNECT/Hub devices.
 """
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ import hashlib
 import http.client
 from ipaddress import IPv4Address, ip_network
 import json
+from pathlib import Path
 import re
 import secrets
 import socket
@@ -33,83 +34,99 @@ import ssl
 import struct
 import sys
 import time
-from pathlib import Path
 from typing import Any
 
-VER = "1.3.0"
-SCHEMA = 5
+VER = "1.3.1"
+SCHEMA = 6
+
 UDP_PORTS = (48899, 49999)
 TCP_PORTS = (8899, 48899, 49999)
-SMART = b"smartlinkfind"
-LEGACY = (b"WIFIKIT-214028-READ", b"HF-A11ASSISTHREAD", b"devicelinkfind")
-MDNS = "224.0.0.251"
-SERVICE = "_solarhome._tcp.local."
+SMARTLINK = b"smartlinkfind"
+LEGACY_DISCOVERY = (
+    b"WIFIKIT-214028-READ",
+    b"HF-A11ASSISTHREAD",
+    b"devicelinkfind",
+)
+
+MDNS_GROUP = "224.0.0.251"
+MDNS_SERVICE = "_solarhome._tcp.local."
 HUB_PREFIX = "sunology-hb-"
 HTTP_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
-HTTP_AUTH = base64.b64encode(b"admin:admin").decode("ascii")
+HTTP_BASIC = base64.b64encode(b"admin:admin").decode("ascii")
+
 SN_RE = re.compile(r"(?<!\d)([1-9]\d{7,9})(?!\d)")
-IP_RE = re.compile(r"(?<!\d)(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?!\d)")
+IP_RE = re.compile(
+    r"(?<!\d)(?:25[0-5]|2[0-4]\d|1?\d?\d)"
+    r"(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?!\d)"
+)
 MAC_SEP_RE = re.compile(r"(?i)(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}")
-MAC_RAW_RE = re.compile(r"(?i)(?<![0-9a-f])([0-9a-f]{12})(?![0-9a-f])")
+HEX12_RE = re.compile(r"(?i)(?<![0-9a-f])([0-9a-f]{12})(?![0-9a-f])")
 MAX_EVIDENCE = 4096
 
 
 class Log:
     def __init__(self, path: Path):
-        self.f = path.open("w", encoding="utf-8", newline="\n")
+        self._file = path.open("w", encoding="utf-8", newline="\n")
 
-    def w(self, text: str = "") -> None:
+    def write(self, text: str = "") -> None:
         print(text)
-        self.f.write(text + "\n")
-        self.f.flush()
+        self._file.write(text + "\n")
+        self._file.flush()
 
     def close(self) -> None:
-        self.f.close()
+        self._file.close()
 
 
 class Hosts:
-    def __init__(self, host: str):
-        self.d: dict[str, dict[str, Any]] = {
-            host: {"alias": "host0", "reasons": ["supplied_host"], "strong": True, "confirmed_logger": False}
+    def __init__(self, supplied_host: str):
+        self.data: dict[str, dict[str, Any]] = {
+            supplied_host: {
+                "alias": "host0",
+                "reasons": ["supplied_host"],
+                "strong": False,
+                "confirmed_logger": False,
+            }
         }
 
-    def add(self, ip: str | None, why: str, strong: bool = False) -> None:
+    def add(self, ip: str | None, reason: str, strong: bool = False) -> None:
         if not ip:
             return
         try:
             IPv4Address(ip)
         except ValueError:
             return
-        if ip not in self.d and len(self.d) < 8:
-            self.d[ip] = {
-                "alias": f"candidate{len(self.d)}",
+        if ip not in self.data and len(self.data) < 8:
+            self.data[ip] = {
+                "alias": f"candidate{len(self.data)}",
                 "reasons": [],
                 "strong": False,
                 "confirmed_logger": False,
             }
-        if ip in self.d:
-            if why not in self.d[ip]["reasons"]:
-                self.d[ip]["reasons"].append(why)
-            self.d[ip]["strong"] = self.d[ip]["strong"] or strong
+        item = self.data.get(ip)
+        if not item:
+            return
+        if reason not in item["reasons"]:
+            item["reasons"].append(reason)
+        item["strong"] = bool(item["strong"] or strong)
 
-    def confirm(self, ip: str, why: str) -> None:
-        self.add(ip, why, True)
-        self.d[ip]["confirmed_logger"] = True
+    def confirm(self, ip: str, reason: str) -> None:
+        self.add(ip, reason, True)
+        self.data[ip]["confirmed_logger"] = True
 
     def alias(self, ip: str | None) -> str | None:
         if not ip:
             return None
-        return self.d.get(ip, {}).get("alias", "other-local-host")
+        return self.data.get(ip, {}).get("alias", "other-local-host")
 
     def public(self) -> list[dict[str, Any]]:
         return [
             {
-                "alias": v["alias"],
-                "reasons": v["reasons"],
-                "strong": v["strong"],
-                "confirmed_logger": v["confirmed_logger"],
+                "alias": value["alias"],
+                "reasons": value["reasons"],
+                "strong": value["strong"],
+                "confirmed_logger": value["confirmed_logger"],
             }
-            for v in self.d.values()
+            for value in self.data.values()
         ]
 
 
@@ -117,463 +134,942 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def sha(b: bytes) -> str:
-    return hashlib.sha256(b).hexdigest()
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
-def err(stage: str, e: BaseException) -> dict[str, str]:
-    return {"stage": stage, "type": type(e).__name__, "detail": str(e) or type(e).__name__}
+def error(stage: str, exc: BaseException) -> dict[str, str]:
+    return {
+        "stage": stage,
+        "type": type(exc).__name__,
+        "detail": str(exc) or type(exc).__name__,
+    }
 
 
-def crc16(b: bytes) -> int:
-    c = 0xFFFF
-    for x in b:
-        c ^= x
+def crc16_modbus(data: bytes) -> int:
+    crc = 0xFFFF
+    for value in data:
+        crc ^= value
         for _ in range(8):
-            c = (c >> 1) ^ 0xA001 if c & 1 else c >> 1
-    return c & 0xFFFF
+            crc = (crc >> 1) ^ 0xA001 if crc & 1 else crc >> 1
+    return crc & 0xFFFF
 
 
-def normalise_mac(value: str) -> str | None:
-    v = re.sub(r"[^0-9A-Fa-f]", "", value)
-    if len(v) != 12 or not re.fullmatch(r"[0-9A-Fa-f]{12}", v):
+def normalize_mac(value: str, *, allow_compact: bool = False) -> str | None:
+    text = value.strip()
+    if not allow_compact and not MAC_SEP_RE.fullmatch(text):
         return None
-    v = v.upper()
-    return ":".join(v[i : i + 2] for i in range(0, 12, 2))
+    compact = re.sub(r"[^0-9A-Fa-f]", "", text)
+    if len(compact) != 12 or not re.fullmatch(r"[0-9A-Fa-f]{12}", compact):
+        return None
+    compact = compact.upper()
+    return ":".join(compact[i : i + 2] for i in range(0, 12, 2))
 
 
-def redact_bytes(b: bytes, sn: int | None, ips: list[str]) -> bytes:
-    out = bytes(b)
-    if sn:
-        for x in (str(sn).encode(), sn.to_bytes(4, "little"), sn.to_bytes(4, "big")):
-            out = out.replace(x, b"*" * len(x))
+def compact_module_identifier(value: str) -> str | None:
+    text = value.strip()
+    if HEX12_RE.fullmatch(text):
+        return text.upper()
+    return None
+
+
+def mac_suffix(mac: str | None) -> str | None:
+    if not mac:
+        return None
+    parts = mac.upper().replace("-", ":").split(":")
+    if len(parts) != 6:
+        return None
+    return ":".join(parts[-2:])
+
+
+def identifier_suffix(identifier: str | None) -> str | None:
+    if not identifier:
+        return None
+    return identifier[-4:].upper()
+
+
+def redact_bytes(data: bytes, supplied_sn: int | None, ips: list[str]) -> bytes:
+    out = bytes(data)
+    if supplied_sn:
+        for value in (
+            str(supplied_sn).encode(),
+            supplied_sn.to_bytes(4, "little"),
+            supplied_sn.to_bytes(4, "big"),
+        ):
+            out = out.replace(value, b"*" * len(value))
+
     for ip in ips:
         out = out.replace(ip.encode(), b"*" * len(ip))
         try:
             out = out.replace(socket.inet_aton(ip), b"****")
         except OSError:
             pass
+
     text = out.decode("latin1", "ignore")
-    for regex in (MAC_SEP_RE, MAC_RAW_RE):
-        for m in list(regex.finditer(text)):
-            raw = m.group(0).encode("latin1")
+    for regex in (MAC_SEP_RE, HEX12_RE):
+        for match in list(regex.finditer(text)):
+            raw = match.group(0).encode("latin1")
             out = out.replace(raw, b"*" * len(raw))
     return out
 
 
-def evidence(b: bytes, sn: int | None, ips: list[str]) -> dict[str, Any]:
-    r = redact_bytes(b, sn, ips)
-    cap = r[:MAX_EVIDENCE]
+def evidence(data: bytes, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
+    redacted = redact_bytes(data, supplied_sn, ips)
+    cap = redacted[:MAX_EVIDENCE]
     return {
-        "length": len(b),
-        "sha256": sha(b),
+        "length": len(data),
+        "sha256": sha256(data),
         "redacted_hex": cap.hex(),
-        "redacted_ascii": "".join(chr(x) if 32 <= x < 127 else f"\\x{x:02x}" for x in cap),
-        "complete": len(b) <= MAX_EVIDENCE,
+        "redacted_ascii": "".join(
+            chr(value) if 32 <= value < 127 else f"\\x{value:02x}" for value in cap
+        ),
+        "complete": len(data) <= MAX_EVIDENCE,
     }
 
 
-def parse_udp(b: bytes) -> dict[str, Any]:
-    t = b.decode("utf-8", "replace").strip("\x00\r\n ")
-    out: dict[str, Any] = {"text": t, "format": "text", "sn": None, "ip": None, "mac": None}
+def classify_text_field(value: str) -> dict[str, Any]:
+    text = value.strip()
+    result: dict[str, Any] = {"length": len(text), "class": "text"}
+    if IP_RE.fullmatch(text):
+        result["class"] = "ipv4"
+        return result
+
+    explicit_mac = normalize_mac(text)
+    if explicit_mac:
+        result["class"] = "mac"
+        result["suffix"] = mac_suffix(explicit_mac)
+        return result
+
+    module_identifier = compact_module_identifier(text)
+    if module_identifier:
+        result["class"] = "module_identifier_hex12"
+        result["suffix"] = identifier_suffix(module_identifier)
+        return result
+
+    if text.isdigit() and 8 <= len(text) <= 10:
+        result["class"] = "serial_like"
+    return result
+
+
+def parse_udp(data: bytes) -> dict[str, Any]:
+    text = data.decode("utf-8", "replace").strip("\x00\r\n ")
+    out: dict[str, Any] = {
+        "text": text,
+        "format": "text",
+        "sn": None,
+        "ip": None,
+        "mac": None,
+        "module_identifier": None,
+    }
+
     try:
-        obj = json.loads(t)
+        obj = json.loads(text)
     except Exception:
         obj = None
+
     if isinstance(obj, dict):
         out["format"] = "json"
-        for k in ("mid", "sn", "serial", "loggerSn", "monitorSn"):
+        for key in ("mid", "sn", "serial", "loggerSn", "monitorSn"):
             try:
-                n = int(str(obj.get(k, "")))
+                value = int(str(obj.get(key, "")))
             except Exception:
                 continue
-            if 0 < n <= 0xFFFFFFFF:
-                out["sn"] = n
+            if 0 < value <= 0xFFFFFFFF:
+                out["sn"] = value
                 break
-        if isinstance(obj.get("ip"), str) and IP_RE.fullmatch(obj["ip"].strip()):
-            out["ip"] = obj["ip"].strip()
-        if isinstance(obj.get("mac"), str):
-            out["mac"] = normalise_mac(obj["mac"])
+
+        ip_value = obj.get("ip")
+        if isinstance(ip_value, str) and IP_RE.fullmatch(ip_value.strip()):
+            out["ip"] = ip_value.strip()
+
+        mac_value = obj.get("mac")
+        if isinstance(mac_value, str):
+            out["mac"] = normalize_mac(mac_value, allow_compact=True)
+
+        for key in ("moduleId", "module_id", "deviceId", "device_id"):
+            value = obj.get(key)
+            if isinstance(value, str) and compact_module_identifier(value):
+                out["module_identifier"] = compact_module_identifier(value)
+                break
         return out
 
-    lo = t.lower()
-    if "smart_config" in lo or "smartconfig" in lo:
+    lower = text.lower()
+    if "smart_config" in lower or "smartconfig" in lower:
         out["format"] = "smart_config_text"
-    elif "smartlink" in lo:
+    elif "smartlink" in lower:
         out["format"] = "smartlink_text"
 
-    m = SN_RE.search(t)
-    if m:
-        out["sn"] = int(m.group(1))
-    m = IP_RE.search(t)
-    if m:
-        out["ip"] = m.group(0)
-    m = MAC_SEP_RE.search(t) or MAC_RAW_RE.search(t)
-    if m:
-        out["mac"] = normalise_mac(m.group(0))
+    sn_match = SN_RE.search(text)
+    if sn_match:
+        out["sn"] = int(sn_match.group(1))
 
-    fields = [x.strip() for x in t.split(",")]
+    ip_match = IP_RE.search(text)
+    if ip_match:
+        out["ip"] = ip_match.group(0)
+
+    mac_match = MAC_SEP_RE.search(text)
+    if mac_match:
+        out["mac"] = normalize_mac(mac_match.group(0))
+
+    hex_match = HEX12_RE.search(text)
+    if hex_match:
+        candidate = compact_module_identifier(hex_match.group(1))
+        out["module_identifier"] = candidate
+
+    fields = [part.strip() for part in text.split(",")]
     if len(fields) >= 2:
+        classes = [classify_text_field(part) for part in fields]
         out["csv_field_count"] = len(fields)
-        out["csv_classes"] = []
-        for x in fields:
-            cls = "text"
-            if IP_RE.fullmatch(x):
-                cls = "ipv4"
-                out["ip"] = out["ip"] or x
-            elif normalise_mac(x):
-                cls = "mac"
-                out["mac"] = out["mac"] or normalise_mac(x)
-            elif x.isdigit() and 8 <= len(x) <= 10:
-                cls = "serial_like"
-                if out["sn"] is None:
-                    out["sn"] = int(x)
-            out["csv_classes"].append({"length": len(x), "class": cls})
+        out["csv_classes"] = classes
+        for part, cls in zip(fields, classes):
+            if cls["class"] == "ipv4" and not out["ip"]:
+                out["ip"] = part
+            elif cls["class"] == "mac" and not out["mac"]:
+                out["mac"] = normalize_mac(part)
+            elif cls["class"] == "module_identifier_hex12" and not out["module_identifier"]:
+                out["module_identifier"] = compact_module_identifier(part)
+            elif cls["class"] == "serial_like" and out["sn"] is None:
+                out["sn"] = int(part)
     return out
 
 
-def smart_fields(t: str, supplied_sn: int | None) -> dict[str, Any] | None:
-    lo = t.lower()
-    p = lo.find("smart_config")
+def smart_config_fields(text: str, supplied_sn: int | None) -> dict[str, Any] | None:
+    lower = text.lower()
+    pos = lower.find("smart_config")
     prefix = "smart_config"
-    if p < 0:
-        p = lo.find("smartconfig")
+    if pos < 0:
+        pos = lower.find("smartconfig")
         prefix = "smartconfig"
-    if p < 0:
+    if pos < 0:
         return None
-    tail = t[p + len(prefix) :].strip("\x00\r\n #")
-    fs = tail.split("##") if tail else []
-    result = []
-    for i, x in enumerate(fs):
-        mac = normalise_mac(x)
-        if IP_RE.fullmatch(x):
-            cls = "ipv4"
-        elif mac:
-            cls = "mac"
-        elif x.isdigit() and 8 <= len(x) <= 10:
-            cls = "serial_like"
-        else:
-            cls = "text"
-        result.append({"index": i, "length": len(x), "class": cls, "mac_suffix": mac[-5:].replace(":", "") if mac else None, "matches_supplied_sn": bool(supplied_sn and x == str(supplied_sn))})
-    return {"prefix": prefix, "separator": "##", "field_count": len(fs), "fields": result}
+
+    tail = text[pos + len(prefix) :].strip("\x00\r\n #")
+    fields = tail.split("##") if tail else []
+    public_fields: list[dict[str, Any]] = []
+    for index, field in enumerate(fields):
+        classified = classify_text_field(field)
+        public_fields.append(
+            {
+                "index": index,
+                "length": len(field),
+                "class": classified["class"],
+                "suffix": classified.get("suffix"),
+                "matches_supplied_sn": bool(supplied_sn and field == str(supplied_sn)),
+            }
+        )
+    return {
+        "prefix": prefix,
+        "separator": "##",
+        "field_count": len(fields),
+        "fields": public_fields,
+    }
 
 
-def udp_variant(host: str, bindp: int, sendp: int, msgs: tuple[bytes, ...], timeout: float) -> dict[str, Any]:
-    R: dict[str, Any] = {"bind_port": bindp, "send_port": sendp, "messages": [x.decode("ascii") for x in msgs], "bound": False, "replies": [], "error": None}
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+def udp_variant(host: str, bind_port: int, send_port: int, messages: tuple[bytes, ...], timeout: float) -> dict[str, Any]:
+    result: dict[str, Any] = {"bind_port": bind_port, "send_port": send_port, "messages": [message.decode("ascii") for message in messages], "bound": False, "replies": [], "error": None}
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     try:
         try:
-            s.bind(("", bindp)); R["bound"] = True
-        except OSError as e:
-            R["error"] = err("bind", e); return R
-        if bindp == 49999 and sendp == 48899:
+            sock.bind(("", bind_port))
+            result["bound"] = True
+        except OSError as exc:
+            result["error"] = error("bind", exc)
+            return result
+        if bind_port == 49999 and send_port == 48899:
             try:
-                s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton("239.0.0.0") + socket.inet_aton("0.0.0.0"))
+                sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton("239.0.0.0") + socket.inet_aton("0.0.0.0"))
             except OSError:
                 pass
         destinations = (host, str(ip_network(f"{host}/24", strict=False).broadcast_address), "255.255.255.255")
-        for d in destinations:
-            for m in msgs:
-                try: s.sendto(m, (d, sendp))
-                except OSError: pass
-        end = time.monotonic() + timeout; seen: set[tuple[str, int, str]] = set()
-        while (left := end - time.monotonic()) > 0:
-            s.settimeout(left)
-            try: b, (src, sp) = s.recvfrom(8192)
-            except socket.timeout: break
-            except OSError as e: R["error"] = err("recv", e); break
-            if b in msgs: continue
-            key = (src, sp, sha(b))
-            if key in seen: continue
-            seen.add(key); R["replies"].append({"_src": src, "source_port": sp, "_raw": b, "_p": parse_udp(b)})
+        for destination in destinations:
+            for message in messages:
+                try:
+                    sock.sendto(message, (destination, send_port))
+                except OSError:
+                    pass
+        deadline = time.monotonic() + timeout
+        seen: set[tuple[str, int, str]] = set()
+        while (left := deadline - time.monotonic()) > 0:
+            sock.settimeout(left)
+            try:
+                payload, (source, source_port) = sock.recvfrom(8192)
+            except socket.timeout:
+                break
+            except OSError as exc:
+                result["error"] = error("recv", exc)
+                break
+            if payload in messages:
+                continue
+            key = (source, source_port, sha256(payload))
+            if key in seen:
+                continue
+            seen.add(key)
+            result["replies"].append({"_source": source, "source_port": source_port, "_raw": payload, "_parsed": parse_udp(payload)})
     finally:
-        s.close()
-    return R
+        sock.close()
+    return result
 
 
 def udp_all(host: str, timeout: float) -> list[dict[str, Any]]:
-    out = []
-    for bp in UDP_PORTS:
-        for sp in UDP_PORTS:
-            for name, msgs in (("smartlink", (SMART,)), ("legacy", LEGACY)):
-                r = udp_variant(host, bp, sp, msgs, timeout); r["name"] = f"udp_{bp}_to_{sp}_{name}"; out.append(r)
+    out: list[dict[str, Any]] = []
+    for bind_port in UDP_PORTS:
+        for send_port in UDP_PORTS:
+            for name, messages in (("smartlink", (SMARTLINK,)), ("legacy", LEGACY_DISCOVERY)):
+                item = udp_variant(host, bind_port, send_port, messages, timeout)
+                item["name"] = f"udp_{bind_port}_to_{send_port}_{name}"
+                out.append(item)
     return out
 
 
 def dns_name(name: str) -> bytes:
-    return b"".join(bytes((len(x),)) + x.encode() for x in name.rstrip(".").split(".")) + b"\0"
+    return b"".join(bytes((len(label),)) + label.encode() for label in name.rstrip(".").split(".")) + b"\0"
 
 
-def read_dns_name(b: bytes, o: int, seen: set[int] | None = None) -> tuple[str, int]:
-    seen = set() if seen is None else seen; labels: list[str] = []; nxt = None
+def read_dns_name(data: bytes, offset: int, seen: set[int] | None = None) -> tuple[str, int]:
+    seen = set() if seen is None else seen
+    labels: list[str] = []
+    next_offset = None
     while True:
-        n = b[o]
-        if n == 0: return ".".join(labels) + ".", nxt if nxt is not None else o + 1
-        if n & 0xC0 == 0xC0:
-            p = ((n & 0x3F) << 8) | b[o + 1]
-            if p in seen: raise ValueError("dns pointer loop")
-            seen.add(p); nxt = o + 2 if nxt is None else nxt; o = p; continue
-        o += 1; labels.append(b[o:o+n].decode("utf8", "replace")); o += n
+        length = data[offset]
+        if length == 0:
+            return ".".join(labels) + ".", next_offset if next_offset is not None else offset + 1
+        if length & 0xC0 == 0xC0:
+            pointer = ((length & 0x3F) << 8) | data[offset + 1]
+            if pointer in seen:
+                raise ValueError("dns pointer loop")
+            seen.add(pointer)
+            next_offset = offset + 2 if next_offset is None else next_offset
+            offset = pointer
+            continue
+        offset += 1
+        labels.append(data[offset : offset + length].decode("utf8", "replace"))
+        offset += length
 
 
 def mdns(timeout: float) -> dict[str, Any]:
-    q = struct.pack("!HHHHHH", 0, 0, 1, 0, 0, 0) + dns_name(SERVICE) + struct.pack("!HH", 12, 1); packets = []; errors = []
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    query = struct.pack("!HHHHHH", 0, 0, 1, 0, 0, 0) + dns_name(MDNS_SERVICE) + struct.pack("!HH", 12, 1)
+    packets: list[tuple[bytes, str, int]] = []
+    errors: list[dict[str, str]] = []
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         try:
-            s.bind(("", 5353)); s.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(MDNS) + socket.inet_aton("0.0.0.0")); mode = "5353_multicast"
-        except OSError as e:
-            errors.append(err("mdns_bind", e)); s.close(); s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.bind(("", 0)); mode = "ephemeral"
-        s.sendto(q, (MDNS, 5353)); end = time.monotonic() + timeout
-        while (left := end - time.monotonic()) > 0:
-            s.settimeout(left)
-            try: b, (src, sp) = s.recvfrom(9000)
-            except socket.timeout: break
-            packets.append((b, src, sp))
-    finally: s.close()
-    srv: dict[str, tuple[int, str]] = {}; A: dict[str, set[str]] = {}; ptr: set[str] = set(); txt: dict[str, list[str]] = {}
-    for b, _, _ in packets:
+            sock.bind(("", 5353))
+            sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, socket.inet_aton(MDNS_GROUP) + socket.inet_aton("0.0.0.0"))
+            mode = "5353_multicast"
+        except OSError as exc:
+            errors.append(error("mdns_bind", exc))
+            sock.close()
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.bind(("", 0))
+            mode = "ephemeral"
+        sock.sendto(query, (MDNS_GROUP, 5353))
+        deadline = time.monotonic() + timeout
+        while (left := deadline - time.monotonic()) > 0:
+            sock.settimeout(left)
+            try:
+                payload, (source, source_port) = sock.recvfrom(9000)
+            except socket.timeout:
+                break
+            packets.append((payload, source, source_port))
+    finally:
+        sock.close()
+    srv: dict[str, tuple[int, str]] = {}
+    addresses: dict[str, set[str]] = {}
+    ptr: set[str] = set()
+    txt: dict[str, list[str]] = {}
+    for payload, _, _ in packets:
         try:
-            _, _, qd, an, ns, ar = struct.unpack_from("!HHHHHH", b, 0); o = 12
-            for _ in range(qd): _, o = read_dns_name(b, o); o += 4
+            _, _, qd, an, ns, ar = struct.unpack_from("!HHHHHH", payload, 0)
+            offset = 12
+            for _ in range(qd):
+                _, offset = read_dns_name(payload, offset)
+                offset += 4
             for _ in range(an + ns + ar):
-                name, o = read_dns_name(b, o); typ, _, _, ln = struct.unpack_from("!HHIH", b, o); o += 10; rs, re_ = o, o + ln
-                if typ == 12: target, _ = read_dns_name(b, rs); ptr.add(target)
-                elif typ == 33 and ln >= 6: _, _, port = struct.unpack_from("!HHH", b, rs); target, _ = read_dns_name(b, rs + 6); srv[name] = (port, target)
-                elif typ == 1 and ln == 4: A.setdefault(name, set()).add(socket.inet_ntoa(b[rs:re_]))
-                elif typ == 16:
-                    cur, vals = rs, []
-                    while cur < re_: n = b[cur]; cur += 1; vals.append(b[cur:cur+n].decode("utf8", "replace")); cur += n
-                    txt[name] = vals
-                o = re_
-        except Exception: continue
+                name, offset = read_dns_name(payload, offset)
+                record_type, _, _, length = struct.unpack_from("!HHIH", payload, offset)
+                offset += 10
+                start, end = offset, offset + length
+                if record_type == 12:
+                    target, _ = read_dns_name(payload, start)
+                    ptr.add(target)
+                elif record_type == 33 and length >= 6:
+                    _, _, port = struct.unpack_from("!HHH", payload, start)
+                    target, _ = read_dns_name(payload, start + 6)
+                    srv[name] = (port, target)
+                elif record_type == 1 and length == 4:
+                    addresses.setdefault(name, set()).add(socket.inet_ntoa(payload[start:end]))
+                elif record_type == 16:
+                    cursor = start
+                    values: list[str] = []
+                    while cursor < end:
+                        item_len = payload[cursor]
+                        cursor += 1
+                        values.append(payload[cursor : cursor + item_len].decode("utf8", "replace"))
+                        cursor += item_len
+                    txt[name] = values
+                offset = end
+        except Exception:
+            continue
     services = []
-    for ins in sorted(ptr | set(srv)):
-        port, target = srv.get(ins, (None, None)); services.append({"instance": ins, "port": port, "addresses": sorted(A.get(target, set())) if target else [], "txt": txt.get(ins, []), "hub_name": ins.lower().startswith(HUB_PREFIX)})
+    for instance in sorted(ptr | set(srv)):
+        port, target = srv.get(instance, (None, None))
+        services.append({"instance": instance, "port": port, "addresses": sorted(addresses.get(target, set())) if target else [], "txt": txt.get(instance, []), "hub_name": instance.lower().startswith(HUB_PREFIX)})
     return {"mode": mode, "packet_count": len(packets), "services": services[:8], "errors": errors}
 
 
-def websocket(host: str, port: int, timeout: float, listen: float, sn: int | None, ips: list[str]) -> dict[str, Any]:
-    R: dict[str, Any] = {"port": port, "connected": False, "events": [], "errors": []}
+def websocket(host: str, port: int, timeout: float, listen: float, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
+    result: dict[str, Any] = {"port": port, "connected": False, "events": [], "errors": []}
     for origin in (None, "http://localhost", "capacitor://localhost"):
-        key = base64.b64encode(secrets.token_bytes(16)).decode(); h = ["GET /ws HTTP/1.1", f"Host: {host}:{port}", "Upgrade: websocket", "Connection: Upgrade", f"Sec-WebSocket-Key: {key}", "Sec-WebSocket-Version: 13"]
-        if origin: h.append(f"Origin: {origin}")
+        key = base64.b64encode(secrets.token_bytes(16)).decode()
+        headers = ["GET /ws HTTP/1.1", f"Host: {host}:{port}", "Upgrade: websocket", "Connection: Upgrade", f"Sec-WebSocket-Key: {key}", "Sec-WebSocket-Version: 13"]
+        if origin:
+            headers.append(f"Origin: {origin}")
         try:
-            with socket.create_connection((host, port), timeout=timeout) as s:
-                s.settimeout(timeout); s.sendall(("\r\n".join(h) + "\r\n\r\n").encode()); r = b""
-                while b"\r\n\r\n" not in r and len(r) < 16384: r += s.recv(2048)
-                status = r.decode("latin1", "replace").split("\r\n", 1)[0]
-                if " 101 " not in f" {status} ": R["errors"].append({"origin": origin, "status": status}); continue
-                R.update({"connected": True, "origin": origin, "status": status}); end = time.monotonic() + listen
-                def rx(n: int) -> bytes:
-                    z = b""
-                    while len(z) < n:
-                        x = s.recv(n - len(z))
-                        if not x: raise EOFError
-                        z += x
-                    return z
-                while len(R["events"]) < 24 and (left := end - time.monotonic()) > 0:
-                    s.settimeout(min(1.5, left))
-                    try: a = rx(2)
-                    except socket.timeout: continue
-                    except EOFError: break
-                    op, n, masked = a[0] & 15, a[1] & 127, a[1] & 128
-                    if n == 126: n = int.from_bytes(rx(2), "big")
-                    elif n == 127: n = int.from_bytes(rx(8), "big")
-                    if n > 16384: break
-                    mask = rx(4) if masked else b""; p = rx(n)
-                    if masked: p = bytes(x ^ mask[i % 4] for i, x in enumerate(p))
-                    ev: dict[str, Any] = {"opcode": op, "payload": evidence(p, sn, ips)}
-                    if op == 1:
-                        try: obj = json.loads(p.decode("utf8", "replace"))
-                        except Exception: obj = None
-                        if isinstance(obj, dict):
-                            data = obj.get("data") if isinstance(obj.get("data"), dict) else obj; ev["event"] = obj.get("event") or obj.get("type"); ev["signals"] = {k: data[k] for k in ("pvP", "power", "production", "soc", "batteryPower", "gridPower", "state", "deviceState") if k in data and isinstance(data[k], (int, float, str, bool, type(None)))}
-                    R["events"].append(ev)
-                    if op == 8: break
-                return R
-        except Exception as e: R["errors"].append(err("websocket", e))
-    return R
-
-
-def isopen(host: str, port: int, timeout: float) -> bool:
-    try:
-        with socket.create_connection((host, port), timeout=timeout): return True
-    except OSError: return False
-
-
-def http_get(host: str, port: int, tls: bool, path: str, timeout: float, auth: bool) -> dict[str, Any]:
-    headers = {"Connection": "close", "User-Agent": "TSUN-Local-PLAY2-Probe"}
-    if auth: headers["Authorization"] = f"Basic {HTTP_AUTH}"
-    if tls:
-        ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE; c: http.client.HTTPConnection = http.client.HTTPSConnection(host, port, timeout=timeout, context=ctx)
-    else: c = http.client.HTTPConnection(host, port, timeout=timeout)
-    try:
-        c.request("GET", path, headers=headers); r = c.getresponse(); body = r.read(524289)
-        return {"status": r.status, "server": r.getheader("Server"), "content_type": r.getheader("Content-Type"), "www_authenticate": r.getheader("WWW-Authenticate"), "body": body}
-    finally: c.close()
-
-
-def http_id(host: str, timeout: float, sn: int | None, ips: list[str]) -> dict[str, Any]:
-    result: dict[str, Any] = {"transports": []}
-    for port, tls in ((80, False), (443, True)):
-        tr: dict[str, Any] = {"scheme": "https" if tls else "http", "open": isopen(host, port, min(timeout, 1.2)), "pages": []}
-        if tr["open"]:
-            for path in HTTP_PATHS:
-                page: dict[str, Any] = {"path": path}
-                try:
-                    a = http_get(host, port, tls, path, timeout, False); page.update({"status": a["status"], "server": a["server"], "content_type": a["content_type"], "www_authenticate": a["www_authenticate"], "body": evidence(a["body"], sn, ips) if len(a["body"]) <= 524288 else None})
-                    if a["status"] == 401:
+            with socket.create_connection((host, port), timeout=timeout) as sock:
+                sock.settimeout(timeout)
+                sock.sendall(("\r\n".join(headers) + "\r\n\r\n").encode())
+                response = b""
+                while b"\r\n\r\n" not in response and len(response) < 16384:
+                    response += sock.recv(2048)
+                status = response.decode("latin1", "replace").split("\r\n", 1)[0]
+                if " 101 " not in f" {status} ":
+                    result["errors"].append({"origin": origin, "status": status})
+                    continue
+                result.update({"connected": True, "origin": origin, "status": status})
+                deadline = time.monotonic() + listen
+                def recv_exact(count: int) -> bytes:
+                    data = b""
+                    while len(data) < count:
+                        chunk = sock.recv(count - len(data))
+                        if not chunk:
+                            raise EOFError
+                        data += chunk
+                    return data
+                while len(result["events"]) < 24 and (left := deadline - time.monotonic()) > 0:
+                    sock.settimeout(min(1.5, left))
+                    try:
+                        header = recv_exact(2)
+                    except socket.timeout:
+                        continue
+                    except EOFError:
+                        break
+                    opcode = header[0] & 15
+                    length = header[1] & 127
+                    masked = bool(header[1] & 128)
+                    if length == 126:
+                        length = int.from_bytes(recv_exact(2), "big")
+                    elif length == 127:
+                        length = int.from_bytes(recv_exact(8), "big")
+                    if length > 16384:
+                        break
+                    mask = recv_exact(4) if masked else b""
+                    payload = recv_exact(length)
+                    if masked:
+                        payload = bytes(value ^ mask[i % 4] for i, value in enumerate(payload))
+                    event: dict[str, Any] = {"opcode": opcode, "payload": evidence(payload, supplied_sn, ips)}
+                    if opcode == 1:
                         try:
-                            b = http_get(host, port, tls, path, timeout, True); page["basic_admin_admin"] = {"attempted_read_only": True, "status": b["status"], "server": b["server"], "content_type": b["content_type"], "body": evidence(b["body"], sn, ips) if len(b["body"]) <= 524288 else None}
-                        except Exception as e: page["basic_admin_admin"] = {"attempted_read_only": True, "error": err("http_basic", e)}
-                except Exception as e: page["error"] = err("http", e)
-                tr["pages"].append(page)
-        result["transports"].append(tr)
+                            obj = json.loads(payload.decode("utf8", "replace"))
+                        except Exception:
+                            obj = None
+                        if isinstance(obj, dict):
+                            data = obj.get("data") if isinstance(obj.get("data"), dict) else obj
+                            event["event"] = obj.get("event") or obj.get("type")
+                            event["signals"] = {k: data[k] for k in ("pvP", "power", "production", "soc", "batteryPower", "gridPower", "state", "deviceState") if k in data and isinstance(data[k], (int, float, str, bool, type(None)))}
+                    result["events"].append(event)
+                    if opcode == 8:
+                        break
+                return result
+        except Exception as exc:
+            result["errors"].append(error("websocket", exc))
     return result
 
 
-def mbread(addr: int, count: int = 1, function: int = 3) -> bytes:
-    b = b"\x01" + bytes((function,)) + addr.to_bytes(2, "big") + count.to_bytes(2, "big"); return b + crc16(b).to_bytes(2, "little")
+def port_open(host: str, port: int, timeout: float) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
-def mbtcp(addr: int, count: int = 1, tx: int = 1) -> bytes:
-    p = b"\x01\x03" + addr.to_bytes(2, "big") + count.to_bytes(2, "big"); return struct.pack("!HHH", tx, 0, len(p)) + p
+def http_get(host: str, port: int, tls: bool, path: str, timeout: float, use_basic_auth: bool) -> dict[str, Any]:
+    headers = {"Connection": "close", "User-Agent": "TSUN-Local-PLAY2-Probe", "Cache-Control": "no-cache"}
+    if use_basic_auth:
+        headers["Authorization"] = f"Basic {HTTP_BASIC}"
+    if tls:
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        connection: http.client.HTTPConnection = http.client.HTTPSConnection(host, port, timeout=timeout, context=ctx)
+    else:
+        connection = http.client.HTTPConnection(host, port, timeout=timeout)
+    try:
+        connection.request("GET", path, headers=headers)
+        response = connection.getresponse()
+        body = response.read(524289)
+        return {"status": response.status, "server": response.getheader("Server"), "content_type": response.getheader("Content-Type"), "www_authenticate": response.getheader("WWW-Authenticate"), "body": body}
+    finally:
+        connection.close()
 
 
-def r1511(tag: int, fn: int, start: int, end: int) -> bytes:
-    n = end - start + 1; b = bytes((tag, fn, 0)) + start.to_bytes(2, "big") + b"\x00\x02" + n.to_bytes(2, "big"); return b + crc16(b).to_bytes(2, "big")
+def http_identity(host: str, timeout: float, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
+    result: dict[str, Any] = {"transports": []}
+    for port, tls in ((80, False), (443, True)):
+        transport: dict[str, Any] = {"scheme": "https" if tls else "http", "open": port_open(host, port, min(timeout, 1.2)), "pages": []}
+        if transport["open"]:
+            for path in HTTP_PATHS:
+                page: dict[str, Any] = {"path": path}
+                try:
+                    initial = http_get(host, port, tls, path, timeout, False)
+                    page.update({"status": initial["status"], "server": initial["server"], "content_type": initial["content_type"], "www_authenticate": initial["www_authenticate"], "body": evidence(initial["body"], supplied_sn, ips) if len(initial["body"]) <= 524288 else None})
+                    challenge = initial.get("www_authenticate") or ""
+                    if initial["status"] == 401 and (not challenge or "basic" in challenge.lower()):
+                        try:
+                            authenticated = http_get(host, port, tls, path, timeout, True)
+                            page["basic_admin_admin"] = {"attempted_read_only": True, "status": authenticated["status"], "server": authenticated["server"], "content_type": authenticated["content_type"], "body": evidence(authenticated["body"], supplied_sn, ips) if len(authenticated["body"]) <= 524288 else None}
+                        except Exception as exc:
+                            page["basic_admin_admin"] = {"attempted_read_only": True, "error": error("http_basic", exc)}
+                except Exception as exc:
+                    page["error"] = error("http", exc)
+                transport["pages"].append(page)
+        result["transports"].append(transport)
+    return result
 
 
-def ap(sn: int, payload: bytes, sensor_list: int = 0, seq: int = 0) -> bytes:
-    data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload; x = len(data).to_bytes(2, "little") + b"\x10\x45" + seq.to_bytes(2, "little") + sn.to_bytes(4, "little") + data; return b"\xA5" + x + bytes((sum(x) & 0xFF, 0x15))
+def modbus_rtu_read(address: int, count: int = 1, function: int = 3) -> bytes:
+    body = b"\x01" + bytes((function,)) + address.to_bytes(2, "big") + count.to_bytes(2, "big")
+    return body + crc16_modbus(body).to_bytes(2, "little")
 
 
-def probe_matrix(sn: int | None) -> list[tuple[str, bytes, dict[str, Any]]]:
-    q: list[tuple[str, bytes, dict[str, Any]]] = []
-    for S in ([0, sn] if sn else [0]):
-        who = "sn0" if S == 0 else "snsupplied"; tests = (("native_a1_01_sl0000", r1511(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x0000), ("native_a1_01_sl1511", r1511(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x1511), ("native_a1_01_sl02b0", r1511(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x02B0), ("modbus03_3000_sl02b0", mbread(0x3000, 1, 3), 0x02B0), ("modbus04_3000_sl02b0", mbread(0x3000, 1, 4), 0x02B0), ("modbus03_1100_sl1097", mbread(0x1100, 1, 3), 0x1097), ("modbus04_1100_sl1097", mbread(0x1100, 1, 4), 0x1097), ("modbus03_0000_sl3026", mbread(0x0000, 1, 3), 0x3026))
-        for idx, (name, payload, sl) in enumerate(tests):
-            seq = 0x40 + idx; q.append((f"ap_{name}_{who}", ap(int(S), payload, sl, seq), {"kind": "AP", "sensor_list": f"0x{sl:04X}", "sn_zero": S == 0, "request_seq_low": seq & 0xFF}))
-    q += [("direct_rtu_fc03_3000", mbread(0x3000, 1, 3), {"kind": "RTU-FC03"}), ("direct_rtu_fc04_3000", mbread(0x3000, 1, 4), {"kind": "RTU-FC04"}), ("direct_modbus_tcp_3000", mbtcp(0x3000), {"kind": "Modbus-TCP-FC03"}), ("direct_native_1511", r1511(0xA1, 0x01, 0x0BB8, 0x0BD0), {"kind": "1511-native"})]
-    return q
+def modbus_tcp_read(address: int, count: int = 1, tx: int = 1) -> bytes:
+    pdu = b"\x01\x03" + address.to_bytes(2, "big") + count.to_bytes(2, "big")
+    return struct.pack("!HHH", tx, 0, len(pdu)) + pdu
+
+
+def native_1511_read(tag: int, function: int, start: int, end: int) -> bytes:
+    count = end - start + 1
+    body = bytes((tag, function, 0)) + start.to_bytes(2, "big") + b"\x00\x02" + count.to_bytes(2, "big")
+    return body + crc16_modbus(body).to_bytes(2, "big")
+
+
+def v5_request(logger_sn: int, payload: bytes, sensor_list: int = 0, sequence: int = 0) -> bytes:
+    data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
+    core = len(data).to_bytes(2, "little") + b"\x10\x45" + sequence.to_bytes(2, "little") + logger_sn.to_bytes(4, "little") + data
+    return b"\xA5" + core + bytes((sum(core) & 0xFF, 0x15))
+
+
+def core_probe_matrix(sn: int | None) -> list[tuple[str, bytes, dict[str, Any]]]:
+    probes: list[tuple[str, bytes, dict[str, Any]]] = []
+    logger_sns = [0]
+    if sn:
+        logger_sns.append(sn)
+    tests = (
+        ("native1511_sl0000", native_1511_read(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x0000, "native1511"),
+        ("native1511_sl1511", native_1511_read(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x1511, "native1511"),
+        ("native1511_sl02b0", native_1511_read(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x02B0, "native1511"),
+        ("modbus03_3000_sl02b0", modbus_rtu_read(0x3000, 1, 3), 0x02B0, "modbus_rtu"),
+        ("modbus04_3000_sl02b0", modbus_rtu_read(0x3000, 1, 4), 0x02B0, "modbus_rtu"),
+        ("modbus03_1100_sl1097", modbus_rtu_read(0x1100, 1, 3), 0x1097, "modbus_rtu"),
+        ("modbus04_1100_sl1097", modbus_rtu_read(0x1100, 1, 4), 0x1097, "modbus_rtu"),
+        ("modbus03_0000_sl3026", modbus_rtu_read(0x0000, 1, 3), 0x3026, "modbus_rtu"),
+    )
+    for logger_sn in logger_sns:
+        who = "sn0" if logger_sn == 0 else "snsupplied"
+        for index, (name, payload, sensor_list, inner_kind) in enumerate(tests):
+            sequence = 0x40 + index
+            probes.append((f"v5_{name}_{who}", v5_request(logger_sn, payload, sensor_list, sequence), {"kind": "solarman_v5_request", "inner_kind": inner_kind, "sensor_list": f"0x{sensor_list:04X}", "sn_zero": logger_sn == 0, "request_sequence_low": sequence & 0xFF}))
+    probes.extend([
+        ("crosscheck_direct_rtu_fc03_3000", modbus_rtu_read(0x3000, 1, 3), {"kind": "legacy_crosscheck", "inner_kind": "modbus_rtu"}),
+        ("crosscheck_direct_rtu_fc04_3000", modbus_rtu_read(0x3000, 1, 4), {"kind": "legacy_crosscheck", "inner_kind": "modbus_rtu"}),
+        ("crosscheck_direct_modbus_tcp_3000", modbus_tcp_read(0x3000), {"kind": "legacy_crosscheck", "inner_kind": "modbus_tcp"}),
+        ("crosscheck_direct_native_1511", native_1511_read(0xA1, 0x01, 0x0BB8, 0x0BD0), {"kind": "legacy_crosscheck", "inner_kind": "native1511"}),
+    ])
+    return probes
+
+
+def session_probe_matrix(sn: int | None) -> list[tuple[str, bytes, dict[str, Any]]]:
+    if not sn:
+        return []
+    tests = (
+        ("session_native1511_sl1511", native_1511_read(0xA1, 0x01, 0x0BB8, 0x0BD0), 0x1511, "native1511"),
+        ("session_modbus03_3000_sl02b0", modbus_rtu_read(0x3000, 1, 3), 0x02B0, "modbus_rtu"),
+        ("session_modbus03_1100_sl1097", modbus_rtu_read(0x1100, 1, 3), 0x1097, "modbus_rtu"),
+        ("session_modbus03_0000_sl3026", modbus_rtu_read(0x0000, 1, 3), 0x3026, "modbus_rtu"),
+    )
+    out = []
+    for index, (name, payload, sensor_list, inner_kind) in enumerate(tests):
+        sequence = 0x70 + index
+        out.append((name, v5_request(sn, payload, sensor_list, sequence), {"kind": "solarman_v5_same_connection", "inner_kind": inner_kind, "sensor_list": f"0x{sensor_list:04X}", "request_sequence_low": sequence}))
+    return out
 
 
 def control_name(control: int) -> str:
     return {0x4110: "HANDSHAKE", 0x4210: "DATA", 0x4310: "INFO", 0x4510: "REQUEST", 0x1510: "RESPONSE", 0x4710: "HEARTBEAT", 0x4810: "REPORT"}.get(control, "UNKNOWN")
 
 
-def decode_v5(frame: bytes, supplied_sn: int | None, request_meta: dict[str, Any] | None = None) -> dict[str, Any]:
+def split_v5_frames(data: bytes) -> tuple[list[bytes], bytes]:
+    frames: list[bytes] = []
+    offset = 0
+    while offset < len(data):
+        start = data.find(b"\xA5", offset)
+        if start < 0 or start + 3 > len(data):
+            break
+        declared = int.from_bytes(data[start + 1 : start + 3], "little")
+        total = 13 + declared
+        if start + total > len(data):
+            break
+        candidate = data[start : start + total]
+        if candidate[-1] != 0x15:
+            offset = start + 1
+            continue
+        frames.append(candidate)
+        offset = start + total
+    remainder = data[offset:] if offset < len(data) else b""
+    return frames, remainder
+
+
+def decode_embedded(payload: bytes, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
+    result: dict[str, Any] = {"length": len(payload), "evidence": evidence(payload, supplied_sn, ips)}
+    if not payload:
+        result["class"] = "empty"
+        return result
+    if len(payload) == 2:
+        result.update({"class": "short_response_marker", "marker_hex": payload.hex(), "marker_le": int.from_bytes(payload, "little"), "note": "Valid V5 response payload, but too short to be normal Modbus RTU data."})
+        return result
+    if len(payload) >= 5:
+        rtu_valid = crc16_modbus(payload[:-2]) == int.from_bytes(payload[-2:], "little")
+        native_be_valid = crc16_modbus(payload[:-2]) == int.from_bytes(payload[-2:], "big")
+        result["rtu_crc_candidate_valid"] = rtu_valid
+        result["native_crc_be_candidate_valid"] = native_be_valid
+        if rtu_valid:
+            function = payload[1]
+            result.update({"class": "modbus_rtu", "unit": payload[0], "function": function})
+            if function & 0x80 and len(payload) >= 5:
+                result["exception_code"] = payload[2]
+            elif function in (3, 4) and len(payload) >= 5:
+                byte_count = payload[2]
+                data = payload[3:-2]
+                result["byte_count"] = byte_count
+                result["byte_count_valid"] = byte_count == len(data)
+                if byte_count == len(data) and byte_count % 2 == 0:
+                    result["registers"] = [int.from_bytes(data[i : i + 2], "big") for i in range(0, len(data), 2)]
+            return result
+        if native_be_valid or payload[0] in (0xA1, 0xA2, 0xA3, 0xA4):
+            result["class"] = "native_tsunnative_candidate"
+            result["tag"] = f"0x{payload[0]:02X}"
+            if len(payload) > 1:
+                result["function"] = payload[1]
+            return result
+    result["class"] = "unknown_protocol_payload"
+    return result
+
+
+def decode_v5(frame: bytes, supplied_sn: int | None, ips: list[str], request_meta: dict[str, Any] | None = None) -> dict[str, Any]:
     out: dict[str, Any] = {"looks_like_v5": False, "valid_start": False, "valid_end": False, "length_valid": False, "checksum_valid": False}
-    if len(frame) < 13: out["reason"] = "too_short"; return out
-    out["valid_start"] = frame[0] == 0xA5; out["valid_end"] = frame[-1] == 0x15
-    if not out["valid_start"]: out["reason"] = "missing_A5"; return out
-    declared = int.from_bytes(frame[1:3], "little"); expected_total = 11 + declared + 2; out["declared_payload_length"] = declared; out["actual_total_length"] = len(frame); out["expected_total_length"] = expected_total; out["length_valid"] = len(frame) == expected_total
-    control = int.from_bytes(frame[3:5], "little"); seq = int.from_bytes(frame[5:7], "little"); logger_sn = int.from_bytes(frame[7:11], "little")
-    out.update({"looks_like_v5": True, "control": f"0x{control:04X}", "control_name": control_name(control), "sequence": seq, "sequence_low": seq & 0xFF, "response_counter_high": (seq >> 8) & 0xFF, "logger_sn_present": logger_sn != 0, "logger_sn_matches_supplied": bool(supplied_sn and logger_sn == supplied_sn)})
-    if request_meta and isinstance(request_meta.get("request_seq_low"), int): out["request_sequence_low"] = request_meta["request_seq_low"]; out["sequence_low_echo_matches"] = (seq & 0xFF) == request_meta["request_seq_low"]
-    out["checksum_valid"] = (sum(frame[1:-2]) & 0xFF) == frame[-2]; out["checksum_byte"] = frame[-2]
-    if not out["length_valid"] or declared < 1 or len(frame) < 11 + declared + 2: return out
-    p = frame[11:11+declared]; out["payload_length"] = len(p)
-    if control == 0x1510 and len(p) >= 14:
-        frame_type = p[0]; status = p[1]; total_working = int.from_bytes(p[2:6], "little"); power_on = int.from_bytes(p[6:10], "little"); offset = int.from_bytes(p[10:14], "little"); acq = total_working + offset; embedded = p[14:]
-        out["response"] = {"frame_type": frame_type, "frame_type_name": {0: "cloud_or_keepalive", 1: "logger", 2: "inverter"}.get(frame_type, "unknown"), "status": status, "total_working_time_s": total_working, "power_on_time_s": power_on, "device_total_operation_time_s": total_working - power_on, "offset_time_s": offset, "acquisition_timestamp_unix": acq, "acquisition_timestamp_utc": datetime.fromtimestamp(acq, timezone.utc).isoformat() if 946684800 <= acq <= 4102444800 else None, "embedded_length": len(embedded), "embedded_hex": embedded.hex()}
-        if len(embedded) == 2:
-            out["response"].update({"embedded_class": "short_response_marker", "short_marker_le": int.from_bytes(embedded, "little"), "short_marker_bytes": list(embedded), "note": "Too short for a valid Modbus RTU response; preserve as protocol marker/error evidence."})
-        elif len(embedded) >= 5:
-            out["response"]["embedded_class"] = "candidate_protocol_payload"; out["response"]["rtu_crc_candidate_valid"] = crc16(embedded[:-2]) == int.from_bytes(embedded[-2:], "little")
+    if len(frame) < 13:
+        out["reason"] = "too_short"
+        return out
+    out["valid_start"] = frame[0] == 0xA5
+    out["valid_end"] = frame[-1] == 0x15
+    if not out["valid_start"]:
+        out["reason"] = "missing_A5"
+        return out
+    declared = int.from_bytes(frame[1:3], "little")
+    expected_total = 13 + declared
+    out.update({"looks_like_v5": True, "declared_payload_length": declared, "actual_total_length": len(frame), "expected_total_length": expected_total, "length_valid": len(frame) == expected_total})
+    control = int.from_bytes(frame[3:5], "little")
+    sequence = int.from_bytes(frame[5:7], "little")
+    logger_sn = int.from_bytes(frame[7:11], "little")
+    out.update({"control": f"0x{control:04X}", "control_name": control_name(control), "sequence": sequence, "sequence_low": sequence & 0xFF, "response_counter_high": (sequence >> 8) & 0xFF, "logger_sn_present": logger_sn != 0, "logger_sn_matches_supplied": bool(supplied_sn and logger_sn == supplied_sn), "checksum_valid": (sum(frame[1:-2]) & 0xFF) == frame[-2], "checksum_byte": frame[-2]})
+    if request_meta and isinstance(request_meta.get("request_sequence_low"), int):
+        out["request_sequence_low"] = request_meta["request_sequence_low"]
+        out["sequence_low_echo_matches"] = (sequence & 0xFF) == request_meta["request_sequence_low"]
+    if not out["length_valid"] or declared < 1:
+        return out
+    payload = frame[11 : 11 + declared]
+    out["payload_length"] = len(payload)
+    if control == 0x1510 and len(payload) >= 14:
+        frame_type = payload[0]
+        status = payload[1]
+        total_working = int.from_bytes(payload[2:6], "little")
+        power_on = int.from_bytes(payload[6:10], "little")
+        offset_time = int.from_bytes(payload[10:14], "little")
+        acquisition = total_working + offset_time
+        embedded = payload[14:]
+        out["response"] = {"frame_type": frame_type, "frame_type_name": {0: "cloud_or_keepalive", 1: "logger", 2: "inverter"}.get(frame_type, "unknown"), "status": status, "total_working_time_s": total_working, "power_on_time_s": power_on, "device_total_operation_time_s": total_working - power_on, "offset_time_s": offset_time, "acquisition_timestamp_unix": acquisition, "acquisition_timestamp_utc": datetime.fromtimestamp(acquisition, timezone.utc).isoformat() if 946684800 <= acquisition <= 4102444800 else None, "embedded": decode_embedded(embedded, supplied_sn, ips)}
     return out
 
 
-def tcp_one(host: str, port: int, name: str, req: bytes, meta: dict[str, Any], timeout: float, sn: int | None, ips: list[str]) -> dict[str, Any]:
-    R: dict[str, Any] = {"name": name, "meta": meta, "connected": False, "sent": False, "response_length": 0}; start = time.monotonic()
+def recv_until_gap(sock: socket.socket, timeout: float, gap: float = 0.35) -> bytes:
+    data = b""
+    sock.settimeout(timeout)
     try:
-        with socket.create_connection((host, port), timeout=timeout) as s:
-            R["connected"] = True; s.settimeout(timeout); s.sendall(req); R["sent"] = True; z = b""
-            try:
-                while len(z) < 65536:
-                    x = s.recv(min(4096, 65536-len(z)))
-                    if not x: break
-                    z += x
-                    if z: s.settimeout(0.35)
-            except socket.timeout: pass
-            R["response_length"] = len(z); R["outcome"] = "bytes" if z else "no_bytes"
-            if z: R["response"] = evidence(z, sn, ips); R["v5"] = decode_v5(z, sn, meta)
-    except Exception as e: R["outcome"] = "error"; R["error"] = err("tcp", e)
-    R["elapsed_ms"] = round((time.monotonic()-start)*1000, 1); return R
+        while len(data) < 65536:
+            chunk = sock.recv(min(4096, 65536 - len(data)))
+            if not chunk:
+                break
+            data += chunk
+            sock.settimeout(gap)
+    except socket.timeout:
+        pass
+    return data
 
 
-def tcp_port(host: str, port: int, timeout: float, sn: int | None, ips: list[str], full: bool) -> dict[str, Any]:
-    R: dict[str, Any] = {"port": port, "open": isopen(host, port, min(timeout, 1.2)), "passive": None, "probes": []}
-    if not R["open"]: return R
+def decode_received(data: bytes, supplied_sn: int | None, ips: list[str], request_meta: dict[str, Any] | None) -> dict[str, Any]:
+    frames, remainder = split_v5_frames(data)
+    result: dict[str, Any] = {"response": evidence(data, supplied_sn, ips), "v5_frame_count": len(frames), "v5_frames": [decode_v5(frame, supplied_sn, ips, request_meta) for frame in frames]}
+    if remainder:
+        result["unparsed_remainder"] = evidence(remainder, supplied_sn, ips)
+    return result
+
+
+def tcp_exchange(host: str, port: int, name: str, request: bytes, meta: dict[str, Any], timeout: float, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
+    result: dict[str, Any] = {"name": name, "meta": meta, "connected": False, "sent": False, "response_length": 0}
+    start = time.monotonic()
     try:
-        with socket.create_connection((host, port), timeout=timeout) as s:
-            s.settimeout(min(timeout, 1.0))
-            try: b = s.recv(1024)
-            except socket.timeout: b = b""
-            R["passive"] = {"received": bool(b), "payload": evidence(b, sn, ips) if b else None, "v5": decode_v5(b, sn) if b else None}
-    except Exception as e: R["passive"] = {"error": err("passive", e)}
-    probes = probe_matrix(sn)
-    if not full: probes = probes[:4]
-    for name, req, meta in probes: R["probes"].append(tcp_one(host, port, name, req, meta, timeout, sn, ips)); time.sleep(0.08)
-    return R
+        with socket.create_connection((host, port), timeout=timeout) as sock:
+            result["connected"] = True
+            sock.sendall(request)
+            result["sent"] = True
+            response = recv_until_gap(sock, timeout)
+            result["response_length"] = len(response)
+            result["outcome"] = "bytes" if response else "no_bytes"
+            if response:
+                result.update(decode_received(response, supplied_sn, ips, meta))
+    except Exception as exc:
+        result["outcome"] = "error"
+        result["error"] = error("tcp", exc)
+    result["elapsed_ms"] = round((time.monotonic() - start) * 1000, 1)
+    return result
+
+
+def tcp_same_connection_session(host: str, port: int, timeout: float, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
+    session: dict[str, Any] = {"enabled": bool(supplied_sn), "connected": False, "steps": []}
+    probes = session_probe_matrix(supplied_sn)
+    if not probes:
+        return session
+    try:
+        with socket.create_connection((host, port), timeout=timeout) as sock:
+            session["connected"] = True
+            for name, request, meta in probes:
+                step: dict[str, Any] = {"name": name, "meta": meta, "sent": False}
+                start = time.monotonic()
+                try:
+                    sock.sendall(request)
+                    step["sent"] = True
+                    response = recv_until_gap(sock, timeout)
+                    step["response_length"] = len(response)
+                    step["outcome"] = "bytes" if response else "no_bytes"
+                    if response:
+                        step.update(decode_received(response, supplied_sn, ips, meta))
+                except Exception as exc:
+                    step["outcome"] = "error"
+                    step["error"] = error("tcp_session", exc)
+                step["elapsed_ms"] = round((time.monotonic() - start) * 1000, 1)
+                session["steps"].append(step)
+                time.sleep(0.12)
+    except Exception as exc:
+        session["error"] = error("tcp_session_connect", exc)
+    return session
+
+
+def tcp_port(host: str, port: int, timeout: float, supplied_sn: int | None, ips: list[str], full: bool) -> dict[str, Any]:
+    result: dict[str, Any] = {"port": port, "open": port_open(host, port, min(timeout, 1.2)), "passive": None, "probes": [], "same_connection_session": None}
+    if not result["open"]:
+        return result
+    try:
+        with socket.create_connection((host, port), timeout=timeout) as sock:
+            passive = recv_until_gap(sock, min(timeout, 1.0), gap=0.2)
+            result["passive"] = {"received": bool(passive), **(decode_received(passive, supplied_sn, ips, None) if passive else {})}
+    except Exception as exc:
+        result["passive"] = {"error": error("passive", exc)}
+    probes = core_probe_matrix(supplied_sn)
+    if not full:
+        probes = probes[:4]
+    for name, request, meta in probes:
+        result["probes"].append(tcp_exchange(host, port, name, request, meta, timeout, supplied_sn, ips))
+        time.sleep(0.08)
+    if full and port == 8899:
+        result["same_connection_session"] = tcp_same_connection_session(host, port, timeout, supplied_sn, ips)
+    return result
+
+
+def iter_decoded_frames(document: dict[str, Any]):
+    for transport in document.get("tcp", []):
+        host_alias = transport.get("host_alias")
+        port = transport.get("port")
+        for probe in transport.get("probes", []):
+            for frame in probe.get("v5_frames", []):
+                yield host_alias, port, probe.get("name"), frame
+        session = transport.get("same_connection_session") or {}
+        for step in session.get("steps", []):
+            for frame in step.get("v5_frames", []):
+                yield host_alias, port, step.get("name"), frame
+
+
+def build_analysis(document: dict[str, Any], hosts: Hosts) -> dict[str, Any]:
+    confirmed = [value["alias"] for value in hosts.data.values() if value["confirmed_logger"]]
+    markers: dict[str, int] = {}
+    markers_by_probe: dict[str, dict[str, int]] = {}
+    valid_v5 = 0
+    sequence_matches = 0
+    sequence_mismatches = 0
+    modbus_payloads = 0
+    native_payloads = 0
+    unknown_payloads = 0
+    timestamps: list[str] = []
+    for _, _, probe_name, frame in iter_decoded_frames(document):
+        if frame.get("control") == "0x1510" and frame.get("checksum_valid") and frame.get("length_valid"):
+            valid_v5 += 1
+        if frame.get("sequence_low_echo_matches") is True:
+            sequence_matches += 1
+        elif frame.get("sequence_low_echo_matches") is False:
+            sequence_mismatches += 1
+        response = frame.get("response") or {}
+        timestamp = response.get("acquisition_timestamp_utc")
+        if timestamp:
+            timestamps.append(timestamp)
+        embedded = response.get("embedded") or {}
+        cls = embedded.get("class")
+        if cls == "short_response_marker":
+            marker = embedded.get("marker_hex", "")
+            markers[marker] = markers.get(marker, 0) + 1
+            per_probe = markers_by_probe.setdefault(probe_name or "unknown", {})
+            per_probe[marker] = per_probe.get(marker, 0) + 1
+        elif cls == "modbus_rtu":
+            modbus_payloads += 1
+        elif cls == "native_tsunnative_candidate":
+            native_payloads += 1
+        elif cls == "unknown_protocol_payload":
+            unknown_payloads += 1
+    mac_suffixes: set[str] = set()
+    module_suffixes: set[str] = set()
+    for variant in document.get("udp", []):
+        for reply in variant.get("replies", []):
+            if reply.get("mac_suffix"):
+                mac_suffixes.add(reply["mac_suffix"])
+            if reply.get("module_identifier_suffix"):
+                module_suffixes.add(reply["module_identifier_suffix"])
+    http_auth_ok = []
+    for host in document.get("http", []):
+        ok = any(page.get("basic_admin_admin", {}).get("status") == 200 for transport in host.get("transports", []) for page in transport.get("pages", []))
+        if ok:
+            http_auth_ok.append(host.get("host_alias"))
+    return {"confirmed_logger_aliases": confirmed, "valid_v5_response_count": valid_v5, "sequence_echo": {"matches": sequence_matches, "mismatches": sequence_mismatches}, "short_response_markers": markers, "short_markers_by_probe": markers_by_probe, "protocol_payloads": {"modbus_rtu": modbus_payloads, "native_tsunnative_candidate": native_payloads, "unknown": unknown_payloads}, "identity_observations": {"mac_suffixes": sorted(mac_suffixes), "module_identifier_suffixes": sorted(module_suffixes), "note": "A bare 12-hex smart_config/legacy token is kept as an opaque module identifier, not assumed to be the PLAY2-visible MAC address."}, "http_basic_admin_admin_success_aliases": [x for x in http_auth_ok if x], "v5_timestamp_first": timestamps[0] if timestamps else None, "v5_timestamp_last": timestamps[-1] if timestamps else None, "interpretation": {"transport": "0x4510 requests and 0x1510 responses are treated as Solarman V5 transport.", "short_markers": "Two-byte embedded payloads such as 05 00 / 06 00 are preserved as unknown response markers; they are not labelled as Modbus data or errors without evidence.", "next_success_condition": "At least one valid 0x1510 response containing an embedded payload longer than two bytes that decodes as Modbus RTU, TSUN native, or another repeatable protocol."}}
 
 
 def main() -> int:
-    if sys.version_info < (3, 10): print("Python 3.10+ required", file=sys.stderr); return 2
-    p = argparse.ArgumentParser(description="Sunology PLAY2 read-only super-probe v1.3"); p.add_argument("--host", required=True); p.add_argument("--monitor-sn", "--serial", dest="sn", type=int); p.add_argument("--udp-timeout", type=float, default=3.0); p.add_argument("--mdns-timeout", type=float, default=6.0); p.add_argument("--ws-listen", type=float, default=6.0); p.add_argument("--timeout", type=float, default=2.2); p.add_argument("--http-timeout", type=float, default=2.0); p.add_argument("--output", type=Path); a = p.parse_args()
-    try: IPv4Address(a.host)
-    except ValueError: print("Invalid --host", file=sys.stderr); return 2
-    if a.sn is not None and not (0 < a.sn <= 0xFFFFFFFF): print("Invalid --monitor-sn", file=sys.stderr); return 2
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"); jp = a.output or Path(f"tsun_play2_superprobe_{stamp}.json"); lp = jp.with_suffix(".log"); L = Log(lp); H = Hosts(a.host)
-    D: dict[str, Any] = {"format": "tsun-local-play2-superprobe", "schema_version": SCHEMA, "metadata": {"tool_version": VER, "timestamp_utc": now_iso(), "read_only": True, "writes": 0, "cloud_requests": 0, "apk_evidence": {"smartlink": "UDP 48899/49999", "smart_config": "prefix + ## fields", "mdns": "_solarhome._tcp.local", "websocket": "/ws", "mock_only": "ws://127.0.0.1:20199"}, "v5_reference_model": {"request_control": "0x4510", "response_control": "0x1510", "response_payload_header_bytes": 14, "fields": ["frame_type", "status", "total_working_time", "power_on_time", "offset_time", "embedded_payload"]}}, "udp": [], "mdns": {}, "websocket": [], "http": [], "tcp": [], "candidates": [], "analysis": {}, "errors": []}
-    L.w(f"TSUN Local PLAY2 Super-Probe v{VER} - READ-ONLY"); L.w("UDP identity + MAC parsing + HTTP Basic read-only + V5 decode + mDNS/WS + TCP port matrix")
+    if sys.version_info < (3, 10):
+        print("Python 3.10+ required", file=sys.stderr)
+        return 2
+    parser = argparse.ArgumentParser(description="Sunology PLAY2 read-only super-probe v1.3.1")
+    parser.add_argument("--host", required=True)
+    parser.add_argument("--monitor-sn", "--serial", dest="sn", type=int)
+    parser.add_argument("--udp-timeout", type=float, default=3.0)
+    parser.add_argument("--mdns-timeout", type=float, default=6.0)
+    parser.add_argument("--ws-listen", type=float, default=6.0)
+    parser.add_argument("--timeout", type=float, default=2.2)
+    parser.add_argument("--http-timeout", type=float, default=2.0)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
     try:
-        U = udp_all(a.host, a.udp_timeout)
-        for r in U:
-            for x in r["replies"]:
-                pp = x["_p"]; match = bool(a.sn and pp.get("sn") == a.sn); H.add(x["_src"], f"udp:{r['name']}", match)
-                if pp.get("ip"): H.add(pp["ip"], f"udp-declared:{r['name']}", match)
-        for r in U:
-            pub = {k: v for k, v in r.items() if k != "replies"}; pub["replies"] = []
-            for x in r["replies"]:
-                pp = x["_p"]; mac = pp.get("mac"); pub["replies"].append({"source_alias": H.alias(x["_src"]), "source_port": x["source_port"], "format": pp["format"], "sn_present": pp.get("sn") is not None, "sn_matches": bool(a.sn and pp.get("sn") == a.sn), "declared_ip_alias": H.alias(pp["ip"]) if pp.get("ip") else None, "mac_present": bool(mac), "mac_suffix": mac[-5:].replace(":", "") if mac else None, "csv_field_count": pp.get("csv_field_count"), "csv_classes": pp.get("csv_classes"), "smart_config": smart_fields(pp["text"], a.sn), "payload": evidence(x["_raw"], a.sn, list(H.d))})
-            D["udp"].append(pub); L.w(f"UDP {r['name']}: {len(pub['replies'])} replies")
-    except Exception as e: D["errors"].append(err("udp", e))
+        IPv4Address(args.host)
+    except ValueError:
+        print("Invalid --host", file=sys.stderr)
+        return 2
+    if args.sn is not None and not (0 < args.sn <= 0xFFFFFFFF):
+        print("Invalid --monitor-sn", file=sys.stderr)
+        return 2
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    json_path = args.output or Path(f"tsun_play2_superprobe_{stamp}.json")
+    log_path = json_path.with_suffix(".log")
+    log = Log(log_path)
+    hosts = Hosts(args.host)
+    document: dict[str, Any] = {"format": "tsun-local-play2-superprobe", "schema_version": SCHEMA, "metadata": {"tool_version": VER, "timestamp_utc": now_iso(), "read_only": True, "writes": 0, "cloud_requests": 0, "read_only_probe_policy": {"modbus_read_functions_sent": [3, 4], "modbus_write_functions_sent": [], "configuration_commands_sent": 0, "same_connection_session_is_read_only": True}, "privacy": {"local_ips_redacted": True, "monitor_sn_redacted": True, "full_mac_redacted": True, "full_module_identifier_redacted": True, "identity_suffixes_only": True}, "v5_reference_model": {"request_control": "0x4510", "response_control": "0x1510", "response_payload_header_bytes": 14, "fields": ["frame_type", "status", "total_working_time", "power_on_time", "offset_time", "embedded_payload"]}}, "udp": [], "mdns": {}, "websocket": [], "http": [], "tcp": [], "candidates": [], "analysis": {}, "errors": []}
+    log.write(f"TSUN Local PLAY2 Super-Probe v{VER} - READ-ONLY")
+    log.write("Phase 1/5: UDP identity discovery")
     try:
-        M = mdns(a.mdns_timeout)
-        for s in M["services"]:
-            for ip in s["addresses"]: H.add(ip, "mdns")
-        D["mdns"] = {"mode": M["mode"], "packet_count": M["packet_count"], "errors": M["errors"], "services": [{"instance": "<sunology-hb>" if s["hub_name"] else "<service>", "port": s["port"], "address_aliases": [H.alias(x) for x in s["addresses"]], "hub_name": s["hub_name"], "txt": s["txt"]} for s in M["services"]]}; L.w(f"mDNS services: {len(M['services'])}")
-        for s in M["services"]:
-            if isinstance(s["port"], int):
-                for ip in s["addresses"][:2]:
-                    w = websocket(ip, s["port"], a.timeout, a.ws_listen, a.sn, list(H.d)); w["host_alias"] = H.alias(ip); D["websocket"].append(w); L.w(f"WS {H.alias(ip)}:{s['port']}: connected={w['connected']} events={len(w['events'])}")
-    except Exception as e: D["errors"].append(err("mdns/ws", e))
-    for ip, v in list(H.d.items()):
+        udp_results = udp_all(args.host, args.udp_timeout)
+        for variant in udp_results:
+            for raw_reply in variant["replies"]:
+                parsed = raw_reply["_parsed"]
+                sn_match = bool(args.sn and parsed.get("sn") == args.sn)
+                hosts.add(raw_reply["_source"], f"udp:{variant['name']}", sn_match)
+                if parsed.get("ip"):
+                    hosts.add(parsed["ip"], f"udp-declared:{variant['name']}", sn_match)
+        for variant in udp_results:
+            public = {key: value for key, value in variant.items() if key != "replies"}
+            public["replies"] = []
+            for raw_reply in variant["replies"]:
+                parsed = raw_reply["_parsed"]
+                mac = parsed.get("mac")
+                module_identifier = parsed.get("module_identifier")
+                public["replies"].append({"source_alias": hosts.alias(raw_reply["_source"]), "source_port": raw_reply["source_port"], "format": parsed["format"], "sn_present": parsed.get("sn") is not None, "sn_matches": bool(args.sn and parsed.get("sn") == args.sn), "declared_ip_alias": hosts.alias(parsed.get("ip")) if parsed.get("ip") else None, "mac_present": bool(mac), "mac_suffix": mac_suffix(mac), "module_identifier_present": bool(module_identifier), "module_identifier_suffix": identifier_suffix(module_identifier), "csv_field_count": parsed.get("csv_field_count"), "csv_classes": parsed.get("csv_classes"), "smart_config": smart_config_fields(parsed["text"], args.sn), "payload": evidence(raw_reply["_raw"], args.sn, list(hosts.data))})
+            document["udp"].append(public)
+            log.write(f"  {variant['name']}: {len(public['replies'])} replies")
+    except Exception as exc:
+        document["errors"].append(error("udp", exc))
+    log.write("Phase 2/5: mDNS / CONNECT WebSocket discovery")
+    try:
+        mdns_result = mdns(args.mdns_timeout)
+        for service in mdns_result["services"]:
+            for ip in service["addresses"]:
+                hosts.add(ip, "mdns")
+        document["mdns"] = {"mode": mdns_result["mode"], "packet_count": mdns_result["packet_count"], "errors": mdns_result["errors"], "services": [{"instance": "<sunology-hb>" if service["hub_name"] else "<service>", "port": service["port"], "address_aliases": [hosts.alias(ip) for ip in service["addresses"]], "hub_name": service["hub_name"], "txt": service["txt"]} for service in mdns_result["services"]]}
+        log.write(f"  mDNS services: {len(mdns_result['services'])}")
+        for service in mdns_result["services"]:
+            if isinstance(service["port"], int):
+                for ip in service["addresses"][:2]:
+                    ws = websocket(ip, service["port"], args.timeout, args.ws_listen, args.sn, list(hosts.data))
+                    ws["host_alias"] = hosts.alias(ip)
+                    document["websocket"].append(ws)
+    except Exception as exc:
+        document["errors"].append(error("mdns/ws", exc))
+    log.write("Phase 3/5: read-only HTTP identity checks")
+    for ip, host_info in list(hosts.data.items()):
         try:
-            h = http_id(ip, a.http_timeout, a.sn, list(H.d)); h["host_alias"] = v["alias"]; D["http"].append(h); auth_ok = any(p.get("basic_admin_admin", {}).get("status") == 200 for tr in h["transports"] for p in tr["pages"]); L.w(f"HTTP {v['alias']}: basic-admin-read={'yes' if auth_ok else 'no'}")
-        except Exception as e: D["errors"].append(err("http", e))
-    for ip, v in list(H.d.items()):
+            http_result = http_identity(ip, args.http_timeout, args.sn, list(hosts.data))
+            http_result["host_alias"] = host_info["alias"]
+            document["http"].append(http_result)
+            auth_ok = any(page.get("basic_admin_admin", {}).get("status") == 200 for transport in http_result["transports"] for page in transport["pages"])
+            log.write(f"  HTTP {host_info['alias']}: basic-admin-read={'yes' if auth_ok else 'no'}")
+        except Exception as exc:
+            document["errors"].append(error("http", exc))
+    log.write("Phase 4/5: TCP / Solarman V5 read probes")
+    for ip, host_info in list(hosts.data.items()):
         for port in TCP_PORTS:
             try:
-                full = port == 8899 and bool(v["strong"]); r = tcp_port(ip, port, a.timeout, a.sn, list(H.d), full); r["host_alias"] = v["alias"]; D["tcp"].append(r); good = [q for q in r["probes"] if q.get("v5", {}).get("control") == "0x1510" and q.get("v5", {}).get("checksum_valid") and q.get("v5", {}).get("logger_sn_matches_supplied")]
-                if good: H.confirm(ip, f"valid_v5_response:{port}")
-                L.w(f"TCP {v['alias']}:{port}: open={r['open']} v5-valid={len(good)}")
-            except Exception as e: D["errors"].append(err(f"tcp:{port}", e))
-    D["candidates"] = H.public(); confirmed = [v["alias"] for v in H.d.values() if v["confirmed_logger"]]; markers: dict[str, int] = {}; v5_valid = 0; timestamp_samples = []
-    for t in D["tcp"]:
-        for q in t.get("probes", []):
-            v5 = q.get("v5") or {}
-            if v5.get("checksum_valid") and v5.get("control") == "0x1510": v5_valid += 1
-            rsp = v5.get("response") or {}
-            if rsp.get("embedded_class") == "short_response_marker": key = rsp.get("embedded_hex", ""); markers[key] = markers.get(key, 0) + 1
-            if rsp.get("acquisition_timestamp_utc"): timestamp_samples.append(rsp["acquisition_timestamp_utc"])
-    D["analysis"] = {"confirmed_logger_aliases": confirmed, "valid_v5_response_count": v5_valid, "short_response_markers": markers, "v5_timestamp_first": timestamp_samples[0] if timestamp_samples else None, "v5_timestamp_last": timestamp_samples[-1] if timestamp_samples else None, "interpretation": {"short_markers": "Two-byte embedded payloads are valid V5 envelopes but are too short to be normal Modbus RTU data; treat 05 00 / 06 00 as response/error markers until mapped.", "next_success_condition": "A response with embedded_length > 2 and a protocol payload (native or Modbus-like) is the target for telemetry decoding."}}
-    D["summary"] = {"udp_variants": len(D["udp"]), "udp_replies": sum(len(x["replies"]) for x in D["udp"]), "candidates": len(D["candidates"]), "confirmed_loggers": len(confirmed), "mdns_services": len(D.get("mdns", {}).get("services", [])), "ws_connections": sum(1 for x in D["websocket"] if x["connected"]), "valid_v5_responses": v5_valid, "tcp_open": {str(port): sum(1 for x in D["tcp"] if x["port"] == port and x["open"]) for port in TCP_PORTS}}
-    D["metadata"]["timestamp_utc"] = now_iso(); jp.write_text(json.dumps(D, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"); L.w(f"Confirmed logger(s): {confirmed or 'none'}"); L.w(f"Valid V5 responses: {v5_valid}; short markers: {markers}"); L.w(f"JSON: {jp}"); L.w(f"LOG : {lp}"); L.close(); return 0
+                full = port == 8899 and (bool(host_info["strong"]) or host_info["alias"] == "host0")
+                result = tcp_port(ip, port, args.timeout, args.sn, list(hosts.data), full)
+                result["host_alias"] = host_info["alias"]
+                document["tcp"].append(result)
+                good = []
+                for _, _, _, frame in iter_decoded_frames({"tcp": [result]}):
+                    if frame.get("control") == "0x1510" and frame.get("checksum_valid") and frame.get("length_valid") and frame.get("logger_sn_matches_supplied"):
+                        good.append(frame)
+                if good:
+                    hosts.confirm(ip, f"valid_v5_response:{port}")
+                log.write(f"  TCP {host_info['alias']}:{port}: open={result['open']} valid-v5={len(good)} full={'yes' if full else 'no'}")
+            except Exception as exc:
+                document["errors"].append(error(f"tcp:{port}", exc))
+    log.write("Phase 5/5: correlation and protocol classification")
+    document["candidates"] = hosts.public()
+    document["analysis"] = build_analysis(document, hosts)
+    document["summary"] = {"udp_variants": len(document["udp"]), "udp_replies": sum(len(item["replies"]) for item in document["udp"]), "candidates": len(document["candidates"]), "confirmed_loggers": len(document["analysis"]["confirmed_logger_aliases"]), "valid_v5_responses": document["analysis"]["valid_v5_response_count"], "modbus_payloads": document["analysis"]["protocol_payloads"]["modbus_rtu"], "native_payloads": document["analysis"]["protocol_payloads"]["native_tsunnative_candidate"], "mdns_services": len(document.get("mdns", {}).get("services", [])), "ws_connections": sum(1 for item in document["websocket"] if item["connected"]), "tcp_open": {str(port): sum(1 for item in document["tcp"] if item["port"] == port and item["open"]) for port in TCP_PORTS}}
+    document["metadata"]["timestamp_utc"] = now_iso()
+    json_path.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    log.write(f"Confirmed logger(s): {document['analysis']['confirmed_logger_aliases'] or 'none'}")
+    log.write(f"Valid V5 responses: {document['analysis']['valid_v5_response_count']}")
+    log.write(f"Markers: {document['analysis']['short_response_markers']}")
+    log.write(f"Protocol payloads: {document['analysis']['protocol_payloads']}")
+    log.write(f"JSON: {json_path}")
+    log.write(f"LOG : {log_path}")
+    log.close()
+    return 0
 
 
 if __name__ == "__main__":
