@@ -2,6 +2,8 @@ name: Generic dump maintenance
 
 on:
   push:
+    branches:
+      - generic-dump-maintenance-run
     paths:
       - ".github/workflows/generic-dump-maintenance.yml"
 
@@ -17,137 +19,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply generic discovery and diagnostics update
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
+      - name: Apply generic dump update
+        run: python tools/_generic_dump_patch.py
 
-          path = Path("tools/tsun_dump.py")
-          text = path.read_text(encoding="utf-8")
-
-          def replace_once(old: str, new: str) -> None:
-              global text
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"expected one match, got {count}: {old[:80]!r}")
-              text = text.replace(old, new, 1)
-
-          replace_once(
-              """logger generations do not all answer the same discovery service reliably:\nUDP 48899, bounded TCP 8899 scanning, local HTTP identity pages and an AP\nidentity probe with logger SN=0. No inverter configuration write operation is\nimplemented anywhere in this file.\n""",
-              """logger generations do not all answer the same discovery service reliably:\nlegacy UDP probes, SmartLink UDP discovery, bounded TCP 8899 scanning, local\nHTTP identity pages and an AP identity probe with logger SN=0. No inverter\nconfiguration write operation is implemented anywhere in this file.\n""",
-          )
-
-          replace_once(
-              "DEFAULT_DISCOVERY_PORT = 48899\n",
-              "DEFAULT_DISCOVERY_PORT = 48899\n"
-              "SMARTLINK_DISCOVERY_PORT = 48899\n"
-              "SMARTLINK_REPLY_PORT = 49999\n"
-              "SMARTLINK_DISCOVERY_MESSAGE = b\"smartlinkfind\"\n",
-          )
-
-          replace_once(
-              """class TsunProtocolError(Exception):\n    \"\"\"Raised when a TSUN protocol frame is invalid.\"\"\"\n\n\n@dataclass(slots=True)\n""",
-              """class TsunProtocolError(Exception):\n    \"\"\"Raised when a TSUN protocol frame is invalid.\"\"\"\n\n\nclass ProtocolDetectionError(RuntimeError):\n    \"\"\"Raised when none of the supported read-only protocol probes succeeds.\"\"\"\n\n    def __init__(self, message: str, attempts: list[dict[str, Any]]) -> None:\n        super().__init__(message)\n        self.attempts = attempts\n\n\n@dataclass(slots=True)\n""",
-          )
-
-          replace_once(
-              """    elif isinstance(error, ConnectionRefusedError):\n        result[\"detail\"] = \"connection refused by device\"\n    return result\n""",
-              """    elif isinstance(error, ConnectionRefusedError):\n        result[\"detail\"] = \"connection refused by device\"\n    elif isinstance(error, ConnectionAbortedError):\n        result[\"detail\"] = \"connection aborted by device\"\n    elif isinstance(error, BrokenPipeError):\n        result[\"detail\"] = \"connection closed while sending request\"\n    elif isinstance(error, OSError):\n        result[\"detail\"] = \"network or socket error\"\n    return result\n""",
-          )
-
-          replace_once(
-              """    return found\n\n\ndef _host_sort_key(host: str) -> tuple[int, int, int, int]:\n""",
-              """    return found\n\n\ndef _smartlink_serial_candidates(payload: bytes) -> set[int]:\n    \"\"\"Extract Monitor SN candidates from a recognized SmartLink reply.\"\"\"\n    text = payload.decode(\"utf-8\", errors=\"replace\").strip(\"\\x00\\r\\n \" )\n    found: set[int] = set()\n    try:\n        parsed = json.loads(text)\n    except (TypeError, ValueError):\n        parsed = None\n\n    if isinstance(parsed, dict) and \"mid\" in parsed:\n        try:\n            candidate = int(str(parsed[\"mid\"]).strip())\n        except (TypeError, ValueError):\n            candidate = 0\n        if _valid_monitor_sn(candidate):\n            found.add(candidate)\n        return found\n\n    if text.lower().startswith(\"smart_config\"):\n        for token in text.split(\"##\"):\n            token = token.strip(\"\\x00\\r\\n \")\n            if not token.isdigit():\n                continue\n            candidate = int(token)\n            if _valid_monitor_sn(candidate) and len(token) >= 8:\n                found.add(candidate)\n    return found\n\n\ndef discover_smartlink_targets(\n    targets: Iterable[str],\n    *,\n    timeout: float = DEFAULT_DISCOVERY_TIMEOUT,\n) -> list[DiscoveryDevice]:\n    \"\"\"Collect logger identities using the read-only SmartLink UDP query.\"\"\"\n    devices: dict[str, DiscoveryDevice] = {}\n    destinations = tuple(dict.fromkeys(targets))\n    if not destinations or timeout <= 0:\n        return []\n\n    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\n    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)\n    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)\n    try:\n        # SmartLink replies are directed to UDP 49999 rather than the query port.\n        sock.bind((\"\", SMARTLINK_REPLY_PORT))\n        for attempt in range(2):\n            for target in destinations:\n                try:\n                    sock.sendto(\n                        SMARTLINK_DISCOVERY_MESSAGE,\n                        (target, SMARTLINK_DISCOVERY_PORT),\n                    )\n                except OSError:\n                    continue\n            if attempt == 0:\n                time.sleep(0.12)\n\n        deadline = time.monotonic() + timeout\n        while (remaining := deadline - time.monotonic()) > 0:\n            sock.settimeout(remaining)\n            try:\n                payload, (source, _source_port) = sock.recvfrom(4096)\n            except socket.timeout:\n                break\n            serials = _smartlink_serial_candidates(payload)\n            if not serials:\n                continue\n            device = devices.setdefault(source, DiscoveryDevice(host=source))\n            device.replies += 1\n            device.sources.add(\"smartlink_udp\")\n            device.serial_candidates.update(serials)\n    except OSError:\n        return []\n    finally:\n        sock.close()\n    return sorted(devices.values(), key=lambda item: _host_sort_key(item.host))\n\n\ndef _host_sort_key(host: str) -> tuple[int, int, int, int]:\n""",
-          )
-
-          replace_once(
-              """def discover_devices(\n    *, port: int = DEFAULT_DISCOVERY_PORT, timeout: float = DEFAULT_DISCOVERY_TIMEOUT\n) -> list[DiscoveryDevice]:\n    \"\"\"Backward-compatible global-broadcast UDP discovery helper.\"\"\"\n    return discover_udp_targets((\"255.255.255.255\",), port=port, timeout=timeout)\n""",
-              """def discover_devices(\n    *, port: int = DEFAULT_DISCOVERY_PORT, timeout: float = DEFAULT_DISCOVERY_TIMEOUT\n) -> list[DiscoveryDevice]:\n    \"\"\"Backward-compatible global-broadcast UDP discovery helper.\"\"\"\n    devices: dict[str, DiscoveryDevice] = {}\n    target = (\"255.255.255.255\",)\n    for incoming in (\n        *discover_udp_targets(target, port=port, timeout=timeout),\n        *discover_smartlink_targets(target, timeout=timeout),\n    ):\n        current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))\n        _merge_device(current, incoming)\n    return sorted(devices.values(), key=lambda item: _host_sort_key(item.host))\n""",
-          )
-
-          replace_once(
-              """    initial_udp = discover_udp_targets(udp_targets, timeout=args.discovery_timeout)\n\n    devices: dict[str, DiscoveryDevice] = {}\n    for incoming in initial_udp:\n        current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))\n        _merge_device(current, incoming)\n        networks.add(_network_around_host(incoming.host))\n""",
-              """    initial_udp = discover_udp_targets(udp_targets, timeout=args.discovery_timeout)\n    smartlink_udp = discover_smartlink_targets(\n        udp_targets, timeout=args.discovery_timeout\n    )\n\n    devices: dict[str, DiscoveryDevice] = {}\n    for incoming in (*initial_udp, *smartlink_udp):\n        current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))\n        _merge_device(current, incoming)\n        networks.add(_network_around_host(incoming.host))\n""",
-          )
-
-          replace_once(
-              """            \"udp_devices\": len(initial_udp),\n            \"tcp_candidates\": len(tcp_hosts),\n""",
-              """            \"udp_devices\": len(initial_udp),\n            \"smartlink_devices\": len(smartlink_udp),\n            \"tcp_candidates\": len(tcp_hosts),\n""",
-          )
-
-          replace_once(
-              """    for incoming in discover_udp_targets(\n        (host,), timeout=min(args.discovery_timeout, 2.5)\n    ):\n        if incoming.host == host:\n            _merge_device(device, incoming)\n\n    web = probe_logger_web(host, args.http_page_timeout, allow_authenticated=True)\n""",
-              """    for incoming in discover_udp_targets(\n        (host,), timeout=min(args.discovery_timeout, 2.5)\n    ):\n        if incoming.host == host:\n            _merge_device(device, incoming)\n\n    smartlink_targets = [host]\n    try:\n        smartlink_targets.append(str(_network_around_host(host).broadcast_address))\n    except ValueError:\n        pass\n    for incoming in discover_smartlink_targets(\n        smartlink_targets, timeout=min(args.discovery_timeout, 2.5)\n    ):\n        if incoming.host == host:\n            _merge_device(device, incoming)\n\n    web = probe_logger_web(host, args.http_page_timeout, allow_authenticated=True)\n""",
-          )
-
-          replace_once(
-              "print(\"Identifying the supplied logger (UDP + TCP + HTTP + AP identity)...\")",
-              "print(\"Identifying the supplied logger (UDP + SmartLink + TCP + HTTP + AP identity)...\")",
-          )
-
-          replace_once(
-              "print(\"Searching for TSUN loggers (UDP + TCP 8899 + HTTP + AP identity)...\")",
-              "print(\"Searching for TSUN loggers (UDP + SmartLink + TCP 8899 + HTTP + AP identity)...\")",
-          )
-
-          replace_once(
-              """        \"Discovery results: \"\n        f\"UDP={stats['udp_devices']}, TCP8899={stats['tcp_candidates']}, \"\n""",
-              """        \"Discovery results: \"\n        f\"UDP={stats['udp_devices']}, SmartLink={stats['smartlink_devices']}, \"\n        f\"TCP8899={stats['tcp_candidates']}, \"\n""",
-          )
-
-          replace_once(
-              """    raise RuntimeError(\n        \"No supported TSUN local protocol detected after \"\n        f\"{PROTOCOL_PROBE_RETRIES} attempts per protocol\"\n    ) from last_error\n""",
-              """    error = ProtocolDetectionError(\n        \"No supported TSUN local protocol detected after \"\n        f\"{PROTOCOL_PROBE_RETRIES} attempts per protocol\",\n        attempts,\n    )\n    if last_error is not None:\n        raise error from last_error\n    raise error\n""",
-          )
-
-          replace_once(
-              """def register_key(protocol: str, block: tuple, address: int) -> str:\n""",
-              """def _print_protocol_attempts(attempts: list[dict[str, Any]]) -> None:\n    print(\"Protocol probe results:\")\n    for item in attempts:\n        protocol = str(item.get(\"protocol\", \"unknown\"))\n        if item.get(\"result\") == \"success\":\n            print(f\"  {protocol}: success on attempt {item.get('attempt')}\")\n            continue\n        failures = item.get(\"attempts\", [])\n        if not failures:\n            print(f\"  {protocol}: failed\")\n            continue\n        print(f\"  {protocol}:\")\n        for failure in failures:\n            error = failure.get(\"error\", {})\n            error_type = error.get(\"type\", \"error\")\n            detail = error.get(\"detail\")\n            description = f\"{error_type}: {detail}\" if detail else error_type\n            print(f\"    attempt {failure.get('attempt')}: {description}\")\n\n\ndef register_key(protocol: str, block: tuple, address: int) -> str:\n""",
-          )
-
-          replace_once(
-              """def capture(\n    args: argparse.Namespace,\n""",
-              """def _protocol_failure_document(\n    args: argparse.Namespace,\n    discovery: dict[str, Any],\n    attempts: list[dict[str, Any]],\n) -> dict[str, Any]:\n    created_at = datetime.now(timezone.utc)\n    return {\n        \"format\": DUMP_FORMAT,\n        \"schema_version\": SCHEMA_VERSION,\n        \"metadata\": {\n            \"timestamp_utc\": created_at.isoformat(),\n            \"tool\": \"TSUN Local Hardware Validation Dump Tool\",\n            \"tool_version\": TOOL_VERSION,\n            \"tool_sha256\": _script_sha256(),\n            \"tool_source\": SOURCE_URL,\n            \"standalone\": True,\n            \"python_required\": \">=3.10\",\n            \"read_only\": True,\n            \"capture_mode\": \"full\" if args.full else \"standard\",\n            \"capture_status\": \"protocol_detection_failed\",\n            \"detected_protocol\": None,\n            \"model_family\": None,\n            \"model_supplied_by_user\": args.model,\n            \"pv_count\": None,\n            \"port\": args.port,\n            \"privacy\": {\n                \"host_in_output\": False,\n                \"logger_sn_in_output\": False,\n                \"inverter_serial_in_output\": False,\n                \"ap_envelope_in_output\": False,\n                \"udp_discovery_payload_in_output\": False,\n            },\n        },\n        \"discovery\": discovery,\n        \"protocol_detection\": {\n            \"requested\": args.protocol,\n            \"selected\": None,\n            \"confidence\": \"no supported protocol response\",\n            \"attempts\": attempts,\n        },\n        \"decoded_known_measurements\": {},\n        \"capture_summary\": {\n            \"snapshots\": 0,\n            \"snapshot_interval_seconds\": args.interval,\n            \"successful_block_reads\": 0,\n            \"failed_block_reads\": 0,\n            \"unique_raw_registers\": 0,\n        },\n        \"raw_registers\": [],\n        \"snapshots\": [],\n        \"analysis\": analyze_snapshots([]),\n        \"blocks\": [],\n        \"protocol_trace\": [],\n    }\n\n\ndef capture(\n    args: argparse.Namespace,\n""",
-          )
-
-          replace_once(
-              """            \"1511, 02B0 and 1097. Discovery combines UDP, TCP 8899, HTTP and AP identity.\"\n""",
-              """            \"1511, 02B0 and 1097. Discovery combines UDP, SmartLink UDP, \"\n            \"TCP 8899, HTTP and AP identity.\"\n""",
-          )
-
-          replace_once(
-              """    completed: list[Path] = []\n    failed = 0\n""",
-              """    completed: list[Path] = []\n    diagnostic_files: list[Path] = []\n    failed = 0\n""",
-          )
-
-          replace_once(
-              """        except (KeyboardInterrupt, EOFError):\n            print(\"\\nCancelled.\")\n            return 130\n        except Exception as err:\n            failed += 1\n            print(\n                f\"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}\",\n                file=sys.stderr,\n            )\n            continue\n\n        timestamp = datetime.fromisoformat(document[\"metadata\"][\"timestamp_utc\"])\n""",
-              """        except (KeyboardInterrupt, EOFError):\n            print(\"\\nCancelled.\")\n            return 130\n        except ProtocolDetectionError as err:\n            failed += 1\n            _print_protocol_attempts(err.attempts)\n            print(\n                f\"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}\",\n                file=sys.stderr,\n            )\n            document = _protocol_failure_document(args, discovery, err.attempts)\n            timestamp = datetime.fromisoformat(document[\"metadata\"][\"timestamp_utc\"])\n            output = output_path_for_target(\n                args.output,\n                args.model,\n                \"undetected\",\n                timestamp,\n                device_index=discovered_index,\n                total_targets=total,\n            )\n            try:\n                output.parent.mkdir(parents=True, exist_ok=True)\n                output.write_text(\n                    json.dumps(document, indent=2, ensure_ascii=False) + \"\\n\",\n                    encoding=\"utf-8\",\n                )\n            except OSError as write_err:\n                print(\n                    f\"ERROR: could not write diagnostic {output}: {write_err}\",\n                    file=sys.stderr,\n                )\n            else:\n                diagnostic_files.append(output)\n                print(f\"Diagnostic JSON: {output}\")\n            continue\n        except Exception as err:\n            failed += 1\n            print(\n                f\"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}\",\n                file=sys.stderr,\n            )\n            continue\n\n        timestamp = datetime.fromisoformat(document[\"metadata\"][\"timestamp_utc\"])\n""",
-          )
-
-          replace_once(
-              """    if completed:\n        print(\"Generated files:\")\n        for output in completed:\n            print(f\"  {output}\")\n        return 0\n    return 1\n""",
-              """    if completed:\n        print(\"Generated files:\")\n        for output in completed:\n            print(f\"  {output}\")\n    if diagnostic_files:\n        print(\"Diagnostic files:\")\n        for output in diagnostic_files:\n            print(f\"  {output}\")\n    return 0 if completed else 1\n""",
-          )
-
-          path.write_text(text, encoding="utf-8")
-          PY
-
-      - name: Validate updated dump tool
+      - name: Validate dump tool
         shell: bash
         run: |
           python -m py_compile tools/tsun_dump.py
           python tools/tsun_dump.py --help >/dev/null
           python - <<'PY'
           import importlib.util
+          import sys
           from pathlib import Path
 
           path = Path("tools/tsun_dump.py")
           spec = importlib.util.spec_from_file_location("tsun_dump", path)
           module = importlib.util.module_from_spec(spec)
           assert spec.loader is not None
-          import sys
           sys.modules[spec.name] = module
           spec.loader.exec_module(module)
 
@@ -159,20 +47,17 @@ jobs:
           ) == {1234567890}
 
           lower = path.read_text(encoding="utf-8").lower()
-          for forbidden in ("sunology", "play2", "dca31"):
-              assert forbidden not in lower
+          forbidden = ("sunology", "play2", "dca31")
+          assert not any(term in lower for term in forbidden)
           PY
           git diff --check
 
-      - name: Commit update
+      - name: Commit and publish
         shell: bash
         run: |
-          if git diff --quiet -- tools/tsun_dump.py; then
-            echo "No changes required"
-            exit 0
-          fi
+          rm -f tools/_generic_dump_patch.py .github/workflows/generic-dump-maintenance.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/tsun_dump.py
+          git add -A
           git commit -m "Improve generic SmartLink discovery diagnostics"
           git push origin HEAD:main
