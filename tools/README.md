@@ -18,7 +18,15 @@ Run it with Python 3.10+:
 python3 tsun_dump.py --full
 ```
 
-The tool tries local UDP discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON.
+The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON.
+
+For Windows terminals where interactive input is inconvenient, the Monitor SN can be supplied directly:
+
+```powershell
+py tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
+```
+
+`--monitor-sn` and the legacy `--serial` option are equivalent.
 
 For the capture ranges, safety model, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
 
