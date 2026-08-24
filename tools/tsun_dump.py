@@ -20,7 +20,7 @@ import argparse
 import base64
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 import hashlib
 import http.client
 from ipaddress import IPv4Address, IPv4Network, ip_network
@@ -1458,7 +1458,7 @@ def capture(
         snapshots.append(
             {
                 "index": index + 1,
-                "timestamp_utc": datetime.now(UTC).isoformat(),
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                 "registers": registers,
             }
         )
@@ -1479,7 +1479,7 @@ def capture(
     all_blocks = [*supplemental_blocks, *snapshot_blocks]
     successful = sum(block["result"] == "success" for block in all_blocks)
     failed = len(all_blocks) - successful
-    created_at = datetime.now(UTC)
+    created_at = datetime.now(timezone.utc)
     family = {
         "1511": "TITAN",
         "02b0": "GEN3 / GEN3 PLUS",
