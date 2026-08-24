@@ -716,20 +716,22 @@ def split_v5_frames(data: bytes) -> tuple[list[bytes], bytes]:
     offset = 0
     while offset < len(data):
         start = data.find(b"\xA5", offset)
-        if start < 0 or start + 3 > len(data):
-            break
+        if start < 0:
+            return frames, data[offset:]
+        if start > offset:
+            return frames, data[offset:]
+        if start + 3 > len(data):
+            return frames, data[offset:]
         declared = int.from_bytes(data[start + 1 : start + 3], "little")
         total = 13 + declared
         if start + total > len(data):
-            break
+            return frames, data[offset:]
         candidate = data[start : start + total]
         if candidate[-1] != 0x15:
-            offset = start + 1
-            continue
+            return frames, data[offset:]
         frames.append(candidate)
         offset = start + total
-    remainder = data[offset:] if offset < len(data) else b""
-    return frames, remainder
+    return frames, b""
 
 
 def decode_embedded(payload: bytes, supplied_sn: int | None, ips: list[str]) -> dict[str, Any]:
