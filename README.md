@@ -199,6 +199,25 @@ For VLANs, targeted discovery, before/after comparisons and advanced validation:
 
 📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)**
 
+### Sunology PLAY2 / OEM logger research
+
+PLAY2 units that do not respond to the standard protocol detector can be investigated with the dedicated **read-only** PLAY2 probe.
+
+**⬇️ [Download `tsun_play2_probe.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_play2_probe.py)**
+
+Windows example:
+
+```powershell
+py tsun_play2_probe.py --host PLAY2_IP --monitor-sn MONITOR_SN
+```
+
+The probe can discover the actual local logger, validate Solarman V5 `0x4510 → 0x1510` transport, and classify the embedded response payload without sending configuration writes. A bare 12-hex discovery token is treated as an **opaque module identifier**, not automatically as the PLAY2 MAC address.
+
+📚 **[PLAY2 local protocol research status](docs/PLAY2_LOCAL_RESEARCH.md)**
+
+> [!NOTE]
+> This is an active protocol-research path, not a PLAY2 compatibility claim yet.
+
 ---
 
 ## Test an unlisted inverter
