@@ -3,12 +3,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Read-only Sunology PLAY2 local diagnostic probe.
 
-Mirrors the iGEN/Solarman discovery found in Sunology STREAM 3.2.2:
-`smartlinkfind` -> UDP/48899, reply <- UDP/49999. It also checks known local
-HTTP pages for firmware strings and records detailed behavior of the existing
-TSUN Local 1511 / 02B0 / 1097 TCP/8899 read-only probes.
+The probe tests multiple known local discovery and GEN3/GEN3+ read variants in
+one run. It never sends configuration/write commands. A privacy-safe JSON file
+is written even when no supported inverter protocol is detected.
 
-The JSON output excludes IP, Monitor SN, MAC and raw network payloads.
+Python standard library only. Python >= 3.10.
 """
 from __future__ import annotations
 
@@ -22,26 +21,48 @@ import math
 from pathlib import Path
 import re
 import socket
+import ssl
 import sys
 import time
-from typing import Any
+from typing import Any, Iterable
 
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.1.0"
 TCP_PORT = 8899
 IGEN_SEND_PORT = 48899
 IGEN_RECV_PORT = 49999
+IGEN_MULTICAST = "239.0.0.0"
 IGEN_MESSAGE = b"smartlinkfind"
+LEGACY_DISCOVERY_MESSAGES = (
+    b"WIFIKIT-214028-READ",
+    b"HF-A11ASSISTHREAD",
+    b"devicelinkfind",
+)
 HTTP_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
 HTTP_AUTH = base64.b64encode(b"admin:admin").decode("ascii")
-RETRIES = 3
-RETRY_DELAY = 0.4
+BASELINE_RETRIES = 3
+ALT_RETRIES = 1
+RETRY_DELAY = 0.35
+MAX_UDP_PACKET = 4096
+MAX_HTTP_PAGE = 512 * 1024
+MAX_AP_REMAINING = 65545
 
 SERIAL_RE = re.compile(r"(?<!\d)([1-9]\d{7,9})(?!\d)")
-IP_RE = re.compile(r"(?<!\d)(?:25[0-5]|2[0-4]\d|1?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?!\d)")
+IP_RE = re.compile(
+    r"(?<!\d)(?:25[0-5]|2[0-4]\d|1?\d?\d)"
+    r"(?:\.(?:25[0-5]|2[0-4]\d|1?\d?\d)){3}(?!\d)"
+)
 MAC_RE = re.compile(r"(?i)(?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2}")
 FW_PATTERNS = (
-    re.compile(r"\b(?:webdata|cover)[_-]ver\s*[:=]\s*[\"']?([A-Za-z0-9][A-Za-z0-9._-]{0,79})", re.I),
-    re.compile(r"\bfirmware(?:\s*version|Version)?[^A-Za-z0-9._-]+([A-Za-z0-9][A-Za-z0-9._-]{0,79})", re.I),
+    re.compile(
+        r"\b(?:webdata|cover)[_-]ver\s*[:=]\s*[\"']?"
+        r"([A-Za-z0-9][A-Za-z0-9._-]{0,79})",
+        re.I,
+    ),
+    re.compile(
+        r"\bfirmware(?:\s*version|Version)?[^A-Za-z0-9._-]+"
+        r"([A-Za-z0-9][A-Za-z0-9._-]{0,79})",
+        re.I,
+    ),
 )
 
 
@@ -66,21 +87,38 @@ def arg_float(value: str) -> float:
     return number
 
 
-def parse_igen(payload: bytes) -> dict[str, Any]:
+def error_record(stage: str, err: BaseException, detail: str | None = None) -> dict[str, str]:
+    return {
+        "stage": stage,
+        "type": type(err).__name__,
+        "detail": detail or type(err).__name__,
+    }
+
+
+def parse_discovery_payload(payload: bytes) -> dict[str, Any]:
     text = payload.decode("utf-8", errors="replace").strip("\x00\r\n ")
-    result: dict[str, Any] = {"format": "text", "sn": None, "ip": None, "mac": None, "length": len(payload)}
+    result: dict[str, Any] = {
+        "format": "text",
+        "sn": None,
+        "ip": None,
+        "mac": None,
+        "length": len(payload),
+    }
     try:
         obj = json.loads(text)
     except (TypeError, ValueError):
         obj = None
+
     if isinstance(obj, dict):
         result["format"] = "json"
-        try:
-            candidate = int(str(obj.get("mid", "")).strip())
-        except ValueError:
-            candidate = 0
-        if valid_sn(candidate):
-            result["sn"] = candidate
+        for key in ("mid", "sn", "serial", "loggerSn", "monitorSn"):
+            try:
+                candidate = int(str(obj.get(key, "")).strip())
+            except (TypeError, ValueError):
+                continue
+            if valid_sn(candidate):
+                result["sn"] = candidate
+                break
         ip = obj.get("ip")
         mac = obj.get("mac")
         if isinstance(ip, str) and IP_RE.fullmatch(ip.strip()):
@@ -88,8 +126,15 @@ def parse_igen(payload: bytes) -> dict[str, Any]:
         if isinstance(mac, str) and MAC_RE.fullmatch(mac.strip()):
             result["mac"] = mac.strip()
         return result
-    if "smart_config" in text.lower() or "smartconfig" in text.lower():
+
+    lowered = text.lower()
+    if "smart_config" in lowered or "smartconfig" in lowered:
         result["format"] = "smart_config_text"
+    elif "smartlink" in lowered:
+        result["format"] = "smartlink_text"
+    elif "wifikit" in lowered or "hf-a11" in lowered or "devicelink" in lowered:
+        result["format"] = "legacy_discovery_text"
+
     match = SERIAL_RE.search(text)
     if match:
         result["sn"] = int(match.group(1))
@@ -102,89 +147,282 @@ def parse_igen(payload: bytes) -> dict[str, Any]:
     return result
 
 
-def igen_discovery(host: str, timeout: float) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    broadcast = str(ip_network(f"{IPv4Address(host)}/24", strict=False).broadcast_address)
-    destinations = (host, broadcast, "255.255.255.255")
+def _broadcast_for_host(host: str) -> str:
+    # PLAY2 tests are normally on a home /24. The directed host probe remains
+    # present, so a different subnet mask does not prevent the targeted test.
+    return str(ip_network(f"{IPv4Address(host)}/24", strict=False).broadcast_address)
+
+
+def udp_discovery_variant(
+    *,
+    name: str,
+    host: str,
+    bind_port: int,
+    send_port: int,
+    messages: Iterable[bytes],
+    timeout: float,
+    join_multicast: bool = False,
+) -> dict[str, Any]:
+    messages = tuple(messages)
+    destinations = (host, _broadcast_for_host(host), "255.255.255.255")
     replies: list[dict[str, Any]] = []
-    seen: set[tuple[str, int | None]] = set()
-    meta: dict[str, Any] = {"bound_49999": False, "reply_count": 0, "error": None}
+    seen: set[tuple[str, int | None, int]] = set()
+    result: dict[str, Any] = {
+        "name": name,
+        "bind_port": bind_port,
+        "send_port": send_port,
+        "bound": False,
+        "multicast_joined": False,
+        "messages_sent": [message.decode("ascii", errors="replace") for message in messages],
+        "reply_count": 0,
+        "target_reply_found": False,
+        "error": None,
+        "replies": [],
+    }
+
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     try:
         try:
-            sock.bind(("", IGEN_RECV_PORT))
+            sock.bind(("", bind_port))
         except OSError as err:
-            meta["error"] = {"stage": "bind_udp_49999", "type": type(err).__name__, "detail": "could not bind UDP/49999"}
-            return replies, meta
-        meta["bound_49999"] = True
+            result["error"] = error_record(
+                f"bind_udp_{bind_port}", err, f"could not bind UDP/{bind_port}"
+            )
+            return result
+        result["bound"] = True
+
+        if join_multicast:
+            try:
+                membership = socket.inet_aton(IGEN_MULTICAST) + socket.inet_aton("0.0.0.0")
+                sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, membership)
+                result["multicast_joined"] = True
+            except OSError as err:
+                result["multicast_error"] = error_record(
+                    "join_multicast", err, "could not join iGEN multicast group"
+                )
+
         for cycle in range(2):
-            for target in destinations:
-                try:
-                    sock.sendto(IGEN_MESSAGE, (target, IGEN_SEND_PORT))
-                except OSError:
-                    pass
+            for destination in destinations:
+                for message in messages:
+                    try:
+                        sock.sendto(message, (destination, send_port))
+                    except OSError:
+                        # A directed or global broadcast can fail on some Windows
+                        # interfaces while the other destinations still work.
+                        continue
             if cycle == 0:
                 time.sleep(0.15)
+
         deadline = time.monotonic() + timeout
+        settle_deadline: float | None = None
         while (left := deadline - time.monotonic()) > 0:
+            if settle_deadline is not None:
+                left = min(left, settle_deadline - time.monotonic())
+                if left <= 0:
+                    break
             sock.settimeout(left)
             try:
-                payload, (source, _port) = sock.recvfrom(4096)
+                payload, (source, source_port) = sock.recvfrom(MAX_UDP_PACKET)
             except socket.timeout:
                 break
             except OSError as err:
-                meta["error"] = {"stage": "recv_udp_49999", "type": type(err).__name__, "detail": "UDP receive failed"}
+                result["error"] = error_record(
+                    f"recv_udp_{bind_port}", err, "UDP receive failed"
+                )
                 break
-            parsed = parse_igen(payload)
+
+            if payload in messages:
+                continue
+            parsed = parse_discovery_payload(payload)
             parsed["source"] = source
-            key = (source, parsed["sn"])
-            if key not in seen:
-                seen.add(key)
-                replies.append(parsed)
+            parsed["source_port"] = source_port
+            key = (source, parsed.get("sn"), len(payload))
+            if key in seen:
+                continue
+            seen.add(key)
+            replies.append(parsed)
+            if source == host or parsed.get("ip") == host:
+                result["target_reply_found"] = True
+                if settle_deadline is None:
+                    settle_deadline = time.monotonic() + 0.6
     finally:
         sock.close()
-    meta["reply_count"] = len(replies)
-    return replies, meta
+
+    result["reply_count"] = len(replies)
+    # Keep identifiers available only in memory. Public JSON stores booleans.
+    result["_private_replies"] = replies
+    return result
 
 
-def http_get(host: str, path: str, timeout: float, auth: bool) -> str | None:
-    conn = http.client.HTTPConnection(host, 80, timeout=timeout)
+def run_udp_discovery(host: str, timeout: float) -> list[dict[str, Any]]:
+    variants = [
+        udp_discovery_variant(
+            name="igen_smartlink_49999",
+            host=host,
+            bind_port=IGEN_RECV_PORT,
+            send_port=IGEN_SEND_PORT,
+            messages=(IGEN_MESSAGE,),
+            timeout=timeout,
+            join_multicast=True,
+        ),
+        udp_discovery_variant(
+            name="igen_smartlink_same_port_48899",
+            host=host,
+            bind_port=IGEN_SEND_PORT,
+            send_port=IGEN_SEND_PORT,
+            messages=(IGEN_MESSAGE,),
+            timeout=timeout,
+        ),
+        udp_discovery_variant(
+            name="legacy_discovery_48899",
+            host=host,
+            bind_port=IGEN_SEND_PORT,
+            send_port=IGEN_SEND_PORT,
+            messages=LEGACY_DISCOVERY_MESSAGES,
+            timeout=timeout,
+        ),
+    ]
+    return variants
+
+
+def public_udp_variant(
+    variant: dict[str, Any], host: str, supplied_sn: int | None
+) -> dict[str, Any]:
+    replies = variant.get("_private_replies", [])
+    public_replies = [
+        {
+            "source_matches_target": reply.get("source") == host,
+            "declared_ip_matches_target": reply.get("ip") == host,
+            "source_port": reply.get("source_port"),
+            "monitor_sn_present": reply.get("sn") is not None,
+            "monitor_sn_matches_supplied": supplied_sn is not None
+            and reply.get("sn") == supplied_sn,
+            "mac_present": reply.get("mac") is not None,
+            "payload_format": reply.get("format"),
+            "payload_length": reply.get("length"),
+        }
+        for reply in replies
+    ]
+    return {
+        key: value
+        for key, value in variant.items()
+        if key != "_private_replies" and key != "replies"
+    } | {"replies": public_replies}
+
+
+def resolve_sn_from_udp(variants: Iterable[dict[str, Any]], host: str) -> int | None:
+    candidates: set[int] = set()
+    for variant in variants:
+        for reply in variant.get("_private_replies", []):
+            if reply.get("source") == host or reply.get("ip") == host:
+                sn = reply.get("sn")
+                if isinstance(sn, int) and valid_sn(sn):
+                    candidates.add(sn)
+    return next(iter(candidates)) if len(candidates) == 1 else None
+
+
+def port_open(host: str, port: int, timeout: float) -> bool:
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
+def http_get(
+    host: str,
+    port: int,
+    path: str,
+    timeout: float,
+    *,
+    tls: bool,
+    auth: bool,
+) -> tuple[int | None, str | None, str | None]:
     headers = {"User-Agent": "TSUN-Local-PLAY2-Probe", "Connection": "close"}
     if auth:
         headers["Authorization"] = f"Basic {HTTP_AUTH}"
+
+    if tls:
+        context = ssl.create_default_context()
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        connection: http.client.HTTPConnection = http.client.HTTPSConnection(
+            host, port, timeout=timeout, context=context
+        )
+    else:
+        connection = http.client.HTTPConnection(host, port, timeout=timeout)
+
     try:
-        conn.request("GET", path, headers=headers)
-        response = conn.getresponse()
-        if response.status != 200:
-            response.read()
-            return None
-        body = response.read(512 * 1024 + 1)
-        if len(body) > 512 * 1024:
-            return None
-        return body.decode("utf-8", errors="replace")
-    except (OSError, http.client.HTTPException):
-        return None
+        connection.request("GET", path, headers=headers)
+        response = connection.getresponse()
+        status = response.status
+        content_type = response.getheader("Content-Type")
+        body = response.read(MAX_HTTP_PAGE + 1)
+        if len(body) > MAX_HTTP_PAGE:
+            return status, content_type, None
+        return status, content_type, body.decode("utf-8", errors="replace")
+    except (OSError, ssl.SSLError, http.client.HTTPException):
+        return None, None, None
     finally:
-        conn.close()
+        connection.close()
 
 
-def http_identity(host: str, timeout: float) -> dict[str, Any]:
-    result: dict[str, Any] = {"reachable": False, "authenticated_page_seen": False, "paths": [], "firmware_versions": []}
-    for path in HTTP_PATHS:
-        for auth in (False, True):
-            doc = http_get(host, path, timeout, auth)
-            if doc is None:
-                continue
-            result["reachable"] = True
-            result["authenticated_page_seen"] |= auth
-            if path not in result["paths"]:
-                result["paths"].append(path)
-            for pattern in FW_PATTERNS:
-                for match in pattern.finditer(doc):
-                    version = match.group(1).strip().strip("\"'")
-                    if version and version not in result["firmware_versions"]:
+def _firmware_versions(document: str) -> list[str]:
+    versions: list[str] = []
+    for pattern in FW_PATTERNS:
+        for match in pattern.finditer(document):
+            version = match.group(1).strip().strip("\"'")
+            if version and version not in versions:
+                versions.append(version)
+    return versions
+
+
+def web_identity(host: str, timeout: float) -> dict[str, Any]:
+    result: dict[str, Any] = {"firmware_versions": [], "transports": []}
+    for port, tls, scheme in ((80, False, "http"), (443, True, "https")):
+        reachable = port_open(host, port, min(timeout, 1.5))
+        transport: dict[str, Any] = {
+            "scheme": scheme,
+            "port": port,
+            "tcp_open": reachable,
+            "pages": [],
+        }
+        if not reachable:
+            result["transports"].append(transport)
+            continue
+
+        for path in HTTP_PATHS:
+            status, content_type, document = http_get(
+                host, port, path, timeout, tls=tls, auth=False
+            )
+            page: dict[str, Any] = {
+                "path": path,
+                "unauthenticated_status": status,
+                "content_type": content_type,
+            }
+            if document is not None:
+                versions = _firmware_versions(document)
+                page["firmware_found"] = bool(versions)
+                for version in versions:
+                    if version not in result["firmware_versions"]:
                         result["firmware_versions"].append(version)
+
+            if status in (401, 403):
+                auth_status, auth_type, auth_document = http_get(
+                    host, port, path, timeout, tls=tls, auth=True
+                )
+                page["authenticated_status"] = auth_status
+                page["authenticated_content_type"] = auth_type
+                if auth_document is not None:
+                    versions = _firmware_versions(auth_document)
+                    page["authenticated_firmware_found"] = bool(versions)
+                    for version in versions:
+                        if version not in result["firmware_versions"]:
+                            result["firmware_versions"].append(version)
+            transport["pages"].append(page)
+        result["transports"].append(transport)
     return result
 
 
@@ -193,8 +431,17 @@ def checksum_ap(data: bytes) -> int:
 
 
 def build_ap(sn: int, payload: bytes, sensor_list: int = 0) -> bytes:
+    if not 0 <= sn <= 0xFFFFFFFF:
+        raise ValueError("Monitor SN must fit four bytes")
+    if not 0 <= sensor_list <= 0xFFFF:
+        raise ValueError("sensor_list must fit two bytes")
     data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
-    scope = len(data).to_bytes(2, "little") + b"\x10\x45\x00\x00" + sn.to_bytes(4, "little") + data
+    scope = (
+        len(data).to_bytes(2, "little")
+        + b"\x10\x45\x00\x00"
+        + sn.to_bytes(4, "little")
+        + data
+    )
     return b"\xA5" + scope + bytes((checksum_ap(scope), 0x15))
 
 
@@ -208,7 +455,10 @@ def crc_modbus(data: bytes) -> bytes:
 
 
 def modbus(start: int, end: int) -> bytes:
-    body = b"\x01\x03" + start.to_bytes(2, "big") + (end - start + 1).to_bytes(2, "big")
+    count = end - start + 1
+    if not 1 <= count <= 125:
+        raise ValueError("Modbus FC03 register count must be 1..125")
+    body = b"\x01\x03" + start.to_bytes(2, "big") + count.to_bytes(2, "big")
     return body + crc_modbus(body)
 
 
@@ -222,7 +472,13 @@ def crc_1511(data: bytes) -> bytes:
 
 
 def req_1511(tag: int, function: int, start: int, end: int) -> bytes:
-    body = bytes((tag, function, 0)) + start.to_bytes(2, "big") + b"\x00\x02" + (end - start + 1).to_bytes(2, "big")
+    count = end - start + 1
+    body = (
+        bytes((tag, function, 0))
+        + start.to_bytes(2, "big")
+        + b"\x00\x02"
+        + count.to_bytes(2, "big")
+    )
     return body + crc_1511(body)
 
 
@@ -241,8 +497,47 @@ def recv_exact(sock: socket.socket, count: int, stage: str) -> bytes:
     return bytes(data)
 
 
-def probe(host: str, sn: int, payload: bytes, sensor_list: int, timeout: float) -> dict[str, Any]:
-    result: dict[str, Any] = {"connected": False, "request_sent": False, "error": None}
+def passive_tcp_probe(host: str, timeout: float) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "connected": False,
+        "unsolicited_data_received": False,
+        "error": None,
+    }
+    try:
+        with socket.create_connection((host, TCP_PORT), timeout=timeout) as sock:
+            result["connected"] = True
+            sock.settimeout(min(timeout, 1.0))
+            try:
+                data = sock.recv(256)
+            except socket.timeout:
+                return result
+            if data:
+                result["unsolicited_data_received"] = True
+                result["length"] = len(data)
+                result["first_byte"] = data[0]
+            else:
+                result["peer_closed_without_data"] = True
+    except OSError as err:
+        result["error"] = error_record("passive_tcp_connect", err)
+    return result
+
+
+def probe_ap(
+    host: str,
+    sn: int,
+    payload: bytes,
+    sensor_list: int,
+    timeout: float,
+    supplied_sn: int | None,
+) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "connected": False,
+        "request_sent": False,
+        "response_received": False,
+        "sensor_list": f"0x{sensor_list:04X}",
+        "request_monitor_sn_zero": sn == 0,
+        "error": None,
+    }
     try:
         with socket.create_connection((host, TCP_PORT), timeout=timeout) as sock:
             result["connected"] = True
@@ -253,137 +548,384 @@ def probe(host: str, sn: int, payload: bytes, sensor_list: int, timeout: float) 
             result["response_received"] = True
             result["first_byte"] = header[0]
             if header[0] != 0xA5:
-                result["error"] = {"stage": "receive_header", "type": "UnexpectedEnvelope", "detail": "response does not start with 0xA5"}
+                result["error"] = {
+                    "stage": "receive_header",
+                    "type": "UnexpectedEnvelope",
+                    "detail": "response does not start with 0xA5",
+                }
                 return result
+
             remaining = int.from_bytes(header[1:3], "little") + 10
-            if remaining > 65545:
-                result["error"] = {"stage": "receive_frame", "type": "InvalidLength", "detail": "implausible AP frame length"}
+            if remaining > MAX_AP_REMAINING:
+                result["error"] = {
+                    "stage": "receive_frame",
+                    "type": "InvalidLength",
+                    "detail": "implausible AP frame length",
+                }
                 return result
             frame = header + recv_exact(sock, remaining, "receive_frame")
-            result.update({
-                "response_length": len(frame),
-                "ap_length_valid": len(frame) == int.from_bytes(frame[1:3], "little") + 13,
-                "ap_checksum_valid": len(frame) >= 2 and checksum_ap(frame[1:-2]) == frame[-2],
-                "ap_end_marker": bool(frame and frame[-1] == 0x15),
-                "ap_frame_type": frame[11] if len(frame) > 11 else None,
-                "ap_status": frame[12] if len(frame) > 12 else None,
-                "inner_length": len(frame[25:-2]) if len(frame) >= 27 else None,
-                "inner_first_byte": frame[25] if len(frame) > 27 else None,
-            })
+            response_sn = int.from_bytes(frame[7:11], "little") if len(frame) >= 11 else 0
+            result.update(
+                {
+                    "response_length": len(frame),
+                    "ap_length_valid": len(frame)
+                    == int.from_bytes(frame[1:3], "little") + 13,
+                    "ap_checksum_valid": len(frame) >= 2
+                    and checksum_ap(frame[1:-2]) == frame[-2],
+                    "ap_end_marker": bool(frame and frame[-1] == 0x15),
+                    "ap_control": int.from_bytes(frame[3:5], "little")
+                    if len(frame) >= 5
+                    else None,
+                    "response_monitor_sn_present": valid_sn(response_sn),
+                    "response_monitor_sn_matches_supplied": supplied_sn is not None
+                    and response_sn == supplied_sn,
+                    "ap_frame_type": frame[11] if len(frame) > 11 else None,
+                    "ap_status": frame[12] if len(frame) > 12 else None,
+                    "inner_length": len(frame[25:-2]) if len(frame) >= 27 else None,
+                    "inner_first_byte": frame[25] if len(frame) > 27 else None,
+                }
+            )
             return result
     except (socket.timeout, ConnectionRefusedError, ConnectionResetError, OSError, RuntimeError) as err:
         text = str(err)
-        stage, detail = (text.split("|", 1) + [text])[:2] if "|" in text else ("connect_or_send", type(err).__name__)
-        result["error"] = {"stage": stage, "type": type(err).__name__, "detail": detail}
+        if "|" in text:
+            stage, detail = text.split("|", 1)
+        else:
+            stage, detail = "connect_or_send", type(err).__name__
+        result["error"] = error_record(stage, err, detail)
         return result
 
 
-def tcp_open(host: str, timeout: float) -> bool:
-    try:
-        with socket.create_connection((host, TCP_PORT), timeout=timeout):
-            return True
-    except OSError:
-        return False
+def identity_probe_definitions() -> list[dict[str, Any]]:
+    return [
+        {
+            "name": "1511_identity_sl0000",
+            "payload": req_1511(0xA1, 0x01, 0x0BB8, 0x0BD0),
+            "sensor_list": 0x0000,
+        },
+        {
+            "name": "1511_identity_sl1511",
+            "payload": req_1511(0xA1, 0x01, 0x0BB8, 0x0BD0),
+            "sensor_list": 0x1511,
+        },
+        {
+            "name": "02b0_identity_sl0000",
+            "payload": modbus(0x3009, 0x301E),
+            "sensor_list": 0x0000,
+        },
+        {
+            "name": "02b0_identity_sl02b0",
+            "payload": modbus(0x3009, 0x301E),
+            "sensor_list": 0x02B0,
+        },
+        {
+            "name": "1097_identity_sl1097",
+            "payload": modbus(0x1100, 0x1100),
+            "sensor_list": 0x1097,
+        },
+        {
+            "name": "1097_identity_sl0000",
+            "payload": modbus(0x1100, 0x1100),
+            "sensor_list": 0x0000,
+        },
+        {
+            "name": "3026_identity_sl3026",
+            "payload": modbus(0x0000, 0x002C),
+            "sensor_list": 0x3026,
+        },
+    ]
+
+
+def protocol_probe_definitions() -> list[dict[str, Any]]:
+    return [
+        {
+            "protocol": "1511",
+            "variant": "sl0000_status",
+            "payload": req_1511(0xA1, 0x01, 0x0BB8, 0x0BB8),
+            "sensor_list": 0x0000,
+            "retries": BASELINE_RETRIES,
+        },
+        {
+            "protocol": "1511",
+            "variant": "sl1511_status",
+            "payload": req_1511(0xA1, 0x01, 0x0BB8, 0x0BB8),
+            "sensor_list": 0x1511,
+            "retries": ALT_RETRIES,
+        },
+        {
+            "protocol": "1511",
+            "variant": "sl0000_a1_21_profile",
+            "payload": req_1511(0xA1, 0x21, 0x07D0, 0x07D0),
+            "sensor_list": 0x0000,
+            "retries": ALT_RETRIES,
+        },
+        {
+            "protocol": "02b0",
+            "variant": "sl0000_status",
+            "payload": modbus(0x3000, 0x3000),
+            "sensor_list": 0x0000,
+            "retries": BASELINE_RETRIES,
+        },
+        {
+            "protocol": "02b0",
+            "variant": "sl02b0_status",
+            "payload": modbus(0x3000, 0x3000),
+            "sensor_list": 0x02B0,
+            "retries": ALT_RETRIES,
+        },
+        {
+            "protocol": "1097",
+            "variant": "sl1097_status",
+            "payload": modbus(0x1100, 0x1100),
+            "sensor_list": 0x1097,
+            "retries": BASELINE_RETRIES,
+        },
+        {
+            "protocol": "1097",
+            "variant": "sl0000_status",
+            "payload": modbus(0x1100, 0x1100),
+            "sensor_list": 0x0000,
+            "retries": ALT_RETRIES,
+        },
+        {
+            "protocol": "1097",
+            "variant": "sl1097_info",
+            "payload": modbus(0x1008, 0x100F),
+            "sensor_list": 0x1097,
+            "retries": ALT_RETRIES,
+        },
+        {
+            "protocol": "3026",
+            "variant": "sl3026_detection_range",
+            "payload": modbus(0x0000, 0x002C),
+            "sensor_list": 0x3026,
+            "retries": BASELINE_RETRIES,
+        },
+        {
+            "protocol": "3026",
+            "variant": "sl0000_detection_range",
+            "payload": modbus(0x0000, 0x002C),
+            "sensor_list": 0x0000,
+            "retries": ALT_RETRIES,
+        },
+    ]
+
+
+def run_ap_probes(host: str, sn: int | None, timeout: float) -> dict[str, Any]:
+    is_open = port_open(host, TCP_PORT, min(timeout, 1.5))
+    result: dict[str, Any] = {
+        "open": is_open,
+        "passive": None,
+        "identity_probes": [],
+        "protocol_probes": [],
+    }
+    if not is_open:
+        return result
+
+    result["passive"] = passive_tcp_probe(host, timeout)
+    print("Identity probes (Monitor SN=0):")
+    for definition in identity_probe_definitions():
+        probe_result = probe_ap(
+            host,
+            0,
+            definition["payload"],
+            definition["sensor_list"],
+            timeout,
+            sn,
+        )
+        record = {"probe": definition["name"], **probe_result}
+        result["identity_probes"].append(record)
+        err = probe_result.get("error")
+        if err:
+            print(f"  {definition['name']}: {err['stage']} - {err['detail']}")
+        else:
+            print(
+                f"  {definition['name']}: response {probe_result.get('response_length')} bytes, "
+                f"status={probe_result.get('ap_status')}"
+            )
+
+    if sn is None:
+        print("Protocol probes skipped: Monitor SN not resolved or supplied.")
+        return result
+
+    print("Protocol variants:")
+    for definition in protocol_probe_definitions():
+        for attempt in range(1, int(definition["retries"]) + 1):
+            probe_result = probe_ap(
+                host,
+                sn,
+                definition["payload"],
+                definition["sensor_list"],
+                timeout,
+                sn,
+            )
+            record = {
+                "protocol": definition["protocol"],
+                "variant": definition["variant"],
+                "attempt": attempt,
+                **probe_result,
+            }
+            result["protocol_probes"].append(record)
+            err = probe_result.get("error")
+            label = f"{definition['protocol']}/{definition['variant']} #{attempt}"
+            if err:
+                print(f"  {label}: {err['stage']} - {err['detail']}")
+            else:
+                print(
+                    f"  {label}: response {probe_result.get('response_length')} bytes, "
+                    f"checksum={probe_result.get('ap_checksum_valid')}, "
+                    f"status={probe_result.get('ap_status')}"
+                )
+            if attempt < int(definition["retries"]):
+                time.sleep(RETRY_DELAY)
+    return result
+
+
+def empty_document() -> dict[str, Any]:
+    return {
+        "format": "tsun-local-play2-diagnostic",
+        "schema_version": 2,
+        "metadata": {
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "tool_version": TOOL_VERSION,
+            "python_required": ">=3.10",
+            "read_only": True,
+            "writes_performed": 0,
+            "privacy": {
+                "ip": False,
+                "monitor_sn": False,
+                "mac": False,
+                "raw_udp": False,
+                "raw_tcp": False,
+            },
+        },
+        "udp_discovery": {"variants": []},
+        "web_identity": {"firmware_versions": [], "transports": []},
+        "tcp_8899": {
+            "open": False,
+            "passive": None,
+            "identity_probes": [],
+            "protocol_probes": [],
+        },
+        "phase_errors": [],
+    }
+
+
+def write_document(document: dict[str, Any], output: Path) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(document, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
 
 def main() -> int:
     if sys.version_info < (3, 10):
         print("ERROR: Python 3.10 or newer is required.", file=sys.stderr)
         return 2
-    parser = argparse.ArgumentParser(description="Read-only Sunology PLAY2 local diagnostic")
+
+    parser = argparse.ArgumentParser(
+        description="Read-only Sunology PLAY2 local diagnostic (multi-variant)"
+    )
     parser.add_argument("--host", required=True, help="PLAY2 IPv4 address")
-    parser.add_argument("--monitor-sn", "--serial", dest="sn", type=arg_sn, help="Monitor SN; optional if smartlinkfind resolves it")
-    parser.add_argument("--udp-timeout", type=arg_float, default=20.0)
-    parser.add_argument("--timeout", type=arg_float, default=6.0)
-    parser.add_argument("--http-timeout", type=arg_float, default=2.0)
+    parser.add_argument(
+        "--monitor-sn",
+        "--serial",
+        dest="sn",
+        type=arg_sn,
+        help="Monitor SN; optional if local discovery resolves it",
+    )
+    parser.add_argument(
+        "--udp-timeout",
+        type=arg_float,
+        default=10.0,
+        help="maximum wait per UDP discovery variant",
+    )
+    parser.add_argument(
+        "--timeout", type=arg_float, default=2.5, help="TCP probe timeout"
+    )
+    parser.add_argument(
+        "--http-timeout", type=arg_float, default=2.0, help="local web request timeout"
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+
     try:
         IPv4Address(args.host)
     except ValueError:
         print("ERROR: --host must be an IPv4 address.", file=sys.stderr)
         return 2
 
+    output = args.output or Path(
+        f"tsun_play2_diagnostic_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
+    )
+    document = empty_document()
+
     print(f"TSUN Local PLAY2 Diagnostic v{TOOL_VERSION} · READ-ONLY")
-    print(f"iGEN: '{IGEN_MESSAGE.decode()}' -> UDP/{IGEN_SEND_PORT}, replies <- UDP/{IGEN_RECV_PORT}")
-    replies, igen_meta = igen_discovery(args.host, args.udp_timeout)
-    target = next((r for r in replies if r["source"] == args.host or r.get("ip") == args.host), None)
-    sn = args.sn or (target.get("sn") if target else None)
-    print(f"iGEN replies : {len(replies)}")
-    print(f"Target reply : {'yes' if target else 'no'}")
-    if target and target.get("sn"):
-        if args.sn:
-            print(f"Monitor SN   : discovered ({'matches' if target['sn'] == args.sn else 'DIFFERS from'} supplied)")
+    print("Testing local discovery variants...")
+
+    udp_variants: list[dict[str, Any]] = []
+    try:
+        udp_variants = run_udp_discovery(args.host, args.udp_timeout)
+        for variant in udp_variants:
+            print(
+                f"  {variant['name']}: replies={variant['reply_count']}, "
+                f"target={'yes' if variant['target_reply_found'] else 'no'}"
+            )
+        document["udp_discovery"]["variants"] = [
+            public_udp_variant(variant, args.host, args.sn) for variant in udp_variants
+        ]
+    except Exception as err:
+        document["phase_errors"].append(error_record("udp_discovery", err))
+        print(f"UDP discovery error: {type(err).__name__}")
+
+    discovered_sn = resolve_sn_from_udp(udp_variants, args.host) if udp_variants else None
+    sn = args.sn or discovered_sn
+    document["udp_discovery"]["monitor_sn_resolved"] = sn is not None
+    document["udp_discovery"]["monitor_sn_discovered"] = (
+        args.sn is None and discovered_sn is not None
+    )
+    document["udp_discovery"]["monitor_sn_matches_supplied"] = (
+        args.sn is not None and discovered_sn is not None and args.sn == discovered_sn
+    )
+    if discovered_sn is not None:
+        if args.sn is None:
+            print("Monitor SN: discovered automatically")
         else:
-            print("Monitor SN   : discovered automatically")
-    if target and target.get("mac"):
-        print("MAC          : present (redacted from JSON)")
+            print(
+                "Monitor SN: local discovery "
+                + ("matches supplied" if args.sn == discovered_sn else "DIFFERS from supplied")
+            )
 
-    http = http_identity(args.host, args.http_timeout)
-    print(f"HTTP local   : {'reachable' if http['reachable'] else 'not identified'}")
-    print("Firmware     : " + (", ".join(http["firmware_versions"]) if http["firmware_versions"] else "not found"))
-    is_open = tcp_open(args.host, min(args.timeout, 2.0))
-    print(f"TCP/8899     : {'open' if is_open else 'not reachable'}")
-
-    identity_results: list[dict[str, Any]] = []
-    protocol_results: list[dict[str, Any]] = []
-    if is_open:
-        identities = (
-            ("1511_identity", req_1511(0xA1, 0x01, 0x0BB8, 0x0BD0), 0),
-            ("02b0_identity", modbus(0x3009, 0x301E), 0),
-            ("1097_identity", modbus(0x1100, 0x1100), 0x1097),
+    print("Checking local web interfaces...")
+    try:
+        web = web_identity(args.host, args.http_timeout)
+        document["web_identity"] = web
+        open_web = [item["scheme"] for item in web["transports"] if item["tcp_open"]]
+        print("  Web ports: " + (", ".join(open_web) if open_web else "none reachable"))
+        print(
+            "  Firmware: "
+            + (", ".join(web["firmware_versions"]) if web["firmware_versions"] else "not found")
         )
-        print("Identity probes (SN=0):")
-        for name, payload, sensor_list in identities:
-            result = probe(args.host, 0, payload, sensor_list, args.timeout)
-            identity_results.append({"probe": name, **result})
-            err = result.get("error")
-            print(f"  {name}: {err['stage']} - {err['detail']}" if err else f"  {name}: response {result.get('response_length')} bytes, status={result.get('ap_status')}")
+    except Exception as err:
+        document["phase_errors"].append(error_record("web_identity", err))
+        print(f"Web diagnostic error: {type(err).__name__}")
 
-        if sn:
-            probes = {
-                "1511": (req_1511(0xA1, 0x01, 0x0BB8, 0x0BB8), 0),
-                "02b0": (modbus(0x3000, 0x3000), 0),
-                "1097": (modbus(0x1100, 0x1100), 0x1097),
-            }
-            print("Protocol probes:")
-            for protocol, (payload, sensor_list) in probes.items():
-                for attempt in range(1, RETRIES + 1):
-                    result = probe(args.host, sn, payload, sensor_list, args.timeout)
-                    protocol_results.append({"protocol": protocol, "attempt": attempt, **result})
-                    err = result.get("error")
-                    print(f"  {protocol} #{attempt}: {err['stage']} - {err['detail']}" if err else f"  {protocol} #{attempt}: response {result.get('response_length')} bytes, checksum={result.get('ap_checksum_valid')}, status={result.get('ap_status')}")
-                    if attempt < RETRIES:
-                        time.sleep(RETRY_DELAY)
-        else:
-            print("Protocol probes skipped: Monitor SN not resolved.")
+    print("Checking TCP/8899 and protocol variants...")
+    try:
+        document["tcp_8899"] = run_ap_probes(args.host, sn, args.timeout)
+        print(f"TCP/8899: {'open' if document['tcp_8899']['open'] else 'not reachable'}")
+    except Exception as err:
+        document["phase_errors"].append(error_record("tcp_8899", err))
+        print(f"TCP diagnostic error: {type(err).__name__}")
 
-    public_replies = [{
-        "source_matches_target": r["source"] == args.host,
-        "declared_ip_matches_target": r.get("ip") == args.host,
-        "monitor_sn_present": r.get("sn") is not None,
-        "monitor_sn_matches_supplied": args.sn is not None and r.get("sn") == args.sn,
-        "mac_present": r.get("mac") is not None,
-        "payload_format": r["format"],
-        "payload_length": r["length"],
-    } for r in replies]
-    document = {
-        "format": "tsun-local-play2-diagnostic",
-        "schema_version": 1,
-        "metadata": {
-            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-            "tool_version": TOOL_VERSION,
-            "read_only": True,
-            "research_basis": "Sunology STREAM 3.2.2 iGEN/Solarman discovery behavior",
-            "privacy": {"ip": False, "monitor_sn": False, "mac": False, "raw_udp": False, "raw_tcp": False},
-        },
-        "igen_discovery": {**igen_meta, "target_reply_found": target is not None, "monitor_sn_resolved": sn is not None, "replies": public_replies},
-        "http_identity": http,
-        "tcp_8899": {"open": is_open, "identity_probes": identity_results, "protocol_probes": protocol_results},
-    }
-    output = args.output or Path(f"tsun_play2_diagnostic_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    document["metadata"]["timestamp_utc"] = datetime.now(timezone.utc).isoformat()
+    try:
+        write_document(document, output)
+    except OSError as err:
+        print(f"ERROR: could not write diagnostic JSON: {err}", file=sys.stderr)
+        return 1
+
     print("Diagnostic complete · writes=0 · identifiers/raw payloads excluded from JSON")
     print(f"Output: {output}")
     return 0
