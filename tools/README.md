@@ -34,14 +34,16 @@ For the capture ranges, safety model, snapshots and before/after comparison, see
 
 [`tsun_play2_probe.py`](tsun_play2_probe.py) is a standalone, privacy-safe, **strictly read-only** all-in-one diagnostic for PLAY2 / MX variants that do not answer normal TSUN Local protocol detection.
 
-Version **1.2.0** combines the main evidence-driven hypotheses in one run:
+Version **1.2.1** combines the main evidence-driven hypotheses in one run:
 
-- Sunology/iGEN UDP discovery: `smartlinkfind` on UDP **48899**, replies on **49999**, plus legacy discovery messages;
+- Sunology/iGEN discovery across UDP **48899** and **49999** in both directions, using `smartlinkfind` and the known legacy discovery messages;
 - detailed `smart_config` / `##` parsing and correlation of discovered hosts with the supplied Monitor SN;
 - DNS-SD/mDNS discovery of `_solarhome._tcp.local` used by Sunology CONNECT;
 - passive WebSocket handshake/listen on the mDNS-resolved `ws://<host>:<port>/ws`, including detection of `solarEvent`, `pvP`, battery/grid events and product information;
-- HTTP/HTTPS local identity and firmware checks on supplied and discovered candidate hosts;
-- TCP **8899** passive observation plus bounded AP/Solarman sequence variants, sensor-lists **1511**, **02B0**, **1097**, **3026**, direct Modbus-RTU-over-TCP and Modbus-TCP read hypotheses.
+- HTTP/HTTPS local identity checks on supplied and discovered candidate hosts;
+- the same bounded, read-only TCP diagnostic matrix on **8899**, **48899** and **49999**, including AP/Solarman sequence variants, sensor-lists **1511**, **02B0**, **1097**, **3026**, direct Modbus-RTU-over-TCP and Modbus-TCP read hypotheses.
+
+UDP **48899/49999** only receive known discovery strings; binary AP/Modbus probes are never sent to the UDP configuration services. The additional protocol matrix is performed only over TCP when the corresponding TCP port accepts a connection.
 
 The `ws://127.0.0.1:20199` address found in Sunology STREAM 3.2.2 is a **development/local mock only**. The production application resolves the CONNECT endpoint through mDNS, so the probe does not scan port 20199 on the PLAY2.
 
@@ -56,7 +58,7 @@ One run produces two files:
 - `tsun_play2_superprobe_....json` — rich machine-readable diagnostic;
 - `tsun_play2_superprobe_....log` — detailed human-readable execution log.
 
-The report aliases local IP addresses and redacts Monitor SN, MAC addresses and serial-looking values while retaining packet lengths, hashes, redacted hex/ASCII structure and protocol behaviour useful for reverse engineering.
+The report aliases local IP addresses and redacts Monitor SN and MAC addresses while retaining packet lengths, hashes, redacted hex/ASCII structure and protocol behaviour useful for reverse engineering.
 
 The probe performs **no cloud request, no BLE/Wi-Fi provisioning, no configuration write and no Modbus write**.
 
