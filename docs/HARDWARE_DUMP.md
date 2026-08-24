@@ -38,6 +38,14 @@ py tsun_dump.py --full
 
 Python **3.10 or newer** is required.
 
+If the Monitor SN is already known, it can be passed directly to avoid any interactive terminal input:
+
+```powershell
+py tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
+```
+
+`--monitor-sn` is an alias for the existing `--serial` option.
+
 ## Automatic discovery: all devices by default
 
 The tool first sends repeated read-only UDP discovery probes. It then performs a **bounded TCP scan on port 8899** for each discovered `/24` (and for each network supplied with `--network`) and directly UDP-probes TCP-only candidates. **When `--host` is not supplied, every resulting candidate is validated and a separate JSON dump is generated for each supported TSUN logger.**
@@ -73,7 +81,7 @@ Discovery behavior:
 - no logger is discovered → the tool falls back to asking for one logger IP and Monitor SN;
 - `--host` supplied → intentional single-device mode.
 
-The interactive Monitor SN entry is hidden on screen.
+Interactive Monitor SN entry uses normal terminal input for compatibility with Windows, PowerShell, Command Prompt and other consoles. The Monitor SN is still excluded from generated JSON files.
 
 To target only one known logger:
 
@@ -84,10 +92,16 @@ python3 tsun_dump.py --host 192.168.1.50 --full
 Or provide both values manually:
 
 ```bash
+python3 tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
+```
+
+The legacy spelling remains supported:
+
+```bash
 python3 tsun_dump.py --host 192.168.1.50 --serial 1234567890 --full
 ```
 
-For a dump intended for publication, interactive entry is preferable because `--serial` can remain in shell history.
+For a dump intended for publication, remember that a Monitor SN supplied on the command line may remain in shell history even though it is not written to the dump JSON.
 
 > [!NOTE]
 > UDP broadcast discovery normally stays inside the local broadcast domain. For a routed VLAN/subnet, use a bounded network scan such as:
@@ -237,12 +251,15 @@ Unknown research registers are never assigned speculative semantic names by the 
 - direct UDP retry for TCP-only candidates;
 - protocol detection retried before a candidate is rejected;
 - all discovered loggers processed sequentially, avoiding simultaneous high-rate polling;
+- HTTP `admin:admin` is only sent to an explicitly targeted host or after an unauthenticated page has already been identified as TSUN;
 - Modbus capture implements FC03 reads only;
 - **no FC06/FC16 write implementation**;
 - 02B0/1097 requests are limited to 16 registers each;
 - 1511 uses only known native read commands;
 - failure of one logger does not stop dumps for the others;
 - failed optional blocks do not discard successful evidence;
+- invalid/non-finite timeout values are rejected before network access;
+- Monitor SN values are range-checked before AP framing;
 - no address-space brute force;
 - no inverter configuration command.
 
