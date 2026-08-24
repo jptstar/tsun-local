@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 2)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.3.0")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.3.1")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
         network = TOOL._parse_scan_network("10.89.10.0/24")
