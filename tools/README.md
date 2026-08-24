@@ -39,7 +39,7 @@ It tests several local discovery paths and known GEN3 / GEN3+ read variants, inc
 Run it with Python 3.10+ on Windows:
 
 ```powershell
-py tsun_play2_probe.py --host 192.168.1.149 --monitor-sn 2081425267
+py tsun_play2_probe.py --host 192.168.1.50 --monitor-sn 1234567890
 ```
 
 The probe writes a diagnostic JSON even when no protocol is detected. The JSON excludes the target IP address, Monitor SN, MAC address and raw network payloads.
