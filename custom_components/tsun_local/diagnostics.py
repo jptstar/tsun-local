@@ -54,6 +54,7 @@ async def async_get_config_entry_diagnostics(
             "pv_count_strategy": "progressive_highest_observed_input",
             "measurement_keys": sorted(coordinator.client.measurement_keys),
             "logger_firmware_version": firmware_version,
+            "inverter_serial_prefix": coordinator.inverter_serial_prefix,
             "firmware_protocol_hint": firmware_protocol_hint,
             "firmware_protocol_matches_selected": (
                 firmware_protocol_hint == coordinator.client.protocol_name
@@ -69,6 +70,9 @@ async def async_get_config_entry_diagnostics(
             "logger_number_included": False,
             "logger_mac_address_included": False,
             "inverter_serial_number_included": False,
+            "inverter_serial_prefix_included": (
+                coordinator.inverter_serial_prefix is not None
+            ),
             "ap_envelope_included": False,
         },
     }
