@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.2] - 2026-08-25
+
+### Added
+
+- Add a privacy-safe three-character micro-inverter serial prefix to common communication logs and diagnostics, for example `Y47`, so multiple devices can be distinguished without exposing the complete inverter serial number.
+- Cover the serial-prefix logging path at the protocol-independent coordinator level, so it applies equally to 1511, 02B0 and 1097 devices whenever the local logger exposes `webdata_sn`.
+
+### Fixed
+
+- Send the explicit Solarman sensor-list selector `0x02B0` in every 02B0 AP request instead of relying on the previous `0x0000` default. A Sunology PLAY2 / LSW5BLE field probe returned a valid Modbus RTU FC03 response only with the real Monitoring SN and this explicit 02B0 selector.
+
+### Changed
+
+- Update the PLAY2 research status: firmware `LSW5BLE_17_02B0_1.08-D1` and a valid Solarman V5 `0x1510` response carrying Modbus RTU confirm the local protocol path as 02B0. Full Home Assistant integration validation on PLAY2 remains pending.
+- Keep the complete inverter serial number redacted from exported diagnostics while exposing only its short prefix when available.
+
+### Safety
+
+- All PLAY2/02B0 validation and integration traffic remains local and read-only.
+- No inverter configuration, protection-setting, provisioning, cloud request or control write is added.
+
 ## [1.5.1] - 2026-08-19
 
 ### Added
@@ -220,73 +241,6 @@ All notable changes to this project are documented here. The project follows [Se
 
 ### Added
 
-- firmware-guided automatic protocol selection using the protocol identifier reported by the TSUN logger firmware;
-- experimental 1097 protocol adapter and explicit forced protocol probing for compatibility testing;
-- automatic filtering of network discovery results using supported firmware protocol identifiers;
-- progressive PV-input detection based on actual device telemetry;
-- logger Wi-Fi signal diagnostic with an independent five-minute refresh;
-- raw logger inverter profile in Home Assistant device information;
-- read-only access to the TITAN native A1/21 diagnostic block (decimal registers 2000-2095), collected at a slow diagnostic cadence;
-- cross-protocol diagnostic entities for raw inverter status, rated inverter power and maximum designed power on 1511, 02B0 and 1097;
-- read-only slow diagnostic reads for 02B0 register `0x2007` and 1097 register `0x1437`;
-- raw diagnostic entities for TITAN registers 3017 and 3028, whose physical meaning and scaling remain unconfirmed.
-
-### Changed
-
-- automatic protocol selection is now driven by the firmware token instead of guessing from inverter characteristics;
-- detected PV inputs are retained and never removed after discovery;
-- logger metadata refresh is independent from inverter telemetry polling and freshly retrieved metadata is preserved across later inverter polling failures;
-- raw logger profile discovery is retried until available and the profile is stored as the Home Assistant device model identifier;
-- registers 3017 and 3028 are exposed without an offset, temperature unit, or temperature device class, and their entity names explicitly state that their meaning is unconfirmed;
-- optional inverter diagnostic blocks are read on the first poll and then refreshed every five minutes;
-- credit to Stefan Allius and the public `s-allius/tsun-gen3-proxy` research is retained for the experimental 1097 protocol work.
-
-### Fixed
-
-- remove the obsolete **Raw logger profile** diagnostic entity left in the Home Assistant entity registry by earlier beta releases;
-- remove the unused raw-profile entity translation key;
-- preserve logger metadata correctly across failed inverter polls.
-
-## [1.4.0-beta.6] - 2026-08-16
-
-### Fixed
-
-- remove the obsolete **Raw logger profile** diagnostic entity left in the Home Assistant entity registry by beta.4; the raw profile is now shown only in device information as the model identifier;
-- remove the unused raw-profile entity translation key from every supported language.
-
-## [1.4.0-beta.5] - 2026-08-16
-
-### Fixed
-
-- refresh logger Wi-Fi signal with a true independent five-minute timer, including while inverter TCP polling is offline;
-- preserve freshly refreshed logger metadata when a subsequent inverter poll fails;
-- retry raw logger profile discovery every five minutes until it becomes available, then update Home Assistant device information immediately;
-- include the raw logger profile in entity `DeviceInfo` so normal entity registration also carries the profile into the device registry.
-
-### Changed
-
-- credit Stefan Allius and the public `s-allius/tsun-gen3-proxy` research directly in the experimental 1097 protocol source.
-
-## [1.4.0-beta.4] - 2026-08-16
-
-### Added
-
-- show the raw logger inverter profile reported by `inv_tp` in Home Assistant device information;
-- expose the logger Wi-Fi signal as a percentage diagnostic entity and refresh it every five minutes independently of inverter polling.
-
-### Fixed
-
-- publish the localized setup and protocol-selector strings under a new beta version so Home Assistant and HACS reload them cleanly.
-
-### Safety
-
-- logger metadata remains read-only and is collected with local HTTP GET requests only;
-- no inverter control or configuration write has been added.
-
-## [1.4.0-beta.3] - 2026-08-16
-
-### Added
-
 - firmware-guided protocol selection for logger firmware names containing `1511`, `02B0`, or `1097`;
 - a manual **Force protocol probing** mode that deliberately ignores firmware hints and tries the supported adapters, plus direct `1511`, `1097`, and `02B0` choices for controlled compatibility testing;
 - diagnostics showing the firmware protocol hint and whether it matches the selected adapter.
@@ -443,6 +397,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.5.2]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.2
 [1.5.1-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.1
 [1.5.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.0
 [1.4.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.4.1
