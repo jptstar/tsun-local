@@ -21,12 +21,23 @@ from .protocols.ap import safe_error_details
 
 _LOGGER = logging.getLogger(__name__)
 POLL_LOCK = "poll_lock"
+INVERTER_SERIAL_PREFIX_LENGTH = 3
 
 
 def get_poll_lock(hass: HomeAssistant) -> asyncio.Lock:
     """Return the lock shared by setup validation and every device poll."""
     domain_data = hass.data.setdefault(DOMAIN, {})
     return domain_data.setdefault(POLL_LOCK, asyncio.Lock())
+
+
+def inverter_serial_prefix(serial_number: str | None) -> str | None:
+    """Return a short privacy-safe inverter identifier such as ``Y47``."""
+    if not serial_number:
+        return None
+    compact = "".join(character for character in serial_number.strip() if character.isalnum())
+    if len(compact) < INVERTER_SERIAL_PREFIX_LENGTH:
+        return None
+    return compact[:INVERTER_SERIAL_PREFIX_LENGTH].upper()
 
 
 class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -67,6 +78,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._consecutive_failures = 0
         self._online: bool | None = None
         self._last_error: dict[str, str] | None = None
+        self._inverter_serial_prefix = inverter_serial_prefix(inverter_serial_number)
         self._logger_metadata = {
             key: value
             for key, value in {
@@ -80,10 +92,22 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
 
     @property
+    def inverter_serial_prefix(self) -> str | None:
+        """Return the short inverter serial prefix used in logs/diagnostics."""
+        return self._inverter_serial_prefix
+
+    def _device_log_name(self) -> str:
+        """Return a log label without exposing the complete inverter serial."""
+        if self._inverter_serial_prefix is None:
+            return "TSUN device"
+        return f"TSUN device [{self._inverter_serial_prefix}]"
+
+    @property
     def diagnostic_summary(self) -> dict[str, Any]:
         """Return communication state without connection identifiers."""
         summary: dict[str, Any] = {
             "online": self._online,
+            "inverter_serial_prefix": self._inverter_serial_prefix,
             "last_success": (
                 self._last_success.isoformat()
                 if self._last_success is not None
@@ -120,6 +144,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if value is None or self._logger_metadata.get(key) == value:
                 continue
             self._logger_metadata[key] = value
+            if key == "inverter_serial_number":
+                self._inverter_serial_prefix = inverter_serial_prefix(str(value))
             changed = True
         if not changed:
             return False
@@ -154,9 +180,10 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if threshold_reached:
                 if self._online is not False:
                     _LOGGER.warning(
-                        "TSUN device is unavailable after %s consecutive "
+                        "%s is unavailable after %s consecutive "
                         "communication failures (%s); polling reduced to every "
                         "%s seconds",
+                        self._device_log_name(),
                         self._consecutive_failures,
                         type(err).__name__,
                         int(self._offline_update_interval.total_seconds()),
@@ -165,8 +192,9 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.update_interval = self._offline_update_interval
             else:
                 _LOGGER.debug(
-                    "TSUN communication attempt failed (%s/%s, %s); keeping "
+                    "%s communication attempt failed (%s/%s, %s); keeping "
                     "the device available and retrying in %s seconds",
+                    self._device_log_name(),
                     self._consecutive_failures,
                     self._failure_threshold,
                     type(err).__name__,
@@ -190,7 +218,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if self._online is False:
             _LOGGER.info(
-                "TSUN device communication restored; normal polling resumed"
+                "%s communication restored; normal polling resumed",
+                self._device_log_name(),
             )
         self._online = True
         self._consecutive_failures = 0
