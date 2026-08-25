@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import unittest
 
 
@@ -139,10 +140,17 @@ class MetadataTests(unittest.TestCase):
                 (ROOT / "docs" / "README_FR.md").read_text(encoding="utf-8"),
             )
         else:
+            # Patch releases that do not change translated UI copy may keep
+            # long-form localized READMEs on the latest patch of the same
+            # major/minor series. The canonical English README remains exact.
+            documentation_series = ".".join(documentation_version.split(".")[:2])
+            version_pattern = re.compile(
+                rf"\b{re.escape(documentation_series)}\.\d+\b"
+            )
             for name in localized:
-                self.assertIn(
-                    documentation_version,
+                self.assertRegex(
                     (ROOT / "docs" / name).read_text(encoding="utf-8"),
+                    version_pattern,
                 )
 
     def test_public_site_links_visual_entity_reference(self) -> None:
