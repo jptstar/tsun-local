@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -130,6 +130,8 @@ To enable one:
 
 Experimental semantic mappings remain explicitly marked until independently validated. No inverter configuration writes are implemented.
 
+Communication logs and exported diagnostics can include only the first three alphanumeric characters of the micro-inverter serial number (for example `Y47`) to distinguish devices while keeping the complete serial number redacted.
+
 📚 **[MP3000 field-validation evidence](docs/MP3000_FIELD_VALIDATION.md)**  
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
@@ -201,7 +203,11 @@ For VLANs, targeted discovery, before/after comparisons and advanced validation:
 
 ### Sunology PLAY2 / OEM logger research
 
-PLAY2 units that do not respond to the standard protocol detector can be investigated with the dedicated **read-only** PLAY2 probe.
+A Sunology PLAY2 field probe with firmware `LSW5BLE_17_02B0_1.08-D1` has now confirmed the local transport path: **Solarman V5 over TCP 8899 with an embedded 02B0 Modbus RTU response**. The successful read required the real Monitoring SN and the explicit Solarman sensor-list selector `0x02B0`.
+
+TSUN Local 1.5.2 therefore sends `sensor_list=0x02B0` explicitly for every 02B0 request. This matches the successful PLAY2 probe while remaining within the existing 02B0 protocol family.
+
+The dedicated **read-only** PLAY2 probe remains available for hardware validation:
 
 **⬇️ [Download `tsun_play2_probe.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_play2_probe.py)**
 
@@ -211,12 +217,12 @@ Windows example:
 py tsun_play2_probe.py --host PLAY2_IP --monitor-sn MONITOR_SN
 ```
 
-The probe can discover the actual local logger, validate Solarman V5 `0x4510 → 0x1510` transport, and classify the embedded response payload without sending configuration writes. A bare 12-hex discovery token is treated as an **opaque module identifier**, not automatically as the PLAY2 MAC address.
+The probe can discover the actual local logger, validate Solarman V5 `0x4510 → 0x1510` transport, and classify the embedded response payload without sending configuration writes. A bare 12-hex discovery token is treated as a logger/module MAC candidate and is not automatically equated with the PLAY2-visible MAC address.
 
 📚 **[PLAY2 local protocol research status](docs/PLAY2_LOCAL_RESEARCH.md)**
 
 > [!NOTE]
-> This is an active protocol-research path, not a PLAY2 compatibility claim yet.
+> The PLAY2 protocol path is field-confirmed as 02B0, but full TSUN Local/Home Assistant compatibility remains pending a direct integration test on the device.
 
 ---
 
