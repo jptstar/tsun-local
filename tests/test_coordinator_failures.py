@@ -126,6 +126,16 @@ class _Client:
 class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
     """Protect the three-attempt availability threshold."""
 
+    def test_builds_privacy_safe_inverter_serial_prefix(self) -> None:
+        self.assertEqual(
+            COORDINATOR.inverter_serial_prefix("Y47E8439081E01E5"), "Y47"
+        )
+        self.assertEqual(
+            COORDINATOR.inverter_serial_prefix(" y47-abc "), "Y47"
+        )
+        self.assertIsNone(COORDINATOR.inverter_serial_prefix(None))
+        self.assertIsNone(COORDINATOR.inverter_serial_prefix("Y4"))
+
     async def test_logger_metadata_is_exposed_and_survives_failures(self) -> None:
         client = _Client([_ReadResult({"ac_power": 400}), OSError("one")])
         coordinator = COORDINATOR.TsunCoordinator(
@@ -162,6 +172,46 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
                 data["logger_raw_profile"], "5393:Tengsheng_titan"
             )
             self.assertEqual(data["logger_wifi_signal"], 57)
+        self.assertEqual(coordinator.inverter_serial_prefix, "TES")
+        self.assertEqual(
+            coordinator.diagnostic_summary["inverter_serial_prefix"], "TES"
+        )
+
+    async def test_refreshed_serial_updates_log_prefix(self) -> None:
+        client = _Client([_ReadResult({"ac_power": 400})])
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(), object(), client, 20, 25, 300, 3, asyncio.Lock()
+        )
+        self.assertIsNone(coordinator.inverter_serial_prefix)
+        changed = coordinator.async_update_logger_metadata(
+            {"inverter_serial_number": "Y47E8439081E01E5"}
+        )
+        self.assertTrue(changed)
+        self.assertEqual(coordinator.inverter_serial_prefix, "Y47")
+
+    async def test_warning_uses_prefix_without_full_serial(self) -> None:
+        full_serial = "Y47E8439081E01E5"
+        client = _Client([OSError("one"), OSError("two"), OSError("three")])
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            client,
+            20,
+            25,
+            300,
+            3,
+            asyncio.Lock(),
+            inverter_serial_number=full_serial,
+        )
+        coordinator._online = True
+
+        with self.assertLogs(COORDINATOR._LOGGER.name, level="WARNING") as captured:
+            for _ in range(3):
+                coordinator.data = await coordinator._async_update_data()
+
+        message = "\n".join(captured.output)
+        self.assertIn("TSUN device [Y47] is unavailable", message)
+        self.assertNotIn(full_serial, message)
 
     async def test_refreshed_logger_metadata_survives_failed_poll(self) -> None:
         client = _Client([OSError("one")])
