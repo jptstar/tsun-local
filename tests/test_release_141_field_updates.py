@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+import re
 import sys
 import unittest
 
@@ -86,7 +87,9 @@ class Release141FieldUpdateTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(manifest["version"], "1.5.1")
+        version = manifest["version"]
+        self.assertRegex(version, r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$")
+        self.assertIn(f"<strong>{version}</strong>", readme)
 
 
 if __name__ == "__main__":
