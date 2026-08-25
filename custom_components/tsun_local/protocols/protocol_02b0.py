@@ -22,6 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PROTOCOL_NAME = "02b0"
 MODEL = "GEN3 / GEN3 PLUS"
+SENSOR_LIST = 0x02B0
 DIAGNOSTIC_INTERVAL = 300.0
 
 BLOCKS = (
@@ -296,7 +297,13 @@ class Tsun02b0Client:
     async def _read_block(self, block: tuple[int, int, int]) -> dict[int, int]:
         function, start, end = block
         payload = build_modbus_request(function, start, end)
-        request = build_ap_frame(self.logger_sn, payload)
+        # 02B0 is the protocol's Solarman sensor-list selector. Some loggers
+        # tolerate 0x0000, but LSW5BLE/PLAY2 requires the explicit 0x02B0 value.
+        request = build_ap_frame(
+            self.logger_sn,
+            payload,
+            sensor_list=SENSOR_LIST,
+        )
         writer: asyncio.StreamWriter | None = None
         stage = "connection"
         response: bytes | None = None
