@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).parents[1]
@@ -15,12 +16,14 @@ FILES = (
     "README_ZH.md",
 )
 
+VERSION_PATTERN = re.compile(r"<strong>1\.5\.\d+(?:-beta\.\d+)?</strong>")
+
 
 class Stable151LocalizedReadmeTests(unittest.TestCase):
     def test_all_localized_readmes_follow_current_structure(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
-            self.assertIn("<strong>1.5.1</strong>", text, filename)
+            self.assertRegex(text, VERSION_PATTERN, filename)
             self.assertIn("### 1511", text, filename)
             self.assertIn("### 02B0", text, filename)
             self.assertIn("### 1097", text, filename)
