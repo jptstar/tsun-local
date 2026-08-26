@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.2</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.3-beta.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -110,13 +110,13 @@ Protocol support is implemented, but more real-device validation is required.
 
 ---
 
-## 🚨 MP3000 alarms
+## 🚨 Alarm catalogues
 
-TSUN Local supports the complete MP3000 alarm bitfield while keeping the Home Assistant interface compact. **All 224 alarm positions are preserved and evaluated when active.**
+TSUN Local keeps the Home Assistant alarm interface compact while preserving every alarm-bit position used by each supported protocol. **1511 exposes 224 catalogue positions; 02B0 and 1097 expose 64 positions each.**
 
-The **12 hardware-observed functional mappings** cover low PV input voltage and PV DSP faults for PV1 through PV6. The remaining **212 positions** retain stable neutral TSUN Local identifiers until their functional meaning is physically validated.
+Every active alarm is presented as `Description (PROTOCOL-Axxx)`, including alarms whose functional meaning is already known. Unknown positions remain visible with neutral localized wording, for example `Unidentified inverter alarm (02B0-A006)`.
 
-Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor. The 14 complete raw words remain available as disabled-by-default diagnostics without creating 224 permanent entities.
+Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. Complete raw alarm words remain available as disabled-by-default diagnostics rather than creating hundreds of permanent entities.
 
 ---
 
