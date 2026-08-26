@@ -1,0 +1,307 @@
+name: Prepare PLAY2 beta communication
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - .github/workflows/prepare-play2-beta2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Apply PLAY2 validation, SEO and beta consistency updates
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+
+          ROOT = Path('.')
+          VERSION = '1.5.3-beta.2'
+
+          def read(path):
+              return (ROOT / path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              (ROOT / path).write_text(text, encoding='utf-8')
+
+          def replace_required(text, old, new, path, count=1):
+              if old not in text:
+                  raise SystemExit(f'Missing expected text in {path}: {old[:100]!r}')
+              return text.replace(old, new, count)
+
+          # Version metadata.
+          manifest_path = 'custom_components/tsun_local/manifest.json'
+          manifest = json.loads(read(manifest_path))
+          manifest['version'] = VERSION
+          write(manifest_path, json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
+
+          # Changelog: beta.2 is a communication/validation release; alarm code already exists in beta.1.
+          changelog_path = 'CHANGELOG.md'
+          changelog = read(changelog_path)
+          marker = '## [1.5.3-beta.1] - 2026-08-26\n'
+          section = '''## [1.5.3-beta.2] - 2026-08-26
+
+### Validated
+
+- Promote **Sunology PLAY2** to validated 02B0 hardware after an independent direct TSUN Local / Home Assistant installation automatically discovered the device and completed setup successfully.
+- Keep the tested PLAY2 transport documented as Solarman V5 over TCP 8899 with the explicit `0x02B0` sensor-list selector.
+
+### Communication and alarms
+
+- Advertise Sunology PLAY2 compatibility explicitly in the README, localized documentation, public website, entity pages and search metadata.
+- Clarify that the 1.5.3 alarm interface exposes **clear-text localized active alarm names** for 1511, 02B0 and 1097 while retaining stable protocol-position codes such as `02B0-A014`.
+- Document that PLAY2 / 02B0 users receive the same compact Home Assistant alarm interface: **Inverter alarm**, **Active alarms**, and **Active alarm names**; raw ERR1–ERR4 words remain optional advanced diagnostics.
+
+### Web / SEO
+
+- Add `Sunology PLAY2`, `Sunology Play 2`, `Home Assistant`, `02B0`, `local monitoring` and related terms to public page metadata and structured data.
+- Refresh the public compatibility and entity pages so they no longer present 1.5.1-era compatibility or alarm wording.
+
+### Safety
+
+- No new inverter write operation is introduced. PLAY2 compatibility and alarm decoding remain local and read-only.
+
+'''
+          if section not in changelog:
+              changelog = replace_required(changelog, marker, section + marker, changelog_path)
+          write(changelog_path, changelog)
+
+          # Release notes.
+          release_path = f'docs/releases/{VERSION}.md'
+          write(release_path, '''# TSUN Local 1.5.3-beta.2
+
+This beta aligns the project communication with the successful real-device validation of **Sunology PLAY2** and makes the new cross-protocol alarm experience explicit.
+
+## Sunology PLAY2 — validated
+
+An independent Home Assistant installation on a real Sunology PLAY2 automatically discovered the device and completed TSUN Local setup successfully.
+
+Validated path:
+
+```text
+Sunology PLAY2
+  → LSW5BLE logger
+  → TCP 8899
+  → Solarman V5
+  → sensor list 0x02B0
+  → Modbus RTU FC03
+  → TSUN Local / Home Assistant
+```
+
+The exact underlying TSUN MX hardware variant is intentionally not guessed; compatibility is tied to the confirmed local 02B0 protocol path.
+
+## Clear-text alarms
+
+The compact alarm interface introduced in 1.5.3-beta.1 is now highlighted consistently across the project:
+
+- **Inverter alarm** — problem binary sensor.
+- **Active alarms** — number of active alarm bits.
+- **Active alarm names** — localized clear-text descriptions with stable protocol-position codes.
+- **02B0 / PLAY2 example:** `Grid undervoltage (02B0-A014)` / `Sous-tension réseau (02B0-A014)`.
+- Raw 02B0 ERR1–ERR4 registers remain available as disabled-by-default diagnostics.
+
+This clear-text alarm catalogue is shared by 1511, 02B0 and 1097.
+
+## Web and documentation
+
+- Sunology PLAY2 / Sunology Play 2 added to compatibility communication and SEO metadata.
+- README and localized documentation synchronized with the validated PLAY2 status.
+- Public website and entity page refreshed from their stale 1.5.1 presentation.
+- PLAY2 research document moved from protocol-discovery status to direct-integration validation status.
+
+## Safety
+
+All inverter access remains local and read-only. No configuration, protection-setting, provisioning or control write is added.
+''')
+
+          # Main README.
+          path = 'README.md'
+          text = read(path)
+          text = replace_required(text, '<strong>1.5.3-beta.1</strong>', f'<strong>{VERSION}</strong>', path)
+          text = replace_required(text, '**✅ Validated**  \n`TSOL-MX500`', '**✅ Validated**  \n`TSOL-MX500` · `Sunology PLAY2`', path)
+          text = replace_required(text,
+              'Supports dynamic PV-input detection, AC/PV telemetry, inverter alarms and advanced read-only diagnostics.',
+              'Supports dynamic PV-input detection, AC/PV telemetry, inverter alarms and advanced read-only diagnostics. **Sunology PLAY2 is validated on real hardware through the 02B0 local path.**', path)
+          text = replace_required(text,
+              'Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. Complete raw alarm words remain available as disabled-by-default diagnostics rather than creating hundreds of permanent entities.',
+              'Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. **Active alarm names are localized clear-text descriptions with stable protocol-position codes** (for example `Grid undervoltage (02B0-A014)`). On Sunology PLAY2, the four raw 02B0 ERR words remain available as disabled-by-default diagnostics.', path)
+          old_note = '> [!NOTE]\n> The PLAY2 protocol path is field-confirmed as 02B0, but full TSUN Local/Home Assistant compatibility remains pending a direct integration test on the device.'
+          new_note = '> [!IMPORTANT]\n> **Sunology PLAY2 is now validated with TSUN Local on real Home Assistant hardware.** Automatic discovery and setup were confirmed independently on 2026-08-26. The exact underlying MX400/MX450/MX500 hardware variant remains intentionally unspecified; the confirmed 02B0 local protocol is authoritative.'
+          text = replace_required(text, old_note, new_note, path)
+          text = text.replace('TSUN Local 1.5.2 therefore sends', 'TSUN Local 1.5.2 and later therefore send')
+          text = text.replace('- **TheSmartGerman** — real-device compatibility feedback.', '- **TheSmartGerman** — real-device compatibility feedback.\n- **dca31** — independent Sunology PLAY2 / Home Assistant validation.')
+          write(path, text)
+
+          # Localized READMEs: synchronize version and validated PLAY2 line; add a localized clear-text alarm note.
+          localized = {
+              'docs/README_FR.md': ('Les alarmes actives sont également exposées en **texte clair localisé** avec un code stable par position, par exemple `Sous-tension réseau (02B0-A014)`. Le **Sunology PLAY2** bénéficie de cette interface 02B0 compacte ; les quatre mots ERR bruts restent disponibles en diagnostics avancés.', 'Validation indépendante du **Sunology PLAY2** dans Home Assistant : découverte automatique et ajout TSUN Local réussis sur matériel réel.'),
+              'docs/README_DE.md': ('Aktive Alarme werden außerdem als **lokalisierter Klartext** mit stabilem Positionscode angezeigt, zum Beispiel `Grid undervoltage (02B0-A014)` in der jeweiligen Home-Assistant-Sprache. **Sunology PLAY2** nutzt dieselbe kompakte 02B0-Alarmoberfläche; die vier rohen ERR-Wörter bleiben als erweiterte Diagnose verfügbar.', 'Unabhängige **Sunology PLAY2**-Validierung in Home Assistant: automatische Erkennung und erfolgreiche TSUN-Local-Einrichtung auf realer Hardware.'),
+              'docs/README_ES.md': ('Las alarmas activas también se muestran como **texto claro localizado** con un código de posición estable, por ejemplo `Subtensión de red (02B0-A014)`. **Sunology PLAY2** utiliza la misma interfaz compacta de alarmas 02B0; las cuatro palabras ERR brutas siguen disponibles como diagnóstico avanzado.', 'Validación independiente de **Sunology PLAY2** en Home Assistant: descubrimiento automático y configuración de TSUN Local completados correctamente en hardware real.'),
+              'docs/README_IT.md': ('Gli allarmi attivi sono mostrati anche come **testo chiaro localizzato** con un codice di posizione stabile, ad esempio `Sottotensione rete (02B0-A014)`. **Sunology PLAY2** usa la stessa interfaccia compatta 02B0; le quattro parole ERR grezze restano disponibili come diagnostica avanzata.', 'Validazione indipendente di **Sunology PLAY2** in Home Assistant: rilevamento automatico e configurazione TSUN Local completati con successo su hardware reale.'),
+              'docs/README_NL.md': ('Actieve alarmen worden ook weergegeven als **gelokaliseerde duidelijke tekst** met een stabiele positiecode, bijvoorbeeld `Netonderspanning (02B0-A014)`. **Sunology PLAY2** gebruikt dezelfde compacte 02B0-alarminterface; de vier ruwe ERR-woorden blijven beschikbaar als geavanceerde diagnose.', 'Onafhankelijke **Sunology PLAY2**-validatie in Home Assistant: automatische detectie en succesvolle TSUN Local-configuratie op echte hardware.'),
+              'docs/README_PL.md': ('Aktywne alarmy są również wyświetlane jako **zlokalizowany czytelny tekst** ze stabilnym kodem pozycji, na przykład `Zbyt niskie napięcie sieci (02B0-A014)`. **Sunology PLAY2** korzysta z tego samego kompaktowego interfejsu alarmów 02B0; cztery surowe słowa ERR pozostają dostępne jako diagnostyka zaawansowana.', 'Niezależna walidacja **Sunology PLAY2** w Home Assistant: automatyczne wykrycie i pomyślna konfiguracja TSUN Local na rzeczywistym urządzeniu.'),
+              'docs/README_ZH.md': ('活动告警也会以**本地化易读文本**显示，并带有稳定的位置代码，例如 `电网欠压 (02B0-A014)`。**Sunology PLAY2** 使用同一套精简的 02B0 告警界面；四个原始 ERR 字仍作为高级诊断保留。', '已在真实设备上独立验证 **Sunology PLAY2**：Home Assistant 自动发现设备并成功完成 TSUN Local 配置。'),
+          }
+          for path, (alarm_note, validation_note) in localized.items():
+              text = read(path)
+              text = re.sub(r'<strong>1\.5\.(?:1|3-beta\.1)</strong>', f'<strong>{VERSION}</strong>', text, count=1)
+              if '`TSOL-MX500` · `Sunology PLAY2`' not in text:
+                  text = replace_required(text, '`TSOL-MX500`', '`TSOL-MX500` · `Sunology PLAY2`', path)
+              # Add PLAY2 validation immediately before the 1097 subsection.
+              if validation_note not in text:
+                  idx = text.find('\n### 1097')
+                  if idx == -1:
+                      raise SystemExit(f'Cannot find 1097 subsection in {path}')
+                  text = text[:idx] + '\n\n' + validation_note + '\n' + text[idx:]
+              # Add alarm note immediately before advanced diagnostics.
+              if alarm_note not in text:
+                  idx = text.find('\n## 🛡️')
+                  if idx == -1:
+                      raise SystemExit(f'Cannot find advanced diagnostics heading in {path}')
+                  text = text[:idx] + '\n\n> [!TIP]\n> ' + alarm_note + '\n' + text[idx:]
+              if '**dca31**' not in text:
+                  marker = '- **TheSmartGerman**'
+                  pos = text.find(marker)
+                  if pos != -1:
+                      end = text.find('\n', pos)
+                      text = text[:end+1] + '- **dca31** — Sunology PLAY2 / Home Assistant real-device validation.\n' + text[end+1:]
+              write(path, text)
+
+          # French README has beta content already; add the same PLAY2/alarm messaging explicitly.
+          path = 'docs/README_FR.md'
+          text = read(path)
+          text = re.sub(r'<strong>1\.5\.3-beta\.1</strong>', f'<strong>{VERSION}</strong>', text, count=1)
+          if '`TSOL-MX500` · `Sunology PLAY2`' not in text:
+              text = replace_required(text, '`TSOL-MX500`', '`TSOL-MX500` · `Sunology PLAY2`', path)
+          fr_validation = 'Validation indépendante du **Sunology PLAY2** dans Home Assistant : découverte automatique et ajout TSUN Local réussis sur matériel réel.'
+          if fr_validation not in text:
+              idx = text.find('\n### 1097')
+              text = text[:idx] + '\n\n' + fr_validation + '\n' + text[idx:]
+          fr_alarm = 'Les alarmes actives sont exposées en **texte clair localisé** avec un code stable par position, par exemple `Sous-tension réseau (02B0-A014)`. Le **Sunology PLAY2** bénéficie de cette interface 02B0 compacte ; les quatre mots ERR bruts restent disponibles en diagnostics avancés.'
+          if fr_alarm not in text:
+              idx = text.find('\n## 🛡️')
+              text = text[:idx] + '\n\n> [!TIP]\n> ' + fr_alarm + '\n' + text[idx:]
+          if '**dca31**' not in text:
+              text = text.replace('- **TheSmartGerman** — retours de compatibilité sur matériel réel.', '- **TheSmartGerman** — retours de compatibilité sur matériel réel.\n- **dca31** — validation indépendante du Sunology PLAY2 dans Home Assistant.')
+          write(path, text)
+
+          # Entity reference.
+          path = 'docs/ENTITIES.md'
+          text = read(path)
+          text = replace_required(text, '**Status:** ✅ Validated on TSOL-MX500  ', '**Status:** ✅ Validated on TSOL-MX500 and Sunology PLAY2  ', path)
+          play2_note = '> **Sunology PLAY2 / 02B0:** direct Home Assistant validation confirms automatic discovery and normal TSUN Local setup. The user-facing alarm interface includes `inverter_alarm`, `alarm_active_count` and localized `active_alarm_names`; raw ERR1–ERR4 registers remain disabled-by-default diagnostics.\n\n'
+          marker = '## 02B0-specific diagnostics\n\n'
+          if play2_note not in text:
+              text = replace_required(text, marker, marker + play2_note, path)
+          write(path, text)
+
+          # PLAY2 research status becomes validation record rather than open protocol research.
+          path = 'docs/PLAY2_LOCAL_RESEARCH.md'
+          text = read(path)
+          status_anchor = '## Current status\n\nThe local transport is no longer considered completely unknown.\n'
+          validated_status = '''## Current status
+
+**Validated in TSUN Local / Home Assistant on 2026-08-26.** An independent user installation automatically discovered a real Sunology PLAY2 and completed setup successfully. The tested local path is 02B0; the exact underlying MX400/MX450/MX500 hardware variant remains intentionally unspecified.
+
+The protocol investigation established the following path before the direct integration validation:
+'''
+          text = replace_required(text, status_anchor, validated_status, path)
+          text = text.replace('- The remaining V5 research target is the protocol carried inside the response payload.\n', '- The embedded inverter protocol is confirmed as 02B0 Modbus RTU for the tested unit.\n')
+          text = text.replace('## Success criteria\n\nEither of these would be a decisive result:', '## Validation result\n\nThe decisive result has now been reached: the supported 02B0 path works through the normal TSUN Local Home Assistant integration. Earlier research success criteria included:')
+          text += '\n\n## Home Assistant validation\n\nThe direct integration test confirmed automatic discovery and successful setup on real Sunology PLAY2 hardware. This promotes the commercial **Sunology PLAY2** model to validated compatibility for the confirmed 02B0 logger/protocol path.\n'
+          write(path, text)
+
+          # Public website: remove stale 1.5.1 SEO and add PLAY2 + clear-text alarms.
+          path = 'docs/index.html'
+          text = read(path)
+          text = text.replace('TSUN Local — TSUN Microinverters in Home Assistant', 'TSUN Local — TSUN & Sunology PLAY2 in Home Assistant')
+          text = re.sub(r'<meta name="description" content="[^"]+">', '<meta name="description" content="Local Home Assistant monitoring for TSUN microinverters and the validated Sunology PLAY2. Automatic discovery, 02B0 support, clear-text alarms, no cloud and no proxy.">', text, count=1)
+          text = text.replace('"softwareVersion": "1.5.1"', f'"softwareVersion": "{VERSION}"')
+          text = text.replace('"TSOL-MX500", "1511"', '"TSOL-MX500", "Sunology PLAY2", "Sunology Play 2", "1511"')
+          text = text.replace('<a href="#release">1.5.1</a>', f'<a href="#release">{VERSION}</a>')
+          text = text.replace('including the validated TSOL-MP3000 and TSOL-MX500', 'including the validated TSOL-MP3000, TSOL-MX500 and Sunology PLAY2')
+          text = text.replace('href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1">Release 1.5.1', 'href="https://github.com/jptstar/tsun-local/releases">Releases')
+          text = text.replace('<span class="preview-kicker">NEW IN 1.5.1</span>', '<span class="preview-kicker">PLAY2 VALIDATED · 1.5.3 BETA</span>')
+          text = text.replace('<h2>1.5.1: MP3000 field-validation update</h2>', '<h2>Sunology PLAY2 validated · 1.5.3 clear-text alarms</h2>')
+          text = text.replace('Version 1.5.1 consolidates the complete MP3000 alarm interface, field-validation diagnostics, localized alarm-name entity, logger RSSI fix and local DSP/QCPU firmware diagnostics.', 'TSUN Local now validates Sunology PLAY2 through the 02B0 local path. The 1.5.3 beta also provides a common clear-text alarm catalogue for 1511, 02B0 and 1097, with localized names and stable alarm-position codes.')
+          text = text.replace('<tr><td><strong>02B0</strong></td><td>GEN3 / GEN3 PLUS · <strong>TSOL-MX500</strong></td><td>✅ Validated</td></tr>', '<tr><td><strong>02B0</strong></td><td>GEN3 / GEN3 PLUS · <strong>TSOL-MX500 · Sunology PLAY2</strong></td><td>✅ Validated</td></tr>')
+          text = text.replace('The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.', 'The TSOL-MP3000 is validated with 1511; the TSOL-MX500 and Sunology PLAY2 are validated with 02B0. Other models may work when they expose a supported protocol.')
+          text = text.replace('What is new in 1.5.1?', 'What is new in 1.5.3 beta?')
+          text = text.replace('The normal telemetry and 1.5.0 alarm interface remain intact; the additional MP3000 semantic diagnostics remain explicitly labelled as field-validation candidates until independently confirmed.', 'Sunology PLAY2 compatibility is now validated, and active alarms across 1511, 02B0 and 1097 are exposed as localized clear-text names with stable protocol-position codes.')
+          write(path, text)
+
+          # Visual entity page: broaden SEO and make PLAY2 alarm entities explicit.
+          path = 'docs/entities.html'
+          text = read(path)
+          text = text.replace('<title>TSUN MP3000 Entities for Home Assistant | TSUN Local</title>', '<title>TSUN Local Entities & Sunology PLAY2 Alarms | Home Assistant</title>')
+          text = re.sub(r'<meta name="description" content="[^"]+">', '<meta name="description" content="TSUN Local Home Assistant entity reference for TSUN microinverters and Sunology PLAY2, including 02B0 telemetry, clear-text alarms and advanced diagnostics.">', text, count=1)
+          text = text.replace('TSUN Local · Home Assistant entity reference · 1.5.1', f'TSUN Local · Home Assistant entity reference · {VERSION}')
+          text = text.replace('Validated on the TSOL-MX500, with up to four PV inputs detected dynamically.', 'Validated on the TSOL-MX500 and **Sunology PLAY2**, with up to four PV inputs detected dynamically.')
+          text = text.replace('<div class="group"><strong>🚨 Raw alarm diagnostics</strong><span class="muted"><code>alarm_code_1_raw</code> through <code>alarm_code_4_raw</code>, disabled by default.</span></div>', '<div class="group"><strong>🚨 Clear-text alarms</strong><span class="muted"><code>inverter_alarm</code> · <code>alarm_active_count</code> · <code>active_alarm_names</code> with localized names and stable 02B0-Axxx codes. Raw ERR1–ERR4 remain advanced diagnostics.</span></div>')
+          write(path, text)
+
+          # Regression guard for PLAY2 communication/docs and 02B0 clear-text alarm exposure.
+          test_path = 'tests/test_play2_beta_communication.py'
+          write(test_path, '''from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).parents[1]
+
+
+class Play2BetaCommunicationTests(unittest.TestCase):
+    def test_02b0_declares_clear_text_alarm_entities(self) -> None:
+        source = (ROOT / "custom_components/tsun_local/protocols/protocol_02b0.py").read_text(encoding="utf-8")
+        self.assertIn('"alarm_active_count"', source)
+        self.assertIn('"active_alarm_names"', source)
+        self.assertIn('SENSOR_LIST = 0x02B0', source)
+
+    def test_public_docs_mark_play2_validated(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        entities = (ROOT / "docs/ENTITIES.md").read_text(encoding="utf-8")
+        self.assertIn('`Sunology PLAY2`', readme)
+        self.assertIn('Sunology PLAY2 is now validated', readme)
+        self.assertIn('TSOL-MX500 and Sunology PLAY2', entities)
+
+    def test_web_metadata_mentions_play2(self) -> None:
+        site = (ROOT / "docs/index.html").read_text(encoding="utf-8")
+        self.assertIn('Sunology PLAY2', site)
+        self.assertIn('Sunology Play 2', site)
+        self.assertIn('clear-text alarms', site)
+
+
+if __name__ == "__main__":
+    unittest.main()
+''')
+
+          # Remove this one-shot workflow after applying the patch.
+          (ROOT / '.github/workflows/prepare-play2-beta2.yml').unlink()
+          PY
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check diff
+        run: git diff --check
+
+      - name: Commit prepared beta.2
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Prepare 1.5.3-beta.2 PLAY2 validation and clear-text alarms"
+          git push origin HEAD:beta-1097
