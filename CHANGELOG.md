@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.3-beta.1] - 2026-08-26
+
+### Added
+
+- Add protocol-aware alarm catalogues for all three supported local protocols: 224 stable positions for 1511 and 64 stable positions each for 02B0 and 1097.
+- Add known GEN3 / GEN3 PLUS event and fault descriptions for 02B0 and 1097 while preserving neutral wording for every unknown or reserved position.
+- Expose the same compact alarm interface on 02B0 and 1097 as on 1511: **Inverter alarm**, **Active alarms**, **Active alarm names**, and disabled raw alarm words.
+
+### Changed
+
+- Use one public alarm-code format across all protocols: `1511-Axxx`, `02B0-Axxx`, and `1097-Axxx`.
+- Always append the stable protocol-position code to the localized alarm description, for example `Grid undervoltage (02B0-A014)` or `Unidentified inverter alarm (1097-A041)`.
+- Keep Home Assistant technical entity IDs and object IDs stable in English while alarm descriptions remain localized in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Keep complete raw alarm words available for diagnostics without creating one Home Assistant entity per alarm bit.
+
+### Safety
+
+- Alarm decoding remains entirely local and read-only.
+- Unknown alarm positions are not assigned invented functional meanings.
+- No inverter configuration, protection-setting or control write is added.
+
 ## [1.5.2] - 2026-08-25
 
 ### Added
@@ -397,6 +418,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.5.3-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.3-beta.1
 [1.5.2]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.2
 [1.5.1-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.1
 [1.5.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.0
