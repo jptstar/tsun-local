@@ -40,6 +40,25 @@ def inverter_serial_prefix(serial_number: str | None) -> str | None:
     return compact[:INVERTER_SERIAL_PREFIX_LENGTH].upper()
 
 
+def _add_common_alarm_metadata(
+    measurements: dict[str, Any], protocol_name: str
+) -> dict[str, Any]:
+    """Add protocol identity and a common active-alarm count when needed."""
+    data = dict(measurements)
+    data["_alarm_protocol"] = protocol_name.lower()
+    if "alarm_active" in data and "alarm_active_count" not in data:
+        data["alarm_active_count"] = sum(
+            value.bit_count()
+            for key, value in data.items()
+            if (
+                isinstance(value, int)
+                and key.startswith("alarm_code_")
+                and key.endswith("_raw")
+            )
+        )
+    return data
+
+
 class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Coordinate polling of one locally connected TSUN device."""
 
@@ -226,9 +245,13 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._last_error = None
         self.update_interval = self._normal_update_interval
         self._last_success = dt_util.utcnow()
+        measurements = _add_common_alarm_metadata(
+            result.measurements,
+            str(getattr(self.client, "protocol_name", "1511")),
+        )
         return {
             **self._logger_metadata,
-            **result.measurements,
+            **measurements,
             "communication_online": True,
             "communication_last_success": self._last_success,
             "communication_duration": result.duration_ms,
