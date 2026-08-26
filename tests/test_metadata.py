@@ -70,9 +70,7 @@ class MetadataTests(unittest.TestCase):
         for filename, expected_name in expected_names.items():
             translated = _load_json(INTEGRATION / "translations" / filename)
             self.assertEqual(
-                translated["entity"]["binary_sensor"]["communication_online"][
-                    "name"
-                ],
+                translated["entity"]["binary_sensor"]["communication_online"]["name"],
                 expected_name,
             )
 
@@ -92,9 +90,7 @@ class MetadataTests(unittest.TestCase):
     def test_raw_logger_profile_is_device_info_only(self) -> None:
         """Keep the raw profile out of entities and clean the beta.4 orphan."""
         strings = _load_json(INTEGRATION / "strings.json")
-        self.assertNotIn(
-            "logger_raw_profile", strings["entity"]["sensor"]
-        )
+        self.assertNotIn("logger_raw_profile", strings["entity"]["sensor"])
         init_source = (INTEGRATION / "__init__.py").read_text(encoding="utf-8")
         self.assertIn(
             'legacy_unique_id = f"{logger_sn}_logger_raw_profile"',
@@ -132,21 +128,13 @@ class MetadataTests(unittest.TestCase):
         self.assertIn(f"<strong>{version}</strong>", root_readme)
         documentation_version = version.split("-beta.", 1)[0]
         if "-beta." in version:
-            # The beta README and French beta notes are updated immediately;
-            # the remaining localized long-form READMEs may continue to
-            # describe the latest stable release until the beta is promoted.
             self.assertIn(
                 documentation_version,
                 (ROOT / "docs" / "README_FR.md").read_text(encoding="utf-8"),
             )
         else:
-            # Patch releases that do not change translated UI copy may keep
-            # long-form localized READMEs on the latest patch of the same
-            # major/minor series. The canonical English README remains exact.
             documentation_series = ".".join(documentation_version.split(".")[:2])
-            version_pattern = re.compile(
-                rf"\b{re.escape(documentation_series)}\.\d+\b"
-            )
+            version_pattern = re.compile(rf"\b{re.escape(documentation_series)}\.\d+\b")
             for name in localized:
                 self.assertRegex(
                     (ROOT / "docs" / name).read_text(encoding="utf-8"),
@@ -156,51 +144,43 @@ class MetadataTests(unittest.TestCase):
     def test_public_site_links_visual_entity_reference(self) -> None:
         index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         entities = (ROOT / "docs" / "entities.html").read_text(encoding="utf-8")
+        play2 = (ROOT / "docs" / "sunology-play2.html").read_text(encoding="utf-8")
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         text_sitemap = (ROOT / "docs" / "sitemap.txt").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
         self.assertIn('href="entities.html"', index)
-        self.assertIn("Plug &amp; play identification", index)
-        self.assertIn("1.5.1: MP3000 field-validation update", index)
-        self.assertIn('<strong>59</strong><span>enabled by default</span>', index)
-        self.assertIn('<strong>49</strong><span>advanced diagnostics</span>', index)
-        self.assertIn('<strong>224</strong><span>alarm positions preserved</span>', index)
-        self.assertIn("hardware-observed mappings", index)
-        self.assertIn("Local TSUN microinverter monitoring for Home Assistant.", index)
-        self.assertIn("TSUN Local and Home Assistant FAQ", index)
-        self.assertIn("Stefan Allius", index)
-        self.assertIn("TSUN MP3000 and microinverter entities for Home Assistant.", entities)
-        self.assertIn("108", entities)
-        self.assertIn("59", entities)
-        self.assertIn("49", entities)
-        self.assertIn("224", entities)
-        self.assertIn("total MP3000 entities", entities)
-        self.assertIn("total with 6 PV inputs", entities)
-        self.assertIn("How 1511 alarms appear in Home Assistant", entities)
-        self.assertIn("hardware-observed alarm mappings", entities)
-        self.assertIn("All 224 source positions remain covered", entities)
-        self.assertIn("country_profile_raw", entities)
-        self.assertIn("0x07D0", entities)
-        self.assertIn("Stefan Allius", entities)
-        self.assertNotIn("Profile-only data", entities)
-        self.assertNotIn("1.5.1 beta", index)
-        self.assertNotIn("1.5.1-beta", index)
-        self.assertNotIn("105 entities with 6 PV inputs", entities)
-        self.assertNotIn("New semantic diagnostics in beta", entities)
-        self.assertIn("108 entities with 6 PV inputs", entities)
-        self.assertIn("Device and logger</td><td>8</td>", entities)
-        self.assertIn("59 enabled · 49 advanced", entities)
-        self.assertNotIn("beta field-validation work", entities)
-        self.assertIn("entities.html", sitemap)
-        self.assertEqual(sitemap.count("<lastmod>2026-08-19</lastmod>"), 2)
+        self.assertIn('href="sunology-play2.html"', index)
+        self.assertIn("Install it. Add it. TSUN Local finds your inverter.", index)
+        self.assertIn("Sunology PLAY2", index)
+        self.assertIn("Automatic discovery", index)
+        self.assertIn("Alarms in clear, human-readable text", index)
         self.assertIn('"@type": "WebSite"', index)
-        self.assertIn('"@type": "BreadcrumbList"', entities)
+        self.assertIn('"Sunology PLAY2"', index)
+
+        self.assertIn("TSUN Local Entities", entities)
+        self.assertIn("Sunology PLAY2", entities)
+        self.assertIn("Readable alarm entities", entities)
+        self.assertIn("active_alarm_names", entities)
+        self.assertIn("224 positions", entities)
+        self.assertIn("64 positions", entities)
+        self.assertIn("TSOL-MP3000", entities)
+        self.assertIn('"@type":"BreadcrumbList"', entities)
         self.assertIn('name="twitter:card"', entities)
+
+        self.assertIn("Sunology PLAY2 in Home Assistant", play2)
+        self.assertIn("VALIDATED ON REAL SUNOLOGY PLAY2 HARDWARE", play2)
+        self.assertIn("LSW5BLE_17_02B0_1.08-D1", play2)
+        self.assertIn("No proxy", play2)
+
+        self.assertIn("sunology-play2.html", sitemap)
+        self.assertIn("entities.html", sitemap)
+        self.assertEqual(sitemap.count("<lastmod>2026-08-26</lastmod>"), 3)
         self.assertEqual(
             text_sitemap.splitlines(),
             [
                 "https://jptstar.github.io/tsun-local/",
+                "https://jptstar.github.io/tsun-local/sunology-play2.html",
                 "https://jptstar.github.io/tsun-local/entities.html",
             ],
         )

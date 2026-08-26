@@ -4,8 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk">
-  <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
+  <title>TSUN Local — Sunology PLAY2 & TSUN in Home Assistant</title>
+  <meta name="description" content="Plug-and-play local Home Assistant integration for compatible TSUN microinverters and Sunology PLAY2. Automatic discovery, no cloud, no proxy, read-only local polling.">
+  <meta name="keywords" content="TSUN Local, Sunology PLAY2, Sunology Play 2, Sunology Home Assistant, PLAY2 Home Assistant, TSUN Home Assistant, TSOL-MP3000, TSOL-MX500, HACS, local solar monitoring, microinverter">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
@@ -13,18 +14,14 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
-  <meta property="og:description" content="Local, read-only monitoring for compatible TSUN microinverters in Home Assistant. Install through HACS with no cloud dependency or proxy.">
+  <meta property="og:title" content="TSUN Local — Sunology PLAY2 & TSUN in Home Assistant">
+  <meta property="og:description" content="Automatic local discovery for Sunology PLAY2 and compatible TSUN microinverters. Local, read-only, no cloud, no proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
-  <meta property="og:image:width" content="256">
-  <meta property="og:image:height" content="256">
-  <meta property="og:image:alt" content="TSUN Local Home Assistant integration icon">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
-  <meta name="twitter:description" content="Local, read-only TSUN microinverter monitoring for Home Assistant through HACS.">
+  <meta name="twitter:title" content="TSUN Local — Sunology PLAY2 & TSUN in Home Assistant">
+  <meta name="twitter:description" content="Plug-and-play local solar monitoring for Home Assistant. Automatic discovery, no cloud, no proxy.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
-  <meta name="twitter:image:alt" content="TSUN Local Home Assistant integration icon">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -34,293 +31,117 @@
         "@id": "https://jptstar.github.io/tsun-local/#website",
         "name": "TSUN Local",
         "url": "https://jptstar.github.io/tsun-local/",
-        "description": "Local TSUN microinverter monitoring for Home Assistant.",
+        "description": "Plug-and-play local Home Assistant monitoring for compatible TSUN microinverters and Sunology PLAY2.",
         "inLanguage": "en"
       },
       {
         "@type": "SoftwareSourceCode",
         "@id": "https://jptstar.github.io/tsun-local/#software",
         "name": "TSUN Local",
-        "softwareVersion": "1.5.1",
-        "description": "Open-source HACS integration for direct, local and read-only monitoring of compatible TSUN solar microinverters in Home Assistant.",
+        "softwareVersion": "1.5.2",
+        "description": "Open-source HACS integration with automatic local discovery for compatible TSUN microinverters and Sunology PLAY2.",
         "url": "https://jptstar.github.io/tsun-local/",
         "codeRepository": "https://github.com/jptstar/tsun-local",
         "programmingLanguage": "Python",
         "runtimePlatform": "Home Assistant",
         "license": "https://www.gnu.org/licenses/gpl-3.0.html",
         "author": {"@type": "Person", "name": "Jean-Philippe TESTART", "url": "https://github.com/jptstar"},
-        "keywords": ["Home Assistant", "HACS", "TSUN microinverter", "TSOL-MP3000", "TSOL-MX500", "1511", "02B0", "1097", "solar monitoring", "local integration"]
+        "keywords": ["Home Assistant", "HACS", "TSUN", "Sunology PLAY2", "Sunology Play 2", "TSOL-MP3000", "TSOL-MX500", "1511", "02B0", "1097", "local solar monitoring", "automatic discovery"]
       }
     ]
   }
   </script>
   <style>
-    :root {
-      --ink: #10223a; --muted: #617188; --paper: #f4f7fb; --card: #fff;
-      --line: #dce5ef; --blue: #1167d8; --green: #148660;
-      --green-soft: #e7f7f1; --amber-soft: #fff3db; --violet: #6554d9;
-      --shadow: 0 18px 50px rgba(19, 50, 88, .10); --max: 1120px;
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0; color: var(--ink); background:
-        radial-gradient(circle at 88% 5%, rgba(17,103,216,.12), transparent 24rem), var(--paper);
-      font: 16px/1.56 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    a { color: var(--blue); }
-    .wrap { width: min(var(--max), calc(100% - 32px)); margin-inline: auto; }
-    .topline { height: 5px; background: linear-gradient(90deg, var(--green), var(--blue), var(--violet)); }
-    header { padding: 22px 0 72px; color: #fff; background: linear-gradient(145deg, #061c39 0%, #0a315e 70%, #105a9a 100%); }
-    nav { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
-    .brand { display: flex; align-items: center; gap: 12px; color: #fff; text-decoration: none; font-weight: 850; }
-    .brand img { width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.24); }
-    .navlinks { display: flex; gap: 20px; align-items: center; }
-    .navlinks a { color: #dceaff; text-decoration: none; font-size: 14px; font-weight: 700; }
-    .hero { display: grid; grid-template-columns: 1.35fr .65fr; gap: 48px; align-items: center; padding-top: 64px; }
-    .eyebrow { margin: 0 0 17px; color: #8cd5ff; text-transform: uppercase; letter-spacing: .13em; font-size: 13px; font-weight: 850; }
-    h1 { max-width: 800px; margin: 0; font-size: clamp(44px, 6vw, 74px); line-height: .98; letter-spacing: -.055em; }
-    .lead { max-width: 760px; margin: 25px 0 0; color: #d6e5f7; font-size: 20px; }
-    .strap { margin-top: 18px; font-weight: 850; letter-spacing: .02em; }
-    .actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 28px; }
-    .button { display: inline-block; padding: 12px 17px; border-radius: 11px; text-decoration: none; font-weight: 800; }
-    .primary { color: #071829; background: #8ee4ff; }
-    .secondary { color: #fff; border: 1px solid rgba(255,255,255,.27); background: rgba(255,255,255,.08); }
-    .preview-card { padding: 26px; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: rgba(255,255,255,.08); backdrop-filter: blur(12px); }
-    .preview-kicker { display: block; color: #8cd5ff; letter-spacing: .08em; font-size: 12px; font-weight: 900; }
-    .preview-primary { display: flex; gap: 13px; align-items: end; margin-top: 12px; }
-    .preview-primary .big { display: block; font-size: 56px; line-height: .88; letter-spacing: -.05em; font-weight: 900; }
-    .preview-primary strong { display: block; max-width: 130px; font-size: 21px; line-height: 1.05; }
-    .preview-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-    .preview-stat { min-height: 94px; padding: 13px; border-radius: 14px; background: rgba(255,255,255,.08); }
-    .preview-stat strong { display: block; font-size: 27px; line-height: 1; }
-    .preview-stat span { display: block; margin-top: 7px; color: #d6e5f7; font-size: 13px; line-height: 1.25; }
-    main { margin-top: -30px; padding-bottom: 72px; }
-    section { margin-top: 28px; padding: 34px; border: 1px solid var(--line); border-radius: 24px; background: var(--card); box-shadow: var(--shadow); }
-    section[id] { scroll-margin-top: 18px; }
-    h2 { margin: 0 0 10px; font-size: clamp(27px, 4vw, 39px); letter-spacing: -.04em; }
-    h3 { margin: 0 0 10px; }
-    .intro { max-width: 790px; margin: 0; color: var(--muted); font-size: 18px; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 26px; }
-    .card { min-height: 145px; padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: #f8fafd; }
-    .card strong { display: block; margin-bottom: 7px; font-size: 18px; }
-    .muted { color: var(--muted); }
-    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
-    .metric { min-height: 150px; padding: 24px; border-radius: 18px; background: #eef4fb; }
-    .metric.good { color: #0d684d; background: var(--green-soft); }
-    .metric.pending { color: #865000; background: var(--amber-soft); }
-    .number { display: block; font-size: 48px; line-height: 1; letter-spacing: -.05em; font-weight: 900; }
-    .label { display: block; margin-top: 13px; font-weight: 800; }
-    .sub { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; }
-    .progress { display: flex; overflow: hidden; height: 13px; margin-top: 20px; border-radius: 999px; background: #e9eef4; }
-    .progress .verified { width: 5.357%; background: var(--green); }
-    .progress .waiting { flex: 1; background: #e9a135; }
-    .alarm-demo, .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 26px; }
-    .alarm, .column { padding: 23px; border: 1px solid var(--line); border-radius: 18px; }
-    .alarm .row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
-    .alarm h3 { margin: 15px 0 5px; font-size: 20px; }
-    .alarm p { margin: 0; color: var(--muted); }
-    .pill { padding: 5px 9px; border-radius: 999px; color: var(--green); background: var(--green-soft); font-size: 12px; font-weight: 850; }
-    .pill.pending { color: #955800; background: var(--amber-soft); }
-    table { width: 100%; margin-top: 24px; border-collapse: collapse; }
-    th, td { padding: 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-    th { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .07em; }
-    tr:last-child td { border-bottom: 0; }
-    code { padding: 3px 7px; border-radius: 7px; color: #15466f; background: #eef3f8; font-weight: 750; }
-    ul { margin: 0; padding-left: 22px; }
-    li + li { margin-top: 8px; }
-    .column { background: #f8fafd; }
-    .notice { display: flex; gap: 17px; align-items: flex-start; margin-top: 24px; padding: 21px; border-radius: 18px; color: #754500; background: var(--amber-soft); }
-    .notice strong { display: block; margin-bottom: 3px; }
-    .languages { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-    .language { padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font-weight: 750; }
-    footer { padding: 8px 0 42px; color: var(--muted); text-align: center; font-size: 14px; }
-    @media (max-width: 830px) {
-      .hero, .alarm-demo, .columns { grid-template-columns: 1fr; }
-      .grid, .metrics { grid-template-columns: 1fr; }
-      .hero { gap: 28px; padding-top: 48px; }
-      .navlinks { display: none; }
-      section { padding: 24px; }
-      th:nth-child(2), td:nth-child(2) { display: none; }
-    }
+    :root{--ink:#10223a;--muted:#627188;--paper:#f3f7fb;--card:#fff;--line:#dce5ef;--blue:#1167d8;--green:#148660;--green-soft:#e7f7f1;--amber:#8a5700;--amber-soft:#fff3db;--max:1120px;--shadow:0 18px 50px rgba(19,50,88,.10)}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.58 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif} a{color:var(--blue)}
+    .wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}.top{height:5px;background:linear-gradient(90deg,#148660,#1167d8,#6554d9)}
+    header{padding:22px 0 72px;color:#fff;background:linear-gradient(145deg,#061c39 0%,#0a315e 70%,#105a9a 100%)} nav{display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;font-weight:850}.brand img{width:42px;height:42px;border-radius:12px}.links{display:flex;gap:18px}.links a{color:#dceaff;text-decoration:none;font-size:14px;font-weight:750}
+    .hero{display:grid;grid-template-columns:1.3fr .7fr;gap:42px;align-items:center;padding-top:58px}.eyebrow{margin:0 0 14px;color:#8cd5ff;text-transform:uppercase;letter-spacing:.12em;font-size:13px;font-weight:900}h1{margin:0;font-size:clamp(43px,6vw,74px);line-height:.98;letter-spacing:-.055em}.lead{max-width:760px;margin:24px 0 0;color:#d6e5f7;font-size:20px}.strap{margin-top:18px;font-weight:900}.actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:28px}.button{display:inline-block;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:850}.primary{color:#071829;background:#8ee4ff}.secondary{color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08)}
+    .hero-card{padding:26px;border:1px solid rgba(255,255,255,.16);border-radius:24px;background:rgba(255,255,255,.08)}.hero-card strong{display:block;font-size:24px}.hero-card ul{margin:18px 0 0;padding-left:21px;color:#d6e5f7}.hero-card li+li{margin-top:9px}
+    main{margin-top:-30px;padding-bottom:70px}section{margin-top:28px;padding:34px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:var(--shadow)}h2{margin:0 0 10px;font-size:clamp(28px,4vw,40px);letter-spacing:-.04em}.intro{max-width:830px;margin:0;color:var(--muted);font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}.card{padding:22px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}.card strong{display:block;margin-bottom:7px;font-size:18px}.muted{color:var(--muted)}table{width:100%;margin-top:24px;border-collapse:collapse}th,td{padding:14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.07em}tr:last-child td{border-bottom:0}.good{display:inline-block;padding:5px 9px;border-radius:999px;color:var(--green);background:var(--green-soft);font-size:12px;font-weight:850}.beta{display:inline-block;padding:5px 9px;border-radius:999px;color:var(--amber);background:var(--amber-soft);font-size:12px;font-weight:850}.steps{counter-reset:step;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:25px}.step{position:relative;padding:24px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}.step:before{counter-increment:step;content:counter(step);display:grid;place-items:center;width:34px;height:34px;margin-bottom:14px;border-radius:50%;color:#fff;background:var(--blue);font-weight:900}.code{padding:16px;border-radius:14px;background:#0e2036;color:#dceaff;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.notice{margin-top:22px;padding:19px;border-radius:16px;background:var(--green-soft);color:#0d684d}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}footer{padding:0 0 42px;color:var(--muted);text-align:center;font-size:14px}
+    @media(max-width:850px){.hero,.grid,.steps,.two{grid-template-columns:1fr}.links{display:none}section{padding:24px}.hero{padding-top:44px}}
   </style>
 </head>
 <body>
-  <div class="topline"></div>
-  <header>
-    <div class="wrap">
-      <nav>
-        <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#release">1.5.1</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
-      </nav>
-      <div class="hero" id="top">
-        <div>
-          <p class="eyebrow">TSUN microinverter integration · Home Assistant</p>
-          <h1>Local TSUN microinverter monitoring for Home Assistant.</h1>
-          <p class="lead">TSUN Local connects compatible TSUN solar microinverters—including the validated TSOL-MP3000 and TSOL-MX500—directly to Home Assistant over the local network.</p>
-          <p class="strap">Local. Read-only. No cloud. No proxy.</p>
-          <div class="actions">
-            <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local">Source &amp; README</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1">Release 1.5.1</a>
-          </div>
-        </div>
-        <aside class="preview-card" aria-label="MP3000 entity and alarm summary">
-          <span class="preview-kicker">NEW IN 1.5.1</span>
-          <div class="preview-primary"><span class="big">108</span><strong>MP3000 entities</strong></div>
-          <div class="preview-stats">
-            <div class="preview-stat"><strong>59</strong><span>enabled by default</span></div>
-            <div class="preview-stat"><strong>49</strong><span>advanced diagnostics</span></div>
-            <div class="preview-stat"><strong>10</strong><span>new A1/21 field-validation entities</span></div>
-            <div class="preview-stat"><strong>224</strong><span>alarm positions preserved</span></div>
-          </div>
-        </aside>
+<div class="top"></div>
+<header>
+  <div class="wrap">
+    <nav><a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="links"><a href="#play2">Sunology PLAY2</a><a href="#compatibility">Compatibility</a><a href="entities.html">Entities</a><a href="#alarms">Alarms</a><a href="#install">Install</a></div></nav>
+    <div class="hero" id="top">
+      <div>
+        <p class="eyebrow">Home Assistant · local solar monitoring</p>
+        <h1>Install it. Add it. TSUN Local finds your inverter.</h1>
+        <p class="lead">Plug-and-play local monitoring for compatible TSUN microinverters and the <strong>Sunology PLAY2</strong>, directly inside Home Assistant.</p>
+        <p class="strap">Automatic discovery · Local · Read-only · No cloud · No proxy</p>
+        <div class="actions"><a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a><a class="button secondary" href="https://github.com/jptstar/tsun-local">GitHub</a><a class="button secondary" href="sunology-play2.html">Sunology PLAY2</a></div>
       </div>
+      <aside class="hero-card"><strong>What “plug-and-play” means</strong><ul><li>No IP address in the normal automatic flow</li><li>No proxy service to deploy</li><li>No cloud account in the data path</li><li>No protocol selector to configure</li><li>PV inputs appear dynamically</li></ul></aside>
     </div>
-  </header>
+  </div>
+</header>
+<main class="wrap">
+  <section id="play2">
+    <span class="good">VALIDATED ON REAL HARDWARE</span>
+    <h2>Sunology PLAY2 now works directly with TSUN Local</h2>
+    <p class="intro">An independent community installation confirmed that a real Sunology PLAY2 is automatically and quickly discovered by the normal TSUN Local integration in Home Assistant.</p>
+    <div class="two">
+      <div class="card"><strong>Automatic Home Assistant setup</strong><span class="muted">The PLAY2 test completed through the normal integration flow. The dedicated research probe is no longer required for ordinary installation.</span></div>
+      <div class="card"><strong>Validated local path</strong><span class="muted">LSW5BLE → TCP 8899 → Solarman V5 → 02B0 → Modbus RTU FC03.</span></div>
+    </div>
+    <div class="notice"><strong>Tested logger firmware:</strong> <code>LSW5BLE_17_02B0_1.08-D1</code>. The commercial PLAY2 name may cover different hardware revisions, so TSUN Local continues to rely on the detected local protocol.</div>
+  </section>
 
-  <main class="wrap">
-    <section id="features">
-      <h2>TSUN Local at a glance</h2>
-      <p class="intro">One clean integration for three local TSUN protocol families, with everyday entities visible and expert diagnostics kept out of the way.</p>
-      <div class="grid">
-        <div class="card"><strong>🔌 1511 · 02B0 · 1097</strong><span class="muted">TITAN, GEN3 / GEN3 PLUS and experimental 1097 support.</span></div>
-        <div class="card"><strong>🔍 Plug &amp; play identification</strong><span class="muted">No protocol configuration in most cases. TSUN Local identifies a supported local protocol from the logger.</span></div>
-        <div class="card"><strong>☀️ Dynamic PV detection</strong><span class="muted">PV inputs appear progressively as the inverter exposes them.</span></div>
-        <div class="card"><strong>🚨 Clear alarms</strong><span class="muted">Localized active alarm names without a wall of permanent entities.</span></div>
-        <div class="card"><strong>🌍 Eight languages</strong><span class="muted">Entities and active alarm wording follow Home Assistant.</span></div>
-        <div class="card"><strong>🔒 Read-only</strong><span class="muted">No inverter configuration or protection-setting writes.</span></div>
-      </div>
-    </section>
+  <section id="automatic">
+    <h2>A local integration, not a protocol setup guide</h2>
+    <p class="intro">TSUN Local hides the network and protocol work whenever the device can be discovered automatically.</p>
+    <div class="steps"><div class="step"><strong>Install</strong><p class="muted">Add TSUN Local through HACS and restart Home Assistant.</p></div><div class="step"><strong>Add</strong><p class="muted">Open Settings → Devices & services and add TSUN Local.</p></div><div class="step"><strong>Use</strong><p class="muted">The integration discovers the logger, detects the supported protocol and creates the Home Assistant device.</p></div></div>
+  </section>
 
-    <section id="release">
-      <h2>1.5.1: MP3000 field-validation update</h2>
-      <p class="intro">Version 1.5.1 consolidates the complete MP3000 alarm interface, field-validation diagnostics, localized alarm-name entity, logger RSSI fix and local DSP/QCPU firmware diagnostics.</p>
-      <div class="grid">
-        <div class="card"><strong>📶 Wi-Fi RSSI fallback fixed</strong><span class="muted">A valid index page without RSSI no longer stops the search. TSUN Local continues until `/status.html` exposes `cover_sta_rssi`.</span></div>
-        <div class="card"><strong>🛡️ 10 A1/21 diagnostics</strong><span class="muted">Ten additional MP3000 field-validation sensors are available as advanced entities and remain disabled by default.</span></div>
-        <div class="card"><strong>🚨 DSP/QCPU firmware · Active alarm names</strong><span class="muted">A dedicated sensor exposes localized active alarm text directly in Home Assistant. Internal Axxx identifiers stay diagnostic-only.</span></div>
-        <div class="card"><strong>📐 Corrected coefficient</strong><span class="muted"><code>0x07EF</code> raw 4000 is decoded with ×0.01 as <strong>40.00 %/Hz</strong>.</span></div>
-      </div>
-    </section>
+  <section id="compatibility">
+    <h2>Validated compatibility</h2>
+    <p class="intro">Compatibility follows the local protocol family. Unlisted TSUN or OEM models may already work when they expose 1511, 02B0 or 1097.</p>
+    <table><thead><tr><th>Protocol</th><th>Family / hardware</th><th>Status</th></tr></thead><tbody><tr><td><strong>1511</strong></td><td>TITAN · <strong>TSOL-MP3000</strong></td><td>✅ Validated</td></tr><tr><td><strong>02B0</strong></td><td>GEN3 / GEN3 PLUS · <strong>TSOL-MX500 · Sunology PLAY2</strong></td><td>✅ Validated</td></tr><tr><td><strong>1097</strong></td><td>GEN3 / GEN3 PLUS</td><td>🧪 Experimental</td></tr></tbody></table>
+  </section>
 
-    <section id="alarms">
-      <h2>Every MP3000 alarm position is included</h2>
-      <p class="intro">The 14 local 16-bit words provide 224 stable positions. All 224 are counted and displayed when active; none is silently discarded.</p>
-      <div class="metrics">
-        <div class="metric"><span class="number">224</span><span class="label">positions integrated</span><span class="sub">A001 through A224</span></div>
-        <div class="metric good"><span class="number">12</span><span class="label">hardware-observed mappings</span><span class="sub">PV1 through PV6</span></div>
-        <div class="metric pending"><span class="number">212</span><span class="label">require control-hardware validation</span><span class="sub">detected, never guessed</span></div>
-      </div>
-      <div class="progress" aria-label="12 hardware-observed positions and 212 pending positions"><span class="verified"></span><span class="waiting"></span></div>
-      <div class="alarm-demo">
-        <article class="alarm">
-          <div class="row"><strong>Hardware-observed example</strong><span class="pill">OBSERVED</span></div>
-          <h3>PV1 input voltage too low</h3>
-          <p>A clear functional name, localized for Home Assistant.</p>
-        </article>
-        <article class="alarm">
-          <div class="row"><strong>Pending example</strong><span class="pill pending">PHYSICAL CHECK</span></div>
-          <h3>Unidentified inverter alarm</h3>
-          <p>The active position remains visible without inventing its exact cause.</p>
-        </article>
-      </div>
-      <table>
-        <thead><tr><th>Local range</th><th>Positions</th><th>Validation status</th></tr></thead>
-        <tbody>
-          <tr><td><code>A001–A064</code></td><td>64 inverter positions</td><td>Control-hardware validation required</td></tr>
-          <tr><td><code>A065–A128</code></td><td>64 controller positions</td><td>Control-hardware validation required</td></tr>
-          <tr><td><code>A129–A224</code></td><td>96 PV positions</td><td>12 hardware-observed · 84 require control-hardware validation</td></tr>
-        </tbody>
-      </table>
-      <div class="notice"><span>⚠️</span><div><strong>No alarm regression in 1.5.1</strong>The 224-position catalogue, stable internal positions, six PV alarm words and compact Home Assistant presentation remain unchanged from 1.5.0. The 1.5.1 diagnostics do not create duplicate alarm entities.</div></div>
-    </section>
+  <section id="features">
+    <h2>Useful data first</h2>
+    <div class="grid"><div class="card"><strong>☀️ PV production</strong><span class="muted">Voltage, current, power, daily energy and total energy per detected input.</span></div><div class="card"><strong>⚡ AC telemetry</strong><span class="muted">Voltage, current, frequency, power, daily energy and total energy.</span></div><div class="card"><strong>📡 Communication</strong><span class="muted">Online state, last success, communication duration and failures.</span></div><div class="card"><strong>🧩 Device information</strong><span class="muted">Firmware and logger information where available.</span></div><div class="card"><strong>🚨 Compact alarm interface</strong><span class="muted">Alarm state, active count and readable active alarm names instead of hundreds of permanent entities.</span></div><div class="card"><strong>🛡️ Advanced diagnostics</strong><span class="muted">Read-only expert data stays disabled by default until you need it.</span></div></div>
+  </section>
 
-    <section id="compatibility">
-      <h2>Your TSUN inverter may already work</h2>
-      <p class="intro">Compatibility follows the local protocol family. An unlisted model may already work if it uses 1511, 02B0 or 1097.</p>
-      <table>
-        <thead><tr><th>Protocol</th><th>Family and validated reference</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td><strong>1511</strong></td><td>TITAN · <strong>TSOL-MP3000</strong></td><td>✅ Validated</td></tr>
-          <tr><td><strong>02B0</strong></td><td>GEN3 / GEN3 PLUS · <strong>TSOL-MX500</strong></td><td>✅ Validated</td></tr>
-          <tr><td><strong>1097</strong></td><td>GEN3 / GEN3 PLUS</td><td>🧪 Experimental</td></tr>
-        </tbody>
-      </table>
-      <div class="columns">
-        <div class="column"><h3>Likely 1511 / 02B0 candidates</h3><p class="muted">TSOL-MP2250 · TSOL-MS3000 · TSOL-MX450 · TSOL-MX800 · TSOL-MX1000 · TSOL-MX3000 · TSOL-MS800 · TSOL-MS1600 · TSOL-MS1800 · TSOL-MS2000 and applicable -D variants.</p></div>
-        <div class="column"><h3>Experimental 1097 candidates</h3><p class="muted">TSOL-MS300 · TSOL-MS350 · TSOL-MS400 · TSOL-MS600 · TSOL-MS700 · TSOL-MS800 · TSOL-MS3000 · TSOL-MX3000D. Broader real-device validation is still required.</p></div>
-      </div>
-    </section>
+  <section id="alarms">
+    <span class="beta">1.5.3 BETA</span>
+    <h2>Alarms in clear, human-readable text</h2>
+    <p class="intro">The 1.5.3 beta unifies alarm presentation across 1511, 02B0 and 1097. Known alarms get localized functional names while unknown positions remain visible without invented meanings.</p>
+    <div class="two"><div class="code">Grid undervoltage (02B0-A014)
+PV1 input voltage too low (1511-A137)</div><div class="code">Unidentified inverter alarm (1097-A041)
+Stable code preserved for diagnosis</div></div>
+    <table><thead><tr><th>Protocol</th><th>Catalogue positions</th><th>Presentation</th></tr></thead><tbody><tr><td>1511</td><td>224</td><td>Localized text + stable code</td></tr><tr><td>02B0</td><td>64</td><td>Localized text + stable code</td></tr><tr><td>1097</td><td>64</td><td>Localized text + stable code</td></tr></tbody></table>
+    <p class="muted">Supported UI languages: English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.</p>
+  </section>
 
-    <section id="entities">
-      <h2>Useful entities first, advanced data on demand</h2>
-      <div class="columns">
-        <div class="column">
-          <h3>Enabled by default</h3>
-          <ul>
-            <li>PV voltage, current, power and energy</li>
-            <li>AC voltage, current, frequency, power and energy</li>
-            <li>Inverter alarm, active alarm count and localized active alarm names</li>
-            <li>Communication and logger information</li>
-            <li>Online state and manual refresh</li>
-          </ul>
-        </div>
-        <div class="column">
-          <h3>Advanced diagnostics</h3>
-          <ul>
-            <li>22 core grid-protection thresholds and timing values</li>
-            <li>10 additional MP3000 field-validation diagnostics</li>
-            <li>1511 country/profile raw candidate</li>
-            <li>Inverter and ambient temperature where available</li>
-            <li>Complete raw alarm words, disabled by default</li>
-          </ul>
-        </div>
-      </div>
-      <div class="actions"><a class="button primary" href="entities.html">Explore all entities</a><a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Technical reference</a></div>
-    </section>
+  <section id="entities">
+    <h2>Entity reference</h2>
+    <p class="intro">The exact entity count depends on protocol, detected PV inputs and the data returned by the inverter.</p>
+    <div class="actions"><a class="button primary" href="entities.html">Explore entities</a><a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local/blob/main/docs/ENTITIES.md">Technical reference</a></div>
+  </section>
 
-    <section id="install">
-      <h2>Install through HACS</h2>
-      <p class="intro">Home Assistant 2026.3.0 or later. Add the custom repository, install TSUN Local, restart Home Assistant, then add the integration from Settings → Devices &amp; services.</p>
-      <div class="actions">
-        <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Open the HACS repository</a>
-        <a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local">Read the installation guide</a>
-      </div>
-    </section>
+  <section id="install">
+    <h2>Install through HACS</h2>
+    <p class="intro">Home Assistant 2026.3.0 or later. Install TSUN Local, restart Home Assistant and add the integration. Automatic discovery is the recommended path.</p>
+    <div class="actions"><a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Open HACS repository</a><a class="button secondary" style="color:var(--ink);border-color:var(--line);background:#f8fafd" href="https://github.com/jptstar/tsun-local">Read the README</a></div>
+  </section>
 
-    <section id="faq">
-      <h2>TSUN Local and Home Assistant FAQ</h2>
-      <p class="intro">Quick answers for owners looking for a local TSUN microinverter integration.</p>
-      <div class="grid">
-        <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
-        <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
-        <div class="card"><strong>What is new in 1.5.1?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the additional MP3000 semantic diagnostics remain explicitly labelled as field-validation candidates until independently confirmed.</span></div>
-      </div>
-    </section>
+  <section id="faq">
+    <h2>FAQ</h2>
+    <div class="grid"><div class="card"><strong>Does Sunology PLAY2 require a proxy?</strong><span class="muted">No. The validated PLAY2 path is read directly on the local network by TSUN Local.</span></div><div class="card"><strong>Do I need the PLAY2 IP address?</strong><span class="muted">Not in the validated normal automatic flow. Manual targeting remains available for unusual networks.</span></div><div class="card"><strong>Does TSUN Local use the cloud?</strong><span class="muted">No cloud service is required in the Home Assistant data path.</span></div></div>
+  </section>
 
-    <section>
-      <h2>Documentation in eight languages</h2>
-      <p class="intro">The integration interface and MP3000 alarm presentation are available across the complete TSUN Local language set.</p>
-      <div class="languages">
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a>
-        <a class="language" href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
-      </div>
-    </section>
-
-    <section>
-      <h2>Independent community project</h2>
-      <p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN. TSUN and its product names remain the property of their respective owners.</p>
-      <p>Created and maintained by <a href="https://github.com/jptstar">Jean-Philippe TESTART (jptstar)</a> for the Home Assistant community. Public 1097 country/profile research used by the experimental adapter is credited to <a href="https://github.com/s-allius/tsun-gen3-proxy">Stefan Allius</a>. Distributed under GPL-3.0-or-later.</p>
-    </section>
-  </main>
-
-  <footer class="wrap">TSUN Local · <a href="entities.html">Entity reference</a> · <a href="https://github.com/jptstar/tsun-local">Source</a> · <a href="https://github.com/jptstar/tsun-local/issues">Issues</a> · <a href="https://github.com/jptstar/tsun-local/releases">Releases</a></footer>
+  <section>
+    <h2>Independent community project</h2>
+    <p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN or Sunology.</p>
+    <p>Created and maintained by <a href="https://github.com/jptstar">Jean-Philippe TESTART (jptstar)</a>. Public GEN3/1097 protocol research is credited where used, and independent real-hardware validations are documented in the repository.</p>
+  </section>
+</main>
+<footer class="wrap">TSUN Local · <a href="sunology-play2.html">Sunology PLAY2</a> · <a href="entities.html">Entities</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · <a href="https://github.com/jptstar/tsun-local/releases">Releases</a></footer>
 </body>
 </html>
