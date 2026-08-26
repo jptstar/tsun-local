@@ -124,8 +124,11 @@ class TsunAlarmSensor(CoordinatorEntity[TsunCoordinator], BinarySensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
-        """Expose clear MP3000 alarms or legacy raw protocol values."""
-        if str(getattr(self.coordinator.client, "protocol_name", "")) == "1511":
+        """Expose decoded active alarms for every supported protocol."""
+        protocol_name = str(
+            getattr(self.coordinator.client, "protocol_name", "")
+        ).lower()
+        if protocol_name in {"1511", "02b0", "1097"}:
             return alarm_state_attributes(
                 self.coordinator.data,
                 self.coordinator.hass.config.language,
