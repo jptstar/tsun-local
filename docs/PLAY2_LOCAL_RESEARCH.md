@@ -4,14 +4,16 @@ This document tracks the current read-only local-protocol investigation for Suno
 
 ## Current status
 
-The local transport is no longer considered completely unknown.
+**Validated in TSUN Local / Home Assistant on 2026-08-26.** An independent user installation automatically discovered a real Sunology PLAY2 and completed setup successfully. The tested local path is 02B0; the exact underlying MX400/MX450/MX500 hardware variant remains intentionally unspecified.
+
+The protocol investigation established the following path before the direct integration validation:
 
 - iGEN / High-Flying style UDP discovery is confirmed on ports **49999/48899**.
 - The actual responding local logger may be discovered at an address different from the initially supplied host.
 - TCP **8899** is confirmed to return valid **Solarman V5** envelopes.
 - Local V5 requests use control code **`0x4510`** and observed responses use **`0x1510`**.
 - Observed short embedded payloads such as `05 00` and `06 00` are preserved as **unknown logger response markers**. They are not assigned an error meaning without repeatable evidence.
-- The remaining V5 research target is the protocol carried inside the response payload.
+- The embedded inverter protocol is confirmed as 02B0 Modbus RTU for the tested unit.
 
 ## Logger identity: PLAY2 MAC vs logger/module MAC candidate
 
@@ -87,11 +89,16 @@ The probe is intentionally read-only:
 - no cloud login or cloud telemetry request;
 - no WebSocket application messages.
 
-## Success criteria
+## Validation result
 
-Either of these would be a decisive result:
+The decisive result has now been reached: the supported 02B0 path works through the normal TSUN Local Home Assistant integration. Earlier research success criteria included:
 
 - a valid `0x1510` response containing an embedded payload longer than two bytes that can be identified reproducibly as Modbus RTU, TSUN native, or another repeatable protocol;
 - a valid historical V4 inverter telemetry frame returned by command `0x0001`.
 
 Either result would expose the inverter-side local data path and allow the next step: mapping actual PLAY2 solar telemetry independently from the already-confirmed discovery and transport layers.
+
+
+## Home Assistant validation
+
+The direct integration test confirmed automatic discovery and successful setup on real Sunology PLAY2 hardware. This promotes the commercial **Sunology PLAY2** model to validated compatibility for the confirmed 02B0 logger/protocol path.

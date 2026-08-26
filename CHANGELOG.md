@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.3-beta.2] - 2026-08-26
+
+### Validated
+
+- Promote **Sunology PLAY2** to validated 02B0 hardware after an independent direct TSUN Local / Home Assistant installation automatically discovered the device and completed setup successfully.
+- Keep the tested PLAY2 transport documented as Solarman V5 over TCP 8899 with the explicit `0x02B0` sensor-list selector.
+
+### Communication and alarms
+
+- Advertise Sunology PLAY2 compatibility explicitly in the README, localized documentation, public website, entity pages and search metadata.
+- Clarify that the 1.5.3 alarm interface exposes **clear-text localized active alarm names** for 1511, 02B0 and 1097 while retaining stable protocol-position codes such as `02B0-A014`.
+- Document that PLAY2 / 02B0 users receive the same compact Home Assistant alarm interface: **Inverter alarm**, **Active alarms**, and **Active alarm names**; raw ERR1–ERR4 words remain optional advanced diagnostics.
+
+### Web / SEO
+
+- Add `Sunology PLAY2`, `Sunology Play 2`, `Home Assistant`, `02B0`, `local monitoring` and related terms to public page metadata and structured data.
+- Refresh the public compatibility and entity pages so they no longer present 1.5.1-era compatibility or alarm wording.
+
+### Safety
+
+- No new inverter write operation is introduced. PLAY2 compatibility and alarm decoding remain local and read-only.
+
 ## [1.5.3-beta.1] - 2026-08-26
 
 ### Added

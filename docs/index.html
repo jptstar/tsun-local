@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google-site-verification" content="amYxvEOAY1wehpPmnRrPto2j-3at-PvbNynMhLvx6Jk">
-  <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.1, including MP3000 alarms, field-validation diagnostics and logger Wi-Fi signal fixes.">
+  <title>TSUN Local — TSUN & Sunology PLAY2 in Home Assistant</title>
+  <meta name="description" content="Local Home Assistant monitoring for TSUN microinverters and the validated Sunology PLAY2. Automatic discovery, 02B0 support, clear-text alarms, no cloud and no proxy.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
@@ -13,7 +13,7 @@
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_US">
   <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
+  <meta property="og:title" content="TSUN Local — TSUN & Sunology PLAY2 in Home Assistant">
   <meta property="og:description" content="Local, read-only monitoring for compatible TSUN microinverters in Home Assistant. Install through HACS with no cloud dependency or proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
@@ -21,7 +21,7 @@
   <meta property="og:image:height" content="256">
   <meta property="og:image:alt" content="TSUN Local Home Assistant integration icon">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
+  <meta name="twitter:title" content="TSUN Local — TSUN & Sunology PLAY2 in Home Assistant">
   <meta name="twitter:description" content="Local, read-only TSUN microinverter monitoring for Home Assistant through HACS.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:image:alt" content="TSUN Local Home Assistant integration icon">
@@ -41,7 +41,7 @@
         "@type": "SoftwareSourceCode",
         "@id": "https://jptstar.github.io/tsun-local/#software",
         "name": "TSUN Local",
-        "softwareVersion": "1.5.1",
+        "softwareVersion": "1.5.3-beta.2",
         "description": "Open-source HACS integration for direct, local and read-only monitoring of compatible TSUN solar microinverters in Home Assistant.",
         "url": "https://jptstar.github.io/tsun-local/",
         "codeRepository": "https://github.com/jptstar/tsun-local",
@@ -49,7 +49,7 @@
         "runtimePlatform": "Home Assistant",
         "license": "https://www.gnu.org/licenses/gpl-3.0.html",
         "author": {"@type": "Person", "name": "Jean-Philippe TESTART", "url": "https://github.com/jptstar"},
-        "keywords": ["Home Assistant", "HACS", "TSUN microinverter", "TSOL-MP3000", "TSOL-MX500", "1511", "02B0", "1097", "solar monitoring", "local integration"]
+        "keywords": ["Home Assistant", "HACS", "TSUN microinverter", "TSOL-MP3000", "TSOL-MX500", "Sunology PLAY2", "Sunology Play 2", "1511", "02B0", "1097", "solar monitoring", "local integration"]
       }
     ]
   }
@@ -151,22 +151,22 @@
     <div class="wrap">
       <nav>
         <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#release">1.5.1</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
+        <div class="navlinks"><a href="#features">Features</a><a href="#release">1.5.3-beta.2</a><a href="#alarms">MP3000 alarms</a><a href="entities.html">Entities</a><a href="#compatibility">Compatibility</a><a href="#install">Install</a></div>
       </nav>
       <div class="hero" id="top">
         <div>
           <p class="eyebrow">TSUN microinverter integration · Home Assistant</p>
           <h1>Local TSUN microinverter monitoring for Home Assistant.</h1>
-          <p class="lead">TSUN Local connects compatible TSUN solar microinverters—including the validated TSOL-MP3000 and TSOL-MX500—directly to Home Assistant over the local network.</p>
+          <p class="lead">TSUN Local connects compatible TSUN solar microinverters—including the validated TSOL-MP3000, TSOL-MX500 and Sunology PLAY2—directly to Home Assistant over the local network.</p>
           <p class="strap">Local. Read-only. No cloud. No proxy.</p>
           <div class="actions">
             <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
             <a class="button secondary" href="https://github.com/jptstar/tsun-local">Source &amp; README</a>
-            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/v1.5.1">Release 1.5.1</a>
+            <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases">Releases</a>
           </div>
         </div>
         <aside class="preview-card" aria-label="MP3000 entity and alarm summary">
-          <span class="preview-kicker">NEW IN 1.5.1</span>
+          <span class="preview-kicker">PLAY2 VALIDATED · 1.5.3 BETA</span>
           <div class="preview-primary"><span class="big">108</span><strong>MP3000 entities</strong></div>
           <div class="preview-stats">
             <div class="preview-stat"><strong>59</strong><span>enabled by default</span></div>
@@ -194,8 +194,8 @@
     </section>
 
     <section id="release">
-      <h2>1.5.1: MP3000 field-validation update</h2>
-      <p class="intro">Version 1.5.1 consolidates the complete MP3000 alarm interface, field-validation diagnostics, localized alarm-name entity, logger RSSI fix and local DSP/QCPU firmware diagnostics.</p>
+      <h2>Sunology PLAY2 validated · 1.5.3 clear-text alarms</h2>
+      <p class="intro">TSUN Local now validates Sunology PLAY2 through the 02B0 local path. The 1.5.3 beta also provides a common clear-text alarm catalogue for 1511, 02B0 and 1097, with localized names and stable alarm-position codes.</p>
       <div class="grid">
         <div class="card"><strong>📶 Wi-Fi RSSI fallback fixed</strong><span class="muted">A valid index page without RSSI no longer stops the search. TSUN Local continues until `/status.html` exposes `cover_sta_rssi`.</span></div>
         <div class="card"><strong>🛡️ 10 A1/21 diagnostics</strong><span class="muted">Ten additional MP3000 field-validation sensors are available as advanced entities and remain disabled by default.</span></div>
@@ -243,7 +243,7 @@
         <thead><tr><th>Protocol</th><th>Family and validated reference</th><th>Status</th></tr></thead>
         <tbody>
           <tr><td><strong>1511</strong></td><td>TITAN · <strong>TSOL-MP3000</strong></td><td>✅ Validated</td></tr>
-          <tr><td><strong>02B0</strong></td><td>GEN3 / GEN3 PLUS · <strong>TSOL-MX500</strong></td><td>✅ Validated</td></tr>
+          <tr><td><strong>02B0</strong></td><td>GEN3 / GEN3 PLUS · <strong>TSOL-MX500 · Sunology PLAY2</strong></td><td>✅ Validated</td></tr>
           <tr><td><strong>1097</strong></td><td>GEN3 / GEN3 PLUS</td><td>🧪 Experimental</td></tr>
         </tbody>
       </table>
@@ -294,8 +294,8 @@
       <p class="intro">Quick answers for owners looking for a local TSUN microinverter integration.</p>
       <div class="grid">
         <div class="card"><strong>Does TSUN Local require the cloud?</strong><span class="muted">No. Supported measurements are read directly over the local network. The integration does not require a cloud account or a proxy.</span></div>
-        <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with protocol 1511 and the TSOL-MX500 with 02B0. Other models may work when they expose a supported protocol.</span></div>
-        <div class="card"><strong>What is new in 1.5.1?</strong><span class="muted">The normal telemetry and 1.5.0 alarm interface remain intact; the additional MP3000 semantic diagnostics remain explicitly labelled as field-validation candidates until independently confirmed.</span></div>
+        <div class="card"><strong>Which TSUN microinverters are validated?</strong><span class="muted">The TSOL-MP3000 is validated with 1511; the TSOL-MX500 and Sunology PLAY2 are validated with 02B0. Other models may work when they expose a supported protocol.</span></div>
+        <div class="card"><strong>What is new in 1.5.3 beta?</strong><span class="muted">Sunology PLAY2 compatibility is now validated, and active alarms across 1511, 02B0 and 1097 are exposed as localized clear-text names with stable protocol-position codes.</span></div>
       </div>
     </section>
 

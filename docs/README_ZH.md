@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">你的逆变器。你的网络。你的数据。</h3>
 <p align="center"><strong>本地。只读。无需云端。无需代理。</strong></p>
-<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.5.1</strong></p>
+<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.5.3-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ TSUN Local 支持 **三种 TSUN 本地协议系列**。
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ 已验证
 
 **✅ 已验证**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 很可能兼容**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ TSUN Local 支持 **三种 TSUN 本地协议系列**。
 相应的 `-D` 变体在适用时也可能兼容。
 
 支持动态 PV 输入检测、AC/PV 遥测、逆变器告警以及高级只读诊断。
+
+
+已在真实设备上独立验证 **Sunology PLAY2**：Home Assistant 自动发现设备并成功完成 TSUN Local 配置。
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 实验性
 
@@ -118,6 +121,10 @@ TSUN Local 支持完整的 MP3000 告警位字段，同时保持 Home Assistant 
 Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数，以及 **活动告警名称** 传感器。14 个完整原始告警字仍作为默认禁用的诊断实体提供，而不会创建 224 个永久实体。
 
 ---
+
+
+> [!TIP]
+> 活动告警也会以**本地化易读文本**显示，并带有稳定的位置代码，例如 `电网欠压 (02B0-A014)`。**Sunology PLAY2** 使用同一套精简的 02B0 告警界面；四个原始 ERR 字仍作为高级诊断保留。
 
 ## 🛡️ 高级诊断
 

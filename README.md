@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.3-beta.1</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.3-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -87,14 +87,14 @@ Supports up to 6 PV inputs, AC telemetry, PV energy, inverter diagnostics, firmw
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validated
 
 **✅ Validated**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Likely compatible**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
 `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`  
 Corresponding `-D` variants may also be compatible where applicable.
 
-Supports dynamic PV-input detection, AC/PV telemetry, inverter alarms and advanced read-only diagnostics.
+Supports dynamic PV-input detection, AC/PV telemetry, inverter alarms and advanced read-only diagnostics. **Sunology PLAY2 is validated on real hardware through the 02B0 local path.**
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 
@@ -116,7 +116,7 @@ TSUN Local keeps the Home Assistant alarm interface compact while preserving eve
 
 Every active alarm is presented as `Description (PROTOCOL-Axxx)`, including alarms whose functional meaning is already known. Unknown positions remain visible with neutral localized wording, for example `Unidentified inverter alarm (02B0-A006)`.
 
-Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. Complete raw alarm words remain available as disabled-by-default diagnostics rather than creating hundreds of permanent entities.
+Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. **Active alarm names are localized clear-text descriptions with stable protocol-position codes** (for example `Grid undervoltage (02B0-A014)`). On Sunology PLAY2, the four raw 02B0 ERR words remain available as disabled-by-default diagnostics.
 
 ---
 
@@ -205,7 +205,7 @@ For VLANs, targeted discovery, before/after comparisons and advanced validation:
 
 A Sunology PLAY2 field probe with firmware `LSW5BLE_17_02B0_1.08-D1` has now confirmed the local transport path: **Solarman V5 over TCP 8899 with an embedded 02B0 Modbus RTU response**. The successful read required the real Monitoring SN and the explicit Solarman sensor-list selector `0x02B0`.
 
-TSUN Local 1.5.2 therefore sends `sensor_list=0x02B0` explicitly for every 02B0 request. This matches the successful PLAY2 probe while remaining within the existing 02B0 protocol family.
+TSUN Local 1.5.2 and later therefore send `sensor_list=0x02B0` explicitly for every 02B0 request. This matches the successful PLAY2 probe while remaining within the existing 02B0 protocol family.
 
 The dedicated **read-only** PLAY2 probe remains available for hardware validation:
 
@@ -221,8 +221,8 @@ The probe can discover the actual local logger, validate Solarman V5 `0x4510 →
 
 📚 **[PLAY2 local protocol research status](docs/PLAY2_LOCAL_RESEARCH.md)**
 
-> [!NOTE]
-> The PLAY2 protocol path is field-confirmed as 02B0, but full TSUN Local/Home Assistant compatibility remains pending a direct integration test on the device.
+> [!IMPORTANT]
+> **Sunology PLAY2 is now validated with TSUN Local on real Home Assistant hardware.** Automatic discovery and setup were confirmed independently on 2026-08-26. The exact underlying MX400/MX450/MX500 hardware variant remains intentionally unspecified; the confirmed 02B0 local protocol is authoritative.
 
 ---
 
@@ -251,6 +251,7 @@ TSUN Local benefits from public protocol research and community hardware testing
 
 - **Stefan Allius / `s-allius/tsun-gen3-proxy`** — public GEN3 / 1097 protocol research used as a reference for selected experimental mappings.
 - **TheSmartGerman** — real-device compatibility feedback.
+- **dca31** — independent Sunology PLAY2 / Home Assistant validation.
 
 Detailed provenance and validation evidence are documented alongside the relevant protocol research.
 

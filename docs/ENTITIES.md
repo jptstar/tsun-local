@@ -204,10 +204,12 @@ See [MP3000 / TITAN 1511 field-validation diagnostics](MP3000_FIELD_VALIDATION.m
 
 # 02B0 · GEN3 / GEN3 PLUS
 
-**Status:** ✅ Validated on TSOL-MX500  
+**Status:** ✅ Validated on TSOL-MX500 and Sunology PLAY2
 **PV inputs:** up to 4, detected dynamically
 
 ## 02B0-specific diagnostics
+
+> **Sunology PLAY2 / 02B0:** direct Home Assistant validation confirms automatic discovery and normal TSUN Local setup. The user-facing alarm interface includes `inverter_alarm`, `alarm_active_count` and localized `active_alarm_names`; raw ERR1–ERR4 registers remain disabled-by-default diagnostics.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|

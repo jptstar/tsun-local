@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.3-beta.1</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.3-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ Jusqu’à 6 entrées PV, télémétrie AC/PV, énergie, diagnostics onduleur, v
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validé
 
 **✅ Validé**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Probablement compatible**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ Jusqu’à 6 entrées PV, télémétrie AC/PV, énergie, diagnostics onduleur, v
 Les variantes `-D` correspondantes peuvent également être compatibles lorsqu’elles existent.
 
 Détection dynamique des entrées PV, télémétrie AC/PV, alarmes onduleur et diagnostics avancés en lecture seule.
+
+
+Validation indépendante du **Sunology PLAY2** dans Home Assistant : découverte automatique et ajout TSUN Local réussis sur matériel réel.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Expérimental
 
@@ -118,6 +121,10 @@ Chaque alarme active est présentée sous la forme `Description (PROTOCOLE-Axxx)
 Home Assistant expose pour 1511, 02B0 et 1097 un état **Alarme de l’onduleur**, un compteur **Alarmes actives** et un capteur **Noms des alarmes actives**. Les mots bruts complets restent disponibles comme diagnostics désactivés par défaut, sans créer des centaines d’entités permanentes.
 
 ---
+
+
+> [!TIP]
+> Les alarmes actives sont exposées en **texte clair localisé** avec un code stable par position, par exemple `Sous-tension réseau (02B0-A014)`. Le **Sunology PLAY2** bénéficie de cette interface 02B0 compacte ; les quatre mots ERR bruts restent disponibles en diagnostics avancés.
 
 ## 🛡️ Diagnostics avancés
 

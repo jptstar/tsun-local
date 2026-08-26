@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TSUN MP3000 Entities for Home Assistant | TSUN Local</title>
-  <meta name="description" content="Explore 108 TSOL-MP3000 Home Assistant entities in TSUN Local 1.5.1, including production, 224 alarm positions and read-only field-validation diagnostics.">
+  <title>TSUN Local Entities & Sunology PLAY2 Alarms | Home Assistant</title>
+  <meta name="description" content="TSUN Local Home Assistant entity reference for TSUN microinverters and Sunology PLAY2, including 02B0 telemetry, clear-text alarms and advanced diagnostics.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/entities.html">
@@ -147,7 +147,7 @@
       </nav>
       <div class="hero">
         <div>
-          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.1</p>
+          <p class="eyebrow">TSUN Local · Home Assistant entity reference · 1.5.3-beta.2</p>
           <h1>TSUN MP3000 and microinverter entities for Home Assistant.</h1>
           <p class="lead">See all entities that TSUN Local can create for protocols 1511, 02B0 and 1097, including MP3000 production, alarms and read-only field-validation diagnostics.</p>
           <div class="actions">
@@ -317,11 +317,11 @@
 
     <section id="p02b0">
       <h2>02B0 · GEN3 / GEN3 PLUS</h2>
-      <p class="intro">Validated on the TSOL-MX500, with up to four PV inputs detected dynamically.</p>
+      <p class="intro">Validated on the TSOL-MX500 and Sunology PLAY2, with up to four PV inputs detected dynamically.</p>
       <div class="status-row"><span class="pill">✅ Validated</span><span class="pill blue">🔄 Up to 4 PV inputs</span></div>
       <div class="groups">
         <div class="group"><strong>☀️ Dynamic PV telemetry</strong><span class="muted">Voltage · current · power · daily energy · total energy.</span></div>
-        <div class="group"><strong>🚨 Raw alarm diagnostics</strong><span class="muted"><code>alarm_code_1_raw</code> through <code>alarm_code_4_raw</code>, disabled by default.</span></div>
+        <div class="group"><strong>🚨 Clear-text alarms</strong><span class="muted"><code>inverter_alarm</code> · <code>alarm_active_count</code> · <code>active_alarm_names</code> with localized names and stable 02B0-Axxx codes. Raw ERR1–ERR4 remain advanced diagnostics.</span></div>
         <div class="group"><strong>🛡️ Grid protection</strong><span class="muted">Core local protection diagnostics plus confirmed power level.</span></div>
       </div>
     </section>

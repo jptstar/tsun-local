@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
-<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.3-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ Do 6 wejść PV, telemetria AC/PV, energia, diagnostyka falownika, wersje firmwa
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Zweryfikowany
 
 **✅ Zweryfikowany**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Prawdopodobnie kompatybilny**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ Do 6 wejść PV, telemetria AC/PV, energia, diagnostyka falownika, wersje firmwa
 Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występują.
 
 Dynamiczne wykrywanie wejść PV, telemetria AC/PV, alarmy falownika i zaawansowana diagnostyka tylko do odczytu.
+
+
+Niezależna walidacja **Sunology PLAY2** w Home Assistant: automatyczne wykrycie i pomyślna konfiguracja TSUN Local na rzeczywistym urządzeniu.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Eksperymentalny
 
@@ -118,6 +121,10 @@ TSUN Local obsługuje pełne pole bitowe alarmów MP3000, zachowując kompaktowy
 Home Assistant udostępnia stan **Alarm falownika**, licznik **Aktywne alarmy** i czujnik **Nazwy aktywnych alarmów**. 14 pełnych surowych słów pozostaje dostępnych jako domyślnie wyłączona diagnostyka bez tworzenia 224 stałych encji.
 
 ---
+
+
+> [!TIP]
+> Aktywne alarmy są również wyświetlane jako **zlokalizowany czytelny tekst** ze stabilnym kodem pozycji, na przykład `Zbyt niskie napięcie sieci (02B0-A014)`. **Sunology PLAY2** korzysta z tego samego kompaktowego interfejsu alarmów 02B0; cztery surowe słowa ERR pozostają dostępne jako diagnostyka zaawansowana.
 
 ## 🛡️ Zaawansowana diagnostyka
 

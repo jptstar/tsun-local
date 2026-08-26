@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Jouw omvormer. Jouw netwerk. Jouw data.</h3>
 <p align="center"><strong>Lokaal. Alleen-lezen. Geen cloud. Geen proxy.</strong></p>
-<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.3-beta.2</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ Tot 6 PV-ingangen, AC/PV-telemetrie, energie, omvormerdiagnostiek, firmwareversi
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Gevalideerd
 
 **✅ Gevalideerd**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Waarschijnlijk compatibel**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ Tot 6 PV-ingangen, AC/PV-telemetrie, energie, omvormerdiagnostiek, firmwareversi
 Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
 
 Dynamische detectie van PV-ingangen, AC/PV-telemetrie, omvormeralarmen en geavanceerde alleen-lezen diagnostiek.
+
+
+Onafhankelijke **Sunology PLAY2**-validatie in Home Assistant: automatische detectie en succesvolle TSUN Local-configuratie op echte hardware.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimenteel
 
@@ -118,6 +121,10 @@ De **12 functionele koppelingen die op hardware zijn waargenomen** omvatten lage
 Home Assistant toont één **Omvormeralarm**, een telling **Actieve alarmen** en een sensor **Namen actieve alarmen**. De 14 volledige ruwe woorden blijven beschikbaar als standaard uitgeschakelde diagnostiek, zonder 224 permanente entiteiten te maken.
 
 ---
+
+
+> [!TIP]
+> Actieve alarmen worden ook weergegeven als **gelokaliseerde duidelijke tekst** met een stabiele positiecode, bijvoorbeeld `Netonderspanning (02B0-A014)`. **Sunology PLAY2** gebruikt dezelfde compacte 02B0-alarminterface; de vier ruwe ERR-woorden blijven beschikbaar als geavanceerde diagnose.
 
 ## 🛡️ Geavanceerde diagnostiek
 
