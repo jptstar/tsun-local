@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.3-beta.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -109,13 +109,13 @@ Le protocole est implémenté, mais davantage de validation sur matériel réel 
 
 ---
 
-## 🚨 Alarmes MP3000
+## 🚨 Catalogues d’alarmes
 
-TSUN Local prend en charge l’intégralité du champ d’alarmes MP3000 tout en conservant une interface Home Assistant compacte. **Les 224 positions d’alarme sont préservées et évaluées lorsqu’elles deviennent actives.**
+TSUN Local conserve une interface Home Assistant compacte tout en préservant chaque position de bit d’alarme utilisée par les protocoles pris en charge. **1511 possède 224 positions de catalogue ; 02B0 et 1097 en possèdent 64 chacun.**
 
-Les **12 correspondances fonctionnelles observées sur matériel** couvrent la faible tension d’entrée PV et les défauts DSP pour PV1 à PV6. Les **212 autres positions** conservent un identifiant TSUN Local neutre et stable jusqu’à validation physique de leur signification.
+Chaque alarme active est présentée sous la forme `Description (PROTOCOLE-Axxx)`, y compris lorsque sa signification est connue. Les positions non identifiées restent visibles avec un libellé neutre traduit, par exemple `Alarme onduleur non identifiée (02B0-A006)`.
 
-Home Assistant expose un état **Alarme de l’onduleur**, un compteur **Alarmes actives** et un capteur **Noms des alarmes actives**. Les 14 mots bruts complets restent disponibles comme diagnostics désactivés par défaut, sans créer 224 entités permanentes.
+Home Assistant expose pour 1511, 02B0 et 1097 un état **Alarme de l’onduleur**, un compteur **Alarmes actives** et un capteur **Noms des alarmes actives**. Les mots bruts complets restent disponibles comme diagnostics désactivés par défaut, sans créer des centaines d’entités permanentes.
 
 ---
 
