@@ -108,6 +108,17 @@ def update_index_html() -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def update_play2_html() -> None:
+    path = ROOT / "docs/sunology-play2.html"
+    text = path.read_text(encoding="utf-8")
+    text = text.replace(
+        "VALIDATED ON REAL PLAY2 HARDWARE",
+        "VALIDATED ON REAL SUNOLOGY PLAY2 HARDWARE",
+        1,
+    )
+    path.write_text(text, encoding="utf-8")
+
+
 def update_changelog() -> None:
     path = ROOT / "CHANGELOG.md"
     text = path.read_text(encoding="utf-8")
@@ -207,6 +218,7 @@ def main() -> None:
     update_entities_md()
     update_entities_html()
     update_index_html()
+    update_play2_html()
     update_changelog()
     create_release_notes()
     update_release_test()
