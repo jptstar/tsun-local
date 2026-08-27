@@ -6,6 +6,8 @@ on:
       - docs/readme-refresh-1.5.4
     paths:
       - .github/workflows/readme-refresh-154.yml
+      - .github/scripts/refresh_readmes_154.py
+      - .github/scripts/finalize_readmes_154.py
 
 permissions:
   contents: write
