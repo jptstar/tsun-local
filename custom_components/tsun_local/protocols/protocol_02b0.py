@@ -38,8 +38,9 @@ ALARM_BLOCKS = (
 )
 
 DIAGNOSTIC_BLOCKS = (
-    # Read-only GEN3 / GEN3 PLUS status and configuration metadata. This block
-    # also contains the already exposed maximum designed power at 0x2007.
+    # Retain the established max-power probe while extending the same read-only
+    # area with status and compliance metadata.
+    (0x03, 0x2007, 0x2007),
     (0x03, 0x2000, 0x2010),
     # Advanced read-only grid parameters and output coefficient.
     (0x03, 0x2014, 0x202C),
