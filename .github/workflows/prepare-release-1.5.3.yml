@@ -55,6 +55,22 @@ jobs:
       - name: Promote documentation and metadata to stable 1.5.3
         run: python .github/scripts/prepare_1_5_3.py
 
+      - name: Align structured SEO metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("docs/index.html")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace('"@type":"WebSite"', '"@type": "WebSite"')
+          text = text.replace('"@type":"SoftwareSourceCode"', '"@type": "SoftwareSourceCode"')
+          needle = '"description":"Open-source local and read-only Home Assistant integration for compatible TSUN microinverters, also validated with Sunology PLAY2."}'
+          replacement = '"description":"Open-source local and read-only Home Assistant integration for compatible TSUN microinverters, also validated with Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","Sunology PLAY2","1511","02B0","1097"]}'
+          if needle not in text:
+              raise SystemExit("SEO structured-data insertion point not found")
+          text = text.replace(needle, replacement, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Check generated diff
         run: git diff --check
 
