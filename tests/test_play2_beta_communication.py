@@ -14,8 +14,8 @@ class Play2BetaCommunicationTests(unittest.TestCase):
     def test_public_docs_mark_play2_validated(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         entities = (ROOT / "docs/ENTITIES.md").read_text(encoding="utf-8")
-        self.assertIn('`Sunology PLAY2`', readme)
-        self.assertIn('Sunology PLAY2 is now validated', readme)
+        self.assertIn('Sunology PLAY2', readme)
+        self.assertIn('Sunology PLAY2 is validated on real Home Assistant hardware', readme)
         self.assertIn('TSOL-MX500 and Sunology PLAY2', entities)
 
     def test_web_metadata_mentions_play2(self) -> None:

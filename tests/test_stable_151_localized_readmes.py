@@ -16,29 +16,32 @@ FILES = (
     "README_ZH.md",
 )
 
-VERSION_PATTERN = re.compile(r"<strong>1\.5\.\d+(?:-beta\.\d+)?</strong>")
+VERSION_PATTERN = re.compile(r"<strong>1\.5\.4</strong>")
 
 
-class Stable151LocalizedReadmeTests(unittest.TestCase):
-    def test_all_localized_readmes_follow_current_structure(self) -> None:
+class Stable154LocalizedReadmeTests(unittest.TestCase):
+    def test_all_localized_readmes_follow_compact_current_structure(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
             self.assertRegex(text, VERSION_PATTERN, filename)
-            self.assertIn("### 1511", text, filename)
-            self.assertIn("### 02B0", text, filename)
-            self.assertIn("### 1097", text, filename)
+            self.assertEqual(text.count("| **1511** | TITAN |"), 1, filename)
+            self.assertEqual(text.count("| **02B0** | GEN3 / GEN3 PLUS |"), 1, filename)
+            self.assertEqual(text.count("| **1097** | GEN3 / GEN3 PLUS |"), 1, filename)
+            self.assertIn("Sunology PLAY2", text, filename)
             self.assertIn("MP3000_FIELD_VALIDATION.md", text, filename)
             self.assertIn("HARDWARE_DUMP.md", text, filename)
+            self.assertIn("PLAY2_LOCAL_RESEARCH.md", text, filename)
+            self.assertIn("ha-solarman", text, filename)
+            self.assertIn("dca31", text, filename)
 
-    def test_release_specific_firmware_details_are_not_required_in_readmes(self) -> None:
+    def test_verbose_play2_transport_details_live_outside_readmes(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
-            start_1511 = text.index("### 1511")
-            start_02b0 = text.index("### 02B0", start_1511)
-            section_1511 = text[start_1511:start_02b0]
-            self.assertIn("MP3000_FIELD_VALIDATION.md", section_1511, filename)
+            self.assertNotIn("LSW5BLE_17_02B0_1.08-D1", text, filename)
+            self.assertNotIn("sensor_list=0x02B0", text, filename)
+            self.assertNotIn("0x4510", text, filename)
 
-    def test_removed_1511_power_candidate_is_not_back_in_localized_tables(self) -> None:
+    def test_removed_1511_power_candidate_is_not_back_in_compact_compatibility(self) -> None:
         candidate_words = (
             "niveau de puissance candidat",
             "leistungsniveau (kandidat)",
@@ -50,11 +53,9 @@ class Stable151LocalizedReadmeTests(unittest.TestCase):
         )
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
-            start_1511 = text.index("### 1511")
-            start_02b0 = text.index("### 02B0", start_1511)
-            section_1511 = text[start_1511:start_02b0].lower()
+            compact = text.split("\n---\n", 2)[1].lower()
             for phrase in candidate_words:
-                self.assertNotIn(phrase.lower(), section_1511, filename)
+                self.assertNotIn(phrase.lower(), compact, filename)
 
 
 if __name__ == "__main__":
