@@ -26,20 +26,24 @@ jobs:
           python-version: '3.13'
 
       - name: Refresh all README languages
-        run: python .github/scripts/refresh_readmes_154.py
+        run: |
+          python .github/scripts/refresh_readmes_154.py
+          python .github/scripts/finalize_readmes_154.py
 
       - name: Validate README update
         run: |
           python -m unittest discover -s tests -v
           git diff --check
-          grep -q 'Sunology PLAY2' README.md
+          grep -q '`Sunology PLAY2`' README.md
           grep -q 'ha-solarman' README.md
           grep -q 'Nouveau dans la 1.5.4' docs/README_FR.md
           ! grep -q 'sensor_list=0x02B0' README.md
+          ! grep -q 'LSW5BLE_17_02B0_1.08-D1' README.md
 
       - name: Remove temporary maintenance files
         run: |
           rm .github/scripts/refresh_readmes_154.py
+          rm .github/scripts/finalize_readmes_154.py
           rm .github/workflows/readme-refresh-154.yml
 
       - name: Commit clean README refresh
