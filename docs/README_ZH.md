@@ -24,7 +24,9 @@
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
 
+
 ---
+
 ## 兼容性
 
 **需要 Home Assistant 2026.3.0 或更高版本。**
@@ -32,7 +34,7 @@
 | 协议 | 系列 | 已验证硬件 | 状态 |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **已验证** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **已验证** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **实验性** |
 
 > [!TIP]
@@ -50,6 +52,7 @@
 📚 **[MP3000 / TITAN 验证](MP3000_FIELD_VALIDATION.md)**
 
 **1.5.4 新增：**02B0 设备可提供逆变器固件版本、逆变器温度以及更多只读运行诊断。
+
 📚 **[完整实体参考](ENTITIES.md)**
 
 <p align="center">
@@ -57,7 +60,9 @@
     <img alt="将 TSUN Local 添加到 HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
+
 ---
+
 
 ## 一览
 
@@ -71,7 +76,9 @@
 
 📚 **[按协议查看完整实体列表](ENTITIES.md)**
 
+
 ---
+
 
 ## 🚨 MP3000 告警
 
@@ -81,11 +88,12 @@ TSUN Local 支持完整的 MP3000 告警位字段，同时保持 Home Assistant 
 
 Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数，以及 **活动告警名称** 传感器。14 个完整原始告警字仍作为默认禁用的诊断实体提供，而不会创建 224 个永久实体。
 
+
 ---
 
 
 > [!TIP]
-> 活动告警也会以**本地化易读文本**显示，并带有稳定的位置代码，例如 `电网欠压 (02B0-A014)`。**`Sunology PLAY2`** 使用同一套精简的 02B0 告警界面；四个原始 ERR 字仍作为高级诊断保留。
+> 活动告警也会以**本地化易读文本**显示，并带有稳定的位置代码，例如 `电网欠压 (02B0-A014)`。**Sunology PLAY2** 使用同一套精简的 02B0 告警界面；四个原始 ERR 字仍作为高级诊断保留。
 
 ## 🛡️ 高级诊断
 
@@ -100,7 +108,9 @@ Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数
 📚 **[MP3000 现场验证证据](MP3000_FIELD_VALIDATION.md)**
 📚 **[完整实体列表](ENTITIES.md)**
 
+
 ---
+
 
 ## 安装
 
@@ -118,7 +128,9 @@ Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数
 
 将 `custom_components/tsun_local` 复制到 `/config/custom_components/`，重启 Home Assistant，然后在 **设置 → 设备与服务** 中添加 **TSUN Local**。
 
+
 ---
+
 
 ## 工作方式
 
@@ -137,7 +149,9 @@ Home Assistant
 
 仅进行直接本地轮询。
 
+
 ---
+
 
 ## 🔬 验证其他 TSUN 型号
 
@@ -175,7 +189,9 @@ py tsun_dump.py --full
 - 具体 MX400/MX450/MX500 硬件变体仍有意不作推断；以检测到的 **02B0** 协议为准。
 
 📚 **[PLAY2 研究详情](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[可选的只读 PLAY2 探测工具](../tools/tsun_play2_probe.py)**
+
 ---
+
 
 ## 测试未列出的逆变器
 
@@ -186,7 +202,9 @@ py tsun_dump.py --full
 > [!TIP]
 > **你的逆变器可能成为下一个已验证型号。**
 
+
 ---
+
 
 ## 验证策略
 
@@ -194,7 +212,9 @@ TSUN Local 将已确认的硬件支持与实验性的协议研究明确区分。
 
 只有在真实硬件上完成可重复验证后，功能名称和型号支持才会标记为已验证。仅仅与预期配置数值一致只能作为证据，而不能视为最终证明；实验性映射会一直保留标记，直到独立观察能够明确区分对应字段。
 
+
 ---
+
 ## 贡献与致谢
 
 TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢仅说明参考工作和验证来源，不代表任何隶属或官方背书。
@@ -205,7 +225,9 @@ TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢
 - **dca31** — 通过 TSUN Local 的标准 Home Assistant 流程独立验证 Sunology PLAY2。
 
 📚 **[完整贡献者与致谢](contributors.html)**
+
 ---
+
 
 ## 项目
 
@@ -215,7 +237,9 @@ TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢
 由 **Jean-Philippe TESTART · `jptstar`** 创建并维护
 *出于兴趣、技术好奇心以及对 Home Assistant 社区的分享而开发。*
 
+
 ---
+
 
 ## 许可证
 

@@ -24,7 +24,9 @@
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
 
+
 ---
+
 ## Compatibilidad
 
 **Home Assistant 2026.3.0 o posterior.**
@@ -32,7 +34,7 @@
 | Protocolo | Familia | Hardware validado | Estado |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validado** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **Validado** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **Validado** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Experimental** |
 
 > [!TIP]
@@ -50,6 +52,7 @@
 📚 **[Validación MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
 
 **Nuevo en 1.5.4:** los dispositivos 02B0 pueden exponer firmware y temperatura del inversor, además de diagnósticos de funcionamiento adicionales de solo lectura.
+
 📚 **[Referencia completa de entidades](ENTITIES.md)**
 
 <p align="center">
@@ -57,7 +60,9 @@
     <img alt="Añadir TSUN Local a HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
+
 ---
+
 
 ## De un vistazo
 
@@ -71,7 +76,9 @@
 
 📚 **[Referencia completa de entidades por protocolo](ENTITIES.md)**
 
+
 ---
+
 
 ## 🚨 Alarmas MP3000
 
@@ -81,11 +88,12 @@ Las **12 correspondencias funcionales observadas en hardware** cubren baja tensi
 
 Home Assistant muestra un estado **Alarma del inversor**, un contador **Alarmas activas** y un sensor **Nombres de alarmas activas**. Las 14 palabras brutas completas permanecen disponibles como diagnóstico desactivado por defecto, sin crear 224 entidades permanentes.
 
+
 ---
 
 
 > [!TIP]
-> Las alarmas activas también se muestran como **texto claro localizado** con un código de posición estable, por ejemplo `Subtensión de red (02B0-A014)`. **`Sunology PLAY2`** utiliza la misma interfaz compacta de alarmas 02B0; las cuatro palabras ERR brutas siguen disponibles como diagnóstico avanzado.
+> Las alarmas activas también se muestran como **texto claro localizado** con un código de posición estable, por ejemplo `Subtensión de red (02B0-A014)`. **Sunology PLAY2** utiliza la misma interfaz compacta de alarmas 02B0; las cuatro palabras ERR brutas siguen disponibles como diagnóstico avanzado.
 
 ## 🛡️ Diagnóstico avanzado
 
@@ -100,7 +108,9 @@ Las asociaciones semánticas experimentales permanecen claramente marcadas hasta
 📚 **[Evidencias de validación MP3000](MP3000_FIELD_VALIDATION.md)**
 📚 **[Referencia completa de entidades](ENTITIES.md)**
 
+
 ---
+
 
 ## Instalación
 
@@ -118,7 +128,9 @@ O añade `https://github.com/jptstar/tsun-local` en **HACS → Repositorios pers
 
 Copia `custom_components/tsun_local` en `/config/custom_components/`, reinicia Home Assistant y añade **TSUN Local** desde **Ajustes → Dispositivos y servicios**.
 
+
 ---
+
 
 ## Cómo funciona
 
@@ -137,7 +149,9 @@ Home Assistant
 
 Solo sondeo local directo.
 
+
 ---
+
 
 ## 🔬 Validar otro modelo TSUN
 
@@ -175,7 +189,9 @@ Para VLAN, descubrimiento dirigido, comparaciones antes/después y validación a
 - La variante exacta MX400/MX450/MX500 se deja intencionadamente sin especificar; el protocolo **02B0** detectado es la referencia.
 
 📚 **[Detalles de investigación PLAY2](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Sonda PLAY2 opcional de solo lectura](../tools/tsun_play2_probe.py)**
+
 ---
+
 
 ## Probar un inversor no listado
 
@@ -186,7 +202,9 @@ La información más útil incluye el modelo exacto, el protocolo detectado, la 
 > [!TIP]
 > **Tu inversor podría convertirse en el próximo modelo validado.**
 
+
 ---
+
 
 ## Política de validación
 
@@ -194,7 +212,9 @@ TSUN Local separa el soporte de hardware confirmado de la investigación experim
 
 Los nombres funcionales y el soporte de un modelo solo se marcan como validados tras comprobaciones reproducibles con hardware real. Un valor que simplemente coincide con un perfil esperado es una evidencia, no una prueba definitiva; las asociaciones experimentales permanecen marcadas hasta que una observación independiente las distinga sin ambigüedad.
 
+
 ---
+
 ## Contribuciones y créditos
 
 TSUN Local se beneficia de investigación pública de protocolos y validación independiente con hardware real. Estos créditos describen referencias y validaciones; no implican afiliación ni respaldo.
@@ -205,7 +225,9 @@ TSUN Local se beneficia de investigación pública de protocolos y validación i
 - **dca31** — validación independiente de Sunology PLAY2 mediante el flujo normal de TSUN Local en Home Assistant.
 
 📚 **[Todos los colaboradores y créditos](contributors.html)**
+
 ---
+
 
 ## Proyecto
 
@@ -215,7 +237,9 @@ TSUN Local se beneficia de investigación pública de protocolos y validación i
 Creado y mantenido por **Jean-Philippe TESTART · `jptstar`**
 *Creado y compartido por diversión, curiosidad técnica y para la comunidad de Home Assistant.*
 
+
 ---
+
 
 ## Licencia
 

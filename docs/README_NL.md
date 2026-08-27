@@ -24,7 +24,9 @@
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
 
+
 ---
+
 ## Compatibiliteit
 
 **Home Assistant 2026.3.0 of nieuwer.**
@@ -32,7 +34,7 @@
 | Protocol | Familie | Gevalideerde hardware | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Gevalideerd** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **Gevalideerd** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **Gevalideerd** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Experimenteel** |
 
 > [!TIP]
@@ -50,6 +52,7 @@
 📚 **[MP3000 / TITAN-validatie](MP3000_FIELD_VALIDATION.md)**
 
 **Nieuw in 1.5.4:** 02B0-apparaten kunnen omvormerfirmware, omvormertemperatuur en extra alleen-lezen bedrijfsdiagnostiek tonen.
+
 📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
 <p align="center">
@@ -57,7 +60,9 @@
     <img alt="TSUN Local toevoegen aan HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
+
 ---
+
 
 ## In één oogopslag
 
@@ -71,7 +76,9 @@
 
 📚 **[Volledige entiteitenreferentie per protocol](ENTITIES.md)**
 
+
 ---
+
 
 ## 🚨 MP3000-alarmen
 
@@ -81,11 +88,12 @@ De **12 functionele koppelingen die op hardware zijn waargenomen** omvatten lage
 
 Home Assistant toont één **Omvormeralarm**, een telling **Actieve alarmen** en een sensor **Namen actieve alarmen**. De 14 volledige ruwe woorden blijven beschikbaar als standaard uitgeschakelde diagnostiek, zonder 224 permanente entiteiten te maken.
 
+
 ---
 
 
 > [!TIP]
-> Actieve alarmen worden ook weergegeven als **gelokaliseerde duidelijke tekst** met een stabiele positiecode, bijvoorbeeld `Netonderspanning (02B0-A014)`. **`Sunology PLAY2`** gebruikt dezelfde compacte 02B0-alarminterface; de vier ruwe ERR-woorden blijven beschikbaar als geavanceerde diagnose.
+> Actieve alarmen worden ook weergegeven als **gelokaliseerde duidelijke tekst** met een stabiele positiecode, bijvoorbeeld `Netonderspanning (02B0-A014)`. **Sunology PLAY2** gebruikt dezelfde compacte 02B0-alarminterface; de vier ruwe ERR-woorden blijven beschikbaar als geavanceerde diagnose.
 
 ## 🛡️ Geavanceerde diagnostiek
 
@@ -100,7 +108,9 @@ Experimentele semantische koppelingen blijven expliciet gemarkeerd totdat ze ona
 📚 **[MP3000 veldvalidatiebewijs](MP3000_FIELD_VALIDATION.md)**
 📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
+
 ---
+
 
 ## Installatie
 
@@ -118,7 +128,9 @@ Of voeg `https://github.com/jptstar/tsun-local` toe via **HACS → Aangepaste re
 
 Kopieer `custom_components/tsun_local` naar `/config/custom_components/`, herstart Home Assistant en voeg daarna **TSUN Local** toe via **Instellingen → Apparaten & diensten**.
 
+
 ---
+
 
 ## Hoe het werkt
 
@@ -137,7 +149,9 @@ Home Assistant
 
 Alleen directe lokale polling.
 
+
 ---
+
 
 ## 🔬 Een ander TSUN-model valideren
 
@@ -175,7 +189,9 @@ Voor VLANs, gerichte ontdekking, voor/na-vergelijkingen en geavanceerde validati
 - De exacte MX400/MX450/MX500-hardwarevariant blijft bewust ongespecificeerd; het gedetecteerde **02B0**-protocol is leidend.
 
 📚 **[PLAY2-onderzoeksdetails](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionele alleen-lezen PLAY2-probe](../tools/tsun_play2_probe.py)**
+
 ---
+
 
 ## Een niet-vermelde omvormer testen
 
@@ -186,7 +202,9 @@ Nuttige feedback bevat het exacte model, het gedetecteerde protocol, de firmware
 > [!TIP]
 > **Jouw omvormer kan het volgende gevalideerde model worden.**
 
+
 ---
+
 
 ## Validatiebeleid
 
@@ -194,7 +212,9 @@ TSUN Local scheidt bevestigde hardwareondersteuning van experimenteel protocolon
 
 Functionele namen en modelondersteuning worden pas als gevalideerd aangeduid na reproduceerbare controles op echte hardware. Een waarde die alleen bij een verwacht profiel past, geldt als aanwijzing en niet als bewijs; experimentele koppelingen blijven gemarkeerd totdat een onafhankelijke waarneming ze eenduidig onderscheidt.
 
+
 ---
+
 ## Bijdragen en credits
 
 TSUN Local profiteert van openbaar protocolonderzoek en onafhankelijke hardwarevalidatie. Deze credits beschrijven referentiewerk en validatie en impliceren geen affiliatie of goedkeuring.
@@ -205,7 +225,9 @@ TSUN Local profiteert van openbaar protocolonderzoek en onafhankelijke hardwarev
 - **dca31** — onafhankelijke Sunology PLAY2-validatie via de normale TSUN Local Home Assistant-flow.
 
 📚 **[Alle bijdragers en credits](contributors.html)**
+
 ---
+
 
 ## Project
 
@@ -215,7 +237,9 @@ TSUN Local profiteert van openbaar protocolonderzoek en onafhankelijke hardwarev
 Gemaakt en onderhouden door **Jean-Philippe TESTART · `jptstar`**
 *Ontwikkeld en gedeeld voor plezier, technische nieuwsgierigheid en de Home Assistant-community.*
 
+
 ---
+
 
 ## Licentie
 

@@ -26,7 +26,9 @@
 
 <p align="center"><a href="https://jptstar.github.io/tsun-local/"><strong>Project website</strong></a></p>
 
+
 ---
+
 ## Compatibility
 
 **Home Assistant 2026.3.0 or later.**
@@ -34,7 +36,7 @@
 | Protocol | Family | Validated hardware | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **Validated** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **Validated** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Experimental** |
 
 > [!TIP]
@@ -52,6 +54,7 @@
 📚 **[MP3000 / TITAN validation](docs/MP3000_FIELD_VALIDATION.md)**
 
 **New in 1.5.4:** 02B0 devices can expose inverter firmware, inverter temperature and additional read-only operating diagnostics.
+
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
 <p align="center">
@@ -59,7 +62,9 @@
     <img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
+
 ---
+
 
 ## At a glance
 
@@ -73,7 +78,9 @@
 
 📚 **[Full entity reference by protocol](docs/ENTITIES.md)**
 
+
 ---
+
 
 ## 🚨 Alarm catalogues
 
@@ -83,7 +90,9 @@ Every active alarm is presented as `Description (PROTOCOL-Axxx)`, including alar
 
 Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. **Active alarm names are localized clear-text descriptions with stable protocol-position codes** (for example `Grid undervoltage (02B0-A014)`). On Sunology PLAY2, the four raw 02B0 ERR words remain available as disabled-by-default diagnostics.
 
+
 ---
+
 
 ## 🛡️ Advanced diagnostics
 
@@ -100,7 +109,9 @@ Communication logs and exported diagnostics can include only the first three alp
 📚 **[MP3000 field-validation evidence](docs/MP3000_FIELD_VALIDATION.md)**
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
+
 ---
+
 
 ## Installation
 
@@ -118,7 +129,9 @@ Or add `https://github.com/jptstar/tsun-local` as **HACS → Custom repositories
 
 Copy `custom_components/tsun_local` to `/config/custom_components/`, restart Home Assistant, then add **TSUN Local** from **Settings → Devices & services**.
 
+
 ---
+
 
 ## How it works
 
@@ -137,7 +150,9 @@ Home Assistant
 
 Direct local polling only.
 
+
 ---
+
 
 ## 🔬 Validate another TSUN model
 
@@ -176,7 +191,9 @@ For VLANs, targeted discovery, before/after comparisons and advanced validation:
 - The exact MX400/MX450/MX500 hardware variant remains intentionally unspecified; the detected **02B0** protocol is authoritative.
 
 📚 **[PLAY2 research details](docs/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optional read-only PLAY2 probe](tools/tsun_play2_probe.py)**
+
 ---
+
 
 ## Test an unlisted inverter
 
@@ -187,7 +204,9 @@ Useful compatibility feedback includes the exact inverter model, detected protoc
 > [!TIP]
 > **Your inverter could become the next validated model.**
 
+
 ---
+
 
 ## Validation policy
 
@@ -195,7 +214,9 @@ TSUN Local separates confirmed hardware support from experimental protocol resea
 
 Functional names and model support are labelled as validated only after repeatable checks on real hardware. A value that merely matches an expected profile is treated as evidence, not proof; experimental mappings remain labelled until an independent observation can distinguish them.
 
+
 ---
+
 ## Contributions & credits
 
 TSUN Local benefits from public protocol research and independent hardware testing. These credits describe reference work and validation only; they do not imply affiliation or endorsement.
@@ -206,7 +227,9 @@ TSUN Local benefits from public protocol research and independent hardware testi
 - **dca31** — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.
 
 📚 **[Full contributors & credits](docs/contributors.html)**
+
 ---
+
 
 ## Project
 
@@ -216,7 +239,9 @@ TSUN Local benefits from public protocol research and independent hardware testi
 Created and maintained by **Jean-Philippe TESTART · `jptstar`**
 *Developed and shared for fun, technical curiosity and the Home Assistant community.*
 
+
 ---
+
 
 ## License
 

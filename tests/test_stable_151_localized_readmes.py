@@ -27,7 +27,7 @@ class Stable154LocalizedReadmeTests(unittest.TestCase):
             self.assertEqual(text.count("| **1511** | TITAN |"), 1, filename)
             self.assertEqual(text.count("| **02B0** | GEN3 / GEN3 PLUS |"), 1, filename)
             self.assertEqual(text.count("| **1097** | GEN3 / GEN3 PLUS |"), 1, filename)
-            self.assertIn("`Sunology PLAY2`", text, filename)
+            self.assertIn("Sunology PLAY2", text, filename)
             self.assertIn("MP3000_FIELD_VALIDATION.md", text, filename)
             self.assertIn("HARDWARE_DUMP.md", text, filename)
             self.assertIn("PLAY2_LOCAL_RESEARCH.md", text, filename)
