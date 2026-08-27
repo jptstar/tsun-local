@@ -3,11 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Test your TSUN Microinverter with TSUN Local</title>
-  <meta name="description" content="Your TSUN microinverter may already be compatible with TSUN Local even if it is not listed. Test automatic Home Assistant discovery and share the result.">
+  <title>TSUN Microinverter Home Assistant Compatibility Test | TSUN Local</title>
+  <meta name="description" content="Test whether your TSUN microinverter works locally with Home Assistant using TSUN Local 1.5.3. Automatic discovery supports the 1511, 02B0 and experimental 1097 protocol families.">
+  <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local, HACS, TSOL-MP3000, TSOL-MX500, 1511, 02B0, 1097, microinverter compatibility">
   <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/test-your-inverter.html">
   <link rel="icon" type="image/png" href="icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="TSUN Local">
+  <meta property="og:title" content="Test your TSUN microinverter with Home Assistant">
+  <meta property="og:description" content="Your TSUN microinverter may already work with TSUN Local. Test local Home Assistant discovery and share the result.">
+  <meta property="og:url" content="https://jptstar.github.io/tsun-local/test-your-inverter.html">
+  <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">
+  <meta name="twitter:description" content="Test TSUN Local automatic discovery for 1511, 02B0 and experimental 1097 devices.">
+  <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"HowTo",
+    "name":"Test a TSUN microinverter with TSUN Local in Home Assistant",
+    "description":"Test whether an unlisted TSUN microinverter is compatible with TSUN Local through automatic local discovery in Home Assistant.",
+    "url":"https://jptstar.github.io/tsun-local/test-your-inverter.html",
+    "dateModified":"2026-08-27",
+    "step":[
+      {"@type":"HowToStep","name":"Install TSUN Local","text":"Install TSUN Local through HACS and restart Home Assistant."},
+      {"@type":"HowToStep","name":"Try automatic discovery","text":"Add TSUN Local from Devices & services and let the integration discover the inverter."},
+      {"@type":"HowToStep","name":"Share the result","text":"Share the exact model, firmware, PV input count and Home Assistant diagnostic when available."}
+    ]
+  }
+  </script>
   <style>
     :root{
       --ink:#10223a;--muted:#627188;--paper:#f3f7fb;--card:#fff;--line:#dce5ef;
@@ -66,9 +93,9 @@
       <a class="back" href="index.html">← Back to TSUN Local</a>
     </nav>
     <div class="hero">
-      <p class="eyebrow">Community hardware validation</p>
+      <p class="eyebrow">TSUN Local 1.5.3 · Community hardware validation</p>
       <h1>Test your TSUN microinverter with TSUN Local</h1>
-      <p class="lead"><strong>Not listed yet?</strong> Your TSUN microinverter may already work with TSUN Local even if its exact commercial model has never been tested before.</p>
+      <p class="lead"><strong>Not listed yet?</strong> Your TSUN microinverter may already work locally with Home Assistant even if its exact commercial model has never been tested before.</p>
       <p class="hero-note">Install · Discover · Share the result</p>
     </div>
   </div>
@@ -77,7 +104,7 @@
 <main class="wrap">
   <section>
     <h2>Your model may already be compatible</h2>
-    <p class="intro">TSUN Local detects supported local protocol families, not only a fixed list of commercial model names.</p>
+    <p class="intro">TSUN Local 1.5.3 detects supported local protocol families, not only a fixed list of commercial model names. The validated families currently include 1511 and 02B0, while 1097 support remains experimental.</p>
     <div class="callout">
       <strong>✅ An unlisted model does not mean an unsupported model.</strong>
       If your inverter exposes a supported local protocol, automatic discovery may already be enough.
