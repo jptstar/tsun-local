@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.3. Automatic discovery, clear-text alarms, read-only local access, no cloud and no proxy. Also compatible with Sunology PLAY2.">
+  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Automatic discovery, clear-text alarms, read-only local access, no cloud and no proxy. Also compatible with Sunology PLAY2.">
   <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
@@ -112,7 +112,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
-  <meta property="og:description" content="Automatic local TSUN microinverter monitoring in Home Assistant. Read-only, no cloud, no proxy, with clear-text alarms in 1.5.3.">
+  <meta property="og:description" content="Automatic local TSUN microinverter monitoring in Home Assistant. Read-only, no cloud, no proxy, with clear-text alarms in 1.5.4.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
@@ -124,7 +124,7 @@
     "@context":"https://schema.org",
     "@graph":[
       {"@type": "WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/","description":"Local TSUN microinverter monitoring for Home Assistant."},
-      {"@type": "SoftwareSourceCode","name":"TSUN Local","softwareVersion":"1.5.3","codeRepository":"https://github.com/jptstar/tsun-local","runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration for compatible TSUN microinverters, also validated with Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","Sunology PLAY2","1511","02B0","1097"]}
+      {"@type": "SoftwareSourceCode","name":"TSUN Local","softwareVersion":"1.5.4","codeRepository":"https://github.com/jptstar/tsun-local","runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration for compatible TSUN microinverters, also validated with Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","Sunology PLAY2","1511","02B0","1097"]}
     ]
   }
   </script>
@@ -150,18 +150,18 @@
           <a class="button secondary" href="#compatibility">Compatibility</a>
         </div>
       </div>
-      <aside class="preview-card" aria-label="TSUN Local 1.5.3 highlights">
-        <span class="preview-kicker">NEW IN 1.5.3</span>
-        <h3>Readable inverter alarms</h3>
+      <aside class="preview-card" aria-label="TSUN Local 1.5.4 highlights">
+        <span class="preview-kicker">NEW IN 1.5.4</span>
+        <h3>More 02B0 diagnostics</h3>
         <div class="preview-primary">
-          <strong>Clear-text alarms across every supported protocol family</strong>
-          <span>Known alarm bits are presented with localized descriptions while stable diagnostic codes are preserved.</span>
+          <strong>Temperature, inverter firmware and additional read-only diagnostics</strong>
+          <span>02B0 devices now expose nine additional operating and configuration diagnostics without adding any inverter write operation.</span>
         </div>
         <div class="preview-stats">
-          <div class="preview-stat"><strong>3</strong><span>protocol families<br>1511 · 02B0 · 1097</span></div>
-          <div class="preview-stat"><strong>8</strong><span>languages for readable alarm names</span></div>
+          <div class="preview-stat"><strong>9</strong><span>new 02B0 diagnostic entities</span></div>
+          <div class="preview-stat"><strong>0</strong><span>new write operations<br>read-only by design</span></div>
         </div>
-        <div class="preview-note">Also validated: Sunology PLAY2 on the supported 02B0 local path.</div>
+        <div class="preview-note">Product compliance type remains raw until its country/grid-profile meaning is independently validated.</div>
       </aside>
     </div>
   </div>

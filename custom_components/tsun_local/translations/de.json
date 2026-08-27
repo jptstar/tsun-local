@@ -84,6 +84,9 @@
       "logger_firmware_version": {
         "name": "Logger-Firmwareversion"
       },
+      "inverter_firmware_version": {
+        "name": "Wechselrichter-Firmwareversion"
+      },
       "logger_mac_address": {
         "name": "MAC-Adresse des Loggers"
       },
@@ -371,6 +374,27 @@
       },
       "inverter_temperature": {
         "name": "Wechselrichtertemperatur"
+      },
+      "boot_status_raw": {
+        "name": "Roher Startstatus"
+      },
+      "dsp_status_raw": {
+        "name": "Roher DSP-Status"
+      },
+      "work_mode_raw": {
+        "name": "Roher Betriebsmodus"
+      },
+      "output_shutdown_raw": {
+        "name": "Roher Ausgangsabschaltstatus"
+      },
+      "rated_level_raw": {
+        "name": "Rohe Nennstufe"
+      },
+      "input_coefficient": {
+        "name": "Eingangskoeffizient"
+      },
+      "product_compliance_type_raw": {
+        "name": "Roher Produktkonformitätstyp"
       },
       "country_profile_raw": {
         "name": "Länder-/Profilcode"

@@ -189,6 +189,9 @@
       "logger_firmware_version": {
         "name": "Version du firmware du logger"
       },
+      "inverter_firmware_version": {
+        "name": "Version du firmware de l’onduleur"
+      },
       "logger_mac_address": {
         "name": "Adresse MAC du logger"
       },
@@ -371,6 +374,27 @@
       },
       "inverter_temperature": {
         "name": "Température onduleur"
+      },
+      "boot_status_raw": {
+        "name": "État de démarrage brut"
+      },
+      "dsp_status_raw": {
+        "name": "État DSP brut"
+      },
+      "work_mode_raw": {
+        "name": "Mode de fonctionnement brut"
+      },
+      "output_shutdown_raw": {
+        "name": "État d’arrêt de sortie brut"
+      },
+      "rated_level_raw": {
+        "name": "Niveau nominal brut"
+      },
+      "input_coefficient": {
+        "name": "Coefficient d’entrée"
+      },
+      "product_compliance_type_raw": {
+        "name": "Type de conformité produit brut"
       },
       "country_profile_raw": {
         "name": "Code pays/profil"

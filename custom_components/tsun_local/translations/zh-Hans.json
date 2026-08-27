@@ -84,6 +84,9 @@
       "logger_firmware_version": {
         "name": "Logger 固件版本"
       },
+      "inverter_firmware_version": {
+        "name": "逆变器固件版本"
+      },
       "logger_mac_address": {
         "name": "Logger MAC 地址"
       },
@@ -371,6 +374,27 @@
       },
       "inverter_temperature": {
         "name": "逆变器温度"
+      },
+      "boot_status_raw": {
+        "name": "原始启动状态"
+      },
+      "dsp_status_raw": {
+        "name": "原始 DSP 状态"
+      },
+      "work_mode_raw": {
+        "name": "原始工作模式"
+      },
+      "output_shutdown_raw": {
+        "name": "原始输出关断状态"
+      },
+      "rated_level_raw": {
+        "name": "原始额定等级"
+      },
+      "input_coefficient": {
+        "name": "输入系数"
+      },
+      "product_compliance_type_raw": {
+        "name": "原始产品合规类型"
       },
       "country_profile_raw": {
         "name": "国家/配置代码"

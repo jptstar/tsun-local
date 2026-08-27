@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">你的逆变器。你的网络。你的数据。</h3>
 <p align="center"><strong>本地。只读。无需云端。无需代理。</strong></p>
-<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.5.3</strong></p>
+<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -97,6 +97,8 @@ TSUN Local 支持 **三种 TSUN 本地协议系列**。
 
 
 已在真实设备上独立验证 **Sunology PLAY2**：Home Assistant 自动发现设备并成功完成 TSUN Local 配置。
+
+TSUN Local 1.5.4 新增逆变器温度、逆变器固件版本以及更多只读 02B0 运行/配置诊断，其中包括原始产品合规类型值。
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 实验性
 

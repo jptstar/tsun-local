@@ -11,10 +11,10 @@ FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <
 PAGES = ("index.html", "entities.html", "sunology-play2.html", "contributors.html", "test-your-inverter.html")
 
 
-class Release153WebTests(unittest.TestCase):
-    def test_manifest_is_stable_153(self) -> None:
+class Release154WebTests(unittest.TestCase):
+    def test_manifest_is_stable_154(self) -> None:
         manifest = json.loads((ROOT / "custom_components" / "tsun_local" / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual("1.5.3", manifest["version"])
+        self.assertEqual("1.5.4", manifest["version"])
 
     def test_public_pages_have_unique_h1_and_seo(self) -> None:
         seen = set()
@@ -34,11 +34,11 @@ class Release153WebTests(unittest.TestCase):
             self.assertIsNotNone(match, filename)
             self.assertEqual(FOOTER, match.group(1), filename)
 
-    def test_public_pages_do_not_advertise_beta_153(self) -> None:
+    def test_public_pages_do_not_advertise_beta_154(self) -> None:
         for filename in PAGES:
             text = (DOCS / filename).read_text(encoding="utf-8").lower()
-            self.assertNotIn("1.5.3 beta", text, filename)
-            self.assertNotIn("1.5.3-beta", text, filename)
+            self.assertNotIn("1.5.4 beta", text, filename)
+            self.assertNotIn("1.5.4-beta", text, filename)
 
     def test_homepage_keeps_project_identity(self) -> None:
         text = (DOCS / "index.html").read_text(encoding="utf-8")
@@ -47,6 +47,8 @@ class Release153WebTests(unittest.TestCase):
         self.assertIn("Sunology PLAY2", text)
         self.assertIn("test-your-inverter.html", text)
         self.assertIn("contributors.html", text)
+        self.assertIn("NEW IN 1.5.4", text)
+        self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

@@ -190,6 +190,9 @@
       "logger_firmware_version": {
         "name": "Logger firmware version"
       },
+      "inverter_firmware_version": {
+        "name": "Inverter firmware version"
+      },
       "logger_mac_address": {
         "name": "Logger MAC address"
       },
@@ -372,6 +375,27 @@
       },
       "inverter_temperature": {
         "name": "Inverter temperature"
+      },
+      "boot_status_raw": {
+        "name": "Raw boot status"
+      },
+      "dsp_status_raw": {
+        "name": "Raw DSP status"
+      },
+      "work_mode_raw": {
+        "name": "Raw work mode"
+      },
+      "output_shutdown_raw": {
+        "name": "Raw output shutdown status"
+      },
+      "rated_level_raw": {
+        "name": "Raw rated level"
+      },
+      "input_coefficient": {
+        "name": "Input coefficient"
+      },
+      "product_compliance_type_raw": {
+        "name": "Raw product compliance type"
       },
       "country_profile_raw": {
         "name": "Country/profile code"

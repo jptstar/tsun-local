@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Jouw omvormer. Jouw netwerk. Jouw data.</h3>
 <p align="center"><strong>Lokaal. Alleen-lezen. Geen cloud. Geen proxy.</strong></p>
-<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.3</strong></p>
+<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -97,6 +97,8 @@ Dynamische detectie van PV-ingangen, AC/PV-telemetrie, omvormeralarmen en geavan
 
 
 Onafhankelijke **Sunology PLAY2**-validatie in Home Assistant: automatische detectie en succesvolle TSUN Local-configuratie op echte hardware.
+
+TSUN Local 1.5.4 voegt omvormertemperatuur, omvormerfirmwareversie en extra alleen-lezen 02B0-bedrijfs- en configuratiediagnostiek toe, inclusief een ruwe productconformiteitswaarde.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimenteel
 

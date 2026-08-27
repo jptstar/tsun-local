@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.4] - 2026-08-27
+
+### Added
+
+- Extend protocol 02B0 with inverter temperature from register `0x300C` (`raw - 40 °C`) and the inverter firmware version from `0x3008`.
+- Add read-only 02B0 operating/configuration diagnostics: boot status, DSP status, work mode, output shutdown status, rated level, input coefficient and raw product compliance type.
+- Decode the 02B0 input coefficient as `raw × 100 / 1024 %`.
+
+### Changed
+
+- Expose `product_compliance_type_raw` without assigning a country/grid-profile meaning until independent hardware correlation validates the semantic mapping.
+- Refresh the entity reference, public website version/highlights and all eight README languages for 1.5.4.
+
+### Safety
+
+- All new 02B0 access uses Modbus function 03 and remains strictly read-only.
+- Existing 02B0 PV/AC energy scaling and 32-bit total-energy decoding are unchanged.
+- No inverter configuration, country/profile, protection-setting or control write is added.
+
 ## [1.5.3] - 2026-08-27
 
 ### Added

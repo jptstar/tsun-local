@@ -84,6 +84,9 @@
       "logger_firmware_version": {
         "name": "Wersja oprogramowania loggera"
       },
+      "inverter_firmware_version": {
+        "name": "Wersja oprogramowania falownika"
+      },
       "logger_mac_address": {
         "name": "Adres MAC loggera"
       },
@@ -371,6 +374,27 @@
       },
       "inverter_temperature": {
         "name": "Temperatura falownika"
+      },
+      "boot_status_raw": {
+        "name": "Surowy stan rozruchu"
+      },
+      "dsp_status_raw": {
+        "name": "Surowy stan DSP"
+      },
+      "work_mode_raw": {
+        "name": "Surowy tryb pracy"
+      },
+      "output_shutdown_raw": {
+        "name": "Surowy stan wyłączenia wyjścia"
+      },
+      "rated_level_raw": {
+        "name": "Surowy poziom znamionowy"
+      },
+      "input_coefficient": {
+        "name": "Współczynnik wejściowy"
+      },
+      "product_compliance_type_raw": {
+        "name": "Surowy typ zgodności produktu"
       },
       "country_profile_raw": {
         "name": "Kod kraju/profilu"

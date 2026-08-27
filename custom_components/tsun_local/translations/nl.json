@@ -84,6 +84,9 @@
       "logger_firmware_version": {
         "name": "Firmwareversie van logger"
       },
+      "inverter_firmware_version": {
+        "name": "Firmwareversie omvormer"
+      },
       "logger_mac_address": {
         "name": "MAC-adres van logger"
       },
@@ -371,6 +374,27 @@
       },
       "inverter_temperature": {
         "name": "Omvormertemperatuur"
+      },
+      "boot_status_raw": {
+        "name": "Ruwe opstartstatus"
+      },
+      "dsp_status_raw": {
+        "name": "Ruwe DSP-status"
+      },
+      "work_mode_raw": {
+        "name": "Ruwe bedrijfsmodus"
+      },
+      "output_shutdown_raw": {
+        "name": "Ruwe uitgangsuitschakelstatus"
+      },
+      "rated_level_raw": {
+        "name": "Ruw nominaal niveau"
+      },
+      "input_coefficient": {
+        "name": "Ingangscoëfficiënt"
+      },
+      "product_compliance_type_raw": {
+        "name": "Ruw productconformiteitstype"
       },
       "country_profile_raw": {
         "name": "Land-/profielcode"

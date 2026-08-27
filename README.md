@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.3</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -95,6 +95,8 @@ Supports up to 6 PV inputs, AC telemetry, PV energy, inverter diagnostics, firmw
 Corresponding `-D` variants may also be compatible where applicable.
 
 Supports dynamic PV-input detection, AC/PV telemetry, inverter alarms and advanced read-only diagnostics. **Sunology PLAY2 is validated on real hardware through the 02B0 local path.**
+
+TSUN Local 1.5.4 adds inverter temperature, inverter firmware version and additional read-only 02B0 operating/configuration diagnostics, including a raw product-compliance profile value.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 

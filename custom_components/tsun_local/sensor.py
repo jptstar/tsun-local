@@ -233,9 +233,18 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "grid_qp_voltage_threshold": "2048 (0x0800) — field validation",
     },
     "02b0": {
-        "inverter_status_raw": "0x3000",
-        "rated_power": "0x300E",
+        "boot_status_raw": "0x2000",
+        "dsp_status_raw": "0x2001",
+        "work_mode_raw": "0x2003",
+        "output_shutdown_raw": "0x2006",
         "max_designed_power": "0x2007",
+        "rated_level_raw": "0x2008",
+        "input_coefficient": "0x2009",
+        "product_compliance_type_raw": "0x2010",
+        "inverter_status_raw": "0x3000",
+        "inverter_firmware_version": "0x3008",
+        "inverter_temperature": "0x300C",
+        "rated_power": "0x300E",
         "grid_overvoltage_recovery_voltage": "0x2014",
         "grid_undervoltage_recovery_voltage": "0x2015",
         "grid_overfrequency_recovery_frequency": "0x2016",
@@ -547,6 +556,42 @@ ADVANCED_DIAGNOSTIC_SENSORS: tuple[TsunSensorDescription, ...] = (
         "country_profile_raw",
         state_class=None,
     ),
+    _advanced_diagnostic(
+        "boot_status_raw",
+        "boot_status_raw",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "dsp_status_raw",
+        "dsp_status_raw",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "work_mode_raw",
+        "work_mode_raw",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "output_shutdown_raw",
+        "output_shutdown_raw",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "rated_level_raw",
+        "rated_level_raw",
+        state_class=None,
+    ),
+    _advanced_diagnostic(
+        "input_coefficient",
+        "input_coefficient",
+        unit=PERCENTAGE,
+        precision=2,
+    ),
+    _advanced_diagnostic(
+        "product_compliance_type_raw",
+        "product_compliance_type_raw",
+        state_class=None,
+    ),
 )
 
 SENSORS: tuple[TsunSensorDescription, ...] = (
@@ -675,6 +720,12 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         key="logger_firmware_version",
         suggested_object_id="logger_firmware_version",
         translation_key="logger_firmware_version",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="inverter_firmware_version",
+        suggested_object_id="inverter_firmware_version",
+        translation_key="inverter_firmware_version",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(

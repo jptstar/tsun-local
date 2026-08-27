@@ -84,6 +84,9 @@
       "logger_firmware_version": {
         "name": "Versión de firmware del logger"
       },
+      "inverter_firmware_version": {
+        "name": "Versión de firmware del inversor"
+      },
       "logger_mac_address": {
         "name": "Dirección MAC del logger"
       },
@@ -371,6 +374,27 @@
       },
       "inverter_temperature": {
         "name": "Temperatura del inversor"
+      },
+      "boot_status_raw": {
+        "name": "Estado de arranque bruto"
+      },
+      "dsp_status_raw": {
+        "name": "Estado DSP bruto"
+      },
+      "work_mode_raw": {
+        "name": "Modo de funcionamiento bruto"
+      },
+      "output_shutdown_raw": {
+        "name": "Estado bruto de desconexión de salida"
+      },
+      "rated_level_raw": {
+        "name": "Nivel nominal bruto"
+      },
+      "input_coefficient": {
+        "name": "Coeficiente de entrada"
+      },
+      "product_compliance_type_raw": {
+        "name": "Tipo de conformidad del producto bruto"
       },
       "country_profile_raw": {
         "name": "Código de país/perfil"

@@ -229,7 +229,7 @@ See [MP3000 / TITAN 1511 field-validation diagnostics](MP3000_FIELD_VALIDATION.m
 
 All rows above are **🔄 dynamic**.
 
-## 02B0 advanced diagnostics
+## 02B0 advanced diagnostics — 1.5.4
 
 All entities below are **🛡️ disabled by default**.
 
@@ -258,6 +258,18 @@ All entities below are **🛡️ disabled by default**.
 | `grid_undervoltage_level_3` | Grid undervoltage level 3 | V |
 | `grid_undervoltage_time_3` | Grid undervoltage time 3 | s |
 | `output_coefficient` | Power level | % |
+| `inverter_temperature` | Inverter temperature | °C |
+| `inverter_firmware_version` | Inverter firmware version | text |
+| `boot_status_raw` | Raw boot status | raw |
+| `dsp_status_raw` | Raw DSP status | raw |
+| `work_mode_raw` | Raw work mode | raw |
+| `output_shutdown_raw` | Raw output shutdown status | raw |
+| `rated_level_raw` | Raw rated level | raw |
+| `input_coefficient` | Input coefficient | % |
+| `product_compliance_type_raw` | Product compliance type (raw) | raw |
+
+> [!NOTE]
+> `product_compliance_type_raw` is intentionally exposed as a raw diagnostic. TSUN Local does not translate this 02B0 value into a country or grid profile until independent hardware correlation confirms its semantics.
 
 ---
 
