@@ -1,145 +1,482 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Aggiungi un dispositivo TSUN", "description": "Cerca automaticamente i dispositivi TSUN compatibili sulla rete oppure aggiungine uno manualmente.", "menu_options": {"discover": "Cerca dispositivi TSUN", "manual": "Aggiungi manualmente"}},
-      "reconfigure": {"title": "Modifica connessione", "description": "Modifica l'indirizzo IP o la porta TCP. Il SN numerico rimane l'identificativo permanente della connessione.", "data": {"host": "Indirizzo IP", "port": "Porta"}},
-      "manual": {"title": "Aggiungi un dispositivo manualmente", "description": "Inserisci l’indirizzo IP del dispositivo. Nella maggior parte dei casi, lascia la selezione del protocollo su «Automatico — in base al firmware». TSUN Local proverà anche a leggere automaticamente il SN del logger.", "data": {"host": "Indirizzo IP", "port": "Porta", "logger_sn": "SN", "protocol": "Metodo di selezione del protocollo"}},
-      "discover": {"title": "Dispositivi TSUN rilevati", "description": "Seleziona il dispositivo TSUN da aggiungere. TSUN Local verifica il firmware e mostra solo i dispositivi che utilizzano protocolli supportati.", "data": {"host": "Indirizzo rilevato", "port": "Porta", "logger_sn": "SN"}},
-      "discover_network": {"title": "Cerca in un’altra sottorete", "description": "Non è stato rilevato automaticamente alcun dispositivo TSUN compatibile. Inserisci la sottorete IPv4 da analizzare, ad esempio 192.168.1.0/24. La ricerca è limitata a 254 indirizzi.", "data": {"discovery_network": "Sottorete IPv4", "port": "Porta"}}
+      "user": {
+        "title": "Aggiungi un dispositivo TSUN",
+        "description": "Cerca automaticamente i dispositivi TSUN compatibili sulla rete oppure aggiungine uno manualmente.",
+        "menu_options": {
+          "discover": "Cerca dispositivi TSUN",
+          "manual": "Aggiungi manualmente"
+        }
+      },
+      "reconfigure": {
+        "title": "Modifica connessione",
+        "description": "Modifica l'indirizzo IP o la porta TCP. Il SN numerico rimane l'identificativo permanente della connessione.",
+        "data": {
+          "host": "Indirizzo IP",
+          "port": "Porta"
+        }
+      },
+      "manual": {
+        "title": "Aggiungi un dispositivo manualmente",
+        "description": "Inserisci l’indirizzo IP del dispositivo. Nella maggior parte dei casi, lascia la selezione del protocollo su «Automatico — in base al firmware». TSUN Local proverà anche a leggere automaticamente il SN del logger.",
+        "data": {
+          "host": "Indirizzo IP",
+          "port": "Porta",
+          "logger_sn": "SN",
+          "protocol": "Metodo di selezione del protocollo"
+        }
+      },
+      "discover": {
+        "title": "Dispositivi TSUN rilevati",
+        "description": "Seleziona il dispositivo TSUN da aggiungere. TSUN Local verifica il firmware e mostra solo i dispositivi che utilizzano protocolli supportati.",
+        "data": {
+          "host": "Indirizzo rilevato",
+          "port": "Porta",
+          "logger_sn": "SN"
+        }
+      },
+      "discover_network": {
+        "title": "Cerca in un’altra sottorete",
+        "description": "Non è stato rilevato automaticamente alcun dispositivo TSUN compatibile. Inserisci la sottorete IPv4 da analizzare, ad esempio 192.168.1.0/24. La ricerca è limitata a 254 indirizzi.",
+        "data": {
+          "discovery_network": "Sottorete IPv4",
+          "port": "Porta"
+        }
+      }
     },
-    "error": {"cannot_connect": "Impossibile comunicare con il dispositivo. Verifica che sia online e raggiungibile da Home Assistant.", "cannot_detect_logger_sn": "Non è stato possibile rilevare automaticamente il SN del logger. Inserisci il numero indicato come Device serial number nella pagina di stato locale o sull’etichetta del dispositivo.", "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32", "invalid_response": "Il dispositivo ha risposto, ma i dati ricevuti non sono riconosciuti.", "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile in questa sottorete.", "unknown_firmware": "Il firmware di questo dispositivo non viene riconosciuto automaticamente. Torna alla configurazione manuale e scegli «Rilevamento forzato — prova i protocolli», oppure seleziona manualmente un protocollo."},
-    "abort": {"already_configured": "Questo microinverter è già configurato", "all_devices_configured": "Tutti i microinverter rilevati sono già configurati", "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile nelle reti analizzate."}
+    "error": {
+      "cannot_connect": "Impossibile comunicare con il dispositivo. Verifica che sia online e raggiungibile da Home Assistant.",
+      "cannot_detect_logger_sn": "Non è stato possibile rilevare automaticamente il SN del logger. Inserisci il numero indicato come Device serial number nella pagina di stato locale o sull’etichetta del dispositivo.",
+      "invalid_network": "Inserisci una sottorete IPv4 valida tra /24 e /32",
+      "invalid_response": "Il dispositivo ha risposto, ma i dati ricevuti non sono riconosciuti.",
+      "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile in questa sottorete.",
+      "unknown_firmware": "Il firmware di questo dispositivo non viene riconosciuto automaticamente. Torna alla configurazione manuale e scegli «Rilevamento forzato — prova i protocolli», oppure seleziona manualmente un protocollo."
+    },
+    "abort": {
+      "already_configured": "Questo microinverter è già configurato",
+      "all_devices_configured": "Tutti i microinverter rilevati sono già configurati",
+      "no_devices_found": "Non è stato rilevato alcun dispositivo TSUN compatibile nelle reti analizzate."
+    }
   },
-  "options": {"step": {"init": {"title": "Impostazioni di polling", "description": "Imposta l'intervallo normale, il nuovo tentativo dopo un errore, l'intervallo offline/notturno e il numero di errori consecutivi prima dello stato offline.", "data": {"scan_interval": "Intervallo di polling normale", "error_scan_interval": "Intervallo di nuovo tentativo dopo errore", "offline_scan_interval": "Intervallo di polling offline/notturno", "failure_threshold": "Errori prima dello stato offline"}}}},
+  "options": {
+    "step": {
+      "init": {
+        "title": "Impostazioni di polling",
+        "description": "Imposta l'intervallo normale, il nuovo tentativo dopo un errore, l'intervallo offline/notturno e il numero di errori consecutivi prima dello stato offline.",
+        "data": {
+          "scan_interval": "Intervallo di polling normale",
+          "error_scan_interval": "Intervallo di nuovo tentativo dopo errore",
+          "offline_scan_interval": "Intervallo di polling offline/notturno",
+          "failure_threshold": "Errori prima dello stato offline"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"},
-      "inverter_serial_number": {"name": "SN del microinverter"},
-      "logger_firmware_version": {"name": "Versione firmware del logger"},
-      "inverter_firmware_version": {"name": "Versione firmware inverter"},
-      "logger_mac_address": {"name": "Indirizzo MAC del logger"},
-      "alarm_global_0_raw": {"name": "Allarme globale (valore grezzo) 0"},
-      "alarm_global_1_raw": {"name": "Allarme globale (valore grezzo) 1"},
-      "alarm_global_2_raw": {"name": "Allarme globale (valore grezzo) 2"},
-      "alarm_global_3_raw": {"name": "Allarme globale (valore grezzo) 3"},
-      "alarm_secondary_0_raw": {"name": "Allarme secondario (valore grezzo) 0"},
-      "alarm_secondary_1_raw": {"name": "Allarme secondario (valore grezzo) 1"},
-      "alarm_secondary_2_raw": {"name": "Allarme secondario (valore grezzo) 2"},
-      "alarm_secondary_3_raw": {"name": "Allarme secondario (valore grezzo) 3"},
-      "alarm_code_1_raw": {"name": "Codice allarme (valore grezzo) 1"},
-      "alarm_code_2_raw": {"name": "Codice allarme (valore grezzo) 2"},
-      "alarm_code_3_raw": {"name": "Codice allarme (valore grezzo) 3"},
-      "alarm_code_4_raw": {"name": "Codice allarme (valore grezzo) 4"},
-      "pv1_alarm_raw": {"name": "Allarme PV1 (valore grezzo)"},
-      "pv2_alarm_raw": {"name": "Allarme PV2 (valore grezzo)"},
-      "pv3_alarm_raw": {"name": "Allarme PV3 (valore grezzo)"},
-      "pv4_alarm_raw": {"name": "Allarme PV4 (valore grezzo)"},
-      "pv5_alarm_raw": {"name": "Allarme PV5 (valore grezzo)"},
-      "pv6_alarm_raw": {"name": "Allarme PV6 (valore grezzo)"},
-      "ac_voltage": {"name": "Tensione AC"},
-      "ac_current": {"name": "Corrente AC"},
-      "ac_frequency": {"name": "Frequenza AC"},
-      "ac_power": {"name": "Potenza AC"},
-      "ac_energy_today": {"name": "Energia AC di oggi"},
-      "ac_energy_total": {"name": "Energia AC totale"},
-      "dc_power_total": {"name": "Potenza DC totale"},
-      "inverter_status_raw": {"name": "Stato grezzo dell’inverter"},
-      "rated_power": {"name": "Potenza nominale dell’inverter"},
-      "max_designed_power": {"name": "Potenza massima di progetto"},
-      "register_3017_raw": {"name": "Registro grezzo 3017 (temperatura inverter)"},
-      "register_3018_raw": {"name": "Registro grezzo 3018 (significato non confermato)"},
-      "register_3028_raw": {"name": "Registro grezzo 3028 (temperatura ambiente inverter)"},
-      "communication_last_success": {"name": "Ultima comunicazione riuscita"},
-      "communication_duration": {"name": "Durata della comunicazione"},
-      "communication_blocks": {"name": "Blocchi ricevuti"},
-      "communication_failures": {"name": "Errori di comunicazione consecutivi"},
-      "pv1_voltage": {"name": "Tensione PV1"},
-      "pv1_current": {"name": "Corrente PV1"},
-      "pv1_power": {"name": "Potenza PV1"},
-      "pv1_energy_today": {"name": "Energia PV1 di oggi"},
-      "pv1_energy_total": {"name": "Energia PV1 totale"},
-      "pv2_voltage": {"name": "Tensione PV2"},
-      "pv2_current": {"name": "Corrente PV2"},
-      "pv2_power": {"name": "Potenza PV2"},
-      "pv2_energy_today": {"name": "Energia PV2 di oggi"},
-      "pv2_energy_total": {"name": "Energia PV2 totale"},
-      "pv3_voltage": {"name": "Tensione PV3"},
-      "pv3_current": {"name": "Corrente PV3"},
-      "pv3_power": {"name": "Potenza PV3"},
-      "pv3_energy_today": {"name": "Energia PV3 di oggi"},
-      "pv3_energy_total": {"name": "Energia PV3 totale"},
-      "pv4_voltage": {"name": "Tensione PV4"},
-      "pv4_current": {"name": "Corrente PV4"},
-      "pv4_power": {"name": "Potenza PV4"},
-      "pv4_energy_today": {"name": "Energia PV4 di oggi"},
-      "pv4_energy_total": {"name": "Energia PV4 totale"},
-      "pv5_voltage": {"name": "Tensione PV5"},
-      "pv5_current": {"name": "Corrente PV5"},
-      "pv5_power": {"name": "Potenza PV5"},
-      "pv5_energy_today": {"name": "Energia PV5 di oggi"},
-      "pv5_energy_total": {"name": "Energia PV5 totale"},
-      "pv6_voltage": {"name": "Tensione PV6"},
-      "pv6_current": {"name": "Corrente PV6"},
-      "pv6_power": {"name": "Potenza PV6"},
-      "pv6_energy_today": {"name": "Energia PV6 di oggi"},
-      "pv6_energy_total": {"name": "Energia PV6 totale"},
-      "logger_wifi_signal": {"name": "Segnale Wi-Fi del logger"},
-      "alarm_active_count": {"name": "Allarmi attivi"},
-      "grid_overvoltage_recovery_voltage": {"name": "Tensione di ripristino dopo sovratensione di rete"},
-      "grid_undervoltage_recovery_voltage": {"name": "Tensione di ripristino dopo sottotensione di rete"},
-      "grid_overfrequency_recovery_frequency": {"name": "Frequenza di ripristino dopo sovrafrequenza di rete"},
-      "grid_underfrequency_recovery_frequency": {"name": "Frequenza di ripristino dopo sottofrequenza di rete"},
-      "grid_undervoltage_level_1": {"name": "Soglia sottotensione rete livello 1"},
-      "grid_undervoltage_level_2": {"name": "Soglia sottotensione rete livello 2"},
-      "grid_undervoltage_level_3": {"name": "Soglia sottotensione rete livello 3"},
-      "grid_undervoltage_time_1": {"name": "Tempo sottotensione rete livello 1"},
-      "grid_undervoltage_time_2": {"name": "Tempo sottotensione rete livello 2"},
-      "grid_undervoltage_time_3": {"name": "Tempo sottotensione rete livello 3"},
-      "grid_overvoltage_level_1": {"name": "Soglia sovratensione rete livello 1"},
-      "grid_overvoltage_level_2": {"name": "Soglia sovratensione rete livello 2"},
-      "grid_overvoltage_time_1": {"name": "Tempo sovratensione rete livello 1"},
-      "grid_overvoltage_time_2": {"name": "Tempo sovratensione rete livello 2"},
-      "grid_underfrequency_level_1": {"name": "Soglia sottofrequenza rete livello 1"},
-      "grid_underfrequency_level_2": {"name": "Soglia sottofrequenza rete livello 2"},
-      "grid_underfrequency_time_1": {"name": "Tempo sottofrequenza rete livello 1"},
-      "grid_underfrequency_time_2": {"name": "Tempo sottofrequenza rete livello 2"},
-      "grid_overfrequency_level_1": {"name": "Soglia sovrafrequenza rete livello 1"},
-      "grid_overfrequency_level_2": {"name": "Soglia sovrafrequenza rete livello 2"},
-      "grid_overfrequency_time_1": {"name": "Tempo sovrafrequenza rete livello 1"},
-      "grid_overfrequency_time_2": {"name": "Tempo sovrafrequenza rete livello 2"},
-      "output_coefficient": {"name": "Livello di potenza"},
-      "protocol_version": {"name": "Versione protocollo"},
-      "inverter_version": {"name": "Versione inverter"},
-      "insulation_impedance_rx": {"name": "Impedenza di isolamento RX"},
-      "insulation_impedance_ry": {"name": "Impedenza di isolamento RY"},
-      "inverter_temperature": {"name": "Temperatura inverter"},
-      "boot_status_raw": {"name": "Stato di avvio grezzo"},
-      "dsp_status_raw": {"name": "Stato DSP grezzo"},
-      "work_mode_raw": {"name": "Modalità di funzionamento grezza"},
-      "output_shutdown_raw": {"name": "Stato grezzo arresto uscita"},
-      "rated_level_raw": {"name": "Livello nominale grezzo"},
-      "input_coefficient": {"name": "Coefficiente di ingresso"},
-      "product_compliance_type_raw": {"name": "Tipo di conformità prodotto grezzo"},
-      "country_profile_raw": {"name": "Codice paese/profilo"},
-      "inverter_operating_state": {"name": "Stato operativo dell'inverter", "state": {"active": "Attivo", "standby": "Standby", "standby_low_solar": "Standby — bassa potenza solare in ingresso", "fault": "Guasto"}},
-      "ambient_temperature": {"name": "Temperatura ambiente inverter"},
-      "grid_qp_voltage_threshold": {"name": "Soglia tensione QP"},
-      "grid_recovery_rate": {"name": "Tempo di ripristino rete"},
-      "grid_overvoltage_10min": {"name": "Protezione sovratensione rete 10 minuti"},
-      "grid_overfrequency_reduction_frequency": {"name": "Valore riduzione sovrafrequenza"},
-      "grid_overfrequency_reduction_coefficient": {"name": "Coefficiente riduzione sovrafrequenza"},
-      "overtemperature_protection_temperature": {"name": "Soglia protezione sovratemperatura"},
-      "grid_start_upper_voltage_limit": {"name": "Limite superiore tensione di avvio"},
-      "grid_start_lower_voltage_limit": {"name": "Limite inferiore tensione di avvio"},
-      "grid_start_upper_frequency_limit": {"name": "Limite superiore frequenza di avvio"},
-      "grid_start_lower_frequency_limit": {"name": "Limite inferiore frequenza di avvio"},
-      "active_alarm_names": {"name": "Nomi degli allarmi attivi"},
-      "dsp_firmware_version": {"name": "Versione firmware DSP"},
-      "qcpu1_firmware_version": {"name": "Versione firmware QCPU1"},
-      "qcpu2_firmware_version": {"name": "Versione firmware QCPU2"}
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN del microinverter"
+      },
+      "logger_firmware_version": {
+        "name": "Versione firmware del logger"
+      },
+      "inverter_firmware_version": {
+        "name": "Versione firmware inverter"
+      },
+      "logger_mac_address": {
+        "name": "Indirizzo MAC del logger"
+      },
+      "alarm_global_0_raw": {
+        "name": "Allarme globale (valore grezzo) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Allarme globale (valore grezzo) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Allarme globale (valore grezzo) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Allarme globale (valore grezzo) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Allarme secondario (valore grezzo) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Allarme secondario (valore grezzo) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Allarme secondario (valore grezzo) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Allarme secondario (valore grezzo) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Codice allarme (valore grezzo) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Codice allarme (valore grezzo) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Codice allarme (valore grezzo) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Codice allarme (valore grezzo) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "Allarme PV1 (valore grezzo)"
+      },
+      "pv2_alarm_raw": {
+        "name": "Allarme PV2 (valore grezzo)"
+      },
+      "pv3_alarm_raw": {
+        "name": "Allarme PV3 (valore grezzo)"
+      },
+      "pv4_alarm_raw": {
+        "name": "Allarme PV4 (valore grezzo)"
+      },
+      "pv5_alarm_raw": {
+        "name": "Allarme PV5 (valore grezzo)"
+      },
+      "pv6_alarm_raw": {
+        "name": "Allarme PV6 (valore grezzo)"
+      },
+      "ac_voltage": {
+        "name": "Tensione AC"
+      },
+      "ac_current": {
+        "name": "Corrente AC"
+      },
+      "ac_frequency": {
+        "name": "Frequenza AC"
+      },
+      "ac_power": {
+        "name": "Potenza AC"
+      },
+      "ac_energy_today": {
+        "name": "Energia AC di oggi"
+      },
+      "ac_energy_total": {
+        "name": "Energia AC totale"
+      },
+      "dc_power_total": {
+        "name": "Potenza DC totale"
+      },
+      "inverter_status_raw": {
+        "name": "Stato grezzo dell’inverter"
+      },
+      "rated_power": {
+        "name": "Potenza nominale dell’inverter"
+      },
+      "max_designed_power": {
+        "name": "Potenza massima di progetto"
+      },
+      "register_3017_raw": {
+        "name": "Registro grezzo 3017 (temperatura inverter)"
+      },
+      "register_3018_raw": {
+        "name": "Registro grezzo 3018 (significato non confermato)"
+      },
+      "register_3028_raw": {
+        "name": "Registro grezzo 3028 (temperatura ambiente inverter)"
+      },
+      "communication_last_success": {
+        "name": "Ultima comunicazione riuscita"
+      },
+      "communication_duration": {
+        "name": "Durata della comunicazione"
+      },
+      "communication_blocks": {
+        "name": "Blocchi ricevuti"
+      },
+      "communication_failures": {
+        "name": "Errori di comunicazione consecutivi"
+      },
+      "pv1_voltage": {
+        "name": "Tensione PV1"
+      },
+      "pv1_current": {
+        "name": "Corrente PV1"
+      },
+      "pv1_power": {
+        "name": "Potenza PV1"
+      },
+      "pv1_energy_today": {
+        "name": "Energia PV1 di oggi"
+      },
+      "pv1_energy_total": {
+        "name": "Energia PV1 totale"
+      },
+      "pv2_voltage": {
+        "name": "Tensione PV2"
+      },
+      "pv2_current": {
+        "name": "Corrente PV2"
+      },
+      "pv2_power": {
+        "name": "Potenza PV2"
+      },
+      "pv2_energy_today": {
+        "name": "Energia PV2 di oggi"
+      },
+      "pv2_energy_total": {
+        "name": "Energia PV2 totale"
+      },
+      "pv3_voltage": {
+        "name": "Tensione PV3"
+      },
+      "pv3_current": {
+        "name": "Corrente PV3"
+      },
+      "pv3_power": {
+        "name": "Potenza PV3"
+      },
+      "pv3_energy_today": {
+        "name": "Energia PV3 di oggi"
+      },
+      "pv3_energy_total": {
+        "name": "Energia PV3 totale"
+      },
+      "pv4_voltage": {
+        "name": "Tensione PV4"
+      },
+      "pv4_current": {
+        "name": "Corrente PV4"
+      },
+      "pv4_power": {
+        "name": "Potenza PV4"
+      },
+      "pv4_energy_today": {
+        "name": "Energia PV4 di oggi"
+      },
+      "pv4_energy_total": {
+        "name": "Energia PV4 totale"
+      },
+      "pv5_voltage": {
+        "name": "Tensione PV5"
+      },
+      "pv5_current": {
+        "name": "Corrente PV5"
+      },
+      "pv5_power": {
+        "name": "Potenza PV5"
+      },
+      "pv5_energy_today": {
+        "name": "Energia PV5 di oggi"
+      },
+      "pv5_energy_total": {
+        "name": "Energia PV5 totale"
+      },
+      "pv6_voltage": {
+        "name": "Tensione PV6"
+      },
+      "pv6_current": {
+        "name": "Corrente PV6"
+      },
+      "pv6_power": {
+        "name": "Potenza PV6"
+      },
+      "pv6_energy_today": {
+        "name": "Energia PV6 di oggi"
+      },
+      "pv6_energy_total": {
+        "name": "Energia PV6 totale"
+      },
+      "logger_wifi_signal": {
+        "name": "Segnale Wi-Fi del logger"
+      },
+      "alarm_active_count": {
+        "name": "Allarmi attivi"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "Tensione di ripristino dopo sovratensione di rete"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "Tensione di ripristino dopo sottotensione di rete"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "Frequenza di ripristino dopo sovrafrequenza di rete"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "Frequenza di ripristino dopo sottofrequenza di rete"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "Soglia sottotensione rete livello 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "Soglia sottotensione rete livello 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "Soglia sottotensione rete livello 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "Tempo sottotensione rete livello 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "Tempo sottotensione rete livello 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "Tempo sottotensione rete livello 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "Soglia sovratensione rete livello 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "Soglia sovratensione rete livello 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "Tempo sovratensione rete livello 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "Tempo sovratensione rete livello 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "Soglia sottofrequenza rete livello 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "Soglia sottofrequenza rete livello 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "Tempo sottofrequenza rete livello 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "Tempo sottofrequenza rete livello 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "Soglia sovrafrequenza rete livello 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "Soglia sovrafrequenza rete livello 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "Tempo sovrafrequenza rete livello 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "Tempo sovrafrequenza rete livello 2"
+      },
+      "output_coefficient": {
+        "name": "Livello di potenza"
+      },
+      "protocol_version": {
+        "name": "Versione protocollo"
+      },
+      "inverter_version": {
+        "name": "Versione inverter"
+      },
+      "insulation_impedance_rx": {
+        "name": "Impedenza di isolamento RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "Impedenza di isolamento RY"
+      },
+      "inverter_temperature": {
+        "name": "Temperatura inverter"
+      },
+      "boot_status_raw": {
+        "name": "Stato di avvio grezzo"
+      },
+      "dsp_status_raw": {
+        "name": "Stato DSP grezzo"
+      },
+      "work_mode_raw": {
+        "name": "Modalità di funzionamento grezza"
+      },
+      "output_shutdown_raw": {
+        "name": "Stato grezzo arresto uscita"
+      },
+      "rated_level_raw": {
+        "name": "Livello nominale grezzo"
+      },
+      "input_coefficient": {
+        "name": "Coefficiente di ingresso"
+      },
+      "product_compliance_type_raw": {
+        "name": "Tipo di conformità prodotto grezzo"
+      },
+      "country_profile_raw": {
+        "name": "Codice paese/profilo"
+      },
+      "inverter_operating_state": {
+        "name": "Stato operativo dell'inverter",
+        "state": {
+          "active": "Attivo",
+          "standby": "Standby",
+          "standby_low_solar": "Standby — bassa potenza solare in ingresso",
+          "fault": "Guasto"
+        }
+      },
+      "ambient_temperature": {
+        "name": "Temperatura ambiente inverter"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "Soglia tensione QP"
+      },
+      "grid_recovery_rate": {
+        "name": "Tempo di ripristino rete"
+      },
+      "grid_overvoltage_10min": {
+        "name": "Protezione sovratensione rete 10 minuti"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Valore riduzione sovrafrequenza"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Coefficiente riduzione sovrafrequenza"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Soglia protezione sovratemperatura"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Limite superiore tensione di avvio"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Limite inferiore tensione di avvio"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Limite superiore frequenza di avvio"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Limite inferiore frequenza di avvio"
+      },
+      "active_alarm_names": {
+        "name": "Nomi degli allarmi attivi"
+      },
+      "dsp_firmware_version": {
+        "name": "Versione firmware DSP"
+      },
+      "qcpu1_firmware_version": {
+        "name": "Versione firmware QCPU1"
+      },
+      "qcpu2_firmware_version": {
+        "name": "Versione firmware QCPU2"
+      }
     },
-    "binary_sensor": {"communication_online": {"name": "Microinverter online"}, "inverter_alarm": {"name": "Allarme inverter"}},
-    "button": {"refresh_data": {"name": "Aggiorna dati"}}
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Microinverter online"
+      },
+      "inverter_alarm": {
+        "name": "Allarme inverter"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Aggiorna dati"
+      }
+    }
   },
-  "selector": {"protocol": {"options": {"auto": "Automatico — in base al firmware", "force": "Rilevamento forzato — prova i protocolli", "1511": "Usa il protocollo 1511", "1097": "Usa il protocollo 1097 — sperimentale", "02b0": "Usa il protocollo 02B0"}}}
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatico — in base al firmware",
+        "force": "Rilevamento forzato — prova i protocolli",
+        "1511": "Usa il protocollo 1511",
+        "1097": "Usa il protocollo 1097 — sperimentale",
+        "02b0": "Usa il protocollo 02B0"
+      }
+    }
+  }
 }
