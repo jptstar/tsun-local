@@ -25,26 +25,38 @@
 </p>
 
 ---
+## Kompatybilność
 
-## Twój falownik TSUN może już działać
+**Home Assistant 2026.3.0 lub nowszy.**
 
-TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
-
-| Protokół | Rodzina / zweryfikowany model referencyjny | Status |
-|:---:|---|:---:|
-| **1511** | TITAN · **TSOL-MP3000** | ✅ **Zweryfikowany** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Zweryfikowany** |
-| **1097** | GEN3 / GEN3 PLUS | 🧪 **Eksperymentalny** |
+| Protokół | Rodzina | Zweryfikowany sprzęt | Status |
+|:---:|---|---|:---:|
+| **1511** | TITAN | **TSOL-MP3000** | ✅ **Zweryfikowany** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **Zweryfikowany** |
+| **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Eksperymentalny** |
 
 > [!TIP]
-> **Brak na liście nie oznacza braku obsługi.** Jeśli falownik korzysta z **1511, 02B0 lub 1097**, może już działać.
+> **Brak modelu na liście nie oznacza braku zgodności.** TSUN Local określa kompatybilność głównie na podstawie wykrytego protokołu lokalnego, a nie tylko nazwy handlowej.
+
+<details>
+<summary><strong>Prawdopodobnie kompatybilne modele według protokołu</strong></summary>
+
+- **1511 — Prawdopodobnie kompatybilne:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
+- **02B0 — Prawdopodobnie kompatybilne:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · odpowiednie warianty `-D`
+- **1097 — Prawdopodobnie kompatybilne:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
+
+</details>
+
+📚 **[Walidacja MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
+
+**Nowość w 1.5.4:** urządzenia 02B0 mogą udostępniać firmware i temperaturę falownika oraz dodatkową diagnostykę operacyjną tylko do odczytu.
+📚 **[Pełna lista encji](ENTITIES.md)**
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
     <img alt="Dodaj TSUN Local do HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
-
 ---
 
 ## W skrócie
@@ -61,59 +73,6 @@ TSUN Local obsługuje **trzy rodziny lokalnych protokołów TSUN**.
 
 ---
 
-## Kompatybilność
-
-**Home Assistant 2026.3.0 lub nowszy.**
-
-> [!NOTE]
-> **✅ Zweryfikowany** = potwierdzony na rzeczywistym sprzęcie z TSUN Local.  
-> **🔎 Prawdopodobnie kompatybilny** = rodzina protokołu jest obsługiwana, ale ten konkretny model nie został jeszcze zweryfikowany.  
-> **🧪 Eksperymentalny** = obsługa protokołu istnieje, ale wymaga dalszej walidacji na rzeczywistych urządzeniach.
-
-### 1511 · TITAN — ✅ Zweryfikowany
-
-**✅ Zweryfikowany**  
-`TSOL-MP3000`
-
-**🔎 Prawdopodobnie kompatybilny**  
-`TSOL-MP2250` · `TSOL-MS3000` *(generacja TITAN)*
-
-Do 6 wejść PV, telemetria AC/PV, energia, diagnostyka falownika, wersje firmware, alarmy i zaawansowana diagnostyka sieci tylko do odczytu.
-
-📚 **[Szczegóły walidacji MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
-
-### 02B0 · GEN3 / GEN3 PLUS — ✅ Zweryfikowany
-
-**✅ Zweryfikowany**  
-`TSOL-MX500` · `Sunology PLAY2`
-
-**🔎 Prawdopodobnie kompatybilny**  
-`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
-`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`
-
-Odpowiadające warianty `-D` również mogą być kompatybilne, jeśli występują.
-
-Dynamiczne wykrywanie wejść PV, telemetria AC/PV, alarmy falownika i zaawansowana diagnostyka tylko do odczytu.
-
-
-Niezależna walidacja **Sunology PLAY2** w Home Assistant: automatyczne wykrycie i pomyślna konfiguracja TSUN Local na rzeczywistym urządzeniu.
-
-TSUN Local 1.5.4 dodaje temperaturę falownika, wersję oprogramowania falownika oraz dodatkową diagnostykę 02B0 tylko do odczytu, w tym surową wartość zgodności produktu.
-
-### 1097 · GEN3 / GEN3 PLUS — 🧪 Eksperymentalny
-
-**🔎 Prawdopodobnie kompatybilny**  
-`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
-`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000` · `TSOL-MX3000D`
-
-Obsługa protokołu jest zaimplementowana, ale wymaga dalszej walidacji na rzeczywistych urządzeniach.
-
-> [!NOTE]
-> Ta sama nazwa handlowa może obejmować różne generacje sprzętu lub loggera. **Dla TSUN Local decydujący jest lokalnie wykryty protokół.**
-
----
-
 ## 🚨 Alarmy MP3000
 
 TSUN Local obsługuje pełne pole bitowe alarmów MP3000, zachowując kompaktowy interfejs Home Assistant. **Wszystkie 224 pozycje alarmów są zachowane i oceniane po aktywacji.**
@@ -126,7 +85,7 @@ Home Assistant udostępnia stan **Alarm falownika**, licznik **Aktywne alarmy** 
 
 
 > [!TIP]
-> Aktywne alarmy są również wyświetlane jako **zlokalizowany czytelny tekst** ze stabilnym kodem pozycji, na przykład `Zbyt niskie napięcie sieci (02B0-A014)`. **Sunology PLAY2** korzysta z tego samego kompaktowego interfejsu alarmów 02B0; cztery surowe słowa ERR pozostają dostępne jako diagnostyka zaawansowana.
+> Aktywne alarmy są również wyświetlane jako **zlokalizowany czytelny tekst** ze stabilnym kodem pozycji, na przykład `Zbyt niskie napięcie sieci (02B0-A014)`. **`Sunology PLAY2`** korzysta z tego samego kompaktowego interfejsu alarmów 02B0; cztery surowe słowa ERR pozostają dostępne jako diagnostyka zaawansowana.
 
 ## 🛡️ Zaawansowana diagnostyka
 
@@ -138,7 +97,7 @@ Aby je włączyć:
 
 Eksperymentalne mapowania semantyczne pozostają wyraźnie oznaczone do czasu niezależnej walidacji. Nie zaimplementowano żadnych zapisów konfiguracji do falownika.
 
-📚 **[Dowody walidacji MP3000](MP3000_FIELD_VALIDATION.md)**  
+📚 **[Dowody walidacji MP3000](MP3000_FIELD_VALIDATION.md)**
 📚 **[Pełna lista encji](ENTITIES.md)**
 
 ---
@@ -207,6 +166,15 @@ Dla VLAN, ukierunkowanego wykrywania, porównań przed/po i zaawansowanej walida
 
 📚 **[Przewodnik Hardware Validation Dump Tool](HARDWARE_DUMP.md)**
 
+### Sunology PLAY2
+
+**Sunology PLAY2 został zweryfikowany na rzeczywistym sprzęcie Home Assistant** przez lokalną ścieżkę 02B0 / Solarman V5.
+
+- Automatyczne wykrywanie i standardowa konfiguracja TSUN Local zostały niezależnie potwierdzone.
+- Lokalnie i tylko do odczytu: bez chmury i bez zapisu konfiguracji falownika.
+- Dokładny wariant sprzętowy MX400/MX450/MX500 pozostaje celowo nieokreślony; rozstrzygający jest wykryty protokół **02B0**.
+
+📚 **[Szczegóły badań PLAY2](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Opcjonalny test PLAY2 tylko do odczytu](../tools/tsun_play2_probe.py)**
 ---
 
 ## Przetestuj falownik spoza listy
@@ -227,16 +195,16 @@ TSUN Local oddziela potwierdzoną obsługę sprzętu od eksperymentalnych badań
 Nazwy funkcjonalne i obsługa modeli są oznaczane jako zweryfikowane dopiero po powtarzalnych testach na rzeczywistym sprzęcie. Wartość zgodna jedynie z oczekiwanym profilem jest dowodem pomocniczym, a nie ostatecznym potwierdzeniem; eksperymentalne mapowania pozostają oznaczone do czasu jednoznacznej niezależnej obserwacji.
 
 ---
+## Wkład i podziękowania
 
-## Wkład społeczności
+TSUN Local korzysta z publicznych badań protokołów i niezależnej walidacji sprzętowej. Wymienione zasługi opisują źródła odniesienia i testy; nie oznaczają afiliacji ani poparcia.
 
-TSUN Local korzysta z publicznych badań protokołów i testów społeczności na rzeczywistym sprzęcie.
+- **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — niezależne publiczne źródło porównawcze dla wybranych rejestrów Solarman / 02B0.
+- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — publiczne badania GEN3 / 1097 oraz country/profile używane przy walidacji eksperymentalnej.
+- **TheSmartGerman** — test na rzeczywistym sprzęcie, który ujawnił dodatkową rodzinę protokołu 1097.
+- **dca31** — niezależna walidacja Sunology PLAY2 przez standardowy przepływ TSUN Local w Home Assistant.
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — publiczne badania protokołów GEN3 / 1097 używane jako odniesienie dla wybranych eksperymentalnych mapowań.
-- **TheSmartGerman** — informacje zwrotne o kompatybilności na rzeczywistym sprzęcie.
-
-Szczegółowe pochodzenie i dowody walidacyjne są dokumentowane przy odpowiednich badaniach protokołu.
-
+📚 **[Pełna lista współtwórców i podziękowań](contributors.html)**
 ---
 
 ## Projekt
@@ -244,7 +212,7 @@ Szczegółowe pochodzenie i dowody walidacyjne są dokumentowane przy odpowiedni
 > [!IMPORTANT]
 > **Nieoficjalny projekt społecznościowy.** TSUN Local jest niezależny i nie jest rozwijany, zatwierdzany, wspierany ani utrzymywany przez TSUN.
 
-Utworzony i utrzymywany przez **Jean-Philippe TESTART · `jptstar`**  
+Utworzony i utrzymywany przez **Jean-Philippe TESTART · `jptstar`**
 *Rozwijany i udostępniany dla zabawy, ciekawości technicznej i społeczności Home Assistant.*
 
 ---

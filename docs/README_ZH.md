@@ -25,26 +25,38 @@
 </p>
 
 ---
+## 兼容性
 
-## 你的 TSUN 逆变器可能已经可以使用
+**需要 Home Assistant 2026.3.0 或更高版本。**
 
-TSUN Local 支持 **三种 TSUN 本地协议系列**。
-
-| 协议 | 系列 / 已验证参考型号 | 状态 |
-|:---:|---|:---:|
-| **1511** | TITAN · **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **已验证** |
-| **1097** | GEN3 / GEN3 PLUS | 🧪 **实验性** |
+| 协议 | 系列 | 已验证硬件 | 状态 |
+|:---:|---|---|:---:|
+| **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **已验证** |
+| **1097** | GEN3 / GEN3 PLUS | — | 🧪 **实验性** |
 
 > [!TIP]
-> **未列出并不代表不支持。** 如果你的逆变器使用 **1511、02B0 或 1097**，它可能已经能够工作。
+> **未列出的型号并不代表不兼容。** TSUN Local 主要依据检测到的本地协议判断兼容性，而不是只看商业型号名称。
+
+<details>
+<summary><strong>按协议分类的可能兼容型号</strong></summary>
+
+- **1511 — 可能兼容:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
+- **02B0 — 可能兼容:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · 对应的 `-D` 变体
+- **1097 — 可能兼容:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
+
+</details>
+
+📚 **[MP3000 / TITAN 验证](MP3000_FIELD_VALIDATION.md)**
+
+**1.5.4 新增：**02B0 设备可提供逆变器固件版本、逆变器温度以及更多只读运行诊断。
+📚 **[完整实体参考](ENTITIES.md)**
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
     <img alt="将 TSUN Local 添加到 HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
-
 ---
 
 ## 一览
@@ -61,59 +73,6 @@ TSUN Local 支持 **三种 TSUN 本地协议系列**。
 
 ---
 
-## 兼容性
-
-**需要 Home Assistant 2026.3.0 或更高版本。**
-
-> [!NOTE]
-> **✅ 已验证** = 已在真实硬件上使用 TSUN Local 确认。  
-> **🔎 很可能兼容** = 协议系列已支持，但该具体型号尚未验证。  
-> **🧪 实验性** = 已有协议支持，但仍需要更多真实设备验证。
-
-### 1511 · TITAN — ✅ 已验证
-
-**✅ 已验证**  
-`TSOL-MP3000`
-
-**🔎 很可能兼容**  
-`TSOL-MP2250` · `TSOL-MS3000` *(TITAN 代际)*
-
-最多 6 路 PV 输入，支持 AC/PV 遥测、能量、逆变器诊断、固件版本、告警以及高级只读电网诊断。
-
-📚 **[MP3000 / TITAN 现场验证详情](MP3000_FIELD_VALIDATION.md)**
-
-### 02B0 · GEN3 / GEN3 PLUS — ✅ 已验证
-
-**✅ 已验证**  
-`TSOL-MX500` · `Sunology PLAY2`
-
-**🔎 很可能兼容**  
-`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
-`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`
-
-相应的 `-D` 变体在适用时也可能兼容。
-
-支持动态 PV 输入检测、AC/PV 遥测、逆变器告警以及高级只读诊断。
-
-
-已在真实设备上独立验证 **Sunology PLAY2**：Home Assistant 自动发现设备并成功完成 TSUN Local 配置。
-
-TSUN Local 1.5.4 新增逆变器温度、逆变器固件版本以及更多只读 02B0 运行/配置诊断，其中包括原始产品合规类型值。
-
-### 1097 · GEN3 / GEN3 PLUS — 🧪 实验性
-
-**🔎 很可能兼容**  
-`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
-`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000` · `TSOL-MX3000D`
-
-协议支持已经实现，但仍需要更多真实设备验证。
-
-> [!NOTE]
-> 同一商品型号名称可能覆盖不同硬件或 Logger 代际。**对于 TSUN Local，以本地检测到的协议作为兼容性判断依据。**
-
----
-
 ## 🚨 MP3000 告警
 
 TSUN Local 支持完整的 MP3000 告警位字段，同时保持 Home Assistant 界面简洁。**全部 224 个告警位置都会被保留，并在激活时进行评估。**
@@ -126,7 +85,7 @@ Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数
 
 
 > [!TIP]
-> 活动告警也会以**本地化易读文本**显示，并带有稳定的位置代码，例如 `电网欠压 (02B0-A014)`。**Sunology PLAY2** 使用同一套精简的 02B0 告警界面；四个原始 ERR 字仍作为高级诊断保留。
+> 活动告警也会以**本地化易读文本**显示，并带有稳定的位置代码，例如 `电网欠压 (02B0-A014)`。**`Sunology PLAY2`** 使用同一套精简的 02B0 告警界面；四个原始 ERR 字仍作为高级诊断保留。
 
 ## 🛡️ 高级诊断
 
@@ -138,7 +97,7 @@ Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数
 
 实验性语义映射在独立验证前会继续明确标注。未实现任何向逆变器写入配置的功能。
 
-📚 **[MP3000 现场验证证据](MP3000_FIELD_VALIDATION.md)**  
+📚 **[MP3000 现场验证证据](MP3000_FIELD_VALIDATION.md)**
 📚 **[完整实体列表](ENTITIES.md)**
 
 ---
@@ -207,6 +166,15 @@ py tsun_dump.py --full
 
 📚 **[Hardware Validation Dump Tool 指南](HARDWARE_DUMP.md)**
 
+### Sunology PLAY2
+
+**Sunology PLAY2 已在真实 Home Assistant 硬件上完成验证**，使用本地 02B0 / Solarman V5 路径。
+
+- 自动发现和标准 TSUN Local 配置流程已由独立用户确认。
+- 完全本地、只读：不依赖云端，也不会向逆变器写入配置。
+- 具体 MX400/MX450/MX500 硬件变体仍有意不作推断；以检测到的 **02B0** 协议为准。
+
+📚 **[PLAY2 研究详情](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[可选的只读 PLAY2 探测工具](../tools/tsun_play2_probe.py)**
 ---
 
 ## 测试未列出的逆变器
@@ -227,16 +195,16 @@ TSUN Local 将已确认的硬件支持与实验性的协议研究明确区分。
 只有在真实硬件上完成可重复验证后，功能名称和型号支持才会标记为已验证。仅仅与预期配置数值一致只能作为证据，而不能视为最终证明；实验性映射会一直保留标记，直到独立观察能够明确区分对应字段。
 
 ---
+## 贡献与致谢
 
-## 社区贡献
+TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢仅说明参考工作和验证来源，不代表任何隶属或官方背书。
 
-TSUN Local 受益于公开协议研究以及社区在真实硬件上的测试。
+- **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — 在部分 Solarman / 02B0 寄存器研究中用作独立公开交叉参考。
+- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — 公开的 GEN3 / 1097 与国家/配置文件研究，用于实验性验证。
+- **TheSmartGerman** — 真实设备测试揭示了额外的 1097 协议系列。
+- **dca31** — 通过 TSUN Local 的标准 Home Assistant 流程独立验证 Sunology PLAY2。
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — 公开的 GEN3 / 1097 协议研究，用作部分实验性映射的参考。
-- **TheSmartGerman** — 真实硬件兼容性反馈。
-
-详细来源和验证证据会与相应的协议研究一起记录。
-
+📚 **[完整贡献者与致谢](contributors.html)**
 ---
 
 ## 项目
@@ -244,7 +212,7 @@ TSUN Local 受益于公开协议研究以及社区在真实硬件上的测试。
 > [!IMPORTANT]
 > **非官方社区项目。** TSUN Local 是独立项目，并非由 TSUN 开发、批准、认可或维护。
 
-由 **Jean-Philippe TESTART · `jptstar`** 创建并维护  
+由 **Jean-Philippe TESTART · `jptstar`** 创建并维护
 *出于兴趣、技术好奇心以及对 Home Assistant 社区的分享而开发。*
 
 ---

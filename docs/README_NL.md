@@ -25,26 +25,38 @@
 </p>
 
 ---
+## Compatibiliteit
 
-## Jouw TSUN-omvormer werkt mogelijk al
+**Home Assistant 2026.3.0 of nieuwer.**
 
-TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
-
-| Protocol | Familie / gevalideerde referentie | Status |
-|:---:|---|:---:|
-| **1511** | TITAN · **TSOL-MP3000** | ✅ **Gevalideerd** |
-| **02B0** | GEN3 / GEN3 PLUS · **TSOL-MX500** | ✅ **Gevalideerd** |
-| **1097** | GEN3 / GEN3 PLUS | 🧪 **Experimenteel** |
+| Protocol | Familie | Gevalideerde hardware | Status |
+|:---:|---|---|:---:|
+| **1511** | TITAN | **TSOL-MP3000** | ✅ **Gevalideerd** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **`Sunology PLAY2`** | ✅ **Gevalideerd** |
+| **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Experimenteel** |
 
 > [!TIP]
-> **Niet vermeld betekent niet automatisch niet ondersteund.** Als je omvormer **1511, 02B0 of 1097** gebruikt, kan hij al werken.
+> **Niet vermeld betekent niet automatisch incompatibel.** TSUN Local baseert compatibiliteit vooral op het gedetecteerde lokale protocol en niet alleen op de commerciële modelnaam.
+
+<details>
+<summary><strong>Waarschijnlijk compatibele modellen per protocol</strong></summary>
+
+- **1511 — Waarschijnlijk compatibel:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
+- **02B0 — Waarschijnlijk compatibel:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · overeenkomstige `-D`-varianten
+- **1097 — Waarschijnlijk compatibel:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
+
+</details>
+
+📚 **[MP3000 / TITAN-validatie](MP3000_FIELD_VALIDATION.md)**
+
+**Nieuw in 1.5.4:** 02B0-apparaten kunnen omvormerfirmware, omvormertemperatuur en extra alleen-lezen bedrijfsdiagnostiek tonen.
+📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
 <p align="center">
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
     <img alt="TSUN Local toevoegen aan HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
   </a>
 </p>
-
 ---
 
 ## In één oogopslag
@@ -61,59 +73,6 @@ TSUN Local ondersteunt **drie lokale TSUN-protocolfamilies**.
 
 ---
 
-## Compatibiliteit
-
-**Home Assistant 2026.3.0 of nieuwer.**
-
-> [!NOTE]
-> **✅ Gevalideerd** = bevestigd op echte hardware met TSUN Local.  
-> **🔎 Waarschijnlijk compatibel** = de protocolfamilie wordt ondersteund, maar dit exacte model is nog niet gevalideerd.  
-> **🧪 Experimenteel** = protocolondersteuning bestaat, maar meer validatie op echte apparaten is nog nodig.
-
-### 1511 · TITAN — ✅ Gevalideerd
-
-**✅ Gevalideerd**  
-`TSOL-MP3000`
-
-**🔎 Waarschijnlijk compatibel**  
-`TSOL-MP2250` · `TSOL-MS3000` *(TITAN-generatie)*
-
-Tot 6 PV-ingangen, AC/PV-telemetrie, energie, omvormerdiagnostiek, firmwareversies, alarmen en geavanceerde alleen-lezen netdiagnostiek.
-
-📚 **[MP3000 / TITAN veldvalidatiedetails](MP3000_FIELD_VALIDATION.md)**
-
-### 02B0 · GEN3 / GEN3 PLUS — ✅ Gevalideerd
-
-**✅ Gevalideerd**  
-`TSOL-MX500` · `Sunology PLAY2`
-
-**🔎 Waarschijnlijk compatibel**  
-`TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
-`TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000`
-
-Overeenkomstige `-D`-varianten kunnen waar van toepassing ook compatibel zijn.
-
-Dynamische detectie van PV-ingangen, AC/PV-telemetrie, omvormeralarmen en geavanceerde alleen-lezen diagnostiek.
-
-
-Onafhankelijke **Sunology PLAY2**-validatie in Home Assistant: automatische detectie en succesvolle TSUN Local-configuratie op echte hardware.
-
-TSUN Local 1.5.4 voegt omvormertemperatuur, omvormerfirmwareversie en extra alleen-lezen 02B0-bedrijfs- en configuratiediagnostiek toe, inclusief een ruwe productconformiteitswaarde.
-
-### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimenteel
-
-**🔎 Waarschijnlijk compatibel**  
-`TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400`  
-`TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800`  
-`TSOL-MS3000` · `TSOL-MX3000D`
-
-Protocolondersteuning is geïmplementeerd, maar meer validatie op echte apparaten is nodig.
-
-> [!NOTE]
-> Eén commerciële modelnaam kan meerdere hardware- of loggergeneraties omvatten. **Voor TSUN Local is het lokaal gedetecteerde protocol doorslaggevend voor compatibiliteit.**
-
----
-
 ## 🚨 MP3000-alarmen
 
 TSUN Local ondersteunt het volledige MP3000-alarmbitveld en houdt de Home Assistant-interface compact. **Alle 224 alarmposities worden behouden en geëvalueerd wanneer ze actief worden.**
@@ -126,7 +85,7 @@ Home Assistant toont één **Omvormeralarm**, een telling **Actieve alarmen** en
 
 
 > [!TIP]
-> Actieve alarmen worden ook weergegeven als **gelokaliseerde duidelijke tekst** met een stabiele positiecode, bijvoorbeeld `Netonderspanning (02B0-A014)`. **Sunology PLAY2** gebruikt dezelfde compacte 02B0-alarminterface; de vier ruwe ERR-woorden blijven beschikbaar als geavanceerde diagnose.
+> Actieve alarmen worden ook weergegeven als **gelokaliseerde duidelijke tekst** met een stabiele positiecode, bijvoorbeeld `Netonderspanning (02B0-A014)`. **`Sunology PLAY2`** gebruikt dezelfde compacte 02B0-alarminterface; de vier ruwe ERR-woorden blijven beschikbaar als geavanceerde diagnose.
 
 ## 🛡️ Geavanceerde diagnostiek
 
@@ -138,7 +97,7 @@ Inschakelen:
 
 Experimentele semantische koppelingen blijven expliciet gemarkeerd totdat ze onafhankelijk zijn gevalideerd. Er zijn geen configuratieschrijfbewerkingen naar de omvormer geïmplementeerd.
 
-📚 **[MP3000 veldvalidatiebewijs](MP3000_FIELD_VALIDATION.md)**  
+📚 **[MP3000 veldvalidatiebewijs](MP3000_FIELD_VALIDATION.md)**
 📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
 ---
@@ -207,6 +166,15 @@ Voor VLANs, gerichte ontdekking, voor/na-vergelijkingen en geavanceerde validati
 
 📚 **[Handleiding Hardware Validation Dump Tool](HARDWARE_DUMP.md)**
 
+### Sunology PLAY2
+
+**Sunology PLAY2 is gevalideerd op echte Home Assistant-hardware** via het lokale 02B0 / Solarman V5-pad.
+
+- Automatische detectie en de normale TSUN Local-configuratie zijn onafhankelijk bevestigd.
+- Lokaal en alleen-lezen: geen cloud en geen configuratieschrijfacties naar de omvormer.
+- De exacte MX400/MX450/MX500-hardwarevariant blijft bewust ongespecificeerd; het gedetecteerde **02B0**-protocol is leidend.
+
+📚 **[PLAY2-onderzoeksdetails](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionele alleen-lezen PLAY2-probe](../tools/tsun_play2_probe.py)**
 ---
 
 ## Een niet-vermelde omvormer testen
@@ -227,16 +195,16 @@ TSUN Local scheidt bevestigde hardwareondersteuning van experimenteel protocolon
 Functionele namen en modelondersteuning worden pas als gevalideerd aangeduid na reproduceerbare controles op echte hardware. Een waarde die alleen bij een verwacht profiel past, geldt als aanwijzing en niet als bewijs; experimentele koppelingen blijven gemarkeerd totdat een onafhankelijke waarneming ze eenduidig onderscheidt.
 
 ---
+## Bijdragen en credits
 
-## Bijdragen
+TSUN Local profiteert van openbaar protocolonderzoek en onafhankelijke hardwarevalidatie. Deze credits beschrijven referentiewerk en validatie en impliceren geen affiliatie of goedkeuring.
 
-TSUN Local profiteert van openbaar protocolonderzoek en communitytests op echte hardware.
+- **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — onafhankelijke openbare referentie voor geselecteerd Solarman-/02B0-registeronderzoek.
+- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — openbaar GEN3-/1097- en land-/profielonderzoek voor experimentele validatie.
+- **TheSmartGerman** — real-hardwaretest waardoor de extra 1097-protocolfamilie werd ontdekt.
+- **dca31** — onafhankelijke Sunology PLAY2-validatie via de normale TSUN Local Home Assistant-flow.
 
-- **Stefan Allius / `s-allius/tsun-gen3-proxy`** — openbaar GEN3-/1097-protocolonderzoek als referentie voor geselecteerde experimentele koppelingen.
-- **TheSmartGerman** — compatibiliteitsfeedback op echte hardware.
-
-Gedetailleerde herkomst en validatiebewijzen worden bij het relevante protocolonderzoek gedocumenteerd.
-
+📚 **[Alle bijdragers en credits](contributors.html)**
 ---
 
 ## Project
@@ -244,7 +212,7 @@ Gedetailleerde herkomst en validatiebewijzen worden bij het relevante protocolon
 > [!IMPORTANT]
 > **Onofficieel communityproject.** TSUN Local is onafhankelijk en wordt niet ontwikkeld, goedgekeurd, ondersteund of onderhouden door TSUN.
 
-Gemaakt en onderhouden door **Jean-Philippe TESTART · `jptstar`**  
+Gemaakt en onderhouden door **Jean-Philippe TESTART · `jptstar`**
 *Ontwikkeld en gedeeld voor plezier, technische nieuwsgierigheid en de Home Assistant-community.*
 
 ---
