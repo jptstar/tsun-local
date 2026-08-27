@@ -27,7 +27,10 @@ jobs:
           python-version: "3.13"
 
       - name: Apply 1.5.4 documentation patch
-        run: python tools/_release_154_patch.py
+        shell: bash
+        run: |
+          python tools/_release_154_patch.py
+          sed -i 's/[[:space:]]\+$//' docs/entities.html
 
       - name: Validate JSON and Python
         shell: bash
