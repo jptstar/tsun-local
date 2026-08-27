@@ -22,6 +22,7 @@ for filename, (mp_link, mp_label, d_variant) in FILES.items():
         if marker not in text:
             raise SystemExit(f"{filename}: compatibility details marker missing")
         text = text.replace(marker, marker + addition, 1)
+    text = "\n".join(line.rstrip() for line in text.splitlines()).rstrip() + "\n"
     path.write_text(text, encoding="utf-8")
 
 Path("tests/test_stable_151_localized_readmes.py").write_text('''from __future__ import annotations
