@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
 <p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
-<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.3</strong></p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -97,6 +97,8 @@ Dynamische PV-Eingangserkennung, AC/PV-Telemetrie, Wechselrichteralarme und erwe
 
 
 Unabhängige **Sunology PLAY2**-Validierung in Home Assistant: automatische Erkennung und erfolgreiche TSUN-Local-Einrichtung auf realer Hardware.
+
+TSUN Local 1.5.4 ergänzt Wechselrichtertemperatur, Wechselrichter-Firmwareversion und zusätzliche schreibgeschützte 02B0-Betriebs- und Konfigurationsdiagnosen, einschließlich eines rohen Produktkonformitätswerts.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimentell
 

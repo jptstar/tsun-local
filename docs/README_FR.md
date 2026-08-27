@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
-<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.3</strong></p>
+<p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -97,6 +97,8 @@ Détection dynamique des entrées PV, télémétrie AC/PV, alarmes onduleur et d
 
 
 Validation indépendante du **Sunology PLAY2** dans Home Assistant : découverte automatique et ajout TSUN Local réussis sur matériel réel.
+
+TSUN Local 1.5.4 ajoute la température de l’onduleur, la version du firmware de l’onduleur et des diagnostics 02B0 supplémentaires en lecture seule, dont une valeur brute de conformité produit.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Expérimental
 

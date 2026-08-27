@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
-<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.3</strong></p>
+<p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -97,6 +97,8 @@ Dynamiczne wykrywanie wejść PV, telemetria AC/PV, alarmy falownika i zaawansow
 
 
 Niezależna walidacja **Sunology PLAY2** w Home Assistant: automatyczne wykrycie i pomyślna konfiguracja TSUN Local na rzeczywistym urządzeniu.
+
+TSUN Local 1.5.4 dodaje temperaturę falownika, wersję oprogramowania falownika oraz dodatkową diagnostykę 02B0 tylko do odczytu, w tym surową wartość zgodności produktu.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Eksperymentalny
 

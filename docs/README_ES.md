@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Tu inversor. Tu red. Tus datos.</h3>
 <p align="center"><strong>Local. Solo lectura. Sin nube. Sin proxy.</strong></p>
-<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.3</strong></p>
+<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.4</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -97,6 +97,8 @@ Detección dinámica de entradas PV, telemetría AC/PV, alarmas del inversor y d
 
 
 Validación independiente de **Sunology PLAY2** en Home Assistant: descubrimiento automático y configuración de TSUN Local completados correctamente en hardware real.
+
+TSUN Local 1.5.4 añade la temperatura del inversor, la versión de firmware del inversor y diagnósticos 02B0 adicionales de solo lectura, incluido un valor bruto de conformidad del producto.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 
