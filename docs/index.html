@@ -93,7 +93,7 @@
     .install-note{margin-top:20px;padding:18px;border-radius:16px;background:var(--green-soft);color:#0d684d;font-weight:750}
     .languages{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
     .language{padding:9px 13px;border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:750;text-decoration:none}
-    .community-credit{margin-top:20px;padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:#f8fafd}.community-credit>strong{display:block;margin-bottom:5px}.community-credit span{display:block;color:var(--muted)}.community-credit a{display:inline-block;margin-top:10px;font-weight:800;text-decoration:none}footer{padding:8px 0 42px;color:var(--muted);text-align:center;font-size:14px}
+    .community-credit{margin-top:20px;padding:18px 20px;border:1px solid var(--line);border-radius:16px;background:#f8fafd}.community-credit>strong{display:block;margin-bottom:8px}.community-credit span{display:block;color:var(--muted)}.community-credit span+span{margin-top:8px}.community-credit span a{display:inline;font-weight:800}.community-credit>a{display:inline-block;margin-top:12px;font-weight:800;text-decoration:none}footer{padding:8px 0 42px;color:var(--muted);text-align:center;font-size:14px}
     @media(max-width:830px){
       .hero,.steps,.two,.mini-steps{grid-template-columns:1fr}
       .grid{display:flex;flex-direction:column;gap:12px;width:100%}
@@ -135,7 +135,7 @@
   <div class="wrap">
     <nav>
       <a class="brand" href="#top"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
-      <div class="navlinks"><a href="#features">Features</a><a href="#compatibility">Compatibility</a><a href="#alarms">Alarms</a><a href="#install">Install</a><a href="#docs">Docs</a></div>
+      <div class="navlinks"><a href="#features">Features</a><a href="#compatibility">Compatibility</a><a href="#alarms">Alarms</a><a href="#install">Install</a><a href="#docs">Docs</a><a href="#community">Credits</a></div>
     </nav>
     <div class="hero" id="top">
       <div>
@@ -278,13 +278,16 @@ Stable code preserved for diagnosis</div>
   </section>
 
   <section id="community">
-    <h2>Independent community project</h2>
-    <p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN or Sunology. Product names belong to their respective owners.</p>
+    <h2>Credits &amp; independent community project</h2>
+    <p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN, Sunology, Solarman or the projects and contributors credited below. Product and project names belong to their respective owners.</p>
     <p>Created and maintained by <a href="https://github.com/jptstar"><strong>Jean-Philippe TESTART (jptstar)</strong></a> for the Home Assistant community.</p>
     <div class="community-credit">
-      <strong>Community contributions</strong>
-      <span>TSUN Local has also benefited from protocol research, hardware validation and community testing.</span>
-      <a href="contributors.html">See contributors &amp; credits →</a>
+      <strong>Public protocol research &amp; community contributions</strong>
+      <span><a href="https://github.com/davidrapan/ha-solarman"><strong>David Rapan · ha-solarman</strong></a> — public Home Assistant Solarman protocol and inverter-profile work used as an independent cross-reference during selected 02B0 register research.</span>
+      <span><a href="https://github.com/s-allius/tsun-gen3-proxy"><strong>Stefan Allius · tsun-gen3-proxy</strong></a> — public GEN3 / 1097 protocol research and country/profile references used during experimental protocol validation.</span>
+      <span><strong>TheSmartGerman</strong> — real-device testing that revealed the additional 1097 protocol family.</span>
+      <span><strong>dca31</strong> — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.</span>
+      <a href="contributors.html">Full contributors &amp; credits →</a>
     </div>
   </section>
 </main>
