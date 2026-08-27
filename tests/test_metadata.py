@@ -149,12 +149,12 @@ class MetadataTests(unittest.TestCase):
         text_sitemap = (ROOT / "docs" / "sitemap.txt").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
-        self.assertIn('href="entities.html"', index)
-        self.assertIn('href="sunology-play2.html"', index)
-        self.assertIn("Install it. Add it. TSUN Local finds your inverter.", index)
+        self.assertIn('entities.html', index)
+        self.assertIn('sunology-play2.html', index)
+        self.assertIn("Your inverter. Your network. Your data.", index)
         self.assertIn("Sunology PLAY2", index)
         self.assertIn("Automatic discovery", index)
-        self.assertIn("Alarms in clear, human-readable text", index)
+        self.assertIn("Alarms you can actually read", index)
         self.assertIn('"@type": "WebSite"', index)
         self.assertIn('"Sunology PLAY2"', index)
 
@@ -175,13 +175,15 @@ class MetadataTests(unittest.TestCase):
 
         self.assertIn("sunology-play2.html", sitemap)
         self.assertIn("entities.html", sitemap)
-        self.assertEqual(sitemap.count("<lastmod>2026-08-26</lastmod>"), 3)
+        self.assertEqual(sitemap.count("<lastmod>2026-08-27</lastmod>"), 5)
         self.assertEqual(
             text_sitemap.splitlines(),
             [
                 "https://jptstar.github.io/tsun-local/",
-                "https://jptstar.github.io/tsun-local/sunology-play2.html",
                 "https://jptstar.github.io/tsun-local/entities.html",
+                "https://jptstar.github.io/tsun-local/sunology-play2.html",
+                "https://jptstar.github.io/tsun-local/test-your-inverter.html",
+                "https://jptstar.github.io/tsun-local/contributors.html",
             ],
         )
         self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.xml", robots)

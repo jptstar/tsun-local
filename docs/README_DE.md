@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
 <p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
-<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.3</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ Bis zu 6 PV-Eingänge, AC/PV-Telemetrie, Energie, Wechselrichterdiagnose, Firmwa
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validiert
 
 **✅ Validiert**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Wahrscheinlich kompatibel**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ Bis zu 6 PV-Eingänge, AC/PV-Telemetrie, Energie, Wechselrichterdiagnose, Firmwa
 Entsprechende `-D`-Varianten können ebenfalls kompatibel sein, sofern vorhanden.
 
 Dynamische PV-Eingangserkennung, AC/PV-Telemetrie, Wechselrichteralarme und erweiterte schreibgeschützte Diagnose.
+
+
+Unabhängige **Sunology PLAY2**-Validierung in Home Assistant: automatische Erkennung und erfolgreiche TSUN-Local-Einrichtung auf realer Hardware.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimentell
 
@@ -118,6 +121,10 @@ Die **12 auf Hardware beobachteten funktionalen Zuordnungen** umfassen niedrige 
 Home Assistant zeigt einen **Wechselrichteralarm**, die Anzahl **Aktiver Alarme** und einen Sensor **Namen aktiver Alarme**. Die 14 vollständigen Rohwörter bleiben als standardmäßig deaktivierte Diagnose verfügbar, ohne 224 permanente Entitäten anzulegen.
 
 ---
+
+
+> [!TIP]
+> Aktive Alarme werden außerdem als **lokalisierter Klartext** mit stabilem Positionscode angezeigt, zum Beispiel `Grid undervoltage (02B0-A014)` in der jeweiligen Home-Assistant-Sprache. **Sunology PLAY2** nutzt dieselbe kompakte 02B0-Alarmoberfläche; die vier rohen ERR-Wörter bleiben als erweiterte Diagnose verfügbar.
 
 ## 🛡️ Erweiterte Diagnose
 

@@ -2,6 +2,80 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.3] - 2026-08-27
+
+### Added
+
+- Extend the compact clear-text alarm interface to all supported local protocol families: 1511, 02B0 and 1097, with localized functional descriptions and stable protocol-position codes.
+- Add a public **Test your microinverter** page so owners of unlisted TSUN/OEM models can try automatic discovery and report hardware tests.
+- Add a **Contributors & credits** page documenting concrete community contributions to TSUN Local.
+
+### Validated
+
+- Promote **Sunology PLAY2** to validated 02B0 hardware after an independent direct TSUN Local / Home Assistant installation automatically discovered the device and completed setup successfully.
+
+### Changed
+
+- Publish readable alarm names for 1511, 02B0 and 1097 while preserving raw alarm words as optional advanced diagnostics.
+- Restore a TSUN-first public website around easy installation and automatic discovery while preserving **Your inverter. Your network. Your data.**
+- Present compatibility by protocol family first, with real-hardware-tested microinverters listed underneath and a prominent reminder that unlisted models may already be compatible.
+- Refresh the README, localized READMEs, entity references, SEO metadata and sitemap for stable 1.5.3.
+- Use the same project footer across every public web page.
+
+### Community
+
+- Credit **TheSmartGerman** for the real-world installation that unexpectedly revealed TSUN Local detection of protocol 1097.
+- Credit **Stefan Allius** for public TSUN GEN3 / 1097 protocol research and country/profile research used as a reference for country-code/profile interpretation and validation.
+- Credit **dca31** for independent Sunology PLAY2 validation through the normal Home Assistant integration flow.
+
+### Safety
+
+- All protocol interpretation, alarm decoding and compatibility validation remain local and read-only.
+- No inverter configuration, protection-setting, provisioning, country/profile write or control write is added.
+
+## [1.5.3-beta.2] - 2026-08-26
+
+### Validated
+
+- Promote **Sunology PLAY2** to validated 02B0 hardware after an independent direct TSUN Local / Home Assistant installation automatically discovered the device and completed setup successfully.
+- Keep the tested PLAY2 transport documented as Solarman V5 over TCP 8899 with the explicit `0x02B0` sensor-list selector.
+
+### Communication and alarms
+
+- Advertise Sunology PLAY2 compatibility explicitly in the README, localized documentation, public website, entity pages and search metadata.
+- Clarify that the 1.5.3 alarm interface exposes **clear-text localized active alarm names** for 1511, 02B0 and 1097 while retaining stable protocol-position codes such as `02B0-A014`.
+- Document that PLAY2 / 02B0 users receive the same compact Home Assistant alarm interface: **Inverter alarm**, **Active alarms**, and **Active alarm names**; raw ERR1–ERR4 words remain optional advanced diagnostics.
+
+### Web / SEO
+
+- Add `Sunology PLAY2`, `Sunology Play 2`, `Home Assistant`, `02B0`, `local monitoring` and related terms to public page metadata and structured data.
+- Refresh the public compatibility and entity pages so they no longer present 1.5.1-era compatibility or alarm wording.
+
+### Safety
+
+- No new inverter write operation is introduced. PLAY2 compatibility and alarm decoding remain local and read-only.
+
+## [1.5.3-beta.1] - 2026-08-26
+
+### Added
+
+- Add protocol-aware alarm catalogues for all three supported local protocols: 224 stable positions for 1511 and 64 stable positions each for 02B0 and 1097.
+- Add known GEN3 / GEN3 PLUS event and fault descriptions for 02B0 and 1097 while preserving neutral wording for every unknown or reserved position.
+- Expose the same compact alarm interface on 02B0 and 1097 as on 1511: **Inverter alarm**, **Active alarms**, **Active alarm names**, and disabled raw alarm words.
+
+### Changed
+
+- Use one public alarm-code format across all protocols: `1511-Axxx`, `02B0-Axxx`, and `1097-Axxx`.
+- Always append the stable protocol-position code to the localized alarm description, for example `Grid undervoltage (02B0-A014)` or `Unidentified inverter alarm (1097-A041)`.
+- Keep Home Assistant technical entity IDs and object IDs stable in English while alarm descriptions remain localized in English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Keep complete raw alarm words available for diagnostics without creating one Home Assistant entity per alarm bit.
+
+### Safety
+
+- Alarm decoding remains entirely local and read-only.
+- Unknown alarm positions are not assigned invented functional meanings.
+- No inverter configuration, protection-setting or control write is added.
+
 ## [1.5.2] - 2026-08-25
 
 ### Added
@@ -397,6 +471,7 @@ All notable changes to this project are documented here. The project follows [Se
 - communication diagnostics and night/offline handling;
 - GPL-3.0-or-later licensing and copyright attribution to Jean-Philippe TESTART (jptstar).
 
+[1.5.3-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.3-beta.1
 [1.5.2]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.2
 [1.5.1-beta.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.1-beta.1
 [1.5.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.5.0

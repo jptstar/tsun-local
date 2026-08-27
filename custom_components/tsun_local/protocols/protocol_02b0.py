@@ -43,7 +43,12 @@ DIAGNOSTIC_BLOCKS = (
 
 ALARM_REGISTERS = (0x3003, 0x3004, 0x3005, 0x3006)
 ALARM_MEASUREMENT_KEYS = frozenset(
-    {"alarm_active", *(f"alarm_code_{index}_raw" for index in range(1, 5))}
+    {
+        "alarm_active",
+        "alarm_active_count",
+        "active_alarm_names",
+        *(f"alarm_code_{index}_raw" for index in range(1, 5)),
+    }
 )
 
 AC_MEASUREMENT_KEYS = frozenset(

@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Il tuo inverter. La tua rete. I tuoi dati.</h3>
 <p align="center"><strong>Locale. Sola lettura. Nessun cloud. Nessun proxy.</strong></p>
-<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.5.3</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ Fino a 6 ingressi PV, telemetria AC/PV, energia, diagnostica inverter, versioni 
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validato
 
 **✅ Validato**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Probabilmente compatibile**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ Fino a 6 ingressi PV, telemetria AC/PV, energia, diagnostica inverter, versioni 
 Le corrispondenti varianti `-D` possono essere compatibili dove previste.
 
 Rilevamento dinamico degli ingressi PV, telemetria AC/PV, allarmi inverter e diagnostica avanzata in sola lettura.
+
+
+Validazione indipendente di **Sunology PLAY2** in Home Assistant: rilevamento automatico e configurazione TSUN Local completati con successo su hardware reale.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Sperimentale
 
@@ -118,6 +121,10 @@ Le **12 corrispondenze funzionali osservate su hardware** coprono la bassa tensi
 Home Assistant espone uno stato **Allarme inverter**, un conteggio **Allarmi attivi** e un sensore **Nomi allarmi attivi**. Le 14 parole grezze complete restano disponibili come diagnostica disattivata per impostazione predefinita, senza creare 224 entità permanenti.
 
 ---
+
+
+> [!TIP]
+> Gli allarmi attivi sono mostrati anche come **testo chiaro localizzato** con un codice di posizione stabile, ad esempio `Sottotensione rete (02B0-A014)`. **Sunology PLAY2** usa la stessa interfaccia compatta 02B0; le quattro parole ERR grezze restano disponibili come diagnostica avanzata.
 
 ## 🛡️ Diagnostica avanzata
 

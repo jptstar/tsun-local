@@ -2,14 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://jptstar.github.io/tsun-local/</loc>
-    <lastmod>2026-08-26</lastmod>
-  </url>
-  <url>
-    <loc>https://jptstar.github.io/tsun-local/sunology-play2.html</loc>
-    <lastmod>2026-08-26</lastmod>
+    <lastmod>2026-08-27</lastmod>
   </url>
   <url>
     <loc>https://jptstar.github.io/tsun-local/entities.html</loc>
-    <lastmod>2026-08-26</lastmod>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://jptstar.github.io/tsun-local/sunology-play2.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://jptstar.github.io/tsun-local/test-your-inverter.html</loc>
+    <lastmod>2026-08-27</lastmod>
+  </url>
+  <url>
+    <loc>https://jptstar.github.io/tsun-local/contributors.html</loc>
+    <lastmod>2026-08-27</lastmod>
   </url>
 </urlset>

@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Tu inversor. Tu red. Tus datos.</h3>
 <p align="center"><strong>Local. Solo lectura. Sin nube. Sin proxy.</strong></p>
-<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.1</strong></p>
+<p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.3</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -85,7 +85,7 @@ Hasta 6 entradas PV, telemetría AC/PV, energía, diagnóstico del inversor, ver
 ### 02B0 · GEN3 / GEN3 PLUS — ✅ Validado
 
 **✅ Validado**  
-`TSOL-MX500`
+`TSOL-MX500` · `Sunology PLAY2`
 
 **🔎 Probablemente compatible**  
 `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000`  
@@ -94,6 +94,9 @@ Hasta 6 entradas PV, telemetría AC/PV, energía, diagnóstico del inversor, ver
 Las variantes `-D` correspondientes también pueden ser compatibles cuando existan.
 
 Detección dinámica de entradas PV, telemetría AC/PV, alarmas del inversor y diagnóstico avanzado de solo lectura.
+
+
+Validación independiente de **Sunology PLAY2** en Home Assistant: descubrimiento automático y configuración de TSUN Local completados correctamente en hardware real.
 
 ### 1097 · GEN3 / GEN3 PLUS — 🧪 Experimental
 
@@ -118,6 +121,10 @@ Las **12 correspondencias funcionales observadas en hardware** cubren baja tensi
 Home Assistant muestra un estado **Alarma del inversor**, un contador **Alarmas activas** y un sensor **Nombres de alarmas activas**. Las 14 palabras brutas completas permanecen disponibles como diagnóstico desactivado por defecto, sin crear 224 entidades permanentes.
 
 ---
+
+
+> [!TIP]
+> Las alarmas activas también se muestran como **texto claro localizado** con un código de posición estable, por ejemplo `Subtensión de red (02B0-A014)`. **Sunology PLAY2** utiliza la misma interfaz compacta de alarmas 02B0; las cuatro palabras ERR brutas siguen disponibles como diagnóstico avanzado.
 
 ## 🛡️ Diagnóstico avanzado
 
