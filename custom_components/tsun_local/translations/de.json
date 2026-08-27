@@ -1,49 +1,11 @@
 {
   "config": {
     "step": {
-      "user": {
-        "title": "TSUN-Gerät hinzufügen",
-        "description": "Suche automatisch nach kompatiblen TSUN-Geräten im Netzwerk oder füge ein Gerät manuell hinzu.",
-        "menu_options": {
-          "discover": "TSUN-Geräte suchen",
-          "manual": "Manuell hinzufügen"
-        }
-      },
-      "reconfigure": {
-        "title": "Verbindung ändern",
-        "description": "Ändere die IP-Adresse oder den TCP-Port. Die numerische SN bleibt die dauerhafte Verbindungskennung.",
-        "data": {
-          "host": "IP-Adresse",
-          "port": "Port"
-        }
-      },
-      "manual": {
-        "title": "Gerät manuell hinzufügen",
-        "description": "Gib die IP-Adresse des Geräts ein. In den meisten Fällen sollte die Protokollauswahl auf „Automatisch — anhand der Firmware“ bleiben. TSUN Local versucht außerdem, die Logger-SN automatisch auszulesen.",
-        "data": {
-          "host": "IP-Adresse",
-          "port": "Port",
-          "logger_sn": "SN",
-          "protocol": "Methode zur Protokollauswahl"
-        }
-      },
-      "discover": {
-        "title": "Gefundene TSUN-Geräte",
-        "description": "Wähle das TSUN-Gerät aus, das du hinzufügen möchtest. TSUN Local prüft die Firmware und zeigt nur Geräte mit unterstützten Protokollen an.",
-        "data": {
-          "host": "Gefundene Adresse",
-          "port": "Port",
-          "logger_sn": "SN"
-        }
-      },
-      "discover_network": {
-        "title": "Anderes Subnetz durchsuchen",
-        "description": "Es wurde automatisch kein kompatibles TSUN-Gerät erkannt. Gib das zu durchsuchende IPv4-Subnetz ein, zum Beispiel 192.168.1.0/24. Die Suche ist auf 254 Adressen begrenzt.",
-        "data": {
-          "discovery_network": "IPv4-Subnetz",
-          "port": "Port"
-        }
-      }
+      "user": {"title": "TSUN-Gerät hinzufügen", "description": "Suche automatisch nach kompatiblen TSUN-Geräten im Netzwerk oder füge ein Gerät manuell hinzu.", "menu_options": {"discover": "TSUN-Geräte suchen", "manual": "Manuell hinzufügen"}},
+      "reconfigure": {"title": "Verbindung ändern", "description": "Ändere die IP-Adresse oder den TCP-Port. Die numerische SN bleibt die dauerhafte Verbindungskennung.", "data": {"host": "IP-Adresse", "port": "Port"}},
+      "manual": {"title": "Gerät manuell hinzufügen", "description": "Gib die IP-Adresse des Geräts ein. In den meisten Fällen sollte die Protokollauswahl auf „Automatisch — anhand der Firmware“ bleiben. TSUN Local versucht außerdem, die Logger-SN automatisch auszulesen.", "data": {"host": "IP-Adresse", "port": "Port", "logger_sn": "SN", "protocol": "Methode zur Protokollauswahl"}},
+      "discover": {"title": "Gefundene TSUN-Geräte", "description": "Wähle das TSUN-Gerät aus, das du hinzufügen möchtest. TSUN Local prüft die Firmware und zeigt nur Geräte mit unterstützten Protokollen an.", "data": {"host": "Gefundene Adresse", "port": "Port", "logger_sn": "SN"}},
+      "discover_network": {"title": "Anderes Subnetz durchsuchen", "description": "Es wurde automatisch kein kompatibles TSUN-Gerät erkannt. Gib das zu durchsuchende IPv4-Subnetz ein, zum Beispiel 192.168.1.0/24. Die Suche ist auf 254 Adressen begrenzt.", "data": {"discovery_network": "IPv4-Subnetz", "port": "Port"}}
     },
     "error": {
       "cannot_connect": "Kommunikation mit dem Gerät nicht möglich. Prüfe, ob es online und von Home Assistant aus erreichbar ist.",
@@ -53,406 +15,138 @@
       "no_devices_found": "In diesem Subnetz wurde kein kompatibles TSUN-Gerät erkannt.",
       "unknown_firmware": "Die Firmware dieses Geräts wird nicht automatisch erkannt. Kehre zur manuellen Einrichtung zurück und wähle „Erzwungene Erkennung — Protokolle testen“ oder wähle ein Protokoll manuell."
     },
-    "abort": {
-      "already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert",
-      "all_devices_configured": "Alle erkannten Mikrowechselrichter sind bereits konfiguriert",
-      "no_devices_found": "In den durchsuchten Netzwerken wurde kein kompatibles TSUN-Gerät erkannt."
-    }
+    "abort": {"already_configured": "Dieser Mikrowechselrichter ist bereits konfiguriert", "all_devices_configured": "Alle erkannten Mikrowechselrichter sind bereits konfiguriert", "no_devices_found": "In den durchsuchten Netzwerken wurde kein kompatibles TSUN-Gerät erkannt."}
   },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Abfrageeinstellungen",
-        "description": "Lege das normale Intervall, das Wiederholungsintervall nach einem Fehler, das Offline-/Nachtintervall und die Anzahl aufeinanderfolgender Fehler bis offline fest.",
-        "data": {
-          "scan_interval": "Normales Abfrageintervall",
-          "error_scan_interval": "Wiederholungsintervall nach Fehler",
-          "offline_scan_interval": "Abfrageintervall offline/nachts",
-          "failure_threshold": "Fehler bis offline"
-        }
-      }
-    }
-  },
+  "options": {"step": {"init": {"title": "Abfrageeinstellungen", "description": "Lege das normale Intervall, das Wiederholungsintervall nach einem Fehler, das Offline-/Nachtintervall und die Anzahl aufeinanderfolgender Fehler bis offline fest.", "data": {"scan_interval": "Normales Abfrageintervall", "error_scan_interval": "Wiederholungsintervall nach Fehler", "offline_scan_interval": "Abfrageintervall offline/nachts", "failure_threshold": "Fehler bis offline"}}}},
   "entity": {
     "sensor": {
-      "label_serial_number": {
-        "name": "SN"
-      },
-      "inverter_serial_number": {
-        "name": "SN des Mikrowechselrichters"
-      },
-      "logger_firmware_version": {
-        "name": "Logger-Firmwareversion"
-      },
-      "logger_mac_address": {
-        "name": "MAC-Adresse des Loggers"
-      },
-      "alarm_global_0_raw": {
-        "name": "Globalalarm (Rohwert) 0"
-      },
-      "alarm_global_1_raw": {
-        "name": "Globalalarm (Rohwert) 1"
-      },
-      "alarm_global_2_raw": {
-        "name": "Globalalarm (Rohwert) 2"
-      },
-      "alarm_global_3_raw": {
-        "name": "Globalalarm (Rohwert) 3"
-      },
-      "alarm_secondary_0_raw": {
-        "name": "Sekundäralarm (Rohwert) 0"
-      },
-      "alarm_secondary_1_raw": {
-        "name": "Sekundäralarm (Rohwert) 1"
-      },
-      "alarm_secondary_2_raw": {
-        "name": "Sekundäralarm (Rohwert) 2"
-      },
-      "alarm_secondary_3_raw": {
-        "name": "Sekundäralarm (Rohwert) 3"
-      },
-      "alarm_code_1_raw": {
-        "name": "Alarmcode (Rohwert) 1"
-      },
-      "alarm_code_2_raw": {
-        "name": "Alarmcode (Rohwert) 2"
-      },
-      "alarm_code_3_raw": {
-        "name": "Alarmcode (Rohwert) 3"
-      },
-      "alarm_code_4_raw": {
-        "name": "Alarmcode (Rohwert) 4"
-      },
-      "pv1_alarm_raw": {
-        "name": "PV1-Alarm (Rohwert)"
-      },
-      "pv2_alarm_raw": {
-        "name": "PV2-Alarm (Rohwert)"
-      },
-      "pv3_alarm_raw": {
-        "name": "PV3-Alarm (Rohwert)"
-      },
-      "pv4_alarm_raw": {
-        "name": "PV4-Alarm (Rohwert)"
-      },
-      "pv5_alarm_raw": {
-        "name": "PV5-Alarm (Rohwert)"
-      },
-      "pv6_alarm_raw": {
-        "name": "PV6-Alarm (Rohwert)"
-      },
-      "ac_voltage": {
-        "name": "AC-Spannung"
-      },
-      "ac_current": {
-        "name": "AC-Strom"
-      },
-      "ac_frequency": {
-        "name": "AC-Frequenz"
-      },
-      "ac_power": {
-        "name": "AC-Leistung"
-      },
-      "ac_energy_today": {
-        "name": "AC-Energie heute"
-      },
-      "ac_energy_total": {
-        "name": "AC-Gesamtenergie"
-      },
-      "dc_power_total": {
-        "name": "DC-Gesamtleistung"
-      },
-      "inverter_status_raw": {
-        "name": "Rohstatus des Wechselrichters"
-      },
-      "rated_power": {
-        "name": "Nennleistung des Wechselrichters"
-      },
-      "max_designed_power": {
-        "name": "Maximale Auslegungsleistung"
-      },
-      "register_3017_raw": {
-        "name": "Rohregister 3017 (Wechselrichtertemperatur)"
-      },
-      "register_3018_raw": {
-        "name": "Rohregister 3018 (Bedeutung unbestätigt)"
-      },
-      "register_3028_raw": {
-        "name": "Rohregister 3028 (Umgebungstemperatur des Wechselrichters)"
-      },
-      "communication_last_success": {
-        "name": "Letzte erfolgreiche Kommunikation"
-      },
-      "communication_duration": {
-        "name": "Kommunikationsdauer"
-      },
-      "communication_blocks": {
-        "name": "Empfangene Blöcke"
-      },
-      "communication_failures": {
-        "name": "Aufeinanderfolgende Kommunikationsfehler"
-      },
-      "pv1_voltage": {
-        "name": "PV1-Spannung"
-      },
-      "pv1_current": {
-        "name": "PV1-Strom"
-      },
-      "pv1_power": {
-        "name": "PV1-Leistung"
-      },
-      "pv1_energy_today": {
-        "name": "PV1-Energie heute"
-      },
-      "pv1_energy_total": {
-        "name": "PV1-Gesamtenergie"
-      },
-      "pv2_voltage": {
-        "name": "PV2-Spannung"
-      },
-      "pv2_current": {
-        "name": "PV2-Strom"
-      },
-      "pv2_power": {
-        "name": "PV2-Leistung"
-      },
-      "pv2_energy_today": {
-        "name": "PV2-Energie heute"
-      },
-      "pv2_energy_total": {
-        "name": "PV2-Gesamtenergie"
-      },
-      "pv3_voltage": {
-        "name": "PV3-Spannung"
-      },
-      "pv3_current": {
-        "name": "PV3-Strom"
-      },
-      "pv3_power": {
-        "name": "PV3-Leistung"
-      },
-      "pv3_energy_today": {
-        "name": "PV3-Energie heute"
-      },
-      "pv3_energy_total": {
-        "name": "PV3-Gesamtenergie"
-      },
-      "pv4_voltage": {
-        "name": "PV4-Spannung"
-      },
-      "pv4_current": {
-        "name": "PV4-Strom"
-      },
-      "pv4_power": {
-        "name": "PV4-Leistung"
-      },
-      "pv4_energy_today": {
-        "name": "PV4-Energie heute"
-      },
-      "pv4_energy_total": {
-        "name": "PV4-Gesamtenergie"
-      },
-      "pv5_voltage": {
-        "name": "PV5-Spannung"
-      },
-      "pv5_current": {
-        "name": "PV5-Strom"
-      },
-      "pv5_power": {
-        "name": "PV5-Leistung"
-      },
-      "pv5_energy_today": {
-        "name": "PV5-Energie heute"
-      },
-      "pv5_energy_total": {
-        "name": "PV5-Gesamtenergie"
-      },
-      "pv6_voltage": {
-        "name": "PV6-Spannung"
-      },
-      "pv6_current": {
-        "name": "PV6-Strom"
-      },
-      "pv6_power": {
-        "name": "PV6-Leistung"
-      },
-      "pv6_energy_today": {
-        "name": "PV6-Energie heute"
-      },
-      "pv6_energy_total": {
-        "name": "PV6-Gesamtenergie"
-      },
-      "logger_wifi_signal": {
-        "name": "WLAN-Signal des Loggers"
-      },
-      "alarm_active_count": {
-        "name": "Aktive Alarme"
-      },
-      "grid_overvoltage_recovery_voltage": {
-        "name": "Netz-Rückkehrspannung nach Überspannung"
-      },
-      "grid_undervoltage_recovery_voltage": {
-        "name": "Netz-Rückkehrspannung nach Unterspannung"
-      },
-      "grid_overfrequency_recovery_frequency": {
-        "name": "Netz-Rückkehrfrequenz nach Überfrequenz"
-      },
-      "grid_underfrequency_recovery_frequency": {
-        "name": "Netz-Rückkehrfrequenz nach Unterfrequenz"
-      },
-      "grid_undervoltage_level_1": {
-        "name": "Netz-Unterspannungsgrenze 1"
-      },
-      "grid_undervoltage_level_2": {
-        "name": "Netz-Unterspannungsgrenze 2"
-      },
-      "grid_undervoltage_level_3": {
-        "name": "Netz-Unterspannungsgrenze 3"
-      },
-      "grid_undervoltage_time_1": {
-        "name": "Netz-Unterspannungszeit 1"
-      },
-      "grid_undervoltage_time_2": {
-        "name": "Netz-Unterspannungszeit 2"
-      },
-      "grid_undervoltage_time_3": {
-        "name": "Netz-Unterspannungszeit 3"
-      },
-      "grid_overvoltage_level_1": {
-        "name": "Netz-Überspannungsgrenze 1"
-      },
-      "grid_overvoltage_level_2": {
-        "name": "Netz-Überspannungsgrenze 2"
-      },
-      "grid_overvoltage_time_1": {
-        "name": "Netz-Überspannungszeit 1"
-      },
-      "grid_overvoltage_time_2": {
-        "name": "Netz-Überspannungszeit 2"
-      },
-      "grid_underfrequency_level_1": {
-        "name": "Netz-Unterfrequenzgrenze 1"
-      },
-      "grid_underfrequency_level_2": {
-        "name": "Netz-Unterfrequenzgrenze 2"
-      },
-      "grid_underfrequency_time_1": {
-        "name": "Netz-Unterfrequenzzeit 1"
-      },
-      "grid_underfrequency_time_2": {
-        "name": "Netz-Unterfrequenzzeit 2"
-      },
-      "grid_overfrequency_level_1": {
-        "name": "Netz-Überfrequenzgrenze 1"
-      },
-      "grid_overfrequency_level_2": {
-        "name": "Netz-Überfrequenzgrenze 2"
-      },
-      "grid_overfrequency_time_1": {
-        "name": "Netz-Überfrequenzzeit 1"
-      },
-      "grid_overfrequency_time_2": {
-        "name": "Netz-Überfrequenzzeit 2"
-      },
-      "output_coefficient": {
-        "name": "Leistungsniveau"
-      },
-      "protocol_version": {
-        "name": "Protokollversion"
-      },
-      "inverter_version": {
-        "name": "Wechselrichterversion"
-      },
-      "insulation_impedance_rx": {
-        "name": "Isolationsimpedanz RX"
-      },
-      "insulation_impedance_ry": {
-        "name": "Isolationsimpedanz RY"
-      },
-      "inverter_temperature": {
-        "name": "Wechselrichtertemperatur"
-      },
-      "country_profile_raw": {
-        "name": "Länder-/Profilcode"
-      },
-      "inverter_operating_state": {
-        "name": "Betriebszustand des Wechselrichters",
-        "state": {
-          "active": "Aktiv",
-          "standby": "Standby",
-          "standby_low_solar": "Standby — geringe PV-Eingangsleistung",
-          "fault": "Fehler"
-        }
-      },
-      "ambient_temperature": {
-        "name": "Umgebungstemperatur des Wechselrichters"
-      },
-      "grid_qp_voltage_threshold": {
-        "name": "QP-Spannungsschwelle"
-      },
-      "grid_recovery_rate": {
-        "name": "Netz-Wiederherstellungszeit"
-      },
-      "grid_overvoltage_10min": {
-        "name": "10-Minuten-Netzüberspannungsschutz"
-      },
-      "grid_overfrequency_reduction_frequency": {
-        "name": "Wert der Überfrequenz-Leistungsreduzierung"
-      },
-      "grid_overfrequency_reduction_coefficient": {
-        "name": "Koeffizient der Überfrequenz-Leistungsreduzierung"
-      },
-      "overtemperature_protection_temperature": {
-        "name": "Übertemperatur-Schutzschwelle"
-      },
-      "grid_start_upper_voltage_limit": {
-        "name": "Obere Startspannungsgrenze"
-      },
-      "grid_start_lower_voltage_limit": {
-        "name": "Untere Startspannungsgrenze"
-      },
-      "grid_start_upper_frequency_limit": {
-        "name": "Obere Startfrequenzgrenze"
-      },
-      "grid_start_lower_frequency_limit": {
-        "name": "Untere Startfrequenzgrenze"
-      },
-      "active_alarm_names": {
-        "name": "Namen aktiver Alarme"
-      },
-      "dsp_firmware_version": {
-        "name": "DSP-Firmwareversion"
-      },
-      "qcpu1_firmware_version": {
-        "name": "QCPU1-Firmwareversion"
-      },
-      "qcpu2_firmware_version": {
-        "name": "QCPU2-Firmwareversion"
-      }
+      "label_serial_number": {"name": "SN"},
+      "inverter_serial_number": {"name": "SN des Mikrowechselrichters"},
+      "logger_firmware_version": {"name": "Logger-Firmwareversion"},
+      "inverter_firmware_version": {"name": "Wechselrichter-Firmwareversion"},
+      "logger_mac_address": {"name": "MAC-Adresse des Loggers"},
+      "alarm_global_0_raw": {"name": "Globalalarm (Rohwert) 0"},
+      "alarm_global_1_raw": {"name": "Globalalarm (Rohwert) 1"},
+      "alarm_global_2_raw": {"name": "Globalalarm (Rohwert) 2"},
+      "alarm_global_3_raw": {"name": "Globalalarm (Rohwert) 3"},
+      "alarm_secondary_0_raw": {"name": "Sekundäralarm (Rohwert) 0"},
+      "alarm_secondary_1_raw": {"name": "Sekundäralarm (Rohwert) 1"},
+      "alarm_secondary_2_raw": {"name": "Sekundäralarm (Rohwert) 2"},
+      "alarm_secondary_3_raw": {"name": "Sekundäralarm (Rohwert) 3"},
+      "alarm_code_1_raw": {"name": "Alarmcode (Rohwert) 1"},
+      "alarm_code_2_raw": {"name": "Alarmcode (Rohwert) 2"},
+      "alarm_code_3_raw": {"name": "Alarmcode (Rohwert) 3"},
+      "alarm_code_4_raw": {"name": "Alarmcode (Rohwert) 4"},
+      "pv1_alarm_raw": {"name": "PV1-Alarm (Rohwert)"},
+      "pv2_alarm_raw": {"name": "PV2-Alarm (Rohwert)"},
+      "pv3_alarm_raw": {"name": "PV3-Alarm (Rohwert)"},
+      "pv4_alarm_raw": {"name": "PV4-Alarm (Rohwert)"},
+      "pv5_alarm_raw": {"name": "PV5-Alarm (Rohwert)"},
+      "pv6_alarm_raw": {"name": "PV6-Alarm (Rohwert)"},
+      "ac_voltage": {"name": "AC-Spannung"},
+      "ac_current": {"name": "AC-Strom"},
+      "ac_frequency": {"name": "AC-Frequenz"},
+      "ac_power": {"name": "AC-Leistung"},
+      "ac_energy_today": {"name": "AC-Energie heute"},
+      "ac_energy_total": {"name": "AC-Gesamtenergie"},
+      "dc_power_total": {"name": "DC-Gesamtleistung"},
+      "inverter_status_raw": {"name": "Rohstatus des Wechselrichters"},
+      "rated_power": {"name": "Nennleistung des Wechselrichters"},
+      "max_designed_power": {"name": "Maximale Auslegungsleistung"},
+      "register_3017_raw": {"name": "Rohregister 3017 (Wechselrichtertemperatur)"},
+      "register_3018_raw": {"name": "Rohregister 3018 (Bedeutung unbestätigt)"},
+      "register_3028_raw": {"name": "Rohregister 3028 (Umgebungstemperatur des Wechselrichters)"},
+      "communication_last_success": {"name": "Letzte erfolgreiche Kommunikation"},
+      "communication_duration": {"name": "Kommunikationsdauer"},
+      "communication_blocks": {"name": "Empfangene Blöcke"},
+      "communication_failures": {"name": "Aufeinanderfolgende Kommunikationsfehler"},
+      "pv1_voltage": {"name": "PV1-Spannung"},
+      "pv1_current": {"name": "PV1-Strom"},
+      "pv1_power": {"name": "PV1-Leistung"},
+      "pv1_energy_today": {"name": "PV1-Energie heute"},
+      "pv1_energy_total": {"name": "PV1-Gesamtenergie"},
+      "pv2_voltage": {"name": "PV2-Spannung"},
+      "pv2_current": {"name": "PV2-Strom"},
+      "pv2_power": {"name": "PV2-Leistung"},
+      "pv2_energy_today": {"name": "PV2-Energie heute"},
+      "pv2_energy_total": {"name": "PV2-Gesamtenergie"},
+      "pv3_voltage": {"name": "PV3-Spannung"},
+      "pv3_current": {"name": "PV3-Strom"},
+      "pv3_power": {"name": "PV3-Leistung"},
+      "pv3_energy_today": {"name": "PV3-Energie heute"},
+      "pv3_energy_total": {"name": "PV3-Gesamtenergie"},
+      "pv4_voltage": {"name": "PV4-Spannung"},
+      "pv4_current": {"name": "PV4-Strom"},
+      "pv4_power": {"name": "PV4-Leistung"},
+      "pv4_energy_today": {"name": "PV4-Energie heute"},
+      "pv4_energy_total": {"name": "PV4-Gesamtenergie"},
+      "pv5_voltage": {"name": "PV5-Spannung"},
+      "pv5_current": {"name": "PV5-Strom"},
+      "pv5_power": {"name": "PV5-Leistung"},
+      "pv5_energy_today": {"name": "PV5-Energie heute"},
+      "pv5_energy_total": {"name": "PV5-Gesamtenergie"},
+      "pv6_voltage": {"name": "PV6-Spannung"},
+      "pv6_current": {"name": "PV6-Strom"},
+      "pv6_power": {"name": "PV6-Leistung"},
+      "pv6_energy_today": {"name": "PV6-Energie heute"},
+      "pv6_energy_total": {"name": "PV6-Gesamtenergie"},
+      "logger_wifi_signal": {"name": "WLAN-Signal des Loggers"},
+      "alarm_active_count": {"name": "Aktive Alarme"},
+      "grid_overvoltage_recovery_voltage": {"name": "Netz-Rückkehrspannung nach Überspannung"},
+      "grid_undervoltage_recovery_voltage": {"name": "Netz-Rückkehrspannung nach Unterspannung"},
+      "grid_overfrequency_recovery_frequency": {"name": "Netz-Rückkehrfrequenz nach Überfrequenz"},
+      "grid_underfrequency_recovery_frequency": {"name": "Netz-Rückkehrfrequenz nach Unterfrequenz"},
+      "grid_undervoltage_level_1": {"name": "Netz-Unterspannungsgrenze 1"},
+      "grid_undervoltage_level_2": {"name": "Netz-Unterspannungsgrenze 2"},
+      "grid_undervoltage_level_3": {"name": "Netz-Unterspannungsgrenze 3"},
+      "grid_undervoltage_time_1": {"name": "Netz-Unterspannungszeit 1"},
+      "grid_undervoltage_time_2": {"name": "Netz-Unterspannungszeit 2"},
+      "grid_undervoltage_time_3": {"name": "Netz-Unterspannungszeit 3"},
+      "grid_overvoltage_level_1": {"name": "Netz-Überspannungsgrenze 1"},
+      "grid_overvoltage_level_2": {"name": "Netz-Überspannungsgrenze 2"},
+      "grid_overvoltage_time_1": {"name": "Netz-Überspannungszeit 1"},
+      "grid_overvoltage_time_2": {"name": "Netz-Überspannungszeit 2"},
+      "grid_underfrequency_level_1": {"name": "Netz-Unterfrequenzgrenze 1"},
+      "grid_underfrequency_level_2": {"name": "Netz-Unterfrequenzgrenze 2"},
+      "grid_underfrequency_time_1": {"name": "Netz-Unterfrequenzzeit 1"},
+      "grid_underfrequency_time_2": {"name": "Netz-Unterfrequenzzeit 2"},
+      "grid_overfrequency_level_1": {"name": "Netz-Überfrequenzgrenze 1"},
+      "grid_overfrequency_level_2": {"name": "Netz-Überfrequenzgrenze 2"},
+      "grid_overfrequency_time_1": {"name": "Netz-Überfrequenzzeit 1"},
+      "grid_overfrequency_time_2": {"name": "Netz-Überfrequenzzeit 2"},
+      "output_coefficient": {"name": "Leistungsniveau"},
+      "protocol_version": {"name": "Protokollversion"},
+      "inverter_version": {"name": "Wechselrichterversion"},
+      "insulation_impedance_rx": {"name": "Isolationsimpedanz RX"},
+      "insulation_impedance_ry": {"name": "Isolationsimpedanz RY"},
+      "inverter_temperature": {"name": "Wechselrichtertemperatur"},
+      "boot_status_raw": {"name": "Roher Startstatus"},
+      "dsp_status_raw": {"name": "Roher DSP-Status"},
+      "work_mode_raw": {"name": "Roher Betriebsmodus"},
+      "output_shutdown_raw": {"name": "Roher Ausgangsabschaltstatus"},
+      "rated_level_raw": {"name": "Rohe Nennstufe"},
+      "input_coefficient": {"name": "Eingangskoeffizient"},
+      "product_compliance_type_raw": {"name": "Roher Produktkonformitätstyp"},
+      "country_profile_raw": {"name": "Länder-/Profilcode"},
+      "inverter_operating_state": {"name": "Betriebszustand des Wechselrichters", "state": {"active": "Aktiv", "standby": "Standby", "standby_low_solar": "Standby — geringe PV-Eingangsleistung", "fault": "Fehler"}},
+      "ambient_temperature": {"name": "Umgebungstemperatur des Wechselrichters"},
+      "grid_qp_voltage_threshold": {"name": "QP-Spannungsschwelle"},
+      "grid_recovery_rate": {"name": "Netz-Wiederherstellungszeit"},
+      "grid_overvoltage_10min": {"name": "10-Minuten-Netzüberspannungsschutz"},
+      "grid_overfrequency_reduction_frequency": {"name": "Wert der Überfrequenz-Leistungsreduzierung"},
+      "grid_overfrequency_reduction_coefficient": {"name": "Koeffizient der Überfrequenz-Leistungsreduzierung"},
+      "overtemperature_protection_temperature": {"name": "Übertemperatur-Schutzschwelle"},
+      "grid_start_upper_voltage_limit": {"name": "Obere Startspannungsgrenze"},
+      "grid_start_lower_voltage_limit": {"name": "Untere Startspannungsgrenze"},
+      "grid_start_upper_frequency_limit": {"name": "Obere Startfrequenzgrenze"},
+      "grid_start_lower_frequency_limit": {"name": "Untere Startfrequenzgrenze"},
+      "active_alarm_names": {"name": "Namen aktiver Alarme"},
+      "dsp_firmware_version": {"name": "DSP-Firmwareversion"},
+      "qcpu1_firmware_version": {"name": "QCPU1-Firmwareversion"},
+      "qcpu2_firmware_version": {"name": "QCPU2-Firmwareversion"}
     },
-    "binary_sensor": {
-      "communication_online": {
-        "name": "Mikrowechselrichter online"
-      },
-      "inverter_alarm": {
-        "name": "Wechselrichteralarm"
-      }
-    },
-    "button": {
-      "refresh_data": {
-        "name": "Daten aktualisieren"
-      }
-    }
+    "binary_sensor": {"communication_online": {"name": "Mikrowechselrichter online"}, "inverter_alarm": {"name": "Wechselrichteralarm"}},
+    "button": {"refresh_data": {"name": "Daten aktualisieren"}}
   },
-  "selector": {
-    "protocol": {
-      "options": {
-        "auto": "Automatisch — anhand der Firmware",
-        "force": "Erzwungene Erkennung — Protokolle testen",
-        "1511": "Protokoll 1511 verwenden",
-        "1097": "Protokoll 1097 verwenden — experimentell",
-        "02b0": "Protokoll 02B0 verwenden"
-      }
-    }
-  }
+  "selector": {"protocol": {"options": {"auto": "Automatisch — anhand der Firmware", "force": "Erzwungene Erkennung — Protokolle testen", "1511": "Protokoll 1511 verwenden", "1097": "Protokoll 1097 verwenden — experimentell", "02b0": "Protokoll 02B0 verwenden"}}}
 }
