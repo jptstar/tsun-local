@@ -26,7 +26,9 @@ SENSOR_LIST = 0x02B0
 DIAGNOSTIC_INTERVAL = 300.0
 
 BLOCKS = (
-    (0x03, 0x3009, 0x301E),
+    # 0x3008 adds the inverter firmware register; 0x300C is the inverter
+    # temperature and already sits inside this regular telemetry block.
+    (0x03, 0x3008, 0x301E),
     (0x03, 0x301F, 0x302A),
 )
 
@@ -36,7 +38,9 @@ ALARM_BLOCKS = (
 )
 
 DIAGNOSTIC_BLOCKS = (
-    (0x03, 0x2007, 0x2007),
+    # Read-only GEN3 / GEN3 PLUS status and configuration metadata. This block
+    # also contains the already exposed maximum designed power at 0x2007.
+    (0x03, 0x2000, 0x2010),
     # Advanced read-only grid parameters and output coefficient.
     (0x03, 0x2014, 0x202C),
 )
@@ -63,7 +67,20 @@ AC_MEASUREMENT_KEYS = frozenset(
     }
 )
 DEVICE_DIAGNOSTIC_KEYS = frozenset(
-    {"inverter_status_raw", "rated_power", "max_designed_power"}
+    {
+        "inverter_status_raw",
+        "rated_power",
+        "max_designed_power",
+        "inverter_firmware_version",
+        "inverter_temperature",
+        "boot_status_raw",
+        "dsp_status_raw",
+        "work_mode_raw",
+        "output_shutdown_raw",
+        "rated_level_raw",
+        "input_coefficient",
+        "product_compliance_type_raw",
+    }
 )
 ADVANCED_GRID_KEYS = frozenset(
     {
@@ -175,6 +192,12 @@ def _u32_type5(registers: dict[int, int], high_address: int) -> int:
     return (registers[high_address] << 16) | registers[high_address + 1]
 
 
+def firmware_version(value: int) -> str:
+    """Decode the packed TSUN 16-bit firmware version used by 02B0."""
+    raw = f"{value:04X}"
+    return f"V{raw[0]}.{raw[1]}.{raw[2:]}"
+
+
 def detect_pv_count(registers: dict[int, int]) -> int:
     """Detect the highest populated PV input while always retaining PV1."""
     detected = 1
@@ -211,9 +234,9 @@ def _measurement_keys(pv_count: int) -> frozenset[str]:
 
 def decode_measurements(
     registers: dict[int, int], pv_count: int
-) -> dict[str, float | int]:
+) -> dict[str, float | int | str]:
     """Decode the official 02B0 AC and PV measurement map."""
-    data: dict[str, float | int] = {
+    data: dict[str, float | int | str] = {
         "ac_voltage": registers[0x3009] * 0.1,
         "ac_current": registers[0x300A] * 0.01,
         "ac_frequency": registers[0x300B] * 0.01,
@@ -224,6 +247,10 @@ def decode_measurements(
     }
     if 0x3000 in registers:
         data["inverter_status_raw"] = registers[0x3000]
+    if 0x3008 in registers:
+        data["inverter_firmware_version"] = firmware_version(registers[0x3008])
+    if 0x300C in registers:
+        data["inverter_temperature"] = registers[0x300C] - 40
     if 0x2007 in registers:
         data["max_designed_power"] = registers[0x2007]
 
@@ -240,6 +267,28 @@ def decode_measurements(
         sum(float(data[f"pv{number}_power"]) for number in range(1, pv_count + 1)),
         1,
     )
+    return data
+
+
+def decode_device_diagnostics(
+    registers: dict[int, int],
+) -> dict[str, float | int]:
+    """Decode additional read-only 02B0 status and configuration metadata."""
+    raw_registers = {
+        "boot_status_raw": 0x2000,
+        "dsp_status_raw": 0x2001,
+        "work_mode_raw": 0x2003,
+        "output_shutdown_raw": 0x2006,
+        "rated_level_raw": 0x2008,
+        "product_compliance_type_raw": 0x2010,
+    }
+    data: dict[str, float | int] = {
+        key: registers[address]
+        for key, address in raw_registers.items()
+        if address in registers
+    }
+    if 0x2009 in registers:
+        data["input_coefficient"] = round(registers[0x2009] * 100 / 1024, 2)
     return data
 
 
@@ -422,6 +471,7 @@ class Tsun02b0Client:
 
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
+        measurements.update(decode_device_diagnostics(registers))
         measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers))
         return TsunReadResult(
