@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test your TSUN microinverter — TSUN Local</title>
+  <meta name="description" content="Your TSUN microinverter may already be compatible with TSUN Local even if it is not listed yet. Test automatic discovery in Home Assistant and share the result to help validate more models.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://jptstar.github.io/tsun-local/test-your-inverter.html">
+  <link rel="icon" type="image/png" href="icon.png">
+  <style>
+    :root{
+      --ink:#10223a;--muted:#627188;--paper:#f3f7fb;--card:#fff;--line:#dce5ef;
+      --blue:#1167d8;--green:#148660;--green-soft:#e7f7f1;--amber:#8a5700;--amber-soft:#fff3db;
+      --max:980px;--shadow:0 18px 50px rgba(19,50,88,.10)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.58 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:var(--blue)}
+    .wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}
+    .topline{height:5px;background:linear-gradient(90deg,#148660,#1167d8,#6554d9)}
+    header{padding:22px 0 58px;color:#fff;background:linear-gradient(145deg,#061c39 0%,#0a315e 70%,#105a9a 100%)}
+    nav{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;font-weight:850}
+    .brand img{width:42px;height:42px;border-radius:12px}
+    .back{color:#dceaff;text-decoration:none;font-weight:750}
+    .hero{padding-top:52px}
+    .eyebrow{margin:0 0 14px;color:#8cd5ff;text-transform:uppercase;letter-spacing:.12em;font-size:13px;font-weight:900}
+    h1{max-width:820px;margin:0;font-size:clamp(42px,7vw,70px);line-height:.98;letter-spacing:-.05em}
+    .lead{max-width:780px;margin:24px 0 0;color:#d6e5f7;font-size:20px}
+    .hero-note{margin-top:20px;font-weight:850}
+    main{margin-top:-28px;padding-bottom:64px}
+    section{margin-top:28px;padding:32px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:var(--shadow)}
+    h2{margin:0 0 10px;font-size:clamp(28px,4vw,39px);letter-spacing:-.04em}
+    .intro{margin:0;color:var(--muted);font-size:18px}
+    .callout{margin-top:20px;padding:18px 20px;border:1px solid #bfe7d6;border-radius:16px;background:var(--green-soft);color:#0d684d}
+    .callout strong{display:block;font-size:18px}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+    .step{padding:21px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}
+    .n{display:grid;place-items:center;width:34px;height:34px;margin-bottom:13px;border-radius:50%;color:#fff;background:var(--blue);font-weight:900}
+    .step strong{display:block;margin-bottom:5px;font-size:18px}
+    .step p{margin:0;color:var(--muted)}
+    .outcomes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+    .outcome{padding:22px;border:1px solid var(--line);border-radius:18px}
+    .outcome.good{background:var(--green-soft);color:#0d684d}
+    .outcome.warn{background:var(--amber-soft);color:#754500}
+    .outcome strong{display:block;margin-bottom:6px;font-size:20px}
+    .privacy{margin-top:20px;padding:18px;border-radius:16px;background:#f8fafd;border:1px solid var(--line)}
+    .actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:22px}
+    .button{display:inline-block;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:850}
+    .primary{color:#fff;background:var(--blue)}
+    .secondary{color:var(--ink);border:1px solid var(--line);background:#fff}
+    footer{padding:8px 0 40px;color:var(--muted);text-align:center;font-size:14px}
+    @media(max-width:800px){
+      .steps,.outcomes{grid-template-columns:1fr}
+      section{padding:24px}
+    }
+  </style>
+</head>
+<body>
+<div class="topline"></div>
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="index.html"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
+      <a class="back" href="index.html">← Back to TSUN Local</a>
+    </nav>
+    <div class="hero">
+      <p class="eyebrow">Community hardware validation</p>
+      <h1>Is your microinverter not listed yet? Test it.</h1>
+      <p class="lead">Your TSUN microinverter may already work with TSUN Local even if its exact commercial model has never been tested before.</p>
+      <p class="hero-note">Install · Discover · Share the result</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2>Your model may already be compatible</h2>
+    <p class="intro">TSUN Local detects supported local protocol families, not only a fixed list of commercial model names.</p>
+    <div class="callout">
+      <strong>✅ An unlisted model does not mean an unsupported model.</strong>
+      If your inverter exposes a supported local protocol, automatic discovery may already be enough.
+    </div>
+  </section>
+
+  <section>
+    <h2>Three simple steps</h2>
+    <div class="steps">
+      <div class="step">
+        <span class="n">1</span>
+        <strong>Install TSUN Local</strong>
+        <p>Add the integration through HACS and restart Home Assistant.</p>
+      </div>
+      <div class="step">
+        <span class="n">2</span>
+        <strong>Try automatic discovery</strong>
+        <p>Add TSUN Local from Devices &amp; services. No research script or proxy is needed for the first test.</p>
+      </div>
+      <div class="step">
+        <span class="n">3</span>
+        <strong>Share your result</strong>
+        <p>Send the exact model, firmware, number of PV inputs and the Home Assistant diagnostic when available.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every result is useful</h2>
+    <div class="outcomes">
+      <div class="outcome good">
+        <strong>✅ It works</strong>
+        Great — report it so your model can be added to the validated compatibility list.
+      </div>
+      <div class="outcome warn">
+        <strong>❌ It does not work</strong>
+        Still useful. The result can reveal another logger, protocol revision or hardware variant that needs investigation.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What to share</h2>
+    <p class="intro">The community hardware-test form asks for the information needed to understand the result without requiring protocol expertise.</p>
+    <div class="privacy">
+      <strong>Recommended:</strong> exact microinverter model, firmware, number of PV inputs, TSUN Local version, Home Assistant version, test result and Home Assistant diagnostic.
+      <br><br>
+      TSUN Local diagnostics omit the device IP address, Monitor SN and AP envelope, but they can still contain production and energy readings. Review attachments before publishing them.
+    </div>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/jptstar/tsun-local/issues/new?template=compatibility.yml">Share a hardware test</a>
+      <a class="button secondary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design</footer>
+</body>
+</html>
