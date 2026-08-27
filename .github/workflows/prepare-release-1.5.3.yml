@@ -91,6 +91,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/scripts/prepare_1_5_3.py .github/workflows/prepare-release-1.5.3.yml
           git add -A
-          git diff --cached --check
-          git commit -m "Prepare TSUN Local 1.5.3 stable"
+          git diff --cached --check -- . ':(exclude)**/*.md'
+          git commit -m "Publish TSUN Local 1.5.3 [release]"
           git push origin HEAD:refs/heads/release/1.5.3
