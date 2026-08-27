@@ -3,29 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sunology PLAY2 Home Assistant — TSUN Local Compatibility</title>
-  <meta name="description" content="Use Sunology PLAY2 locally in Home Assistant with TSUN Local 1.5.3. Validated automatic discovery, read-only monitoring, no cloud and no proxy over the supported 02B0 path.">
+  <title>Sunology PLAY2 Home Assistant — Local Integration | TSUN Local</title>
+  <meta name="description" content="Use Sunology PLAY2 locally in Home Assistant with stable TSUN Local 1.5.3. Validated automatic discovery, readable alarms, read-only monitoring, no cloud and no proxy over 02B0.">
   <meta name="keywords" content="Sunology PLAY2, Sunology Play 2, Sunology Home Assistant, PLAY2 Home Assistant, Sunology local API, Sunology local integration, TSUN Local, HACS, 02B0, LSW5BLE">
   <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/sunology-play2.html">
   <link rel="icon" type="image/png" href="icon.png">
   <meta property="og:type" content="article">
-  <meta property="og:title" content="Sunology PLAY2 in Home Assistant with TSUN Local">
-  <meta property="og:description" content="Validated automatic local discovery for Sunology PLAY2. No proxy, no cloud dependency in the Home Assistant data path.">
+  <meta property="og:site_name" content="TSUN Local">
+  <meta property="og:title" content="Sunology PLAY2 in Home Assistant with TSUN Local 1.5.3">
+  <meta property="og:description" content="Validated automatic local discovery for Sunology PLAY2 with readable alarms. No proxy and no cloud dependency in the Home Assistant data path.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/sunology-play2.html">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Sunology PLAY2 in Home Assistant with TSUN Local">
-  <meta name="twitter:description" content="Automatic local Sunology PLAY2 monitoring in Home Assistant with TSUN Local.">
+  <meta name="twitter:title" content="Sunology PLAY2 in Home Assistant with TSUN Local 1.5.3">
+  <meta name="twitter:description" content="Automatic local Sunology PLAY2 monitoring with readable alarms in Home Assistant.">
+  <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"TechArticle",
     "headline":"Sunology PLAY2 in Home Assistant with TSUN Local",
-    "description":"Validated automatic local discovery and read-only monitoring for Sunology PLAY2 in Home Assistant.",
+    "description":"Validated automatic local discovery, read-only monitoring and readable alarms for Sunology PLAY2 in Home Assistant with TSUN Local 1.5.3.",
     "mainEntityOfPage":"https://jptstar.github.io/tsun-local/sunology-play2.html",
+    "dateModified":"2026-08-27",
     "author":{"@type":"Person","name":"Jean-Philippe TESTART","url":"https://github.com/jptstar"},
-    "about":["Sunology PLAY2","Home Assistant","TSUN Local","02B0","local solar monitoring"]
+    "isPartOf":{"@type":"WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/"},
+    "about":["Sunology PLAY2","Home Assistant","TSUN Local","02B0","local solar monitoring","microinverter alarms"]
   }
   </script>
   <style>
@@ -33,7 +38,7 @@
   </style>
 </head>
 <body>
-<header><div class="wrap"><a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="hero"><span class="tag">VALIDATED ON REAL SUNOLOGY PLAY2 HARDWARE</span><h1>Sunology PLAY2 in Home Assistant with TSUN Local</h1><p class="lead">TSUN Local provides a direct, read-only local path from a compatible Sunology PLAY2 to Home Assistant. The validated installation was automatically detected by the normal integration flow.</p><div class="actions"><a class="btn primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a><a class="btn secondary" href="https://github.com/jptstar/tsun-local">GitHub</a></div></div></div></header>
+<header><div class="wrap"><a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="hero"><span class="tag">TSUN LOCAL 1.5.3 · VALIDATED ON REAL PLAY2 HARDWARE</span><h1>Sunology PLAY2 in Home Assistant with TSUN Local</h1><p class="lead">TSUN Local provides a direct, read-only local path from a compatible Sunology PLAY2 to Home Assistant. The validated installation was automatically detected by the normal integration flow.</p><div class="actions"><a class="btn primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a><a class="btn secondary" href="https://github.com/jptstar/tsun-local">GitHub</a></div></div></div></header>
 <main class="wrap">
   <section><h2>What is validated?</h2><p class="intro">A community tester installed TSUN Local against a real Sunology PLAY2 and reported that the PLAY2 was detected automatically and quickly. This moves PLAY2 from protocol research to validated Home Assistant compatibility for the tested hardware path.</p><div class="grid"><div class="card"><strong>✅ Automatic discovery</strong>Normal TSUN Local discovery found the PLAY2 without requiring a manually entered IP address in the successful test.</div><div class="card"><strong>✅ Direct Home Assistant integration</strong>The normal TSUN Local config flow completed successfully and created the device.</div><div class="card"><strong>✅ Local read-only telemetry path</strong>No cloud service or proxy is required in the Home Assistant data path.</div><div class="card"><strong>✅ 02B0 transport</strong>The tested logger uses Solarman V5 on TCP 8899 carrying a 02B0 Modbus RTU response.</div></div></section>
 
@@ -50,9 +55,9 @@
 
   <section><h2>What data can appear?</h2><div class="grid"><div class="card"><strong>PV</strong>Voltage, current, power, daily energy and total energy for detected inputs.</div><div class="card"><strong>AC</strong>Voltage, current, frequency, power, daily energy and total energy.</div><div class="card"><strong>Communication</strong>Online state, last successful communication, duration and consecutive failures.</div><div class="card"><strong>Diagnostics</strong>Logger/device information and read-only advanced diagnostics where supported.</div></div><p><a href="entities.html">Explore the visual entity reference →</a></p></section>
 
-  <section><h2>Alarms in readable text</h2><p class="intro">The 1.5.3 extends human-readable localized alarm presentation to the 02B0 family used by the validated PLAY2 path. Known alarms are shown with a clear functional description while keeping a stable diagnostic code, for example <code>Grid undervoltage (02B0-A014)</code>. Unknown positions remain visible with neutral wording instead of guessed meanings.</p></section>
+  <section><h2>Readable alarms in 1.5.3 stable</h2><p class="intro">TSUN Local 1.5.3 extends human-readable localized alarm presentation to the 02B0 family used by the validated PLAY2 path. Known alarms are shown with a clear functional description while keeping a stable diagnostic code, for example <code>Grid undervoltage (02B0-A014)</code>. Unknown positions remain visible with neutral wording instead of guessed meanings.</p></section>
 
-  <section><h2>Why was a special PLAY2 probe needed before?</h2><p class="intro">The dedicated read-only probe was used during protocol research to identify the logger transport and the explicit 02B0 sensor-list selector. TSUN Local 1.5.2 incorporated that result. For ordinary users, the recommended path is now the normal integration and automatic discovery.</p><p><a href="https://github.com/jptstar/tsun-local/blob/main/docs/PLAY2_LOCAL_RESEARCH.md">Read the protocol research history →</a></p></section>
+  <section><h2>Why was a special PLAY2 probe needed before?</h2><p class="intro">The dedicated read-only probe was used during protocol research to identify the logger transport and the explicit 02B0 sensor-list selector. Support for that selector was introduced in TSUN Local 1.5.2 and is included in the current 1.5.3 stable release. For ordinary users, the recommended path is now the normal integration and automatic discovery.</p><p><a href="https://github.com/jptstar/tsun-local/blob/main/docs/PLAY2_LOCAL_RESEARCH.md">Read the protocol research history →</a></p></section>
 
   <section><h2>Independent community project</h2><p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by Sunology or TSUN. Product names belong to their respective owners.</p></section>
 </main>
