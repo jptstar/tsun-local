@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TSOL-MP3000 Home Assistant — Local Integration | TSUN Local</title>
+  <meta name="description" content="Connect the TSUN TSOL-MP3000 to Home Assistant locally with TSUN Local. Automatic discovery, six PV inputs, readable alarms, read-only diagnostics, no cloud and no proxy.">
+  <meta name="keywords" content="TSOL-MP3000 Home Assistant, TSUN MP3000 Home Assistant, TSOL MP3000, TSUN Local, HACS, TSUN microinverter, 1511, TITAN, local solar monitoring">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <meta name="theme-color" content="#0a315e">
+  <link rel="canonical" href="https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html">
+  <link rel="icon" type="image/png" href="icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="TSUN Local">
+  <meta property="og:title" content="TSOL-MP3000 Home Assistant — Local Integration | TSUN Local">
+  <meta property="og:description" content="Local Home Assistant monitoring for the TSUN TSOL-MP3000. Automatic discovery, six PV inputs, readable alarms, no cloud and no proxy.">
+  <meta property="og:url" content="https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html">
+  <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="TSOL-MP3000 in Home Assistant with TSUN Local">
+  <meta name="twitter:description" content="Direct local and read-only TSUN TSOL-MP3000 monitoring in Home Assistant.">
+  <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@graph":[
+      {
+        "@type":"TechArticle",
+        "headline":"TSOL-MP3000 in Home Assistant with TSUN Local",
+        "description":"Local and read-only Home Assistant integration for the TSUN TSOL-MP3000 microinverter using the validated TITAN / 1511 path.",
+        "mainEntityOfPage":"https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html",
+        "author":{"@type":"Person","name":"Jean-Philippe TESTART","url":"https://github.com/jptstar"},
+        "about":["TSUN TSOL-MP3000","Home Assistant","TSUN Local","TITAN","1511","solar monitoring"]
+      },
+      {
+        "@type":"BreadcrumbList",
+        "itemListElement":[
+          {"@type":"ListItem","position":1,"name":"TSUN Local","item":"https://jptstar.github.io/tsun-local/"},
+          {"@type":"ListItem","position":2,"name":"TSOL-MP3000 Home Assistant","item":"https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html"}
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    :root {
+      --ink:#10223a; --muted:#617188; --paper:#f4f7fb; --card:#fff;
+      --line:#dce5ef; --blue:#1167d8; --green:#148660; --green-soft:#e7f7f1;
+      --amber:#8a5700; --amber-soft:#fff3db; --violet:#6554d9;
+      --shadow:0 18px 50px rgba(19,50,88,.10); --max:1120px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);background:radial-gradient(circle at 88% 5%,rgba(17,103,216,.12),transparent 24rem),var(--paper);font:16px/1.58 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    a{color:var(--blue)}
+    .wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}
+    .topline{height:5px;background:linear-gradient(90deg,var(--green),var(--blue),var(--violet))}
+    header{padding:22px 0 72px;color:#fff;background:linear-gradient(145deg,#061c39 0%,#0a315e 70%,#105a9a 100%)}
+    nav{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none;font-weight:850}
+    .brand img{width:42px;height:42px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.24)}
+    .navlinks{display:flex;gap:20px;align-items:center}
+    .navlinks a{color:#dceaff;text-decoration:none;font-size:14px;font-weight:700}
+    .hero{display:grid;grid-template-columns:1.35fr .65fr;gap:48px;align-items:center;padding-top:64px}
+    .eyebrow{margin:0 0 17px;color:#8cd5ff;text-transform:uppercase;letter-spacing:.13em;font-size:13px;font-weight:850}
+    h1{max-width:850px;margin:0;font-size:clamp(44px,6vw,74px);line-height:.98;letter-spacing:-.055em}
+    .slogan{margin:20px 0 0;font-size:24px;font-weight:900;letter-spacing:-.02em}
+    .lead{max-width:800px;margin:21px 0 0;color:#d6e5f7;font-size:20px}
+    .strap{margin-top:18px;font-weight:850;letter-spacing:.02em}
+    .actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:28px}
+    .button{display:inline-block;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:800}
+    .primary{color:#071829;background:#8ee4ff}
+    .secondary{color:#fff;border:1px solid rgba(255,255,255,.27);background:rgba(255,255,255,.08)}
+    .preview-card{padding:26px;border:1px solid rgba(255,255,255,.16);border-radius:24px;background:rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+    .preview-kicker{display:block;color:#8cd5ff;letter-spacing:.08em;font-size:12px;font-weight:900}
+    .preview-card h3{margin:9px 0 14px;font-size:26px}
+    .preview-primary{margin-top:14px;padding:15px 0 4px;border-top:1px solid rgba(255,255,255,.10)}
+    .preview-primary strong{display:block;font-size:22px;line-height:1.12}
+    .preview-primary span{display:block;margin-top:6px;color:#d6e5f7;font-size:14px;line-height:1.4}
+    .preview-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+    .preview-stat{min-height:92px;padding:13px;border-radius:14px;background:rgba(255,255,255,.08)}
+    .preview-stat strong{display:block;font-size:29px;line-height:1}
+    .preview-stat span{display:block;margin-top:7px;color:#d6e5f7;font-size:13px;line-height:1.25}
+    .preview-note{margin-top:14px;padding-top:13px;border-top:1px solid rgba(255,255,255,.10);color:#b9d6f2;font-size:13px;font-weight:700}
+    main{margin-top:-30px;padding-bottom:72px}
+    section{margin-top:28px;padding:34px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:var(--shadow)}
+    h2{margin:0 0 10px;font-size:clamp(28px,4vw,40px);letter-spacing:-.04em}
+    h3{margin:0 0 10px}
+    .intro{max-width:880px;margin:0;color:var(--muted);font-size:18px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px}
+    .card{min-height:145px;padding:22px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}
+    .card strong{display:block;margin-bottom:7px;font-size:18px}
+    .muted{color:var(--muted)}
+    .section-badge{display:inline-block;margin-bottom:12px;padding:5px 9px;border-radius:999px;color:var(--green);background:var(--green-soft);font-size:12px;font-weight:850}
+    .compat-callout{margin-top:22px;padding:18px 20px;border:1px solid #bfe7d6;border-radius:16px;background:var(--green-soft);color:#0d684d}
+    .compat-callout strong{display:block;margin-bottom:5px;font-size:18px;line-height:1.3}
+    .compat-callout span{display:block;font-size:14px;line-height:1.5}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+    .code{padding:16px;border-radius:14px;background:#0e2036;color:#dceaff;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
+    .mini-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+    .mini-step{padding:15px 17px;border:1px solid var(--line);border-radius:14px;background:#f8fafd}
+    .mini-step strong{display:block;font-size:15px}.mini-step p{margin:4px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
+    .mini-step .n{display:inline-grid;place-items:center;width:24px;height:24px;margin-right:7px;border-radius:50%;color:#fff;background:var(--blue);font-size:12px;font-weight:900}
+    .install-note{margin-top:14px;padding:12px 15px;border-radius:16px;background:var(--green-soft);color:#0d684d;font-size:14px;font-weight:750}
+    footer{padding:8px 0 42px;color:var(--muted);text-align:center;font-size:14px}
+    @media(max-width:830px){
+      .hero,.two,.mini-steps{grid-template-columns:1fr}
+      .grid{display:flex;flex-direction:column;gap:12px;width:100%}
+      .grid .card{width:100%;min-height:0;margin:0}
+      .hero{gap:28px;padding-top:48px}
+      .navlinks{display:none}
+      section{padding:24px}
+    }
+  </style>
+</head>
+<body>
+<div class="topline"></div>
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a>
+      <div class="navlinks"><a href="#features">Features</a><a href="#validation">Validation</a><a href="#install">Install</a><a href="#docs">Docs</a></div>
+    </nav>
+    <div class="hero">
+      <div>
+        <p class="eyebrow">TSUN TSOL-MP3000 · Home Assistant · TITAN / 1511</p>
+        <h1>TSOL-MP3000 in Home Assistant — local monitoring with TSUN Local</h1>
+        <p class="slogan">Your inverter. Your network. Your data.</p>
+        <p class="lead">Monitor the <strong>TSUN TSOL-MP3000</strong> directly inside Home Assistant using its validated local TITAN / 1511 path.</p>
+        <p class="strap">Automatic discovery · Local · Read-only · No cloud · No proxy</p>
+        <div class="actions">
+          <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
+          <a class="button secondary" href="https://github.com/jptstar/tsun-local">GitHub</a>
+          <a class="button secondary" href="entities.html">Entity reference</a>
+        </div>
+      </div>
+      <aside class="preview-card" aria-label="TSOL-MP3000 compatibility highlights">
+        <span class="preview-kicker">VALIDATED ON REAL HARDWARE</span>
+        <h3>TSOL-MP3000 · TITAN</h3>
+        <div class="preview-primary">
+          <strong>Native local 1511 monitoring</strong>
+          <span>TSUN Local reads the MP3000 directly on the LAN and exposes its telemetry to Home Assistant.</span>
+        </div>
+        <div class="preview-stats">
+          <div class="preview-stat"><strong>6</strong><span>PV inputs validated on the MP3000 path</span></div>
+          <div class="preview-stat"><strong>1511</strong><span>native TITAN protocol family</span></div>
+        </div>
+        <div class="preview-note">No inverter configuration writes are implemented.</div>
+      </aside>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="features">
+    <span class="section-badge">✅ VALIDATED TSUN HARDWARE</span>
+    <h2>What TSUN Local exposes from the MP3000</h2>
+    <p class="intro">The TSOL-MP3000 is a validated reference device for TSUN Local's TITAN / 1511 support. Home Assistant entities are created from the data actually returned by the inverter.</p>
+    <div class="grid">
+      <div class="card"><strong>☀️ Six PV inputs</strong><span class="muted">Voltage, current, power, daily energy and total energy for the detected MP3000 PV inputs.</span></div>
+      <div class="card"><strong>⚡ AC production</strong><span class="muted">AC voltage, current, frequency, power and energy information.</span></div>
+      <div class="card"><strong>🚨 Readable alarms</strong><span class="muted">Active inverter alarms can be presented as localized descriptions with stable diagnostic codes.</span></div>
+      <div class="card"><strong>📡 Communication</strong><span class="muted">Online state, last successful communication, duration and consecutive failures.</span></div>
+      <div class="card"><strong>🧩 Device information</strong><span class="muted">Firmware and inverter information where exposed by the native 1511 blocks.</span></div>
+      <div class="card"><strong>🛡️ Advanced diagnostics</strong><span class="muted">Additional read-only diagnostics remain disabled by default until you choose to enable them.</span></div>
+    </div>
+  </section>
+
+  <section id="validation">
+    <h2>Validated local protocol path</h2>
+    <p class="intro">The MP3000 support is based on repeated read-only captures from real TSOL-MP3000 hardware. Native 1511 blocks for inverter settings/status and PV1 through PV6 have been read successfully.</p>
+    <div class="code">TSUN TSOL-MP3000
+  → local network
+  → TITAN / protocol 1511
+  → native read-only blocks
+  → TSUN Local
+  → Home Assistant</div>
+    <div class="compat-callout">
+      <strong>✅ Real-device validation includes PV1 through PV6.</strong>
+      <span>The native A3/A4 blocks have been read successfully on the physical MP3000, including the per-input daily-generation positions.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Read-only by design</h2>
+    <p class="intro">TSUN Local is intended for monitoring. It does not implement inverter configuration writes, country/profile changes, grid-protection writes or inverter control commands.</p>
+    <div class="two">
+      <div class="card"><strong>Normal Home Assistant use</strong><span class="muted">Production, energy, communication, alarms and device information remain the everyday interface.</span></div>
+      <div class="card"><strong>Expert diagnostics</strong><span class="muted">Additional field-validation and grid-related values stay read-only and are disabled by default where appropriate.</span></div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install through HACS</h2>
+    <p class="intro">For normal use, install TSUN Local and let the integration discover the compatible inverter on the local network.</p>
+    <div class="mini-steps">
+      <div class="mini-step"><strong><span class="n">1</span>Install</strong><p>Add TSUN Local through HACS.</p></div>
+      <div class="mini-step"><strong><span class="n">2</span>Add</strong><p>Add TSUN Local from Home Assistant Devices &amp; services.</p></div>
+      <div class="mini-step"><strong><span class="n">3</span>Discover</strong><p>TSUN Local detects the supported local protocol and available PV inputs.</p></div>
+    </div>
+    <div class="install-note">Automatic discovery · Local · Read-only · No cloud · No proxy</div>
+  </section>
+
+  <section id="docs">
+    <h2>Technical documentation</h2>
+    <p class="intro">The public documentation keeps detailed protocol and field-validation evidence separate from the normal Home Assistant setup path.</p>
+    <div class="grid">
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="entities.html"><strong>Entity reference →</strong><span class="muted">Common and protocol-specific Home Assistant entities.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="https://github.com/jptstar/tsun-local/blob/main/docs/MP3000_FIELD_VALIDATION.md"><strong>MP3000 field validation →</strong><span class="muted">Read-only real-device evidence, native blocks and validation notes.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html"><strong>Test another microinverter →</strong><span class="muted">An unlisted TSUN model may already expose a supported local protocol.</span></a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Independent community project</h2>
+    <p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN. Product names belong to their respective owners.</p>
+    <p>Created and maintained by <a href="https://github.com/jptstar"><strong>Jean-Philippe TESTART (jptstar)</strong></a> for the Home Assistant community.</p>
+  </section>
+</main>
+
+<footer class="wrap">TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design</footer>
+</body>
+</html>
