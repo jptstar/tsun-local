@@ -40,6 +40,16 @@ class Release154WebTests(unittest.TestCase):
             self.assertNotIn("1.5.4 beta", text, filename)
             self.assertNotIn("1.5.4-beta", text, filename)
 
+    def test_sitemap_contains_validated_hardware_pages(self) -> None:
+        sitemap = (DOCS / "sitemap.xml").read_text(encoding="utf-8")
+        for filename in (
+            "tsol-mp3000-home-assistant.html",
+            "tsol-mx500-home-assistant.html",
+            "tsol-ms800-home-assistant.html",
+            "sunology-play2.html",
+        ):
+            self.assertIn(filename, sitemap)
+
     def test_homepage_keeps_project_identity(self) -> None:
         text = (DOCS / "index.html").read_text(encoding="utf-8")
         self.assertIn("Your inverter. Your network. Your data.", text)
