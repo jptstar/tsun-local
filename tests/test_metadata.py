@@ -146,7 +146,6 @@ class MetadataTests(unittest.TestCase):
         entities = (ROOT / "docs" / "entities.html").read_text(encoding="utf-8")
         play2 = (ROOT / "docs" / "sunology-play2.html").read_text(encoding="utf-8")
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
-        text_sitemap = (ROOT / "docs" / "sitemap.txt").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
         self.assertIn('entities.html', index)
@@ -173,21 +172,21 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("LSW5BLE_17_02B0_1.08-D1", play2)
         self.assertIn("No proxy", play2)
 
-        self.assertIn("sunology-play2.html", sitemap)
-        self.assertIn("entities.html", sitemap)
-        self.assertEqual(sitemap.count("<lastmod>2026-08-27</lastmod>"), 5)
-        self.assertEqual(
-            text_sitemap.splitlines(),
-            [
-                "https://jptstar.github.io/tsun-local/",
-                "https://jptstar.github.io/tsun-local/entities.html",
-                "https://jptstar.github.io/tsun-local/sunology-play2.html",
-                "https://jptstar.github.io/tsun-local/test-your-inverter.html",
-                "https://jptstar.github.io/tsun-local/contributors.html",
-            ],
+        expected_sitemap_urls = (
+            "https://jptstar.github.io/tsun-local/",
+            "https://jptstar.github.io/tsun-local/entities.html",
+            "https://jptstar.github.io/tsun-local/sunology-play2.html",
+            "https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html",
+            "https://jptstar.github.io/tsun-local/test-your-inverter.html",
+            "https://jptstar.github.io/tsun-local/contributors.html",
         )
+        for url in expected_sitemap_urls:
+            self.assertIn(f"<loc>{url}</loc>", sitemap)
+        self.assertEqual(sitemap.count("<url>"), len(expected_sitemap_urls))
+        self.assertNotIn("<lastmod>", sitemap)
+        self.assertFalse((ROOT / "docs" / "sitemap.txt").exists())
         self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.xml", robots)
-        self.assertIn("Sitemap: https://jptstar.github.io/tsun-local/sitemap.txt", robots)
+        self.assertNotIn("sitemap.txt", robots)
 
     def test_brand_assets_and_web_icon_are_synchronized(self) -> None:
         brand = INTEGRATION / "brand"
