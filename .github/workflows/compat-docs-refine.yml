@@ -1,0 +1,93 @@
+name: Refine compatibility docs
+
+on:
+  push:
+    branches:
+      - docs/ms800-mx500-compatibility
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/ms800-mx500-compatibility
+          fetch-depth: 0
+
+      - name: Refine factual wording and SEO checks
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          index_path = Path('docs/index.html')
+          index = index_path.read_text(encoding='utf-8')
+          index = index.replace(
+              'Dedicated page for the validated TSUN GEN3 / 02B0 reference hardware path.',
+              'Dedicated page for the validated TSUN 02B0 reference hardware path.'
+          )
+          index = index.replace(
+              '64 catalogue positions, including the validated Sunology PLAY2 path.',
+              '64 catalogue positions, including validated MX500, MS800 and Sunology PLAY2 paths.'
+          )
+          index = index.replace(
+              'Open-source local and read-only Home Assistant integration for compatible TSUN microinverters, also validated with Sunology PLAY2.',
+              'Open-source local and read-only Home Assistant integration with real-hardware validation on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2.'
+          )
+          index = index.replace(
+              '"keywords":["TSUN microinverter","Home Assistant","Sunology PLAY2","1511","02B0","1097"]',
+              '"keywords":["TSUN microinverter","Home Assistant","TSOL-MP3000","TSOL-MX500","TSOL-MS800","Sunology PLAY2","1511","02B0","1097"]'
+          )
+          index_path.write_text(index, encoding='utf-8')
+
+          for filename in ('docs/tsol-mx500-home-assistant.html', 'docs/tsol-ms800-home-assistant.html'):
+              path = Path(filename)
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('GEN3 / 02B0 support', '02B0 support')
+              text = text.replace('GEN3 / 02B0 hardware and firmware path', '02B0 hardware and firmware path')
+              text = text.replace('GEN3 / protocol 02B0', 'protocol 02B0')
+              text = text.replace('02B0 / GEN3 on the tested unit', '02B0 on the tested unit')
+              text = text.replace('02B0 / GEN3. No inverter configuration writes', '02B0. No inverter configuration writes')
+              text = text.replace('TSUN Local","GEN3","02B0"', 'TSUN Local","GEN3 / GEN3 PLUS","02B0"')
+              path.write_text(text, encoding='utf-8')
+
+          localized_path = Path('tests/test_stable_151_localized_readmes.py')
+          localized = localized_path.read_text(encoding='utf-8')
+          localized = localized.replace(
+              '            self.assertIn("TSOL-MS800", text, filename)\n',
+              '            self.assertIn("**TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2**", text, filename)\n'
+          )
+          anchor = '            self.assertIn("tsol-ms800-home-assistant.html", text, filename)\n'
+          addition = anchor + '            likely_02b0 = next(line for line in text.splitlines() if line.startswith("- **02B0"))\n            self.assertNotIn("`TSOL-MS800`", likely_02b0, filename)\n'
+          if 'likely_02b0 = next(' not in localized:
+              localized = localized.replace(anchor, addition, 1)
+          localized_path.write_text(localized, encoding='utf-8')
+
+          web_path = Path('tests/test_release_154_web.py')
+          web = web_path.read_text(encoding='utf-8')
+          marker = '    def test_homepage_keeps_project_identity(self) -> None:\n'
+          method = '''    def test_sitemap_contains_validated_hardware_pages(self) -> None:\n        sitemap = (DOCS / "sitemap.xml").read_text(encoding="utf-8")\n        for filename in (\n            "tsol-mp3000-home-assistant.html",\n            "tsol-mx500-home-assistant.html",\n            "tsol-ms800-home-assistant.html",\n            "sunology-play2.html",\n        ):\n            self.assertIn(filename, sitemap)\n\n'''
+          if 'test_sitemap_contains_validated_hardware_pages' not in web:
+              if marker not in web:
+                  raise SystemExit('web test insertion marker not found')
+              web = web.replace(marker, method + marker, 1)
+          web_path.write_text(web, encoding='utf-8')
+          PY
+
+      - name: Run documentation tests
+        run: |
+          python -m unittest tests.test_release_154_web tests.test_stable_151_localized_readmes
+          git diff --check
+
+      - name: Commit refined documentation only
+        shell: bash
+        run: |
+          rm -f .github/workflows/compat-docs-refine.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: refine 02B0 compatibility wording and sitemap checks"
+          git push origin HEAD:docs/ms800-mx500-compatibility
