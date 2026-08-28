@@ -34,7 +34,7 @@
 | Protocol | Familie | Gevalideerde hardware | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Gevalideerd** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **Gevalideerd** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2** | ✅ **Gevalideerd** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Experimenteel** |
 
 > [!TIP]
@@ -44,12 +44,14 @@
 <summary><strong>Waarschijnlijk compatibele modellen per protocol</strong></summary>
 
 - **1511 — Waarschijnlijk compatibel:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — Waarschijnlijk compatibel:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · overeenkomstige `-D`-varianten
+- **02B0 — Waarschijnlijk compatibel:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · overeenkomstige `-D`-varianten
 - **1097 — Waarschijnlijk compatibel:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
 
 </details>
 
 📚 **[MP3000 / TITAN-validatie](MP3000_FIELD_VALIDATION.md)**
+
+📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
 **Nieuw in 1.5.4:** 02B0-apparaten kunnen omvormerfirmware, omvormertemperatuur en extra alleen-lezen bedrijfsdiagnostiek tonen.
 
@@ -223,6 +225,7 @@ TSUN Local profiteert van openbaar protocolonderzoek en onafhankelijke hardwarev
 - **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — openbaar GEN3-/1097- en land-/profielonderzoek voor experimentele validatie.
 - **TheSmartGerman** — real-hardwaretest waardoor de extra 1097-protocolfamilie werd ontdekt.
 - **dca31** — onafhankelijke Sunology PLAY2-validatie via de normale TSUN Local Home Assistant-flow.
+- **Kmotr** — onafhankelijke TSOL-MS800-validatie met TSUN Local en een geanonimiseerde Home Assistant-diagnose.
 
 📚 **[Alle bijdragers en credits](contributors.html)**
 
