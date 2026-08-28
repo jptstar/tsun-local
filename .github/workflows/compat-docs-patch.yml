@@ -1,0 +1,271 @@
+name: Compatibility docs patch
+
+on:
+  push:
+    branches:
+      - docs/ms800-mx500-compatibility
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/ms800-mx500-compatibility
+          fetch-depth: 0
+
+      - name: Apply focused documentation patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+          readmes = [
+              root / 'README.md',
+              root / 'docs/README_FR.md',
+              root / 'docs/README_DE.md',
+              root / 'docs/README_ES.md',
+              root / 'docs/README_IT.md',
+              root / 'docs/README_NL.md',
+              root / 'docs/README_PL.md',
+              root / 'docs/README_ZH.md',
+          ]
+
+          credit_lines = {
+              'README.md': '- **Kmotr** — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.',
+              'README_FR.md': '- **Kmotr** — validation indépendante du TSOL-MS800 avec TSUN Local et un diagnostic Home Assistant anonymisé.',
+              'README_DE.md': '- **Kmotr** — unabhängige TSOL-MS800-Validierung mit TSUN Local und einem anonymisierten Home-Assistant-Diagnosebericht.',
+              'README_ES.md': '- **Kmotr** — validación independiente del TSOL-MS800 con TSUN Local y un diagnóstico anonimizado de Home Assistant.',
+              'README_IT.md': '- **Kmotr** — validazione indipendente del TSOL-MS800 con TSUN Local e una diagnostica Home Assistant anonimizzata.',
+              'README_NL.md': '- **Kmotr** — onafhankelijke TSOL-MS800-validatie met TSUN Local en een geanonimiseerde Home Assistant-diagnose.',
+              'README_PL.md': '- **Kmotr** — niezależna walidacja TSOL-MS800 z TSUN Local i zanonimizowaną diagnostyką Home Assistant.',
+              'README_ZH.md': '- **Kmotr** — 使用 TSUN Local 和匿名化 Home Assistant 诊断文件对 TSOL-MS800 进行了独立实机验证。',
+          }
+
+          hardware_links = '📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**'
+
+          for path in readmes:
+              text = path.read_text(encoding='utf-8')
+              old_validated = '**TSOL-MX500** · **Sunology PLAY2**'
+              new_validated = '**TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2**'
+              if old_validated not in text:
+                  raise SystemExit(f'missing validated compatibility cell in {path}')
+              text = text.replace(old_validated, new_validated, 1)
+
+              lines = text.splitlines()
+              changed_likely = False
+              for i, line in enumerate(lines):
+                  if line.startswith('- **02B0') and '`TSOL-MS800`' in line:
+                      lines[i] = line.replace(' · `TSOL-MS800`', '', 1)
+                      changed_likely = True
+                      break
+              if not changed_likely:
+                  raise SystemExit(f'missing 02B0 likely-compatible MS800 in {path}')
+              text = '\n'.join(lines) + ('\n' if text.endswith('\n') else '')
+
+              if hardware_links not in text:
+                  marker_index = text.find('MP3000_FIELD_VALIDATION.md')
+                  if marker_index < 0:
+                      raise SystemExit(f'missing MP3000 validation link in {path}')
+                  line_end = text.find('\n', marker_index)
+                  text = text[:line_end+1] + '\n' + hardware_links + '\n' + text[line_end+1:]
+
+              credit = credit_lines[path.name]
+              if credit not in text:
+                  marker = '📚 **['
+                  full_credits_pos = text.find('contributors.html')
+                  if full_credits_pos < 0:
+                      raise SystemExit(f'missing contributors link in {path}')
+                  bullet_anchor = text.rfind('\n-', 0, full_credits_pos)
+                  if bullet_anchor < 0:
+                      raise SystemExit(f'missing credits list in {path}')
+                  insert_at = text.find('\n', bullet_anchor + 1)
+                  text = text[:insert_at+1] + credit + '\n' + text[insert_at+1:]
+
+              path.write_text(text, encoding='utf-8')
+
+          index_path = root / 'docs/index.html'
+          index = index_path.read_text(encoding='utf-8')
+          index = index.replace(
+              'Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Automatic discovery, clear-text alarms, read-only local access, no cloud and no proxy. Also compatible with Sunology PLAY2.',
+              'Monitor TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Validated on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2; no cloud or proxy.'
+          )
+          index = index.replace(
+              'TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097',
+              'TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, TSOL-MS800, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097'
+          )
+          old_devices = '<div class="tested-device"><strong>TSOL-MX500</strong><span class="tested-brand">TSUN</span></div>\n          <div class="tested-device"><strong>PLAY2</strong><span class="tested-brand">Sunology</span></div>'
+          new_devices = '<div class="tested-device"><strong>TSOL-MX500</strong><span class="tested-brand">TSUN</span></div>\n          <div class="tested-device"><strong>TSOL-MS800</strong><span class="tested-brand">TSUN</span></div>\n          <div class="tested-device"><strong>PLAY2</strong><span class="tested-brand">Sunology</span></div>'
+          if old_devices not in index:
+              raise SystemExit('homepage 02B0 tested devices block not found')
+          index = index.replace(old_devices, new_devices, 1)
+
+          docs_anchor = '<a class="card" style="display:block;color:inherit;text-decoration:none" href="tsol-mp3000-home-assistant.html"><strong>TSOL-MP3000 →</strong><span class="muted">Dedicated Home Assistant page for the validated TSUN TITAN / 1511 local integration path.</span></a>'
+          docs_insert = docs_anchor + '\n      <a class="card" style="display:block;color:inherit;text-decoration:none" href="tsol-mx500-home-assistant.html"><strong>TSOL-MX500 →</strong><span class="muted">Dedicated page for the validated TSUN GEN3 / 02B0 reference hardware path.</span></a>\n      <a class="card" style="display:block;color:inherit;text-decoration:none" href="tsol-ms800-home-assistant.html"><strong>TSOL-MS800 →</strong><span class="muted">Community-validated 02B0 hardware with two MPPT inputs and independent Home Assistant diagnostic feedback.</span></a>'
+          if docs_anchor not in index:
+              raise SystemExit('homepage docs anchor not found')
+          index = index.replace(docs_anchor, docs_insert, 1)
+
+          credit_anchor = '<span><a href="https://github.com/dca31"><strong>@dca31</strong></a> — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.</span>'
+          credit_insert = credit_anchor + '\n      <span><a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a> — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.</span>'
+          if credit_anchor not in index:
+              raise SystemExit('homepage credit anchor not found')
+          index = index.replace(credit_anchor, credit_insert, 1)
+          index_path.write_text(index, encoding='utf-8')
+
+          contributors_path = root / 'docs/contributors.html'
+          contributors = contributors_path.read_text(encoding='utf-8')
+          contributors = contributors.replace('dateModified":"2026-08-27"', 'dateModified":"2026-08-28"', 1)
+          contributors = contributors.replace(
+              'country-profile research and Sunology PLAY2 validation.',
+              'country-profile research, Sunology PLAY2 validation and TSOL-MS800 hardware validation.',
+              1,
+          )
+          c_anchor = '<div class="card"><span class="role">Independent hardware validation</span><a href="https://github.com/dca31"><strong>@dca31</strong></a><p>Validated a real Sunology PLAY2 with the normal TSUN Local Home Assistant setup, confirming automatic discovery and the supported local 02B0 path on independent hardware.</p></div>'
+          c_insert = c_anchor + '\n<div class="card"><span class="role">Independent TSOL-MS800 hardware validation</span><a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a><p>Validated TSUN Local on a real TSOL-MS800, shared an anonymized Home Assistant diagnostic and confirmed the tested 02B0 hardware path works in normal use.</p></div>'
+          if c_anchor not in contributors:
+              raise SystemExit('contributors dca31 card not found')
+          contributors = contributors.replace(c_anchor, c_insert, 1)
+          contributors_path.write_text(contributors, encoding='utf-8')
+
+          footer = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design'
+
+          common_style = '''<style>
+          :root{--ink:#10223a;--muted:#617188;--paper:#f4f7fb;--card:#fff;--line:#dce5ef;--blue:#1167d8;--green:#148660;--green-soft:#e7f7f1;--shadow:0 18px 50px rgba(19,50,88,.10);--max:1000px}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.6 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}header{padding:26px 0 68px;color:#fff;background:linear-gradient(145deg,#061c39,#0a315e 72%,#105a9a)}.brand{color:#fff;text-decoration:none;font-weight:850}.hero{padding-top:48px}.tag{display:inline-block;padding:6px 10px;border-radius:999px;color:#0d684d;background:#dff7ed;font-size:12px;font-weight:900}h1{max-width:880px;margin:14px 0 0;font-size:clamp(42px,7vw,68px);line-height:1;letter-spacing:-.05em}.lead{max-width:800px;color:#d6e5f7;font-size:20px}.strap{font-weight:850}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.btn{display:inline-block;padding:12px 16px;border-radius:11px;text-decoration:none;font-weight:850}.primary{color:#071829;background:#8ee4ff}.secondary{color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08)}main{margin-top:-28px;padding-bottom:60px}section{margin-top:26px;padding:30px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:var(--shadow)}h2{margin:0 0 10px;font-size:32px;letter-spacing:-.035em}.intro{margin:0;color:var(--muted);font-size:18px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:22px}.card{padding:20px;border:1px solid var(--line);border-radius:16px;background:#f8fafd}.card strong{display:block;margin-bottom:6px}.code{margin-top:18px;padding:18px;border-radius:14px;background:#0e2036;color:#dceaff;font:14px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.note{margin-top:18px;padding:18px;border-radius:15px;color:#0d684d;background:var(--green-soft)}footer{padding:0 0 38px;text-align:center;color:var(--muted);font-size:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}section{padding:23px}}
+          </style>'''
+
+          def page(*, title, description, keywords, canonical, og_title, headline, tag, lead, protocol, path_text, cards, evidence, about):
+              cards_html = ''.join(f'<div class="card"><strong>{name}</strong>{body}</div>' for name, body in cards)
+              about_json = ','.join('"' + item.replace('"', '\\"') + '"' for item in about)
+              return f'''<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>{title}</title>
+            <meta name="description" content="{description}">
+            <meta name="keywords" content="{keywords}">
+            <meta name="robots" content="index,follow,max-image-preview:large">
+            <meta name="theme-color" content="#0a315e">
+            <link rel="canonical" href="{canonical}">
+            <link rel="icon" type="image/png" href="icon.png">
+            <meta property="og:type" content="article">
+            <meta property="og:site_name" content="TSUN Local">
+            <meta property="og:title" content="{og_title}">
+            <meta property="og:description" content="{description}">
+            <meta property="og:url" content="{canonical}">
+            <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
+            <meta name="twitter:card" content="summary">
+            <meta name="twitter:title" content="{og_title}">
+            <meta name="twitter:description" content="{description}">
+            <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
+            <script type="application/ld+json">{{"@context":"https://schema.org","@graph":[{{"@type":"TechArticle","headline":"{headline}","description":"{description}","mainEntityOfPage":"{canonical}","dateModified":"2026-08-28","author":{{"@type":"Person","name":"Jean-Philippe TESTART","url":"https://github.com/jptstar"}},"isPartOf":{{"@type":"WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/"}},"about":[{about_json}]}},{{"@type":"BreadcrumbList","itemListElement":[{{"@type":"ListItem","position":1,"name":"TSUN Local","item":"https://jptstar.github.io/tsun-local/"}},{{"@type":"ListItem","position":2,"name":"{headline}","item":"{canonical}"}}]}}]}}</script>
+            {common_style}
+          </head>
+          <body>
+          <header><div class="wrap"><a class="brand" href="./">← TSUN Local</a><div class="hero"><span class="tag">{tag}</span><h1>{headline}</h1><p class="lead">{lead}</p><p class="strap">Automatic discovery · Local · Read-only · No cloud · No proxy</p><div class="actions"><a class="btn primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a><a class="btn secondary" href="entities.html">Entity reference</a><a class="btn secondary" href="https://github.com/jptstar/tsun-local">GitHub</a></div></div></div></header>
+          <main class="wrap">
+            <section><h2>Validated compatibility</h2><p class="intro">This page documents a real-hardware compatibility path, not a model-name assumption. TSUN Local still identifies devices from the local protocol exposed by the inverter/logger combination.</p><div class="grid">{cards_html}</div></section>
+            <section><h2>Local protocol path</h2><div class="code">{path_text}</div><div class="note"><strong>Protocol:</strong> {protocol}. No inverter configuration writes are implemented.</div></section>
+            <section><h2>Home Assistant setup</h2><ol><li>Install <strong>TSUN Local</strong> through HACS.</li><li>Restart Home Assistant.</li><li>Add <strong>TSUN Local</strong> from Settings → Devices &amp; services.</li><li>Use automatic discovery when available, then verify the detected protocol and telemetry.</li></ol></section>
+            <section><h2>Validation evidence</h2><p class="intro">{evidence}</p></section>
+            <section><h2>Independent community project</h2><p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN. Product names belong to their respective owners.</p></section>
+          </main>
+          <footer class="wrap">{footer}</footer>
+          </body></html>'''
+
+          mx500 = page(
+              title='TSOL-MX500 Home Assistant — Local Integration | TSUN Local',
+              description='Connect the TSUN TSOL-MX500 to Home Assistant locally with TSUN Local. Validated 02B0 hardware path, read-only monitoring, no cloud and no proxy.',
+              keywords='TSOL-MX500 Home Assistant, TSUN MX500, TSUN Local, 02B0, GEN3, HACS, TSUN microinverter, local solar monitoring',
+              canonical='https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html',
+              og_title='TSOL-MX500 in Home Assistant with TSUN Local',
+              headline='TSOL-MX500 in Home Assistant — local monitoring with TSUN Local',
+              tag='VALIDATED ON REAL TSOL-MX500 HARDWARE',
+              lead='The TSUN TSOL-MX500 is a validated reference device for TSUN Local’s GEN3 / 02B0 support and can be monitored directly on the local network from Home Assistant.',
+              protocol='02B0 / GEN3',
+              path_text='TSUN TSOL-MX500\n  → local network\n  → GEN3 / protocol 02B0\n  → TSUN Local\n  → Home Assistant',
+              cards=[
+                  ('✅ Real-hardware validation', 'The MX500 is one of the reference devices used to validate TSUN Local’s 02B0 support.'),
+                  ('☀️ PV telemetry', 'Voltage, current, power and energy entities are exposed for PV inputs detected from the device.'),
+                  ('⚡ AC telemetry', 'AC voltage, current, frequency, power and energy are exposed where returned by the inverter.'),
+                  ('🛡️ Read-only diagnostics', 'Firmware, inverter temperature and additional 02B0 diagnostics can be exposed without adding configuration writes.'),
+              ],
+              evidence='TSOL-MX500 has been listed as validated 02B0 hardware since the protocol-family compatibility work shipped in TSUN Local 1.4.0. See the <a href="https://github.com/jptstar/tsun-local/blob/main/docs/releases/1.4.0.md">1.4.0 release notes</a> and the <a href="entities.html">entity reference</a> for protocol-specific details.',
+              about=['TSUN TSOL-MX500','Home Assistant','TSUN Local','GEN3','02B0','local solar monitoring'],
+          )
+          (root / 'docs/tsol-mx500-home-assistant.html').write_text(mx500, encoding='utf-8')
+
+          ms800 = page(
+              title='TSOL-MS800 Home Assistant — Local Integration | TSUN Local',
+              description='Connect the TSUN TSOL-MS800 to Home Assistant locally with TSUN Local. Community-validated 02B0 support, two MPPT inputs, no cloud and no proxy.',
+              keywords='TSOL-MS800 Home Assistant, TSUN MS800, TSUN Local, 02B0, GEN3, HACS, two MPPT, TSUN microinverter, local solar monitoring',
+              canonical='https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html',
+              og_title='TSOL-MS800 in Home Assistant with TSUN Local',
+              headline='TSOL-MS800 in Home Assistant — validated local 02B0 monitoring',
+              tag='COMMUNITY VALIDATED ON REAL TSOL-MS800 HARDWARE',
+              lead='A real TSUN TSOL-MS800 has now been tested with TSUN Local in Home Assistant, confirming the tested GEN3 / 02B0 hardware and firmware path.',
+              protocol='02B0 / GEN3 on the tested unit',
+              path_text='TSUN TSOL-MS800\n  → local network\n  → GEN3 / protocol 02B0\n  → TSUN Local\n  → Home Assistant',
+              cards=[
+                  ('✅ Community validation', 'A TSUN Local user reported that the integration works on a real TSOL-MS800 and supplied an anonymized Home Assistant diagnostic.'),
+                  ('☀️ Two MPPT inputs', 'The independently documented test unit is a two-MPPT TSOL-MS800 and exposes the expected PV1/PV2 telemetry path.'),
+                  ('🧩 Tested hardware path', 'Observed serial prefix <code>Y47E…</code> with logger firmware <code>LSW5BLE_17_02B0_1.08-D1</code>.'),
+                  ('📡 Connection resilience', 'The tester reported weak Wi-Fi and periodic disconnects, while noting that AC energy values remain retained during connection loss.'),
+              ],
+              evidence='Thanks to <a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a> for the independent TSUN Local test and anonymized diagnostic. The same hardware owner previously documented the TSOL-MS800 02B0 register map and two-MPPT layout in <a href="https://github.com/davidrapan/ha-solarman/issues/153">ha-solarman issue #153</a>. The TSUN Local result is tracked in <a href="https://github.com/jptstar/tsun-local/issues/52">compatibility issue #52</a>.',
+              about=['TSUN TSOL-MS800','Home Assistant','TSUN Local','GEN3','02B0','two MPPT','local solar monitoring'],
+          )
+          (root / 'docs/tsol-ms800-home-assistant.html').write_text(ms800, encoding='utf-8')
+
+          sitemap_path = root / 'docs/sitemap.xml'
+          sitemap = sitemap_path.read_text(encoding='utf-8')
+          insert_after = '  <url>\n    <loc>https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html</loc>\n  </url>\n'
+          extra = insert_after + '  <url>\n    <loc>https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html</loc>\n  </url>\n  <url>\n    <loc>https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html</loc>\n  </url>\n'
+          if insert_after not in sitemap:
+              raise SystemExit('sitemap MP3000 entry not found')
+          sitemap = sitemap.replace(insert_after, extra, 1)
+          sitemap_path.write_text(sitemap, encoding='utf-8')
+
+          web_test_path = root / 'tests/test_release_154_web.py'
+          web_test = web_test_path.read_text(encoding='utf-8')
+          old_pages = 'PAGES = ("index.html", "entities.html", "sunology-play2.html", "contributors.html", "test-your-inverter.html")'
+          new_pages = 'PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "contributors.html", "test-your-inverter.html")'
+          if old_pages not in web_test:
+              raise SystemExit('web test page tuple not found')
+          web_test = web_test.replace(old_pages, new_pages, 1)
+          anchor = '        self.assertIn("contributors.html", text)\n'
+          addition = anchor + '        self.assertIn("tsol-mx500-home-assistant.html", text)\n        self.assertIn("tsol-ms800-home-assistant.html", text)\n'
+          if anchor not in web_test:
+              raise SystemExit('homepage web test anchor not found')
+          web_test = web_test.replace(anchor, addition, 1)
+          web_test_path.write_text(web_test, encoding='utf-8')
+
+          localized_test_path = root / 'tests/test_stable_151_localized_readmes.py'
+          localized_test = localized_test_path.read_text(encoding='utf-8')
+          anchor = '            self.assertIn("Sunology PLAY2", text, filename)\n'
+          addition = anchor + '            self.assertIn("TSOL-MS800", text, filename)\n            self.assertIn("tsol-mx500-home-assistant.html", text, filename)\n            self.assertIn("tsol-ms800-home-assistant.html", text, filename)\n'
+          if anchor not in localized_test:
+              raise SystemExit('localized readme test anchor not found')
+          localized_test = localized_test.replace(anchor, addition, 1)
+          localized_test_path.write_text(localized_test, encoding='utf-8')
+          PY
+
+      - name: Run focused documentation tests
+        run: |
+          python -m unittest tests.test_release_154_web tests.test_stable_151_localized_readmes
+          git diff --check
+
+      - name: Commit final documentation only
+        shell: bash
+        run: |
+          rm -f .github/workflows/compat-docs-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: add MX500 and MS800 compatibility pages"
+          git push origin HEAD:docs/ms800-mx500-compatibility
