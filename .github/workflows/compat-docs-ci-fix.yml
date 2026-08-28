@@ -1,0 +1,49 @@
+name: Fix sitemap metadata test
+
+on:
+  push:
+    branches:
+      - docs/ms800-mx500-compatibility
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/ms800-mx500-compatibility
+          fetch-depth: 0
+
+      - name: Update sitemap expectations
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/test_metadata.py')
+          text = path.read_text(encoding='utf-8')
+          anchor = '            "https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html",\n'
+          addition = anchor + '            "https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html",\n            "https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html",\n'
+          if 'tsol-mx500-home-assistant.html' not in text:
+              if anchor not in text:
+                  raise SystemExit('sitemap metadata-test anchor not found')
+              text = text.replace(anchor, addition, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Run full unit tests
+        run: |
+          python -m unittest discover -s tests -v
+          git diff --check
+
+      - name: Commit test update only
+        shell: bash
+        run: |
+          rm -f .github/workflows/compat-docs-ci-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test: include MX500 and MS800 pages in sitemap expectations"
+          git push origin HEAD:docs/ms800-mx500-compatibility
