@@ -34,7 +34,7 @@
 | 协议 | 系列 | 已验证硬件 | 状态 |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **已验证** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2** | ✅ **已验证** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **实验性** |
 
 > [!TIP]
@@ -44,12 +44,14 @@
 <summary><strong>按协议分类的可能兼容型号</strong></summary>
 
 - **1511 — 可能兼容:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — 可能兼容:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · 对应的 `-D` 变体
+- **02B0 — 可能兼容:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · 对应的 `-D` 变体
 - **1097 — 可能兼容:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
 
 </details>
 
 📚 **[MP3000 / TITAN 验证](MP3000_FIELD_VALIDATION.md)**
+
+📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
 **1.5.4 新增：**02B0 设备可提供逆变器固件版本、逆变器温度以及更多只读运行诊断。
 
@@ -223,6 +225,7 @@ TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢
 - **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — 公开的 GEN3 / 1097 与国家/配置文件研究，用于实验性验证。
 - **TheSmartGerman** — 真实设备测试揭示了额外的 1097 协议系列。
 - **dca31** — 通过 TSUN Local 的标准 Home Assistant 流程独立验证 Sunology PLAY2。
+- **Kmotr** — 使用 TSUN Local 和匿名化 Home Assistant 诊断文件对 TSOL-MS800 进行了独立实机验证。
 
 📚 **[完整贡献者与致谢](contributors.html)**
 

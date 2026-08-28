@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor compatible TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Automatic discovery, clear-text alarms, read-only local access, no cloud and no proxy. Also compatible with Sunology PLAY2.">
-  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097">
+  <meta name="description" content="Monitor TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Validated on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2; no cloud or proxy.">
+  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, TSOL-MS800, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/">
@@ -124,7 +124,7 @@
     "@context":"https://schema.org",
     "@graph":[
       {"@type": "WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/","description":"Local TSUN microinverter monitoring for Home Assistant."},
-      {"@type": "SoftwareSourceCode","name":"TSUN Local","softwareVersion":"1.5.4","codeRepository":"https://github.com/jptstar/tsun-local","runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration for compatible TSUN microinverters, also validated with Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","Sunology PLAY2","1511","02B0","1097"]}
+      {"@type": "SoftwareSourceCode","name":"TSUN Local","softwareVersion":"1.5.4","codeRepository":"https://github.com/jptstar/tsun-local","runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration with real-hardware validation on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","TSOL-MP3000","TSOL-MX500","TSOL-MS800","Sunology PLAY2","1511","02B0","1097"]}
     ]
   }
   </script>
@@ -214,6 +214,7 @@
         <span class="tested-label">Tested microinverters</span>
         <div class="tested-list">
           <div class="tested-device"><strong>TSOL-MX500</strong><span class="tested-brand">TSUN</span></div>
+          <div class="tested-device"><strong>TSOL-MS800</strong><span class="tested-brand">TSUN</span></div>
           <div class="tested-device"><strong>PLAY2</strong><span class="tested-brand">Sunology</span></div>
         </div>
       </div>
@@ -243,7 +244,7 @@ Stable code preserved for diagnosis</div>
     </div>
     <div class="grid">
       <div class="card"><strong>1511</strong><span class="muted">224 catalogue positions.</span></div>
-      <div class="card"><strong>02B0</strong><span class="muted">64 catalogue positions, including the validated Sunology PLAY2 path.</span></div>
+      <div class="card"><strong>02B0</strong><span class="muted">64 catalogue positions, including validated MX500, MS800 and Sunology PLAY2 paths.</span></div>
       <div class="card"><strong>1097</strong><span class="muted">64 catalogue positions while protocol support remains experimental.</span></div>
     </div>
   </section>
@@ -265,6 +266,8 @@ Stable code preserved for diagnosis</div>
     <div class="two">
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="https://jptstar.github.io/tsun-local/entities.html"><strong>Entity reference →</strong><span class="muted">Common and protocol-specific Home Assistant entities, defaults and advanced diagnostics.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="tsol-mp3000-home-assistant.html"><strong>TSOL-MP3000 →</strong><span class="muted">Dedicated Home Assistant page for the validated TSUN TITAN / 1511 local integration path.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="tsol-mx500-home-assistant.html"><strong>TSOL-MX500 →</strong><span class="muted">Dedicated page for the validated TSUN 02B0 reference hardware path.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="tsol-ms800-home-assistant.html"><strong>TSOL-MS800 →</strong><span class="muted">Community-validated 02B0 hardware with two MPPT inputs and independent Home Assistant diagnostic feedback.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="https://jptstar.github.io/tsun-local/sunology-play2.html"><strong>Sunology PLAY2 →</strong><span class="muted">Dedicated compatibility and protocol-validation page for PLAY2 owners.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html"><strong>Test your microinverter →</strong><span class="muted">Your model may already work with TSUN Local. Try automatic discovery and share the result to help expand the validated compatibility list.</span></a>
     </div>
@@ -288,6 +291,7 @@ Stable code preserved for diagnosis</div>
       <span><a href="https://github.com/s-allius/tsun-gen3-proxy"><strong>Stefan Allius · tsun-gen3-proxy</strong></a> — public GEN3 / 1097 protocol research and country/profile references used during experimental protocol validation.</span>
       <span><a href="https://github.com/TheSmartGerman"><strong>@TheSmartGerman</strong></a> — real-device testing that revealed the additional 1097 protocol family.</span>
       <span><a href="https://github.com/dca31"><strong>@dca31</strong></a> — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.</span>
+      <span><a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a> — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.</span>
       <a href="contributors.html">Full contributors &amp; credits →</a>
     </div>
   </section>

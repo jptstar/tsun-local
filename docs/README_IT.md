@@ -34,7 +34,7 @@
 | Protocollo | Famiglia | Hardware validato | Stato |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validato** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **Sunology PLAY2** | ✅ **Validato** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2** | ✅ **Validato** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Sperimentale** |
 
 > [!TIP]
@@ -44,12 +44,14 @@
 <summary><strong>Modelli probabilmente compatibili per protocollo</strong></summary>
 
 - **1511 — Probabilmente compatibile:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — Probabilmente compatibile:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS800` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · varianti `-D` corrispondenti
+- **02B0 — Probabilmente compatibile:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · varianti `-D` corrispondenti
 - **1097 — Probabilmente compatibile:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
 
 </details>
 
 📚 **[Validazione MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
+
+📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
 **Novità in 1.5.4:** i dispositivi 02B0 possono esporre firmware e temperatura dell’inverter, oltre a diagnostica operativa aggiuntiva in sola lettura.
 
@@ -223,6 +225,7 @@ TSUN Local beneficia di ricerca pubblica sui protocolli e di validazione indipen
 - **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — ricerca pubblica GEN3 / 1097 e country/profile usata nella validazione sperimentale.
 - **TheSmartGerman** — test su hardware reale che ha fatto emergere la famiglia di protocollo 1097.
 - **dca31** — validazione indipendente di Sunology PLAY2 tramite il normale flusso TSUN Local in Home Assistant.
+- **Kmotr** — validazione indipendente del TSOL-MS800 con TSUN Local e una diagnostica Home Assistant anonimizzata.
 
 📚 **[Tutti i contributori e crediti](contributors.html)**
 
