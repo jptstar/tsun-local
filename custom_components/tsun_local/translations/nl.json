@@ -1,52 +1,512 @@
 {
   "config": {
     "step": {
-      "user": {"title": "Een TSUN-apparaat toevoegen", "description": "Zoek automatisch naar compatibele TSUN-apparaten op het netwerk of voeg er handmatig een toe.", "menu_options": {"discover": "TSUN-apparaten zoeken", "manual": "Handmatig toevoegen"}},
-      "reconfigure": {"title": "Verbinding wijzigen", "description": "Wijzig het IP-adres of de TCP-poort. De numerieke SN blijft de permanente verbindingsidentificatie.", "data": {"host": "IP-adres", "port": "Poort"}},
-      "manual": {"title": "Een apparaat handmatig toevoegen", "description": "Voer het IP-adres van het apparaat in. Laat de protocolselectie in de meeste gevallen op ‘Automatisch — op basis van firmware’ staan. TSUN Local probeert ook automatisch de SN van de logger te lezen.", "data": {"host": "IP-adres", "port": "Poort", "logger_sn": "SN", "protocol": "Methode voor protocolselectie"}},
-      "discover": {"title": "Gevonden TSUN-apparaten", "description": "Selecteer het TSUN-apparaat dat je wilt toevoegen. TSUN Local controleert de firmware en toont alleen apparaten die ondersteunde protocollen gebruiken.", "data": {"host": "Gevonden adres", "port": "Poort", "logger_sn": "SN"}},
-      "discover_network": {"title": "Een ander subnet doorzoeken", "description": "Er is automatisch geen compatibel TSUN-apparaat gevonden. Voer het IPv4-subnet in dat moet worden doorzocht, bijvoorbeeld 192.168.1.0/24. De zoekopdracht is beperkt tot 254 adressen.", "data": {"discovery_network": "IPv4-subnet", "port": "Poort"}}
+      "user": {
+        "title": "Een TSUN-apparaat toevoegen",
+        "description": "Zoek automatisch naar compatibele TSUN-apparaten op het netwerk of voeg er handmatig een toe.",
+        "menu_options": {
+          "discover": "TSUN-apparaten zoeken",
+          "manual": "Handmatig toevoegen"
+        }
+      },
+      "reconfigure": {
+        "title": "Verbinding wijzigen",
+        "description": "Wijzig het IP-adres of de TCP-poort. De numerieke SN blijft de permanente verbindingsidentificatie.",
+        "data": {
+          "host": "IP-adres",
+          "port": "Poort"
+        }
+      },
+      "manual": {
+        "title": "Een apparaat handmatig toevoegen",
+        "description": "Voer het IP-adres van het apparaat in. Laat de protocolselectie in de meeste gevallen op ‘Automatisch — op basis van firmware’ staan. TSUN Local probeert ook automatisch de SN van de logger te lezen.",
+        "data": {
+          "host": "IP-adres",
+          "port": "Poort",
+          "logger_sn": "SN",
+          "protocol": "Methode voor protocolselectie"
+        }
+      },
+      "discover": {
+        "title": "Gevonden TSUN-apparaten",
+        "description": "Selecteer het TSUN-apparaat dat je wilt toevoegen. TSUN Local controleert de firmware en toont alleen apparaten die ondersteunde protocollen gebruiken.",
+        "data": {
+          "host": "Gevonden adres",
+          "port": "Poort",
+          "logger_sn": "SN"
+        }
+      },
+      "discover_network": {
+        "title": "Een ander subnet doorzoeken",
+        "description": "Er is automatisch geen compatibel TSUN-apparaat gevonden. Voer het IPv4-subnet in dat moet worden doorzocht, bijvoorbeeld 192.168.1.0/24. De zoekopdracht is beperkt tot 254 adressen.",
+        "data": {
+          "discovery_network": "IPv4-subnet",
+          "port": "Poort"
+        }
+      }
     },
-    "error": {"cannot_connect": "Kan niet communiceren met het apparaat. Controleer of het online en bereikbaar is vanuit Home Assistant.", "cannot_detect_logger_sn": "De SN van de logger kon niet automatisch worden gedetecteerd. Voer het nummer in dat als Device serial number op de lokale statuspagina of op het apparaatlabel staat.", "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in", "invalid_response": "Het apparaat heeft geantwoord, maar de ontvangen gegevens worden niet herkend.", "no_devices_found": "Er is op dit subnet geen compatibel TSUN-apparaat gedetecteerd.", "unknown_firmware": "De firmware van dit apparaat wordt niet automatisch herkend. Ga terug naar de handmatige configuratie en kies ‘Geforceerde detectie — protocollen testen’, of selecteer handmatig een protocol."},
-    "abort": {"already_configured": "Deze micro-omvormer is al geconfigureerd", "all_devices_configured": "Alle gevonden micro-omvormers zijn al geconfigureerd", "no_devices_found": "Er is op de doorzochte netwerken geen compatibel TSUN-apparaat gedetecteerd."}
+    "error": {
+      "cannot_connect": "Kan niet communiceren met het apparaat. Controleer of het online en bereikbaar is vanuit Home Assistant.",
+      "cannot_detect_logger_sn": "De SN van de logger kon niet automatisch worden gedetecteerd. Voer het nummer in dat als Device serial number op de lokale statuspagina of op het apparaatlabel staat.",
+      "invalid_network": "Voer een geldig IPv4-subnet tussen /24 en /32 in",
+      "invalid_response": "Het apparaat heeft geantwoord, maar de ontvangen gegevens worden niet herkend.",
+      "no_devices_found": "Er is op dit subnet geen compatibel TSUN-apparaat gedetecteerd.",
+      "unknown_firmware": "De firmware van dit apparaat wordt niet automatisch herkend. Ga terug naar de handmatige configuratie en kies ‘Geforceerde detectie — protocollen testen’, of selecteer handmatig een protocol."
+    },
+    "abort": {
+      "already_configured": "Deze micro-omvormer is al geconfigureerd",
+      "all_devices_configured": "Alle gevonden micro-omvormers zijn al geconfigureerd",
+      "no_devices_found": "Er is op de doorzochte netwerken geen compatibel TSUN-apparaat gedetecteerd."
+    }
   },
-  "options": {"step": {"init": {"title": "Pollinginstellingen", "description": "Stel het pollinggedrag voor deze micro-omvormer in. Adaptieve polling vergroot het interval stapsgewijs na communicatiefouten en keert na herstel stapsgewijs terug naar het normale interval. Het Wi-Fi-signaal blijft een diagnostische waarde en vertraagt een apparaat dat succesvol communiceert niet.", "data": {"adaptive_polling": "Adaptieve polling", "scan_interval": "Normaal pollinginterval", "error_scan_interval": "Herhalingsinterval na fout", "offline_scan_interval": "Pollinginterval offline/'s nachts", "failure_threshold": "Fouten vóór offline"}}}},
+  "options": {
+    "step": {
+      "init": {
+        "title": "Pollinginstellingen",
+        "description": "Stel het pollinggedrag van deze micro-omvormer in. Als Adaptieve polling is uitgeschakeld, behouden de onderstaande intervallen het gebruikelijke vaste gedrag. Als het is ingeschakeld, vormen ze de grenzen voor het algoritme: het normale interval is het gebruikelijke tempo, het foutinterval bepaalt de eerste nieuwe poging zonder onder het normale tempo te komen en het offline-/nachtinterval wordt toegepast zodra de ingestelde drempel voor opeenvolgende fouten is bereikt. Tussen deze grenzen berekent TSUN Local automatisch oplopende backoff-stappen. Zodra een poll opnieuw slaagt, wordt de micro-omvormer onmiddellijk online gemarkeerd en keert het interval stapsgewijs terug naar normaal. Wijzigingen aan intervallen of drempel wijzigen dus automatisch de adaptieve stappen. Het wifi-signaal is alleen voor diagnose en verandert nooit zelfstandig het pollingtempo.",
+        "data": {
+          "adaptive_polling": "Adaptieve polling",
+          "scan_interval": "Normaal pollinginterval",
+          "error_scan_interval": "Herhalingsinterval na fout",
+          "offline_scan_interval": "Pollinginterval offline/'s nachts",
+          "failure_threshold": "Fouten vóór offline"
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
-      "label_serial_number": {"name": "SN"}, "inverter_serial_number": {"name": "SN van micro-omvormer"}, "logger_firmware_version": {"name": "Firmwareversie van logger"}, "inverter_firmware_version": {"name": "Firmwareversie omvormer"}, "logger_mac_address": {"name": "MAC-adres van logger"},
-      "alarm_global_0_raw": {"name": "Globaal alarm (ruwe waarde) 0"}, "alarm_global_1_raw": {"name": "Globaal alarm (ruwe waarde) 1"}, "alarm_global_2_raw": {"name": "Globaal alarm (ruwe waarde) 2"}, "alarm_global_3_raw": {"name": "Globaal alarm (ruwe waarde) 3"},
-      "alarm_secondary_0_raw": {"name": "Secundair alarm (ruwe waarde) 0"}, "alarm_secondary_1_raw": {"name": "Secundair alarm (ruwe waarde) 1"}, "alarm_secondary_2_raw": {"name": "Secundair alarm (ruwe waarde) 2"}, "alarm_secondary_3_raw": {"name": "Secundair alarm (ruwe waarde) 3"},
-      "alarm_code_1_raw": {"name": "Alarmcode (ruwe waarde) 1"}, "alarm_code_2_raw": {"name": "Alarmcode (ruwe waarde) 2"}, "alarm_code_3_raw": {"name": "Alarmcode (ruwe waarde) 3"}, "alarm_code_4_raw": {"name": "Alarmcode (ruwe waarde) 4"},
-      "pv1_alarm_raw": {"name": "PV1-alarm (ruwe waarde)"}, "pv2_alarm_raw": {"name": "PV2-alarm (ruwe waarde)"}, "pv3_alarm_raw": {"name": "PV3-alarm (ruwe waarde)"}, "pv4_alarm_raw": {"name": "PV4-alarm (ruwe waarde)"}, "pv5_alarm_raw": {"name": "PV5-alarm (ruwe waarde)"}, "pv6_alarm_raw": {"name": "PV6-alarm (ruwe waarde)"},
-      "ac_voltage": {"name": "AC-spanning"}, "ac_current": {"name": "AC-stroom"}, "ac_frequency": {"name": "AC-frequentie"}, "ac_power": {"name": "AC-vermogen"}, "ac_energy_today": {"name": "AC-energie vandaag"}, "ac_energy_total": {"name": "Totale AC-energie"}, "dc_power_total": {"name": "Totaal DC-vermogen"},
-      "inverter_status_raw": {"name": "Ruwe omvormerstatus"}, "rated_power": {"name": "Nominaal omvormervermogen"}, "max_designed_power": {"name": "Maximaal ontwerpvermogen"},
-      "register_3017_raw": {"name": "Ruw register 3017 (omvormertemperatuur)"}, "register_3018_raw": {"name": "Ruw register 3018 (betekenis onbevestigd)"}, "register_3028_raw": {"name": "Ruw register 3028 (omgevingstemperatuur omvormer)"},
-      "communication_last_success": {"name": "Laatste geslaagde communicatie"}, "communication_duration": {"name": "Communicatieduur"}, "communication_blocks": {"name": "Ontvangen blokken"}, "communication_failures": {"name": "Opeenvolgende communicatiefouten"},
-      "communication_successes_consecutive": {"name": "Opeenvolgende succesvolle communicaties"},
-      "adaptive_polling_interval": {"name": "Effectief pollinginterval"},
-      "adaptive_backoff_events": {"name": "Adaptieve vertragingen"},
-      "adaptive_polling_state": {"name": "Status adaptieve polling", "state": {"disabled": "Uitgeschakeld", "normal": "Normaal", "degraded": "Verslechterd", "recovery": "Herstel", "offline": "Offline"}},
-      "adaptive_polling_reason": {"name": "Reden voor aanpassing", "state": {"disabled": "Uitgeschakeld", "normal": "Normaal", "communication_failure": "Communicatiefout", "wifi_signal_zero": "Wi-Fi-signaal van logger nul", "recovery": "Herstel"}},
-      "pv1_voltage": {"name": "PV1-spanning"}, "pv1_current": {"name": "PV1-stroom"}, "pv1_power": {"name": "PV1-vermogen"}, "pv1_energy_today": {"name": "PV1-energie vandaag"}, "pv1_energy_total": {"name": "Totale PV1-energie"},
-      "pv2_voltage": {"name": "PV2-spanning"}, "pv2_current": {"name": "PV2-stroom"}, "pv2_power": {"name": "PV2-vermogen"}, "pv2_energy_today": {"name": "PV2-energie vandaag"}, "pv2_energy_total": {"name": "Totale PV2-energie"},
-      "pv3_voltage": {"name": "PV3-spanning"}, "pv3_current": {"name": "PV3-stroom"}, "pv3_power": {"name": "PV3-vermogen"}, "pv3_energy_today": {"name": "PV3-energie vandaag"}, "pv3_energy_total": {"name": "Totale PV3-energie"},
-      "pv4_voltage": {"name": "PV4-spanning"}, "pv4_current": {"name": "PV4-stroom"}, "pv4_power": {"name": "PV4-vermogen"}, "pv4_energy_today": {"name": "PV4-energie vandaag"}, "pv4_energy_total": {"name": "Totale PV4-energie"},
-      "pv5_voltage": {"name": "PV5-spanning"}, "pv5_current": {"name": "PV5-stroom"}, "pv5_power": {"name": "PV5-vermogen"}, "pv5_energy_today": {"name": "PV5-energie vandaag"}, "pv5_energy_total": {"name": "Totale PV5-energie"},
-      "pv6_voltage": {"name": "PV6-spanning"}, "pv6_current": {"name": "PV6-stroom"}, "pv6_power": {"name": "PV6-vermogen"}, "pv6_energy_today": {"name": "PV6-energie vandaag"}, "pv6_energy_total": {"name": "Totale PV6-energie"},
-      "logger_wifi_signal": {"name": "Wi-Fi-signaal van logger"}, "alarm_active_count": {"name": "Actieve alarmen"},
-      "grid_overvoltage_recovery_voltage": {"name": "Herstelspanning na netoverspanning"}, "grid_undervoltage_recovery_voltage": {"name": "Herstelspanning na netonderspanning"}, "grid_overfrequency_recovery_frequency": {"name": "Herstelfrequentie na netoverfrequentie"}, "grid_underfrequency_recovery_frequency": {"name": "Herstelfrequentie na netonderfrequentie"},
-      "grid_undervoltage_level_1": {"name": "Netonderspanningsniveau 1"}, "grid_undervoltage_level_2": {"name": "Netonderspanningsniveau 2"}, "grid_undervoltage_level_3": {"name": "Netonderspanningsniveau 3"}, "grid_undervoltage_time_1": {"name": "Netonderspanningstijd 1"}, "grid_undervoltage_time_2": {"name": "Netonderspanningstijd 2"}, "grid_undervoltage_time_3": {"name": "Netonderspanningstijd 3"},
-      "grid_overvoltage_level_1": {"name": "Netoverspanningsniveau 1"}, "grid_overvoltage_level_2": {"name": "Netoverspanningsniveau 2"}, "grid_overvoltage_time_1": {"name": "Netoverspanningstijd 1"}, "grid_overvoltage_time_2": {"name": "Netoverspanningstijd 2"},
-      "grid_underfrequency_level_1": {"name": "Netonderfrequentieniveau 1"}, "grid_underfrequency_level_2": {"name": "Netonderfrequentieniveau 2"}, "grid_underfrequency_time_1": {"name": "Netonderfrequentietijd 1"}, "grid_underfrequency_time_2": {"name": "Netonderfrequentietijd 2"},
-      "grid_overfrequency_level_1": {"name": "Netoverfrequentieniveau 1"}, "grid_overfrequency_level_2": {"name": "Netoverfrequentieniveau 2"}, "grid_overfrequency_time_1": {"name": "Netoverfrequentietijd 1"}, "grid_overfrequency_time_2": {"name": "Netoverfrequentietijd 2"},
-      "output_coefficient": {"name": "Vermogensniveau"}, "protocol_version": {"name": "Protocolversie"}, "inverter_version": {"name": "Omvormerversie"}, "insulation_impedance_rx": {"name": "Isolatie-impedantie RX"}, "insulation_impedance_ry": {"name": "Isolatie-impedantie RY"}, "inverter_temperature": {"name": "Omvormertemperatuur"},
-      "boot_status_raw": {"name": "Ruwe opstartstatus"}, "dsp_status_raw": {"name": "Ruwe DSP-status"}, "work_mode_raw": {"name": "Ruwe bedrijfsmodus"}, "output_shutdown_raw": {"name": "Ruwe uitgangsuitschakelstatus"}, "rated_level_raw": {"name": "Ruw nominaal niveau"}, "input_coefficient": {"name": "Ingangscoëfficiënt"}, "product_compliance_type_raw": {"name": "Ruw productconformiteitstype"}, "country_profile_raw": {"name": "Land-/profielcode"},
-      "inverter_operating_state": {"name": "Bedrijfstoestand omvormer", "state": {"active": "Actief", "standby": "Stand-by", "standby_low_solar": "Stand-by — lage zonne-invoer", "fault": "Storing"}},
-      "ambient_temperature": {"name": "Omgevingstemperatuur omvormer"}, "grid_qp_voltage_threshold": {"name": "QP-spanningsdrempel"}, "grid_recovery_rate": {"name": "Nethersteltijd"}, "grid_overvoltage_10min": {"name": "10-minuten-netoverspanningsbeveiliging"}, "grid_overfrequency_reduction_frequency": {"name": "Waarde overfrequentiereductie"}, "grid_overfrequency_reduction_coefficient": {"name": "Coëfficiënt overfrequentiereductie"}, "overtemperature_protection_temperature": {"name": "Drempel overtemperatuurbeveiliging"}, "grid_start_upper_voltage_limit": {"name": "Bovengrens startspanning"}, "grid_start_lower_voltage_limit": {"name": "Ondergrens startspanning"}, "grid_start_upper_frequency_limit": {"name": "Bovengrens startfrequentie"}, "grid_start_lower_frequency_limit": {"name": "Ondergrens startfrequentie"},
-      "active_alarm_names": {"name": "Namen van actieve alarmen"}, "dsp_firmware_version": {"name": "DSP-firmwareversie"}, "qcpu1_firmware_version": {"name": "QCPU1-firmwareversie"}, "qcpu2_firmware_version": {"name": "QCPU2-firmwareversie"}
+      "label_serial_number": {
+        "name": "SN"
+      },
+      "inverter_serial_number": {
+        "name": "SN van micro-omvormer"
+      },
+      "logger_firmware_version": {
+        "name": "Firmwareversie van logger"
+      },
+      "inverter_firmware_version": {
+        "name": "Firmwareversie omvormer"
+      },
+      "logger_mac_address": {
+        "name": "MAC-adres van logger"
+      },
+      "alarm_global_0_raw": {
+        "name": "Globaal alarm (ruwe waarde) 0"
+      },
+      "alarm_global_1_raw": {
+        "name": "Globaal alarm (ruwe waarde) 1"
+      },
+      "alarm_global_2_raw": {
+        "name": "Globaal alarm (ruwe waarde) 2"
+      },
+      "alarm_global_3_raw": {
+        "name": "Globaal alarm (ruwe waarde) 3"
+      },
+      "alarm_secondary_0_raw": {
+        "name": "Secundair alarm (ruwe waarde) 0"
+      },
+      "alarm_secondary_1_raw": {
+        "name": "Secundair alarm (ruwe waarde) 1"
+      },
+      "alarm_secondary_2_raw": {
+        "name": "Secundair alarm (ruwe waarde) 2"
+      },
+      "alarm_secondary_3_raw": {
+        "name": "Secundair alarm (ruwe waarde) 3"
+      },
+      "alarm_code_1_raw": {
+        "name": "Alarmcode (ruwe waarde) 1"
+      },
+      "alarm_code_2_raw": {
+        "name": "Alarmcode (ruwe waarde) 2"
+      },
+      "alarm_code_3_raw": {
+        "name": "Alarmcode (ruwe waarde) 3"
+      },
+      "alarm_code_4_raw": {
+        "name": "Alarmcode (ruwe waarde) 4"
+      },
+      "pv1_alarm_raw": {
+        "name": "PV1-alarm (ruwe waarde)"
+      },
+      "pv2_alarm_raw": {
+        "name": "PV2-alarm (ruwe waarde)"
+      },
+      "pv3_alarm_raw": {
+        "name": "PV3-alarm (ruwe waarde)"
+      },
+      "pv4_alarm_raw": {
+        "name": "PV4-alarm (ruwe waarde)"
+      },
+      "pv5_alarm_raw": {
+        "name": "PV5-alarm (ruwe waarde)"
+      },
+      "pv6_alarm_raw": {
+        "name": "PV6-alarm (ruwe waarde)"
+      },
+      "ac_voltage": {
+        "name": "AC-spanning"
+      },
+      "ac_current": {
+        "name": "AC-stroom"
+      },
+      "ac_frequency": {
+        "name": "AC-frequentie"
+      },
+      "ac_power": {
+        "name": "AC-vermogen"
+      },
+      "ac_energy_today": {
+        "name": "AC-energie vandaag"
+      },
+      "ac_energy_total": {
+        "name": "Totale AC-energie"
+      },
+      "dc_power_total": {
+        "name": "Totaal DC-vermogen"
+      },
+      "inverter_status_raw": {
+        "name": "Ruwe omvormerstatus"
+      },
+      "rated_power": {
+        "name": "Nominaal omvormervermogen"
+      },
+      "max_designed_power": {
+        "name": "Maximaal ontwerpvermogen"
+      },
+      "register_3017_raw": {
+        "name": "Ruw register 3017 (omvormertemperatuur)"
+      },
+      "register_3018_raw": {
+        "name": "Ruw register 3018 (betekenis onbevestigd)"
+      },
+      "register_3028_raw": {
+        "name": "Ruw register 3028 (omgevingstemperatuur omvormer)"
+      },
+      "communication_last_success": {
+        "name": "Laatste geslaagde communicatie"
+      },
+      "communication_duration": {
+        "name": "Communicatieduur"
+      },
+      "communication_blocks": {
+        "name": "Ontvangen blokken"
+      },
+      "communication_failures": {
+        "name": "Opeenvolgende communicatiefouten"
+      },
+      "communication_successes_consecutive": {
+        "name": "Opeenvolgende succesvolle communicaties"
+      },
+      "adaptive_polling_interval": {
+        "name": "Effectief pollinginterval"
+      },
+      "adaptive_backoff_events": {
+        "name": "Adaptieve vertragingen"
+      },
+      "adaptive_polling_state": {
+        "name": "Status adaptieve polling",
+        "state": {
+          "disabled": "Uitgeschakeld",
+          "normal": "Normaal",
+          "degraded": "Verslechterd",
+          "recovery": "Herstel",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Reden voor aanpassing",
+        "state": {
+          "disabled": "Uitgeschakeld",
+          "normal": "Normaal",
+          "communication_failure": "Communicatiefout",
+          "wifi_signal_zero": "Wi-Fi-signaal van logger nul",
+          "recovery": "Herstel"
+        }
+      },
+      "pv1_voltage": {
+        "name": "PV1-spanning"
+      },
+      "pv1_current": {
+        "name": "PV1-stroom"
+      },
+      "pv1_power": {
+        "name": "PV1-vermogen"
+      },
+      "pv1_energy_today": {
+        "name": "PV1-energie vandaag"
+      },
+      "pv1_energy_total": {
+        "name": "Totale PV1-energie"
+      },
+      "pv2_voltage": {
+        "name": "PV2-spanning"
+      },
+      "pv2_current": {
+        "name": "PV2-stroom"
+      },
+      "pv2_power": {
+        "name": "PV2-vermogen"
+      },
+      "pv2_energy_today": {
+        "name": "PV2-energie vandaag"
+      },
+      "pv2_energy_total": {
+        "name": "Totale PV2-energie"
+      },
+      "pv3_voltage": {
+        "name": "PV3-spanning"
+      },
+      "pv3_current": {
+        "name": "PV3-stroom"
+      },
+      "pv3_power": {
+        "name": "PV3-vermogen"
+      },
+      "pv3_energy_today": {
+        "name": "PV3-energie vandaag"
+      },
+      "pv3_energy_total": {
+        "name": "Totale PV3-energie"
+      },
+      "pv4_voltage": {
+        "name": "PV4-spanning"
+      },
+      "pv4_current": {
+        "name": "PV4-stroom"
+      },
+      "pv4_power": {
+        "name": "PV4-vermogen"
+      },
+      "pv4_energy_today": {
+        "name": "PV4-energie vandaag"
+      },
+      "pv4_energy_total": {
+        "name": "Totale PV4-energie"
+      },
+      "pv5_voltage": {
+        "name": "PV5-spanning"
+      },
+      "pv5_current": {
+        "name": "PV5-stroom"
+      },
+      "pv5_power": {
+        "name": "PV5-vermogen"
+      },
+      "pv5_energy_today": {
+        "name": "PV5-energie vandaag"
+      },
+      "pv5_energy_total": {
+        "name": "Totale PV5-energie"
+      },
+      "pv6_voltage": {
+        "name": "PV6-spanning"
+      },
+      "pv6_current": {
+        "name": "PV6-stroom"
+      },
+      "pv6_power": {
+        "name": "PV6-vermogen"
+      },
+      "pv6_energy_today": {
+        "name": "PV6-energie vandaag"
+      },
+      "pv6_energy_total": {
+        "name": "Totale PV6-energie"
+      },
+      "logger_wifi_signal": {
+        "name": "Wi-Fi-signaal van logger"
+      },
+      "alarm_active_count": {
+        "name": "Actieve alarmen"
+      },
+      "grid_overvoltage_recovery_voltage": {
+        "name": "Herstelspanning na netoverspanning"
+      },
+      "grid_undervoltage_recovery_voltage": {
+        "name": "Herstelspanning na netonderspanning"
+      },
+      "grid_overfrequency_recovery_frequency": {
+        "name": "Herstelfrequentie na netoverfrequentie"
+      },
+      "grid_underfrequency_recovery_frequency": {
+        "name": "Herstelfrequentie na netonderfrequentie"
+      },
+      "grid_undervoltage_level_1": {
+        "name": "Netonderspanningsniveau 1"
+      },
+      "grid_undervoltage_level_2": {
+        "name": "Netonderspanningsniveau 2"
+      },
+      "grid_undervoltage_level_3": {
+        "name": "Netonderspanningsniveau 3"
+      },
+      "grid_undervoltage_time_1": {
+        "name": "Netonderspanningstijd 1"
+      },
+      "grid_undervoltage_time_2": {
+        "name": "Netonderspanningstijd 2"
+      },
+      "grid_undervoltage_time_3": {
+        "name": "Netonderspanningstijd 3"
+      },
+      "grid_overvoltage_level_1": {
+        "name": "Netoverspanningsniveau 1"
+      },
+      "grid_overvoltage_level_2": {
+        "name": "Netoverspanningsniveau 2"
+      },
+      "grid_overvoltage_time_1": {
+        "name": "Netoverspanningstijd 1"
+      },
+      "grid_overvoltage_time_2": {
+        "name": "Netoverspanningstijd 2"
+      },
+      "grid_underfrequency_level_1": {
+        "name": "Netonderfrequentieniveau 1"
+      },
+      "grid_underfrequency_level_2": {
+        "name": "Netonderfrequentieniveau 2"
+      },
+      "grid_underfrequency_time_1": {
+        "name": "Netonderfrequentietijd 1"
+      },
+      "grid_underfrequency_time_2": {
+        "name": "Netonderfrequentietijd 2"
+      },
+      "grid_overfrequency_level_1": {
+        "name": "Netoverfrequentieniveau 1"
+      },
+      "grid_overfrequency_level_2": {
+        "name": "Netoverfrequentieniveau 2"
+      },
+      "grid_overfrequency_time_1": {
+        "name": "Netoverfrequentietijd 1"
+      },
+      "grid_overfrequency_time_2": {
+        "name": "Netoverfrequentietijd 2"
+      },
+      "output_coefficient": {
+        "name": "Vermogensniveau"
+      },
+      "protocol_version": {
+        "name": "Protocolversie"
+      },
+      "inverter_version": {
+        "name": "Omvormerversie"
+      },
+      "insulation_impedance_rx": {
+        "name": "Isolatie-impedantie RX"
+      },
+      "insulation_impedance_ry": {
+        "name": "Isolatie-impedantie RY"
+      },
+      "inverter_temperature": {
+        "name": "Omvormertemperatuur"
+      },
+      "boot_status_raw": {
+        "name": "Ruwe opstartstatus"
+      },
+      "dsp_status_raw": {
+        "name": "Ruwe DSP-status"
+      },
+      "work_mode_raw": {
+        "name": "Ruwe bedrijfsmodus"
+      },
+      "output_shutdown_raw": {
+        "name": "Ruwe uitgangsuitschakelstatus"
+      },
+      "rated_level_raw": {
+        "name": "Ruw nominaal niveau"
+      },
+      "input_coefficient": {
+        "name": "Ingangscoëfficiënt"
+      },
+      "product_compliance_type_raw": {
+        "name": "Ruw productconformiteitstype"
+      },
+      "country_profile_raw": {
+        "name": "Land-/profielcode"
+      },
+      "inverter_operating_state": {
+        "name": "Bedrijfstoestand omvormer",
+        "state": {
+          "active": "Actief",
+          "standby": "Stand-by",
+          "standby_low_solar": "Stand-by — lage zonne-invoer",
+          "fault": "Storing"
+        }
+      },
+      "ambient_temperature": {
+        "name": "Omgevingstemperatuur omvormer"
+      },
+      "grid_qp_voltage_threshold": {
+        "name": "QP-spanningsdrempel"
+      },
+      "grid_recovery_rate": {
+        "name": "Nethersteltijd"
+      },
+      "grid_overvoltage_10min": {
+        "name": "10-minuten-netoverspanningsbeveiliging"
+      },
+      "grid_overfrequency_reduction_frequency": {
+        "name": "Waarde overfrequentiereductie"
+      },
+      "grid_overfrequency_reduction_coefficient": {
+        "name": "Coëfficiënt overfrequentiereductie"
+      },
+      "overtemperature_protection_temperature": {
+        "name": "Drempel overtemperatuurbeveiliging"
+      },
+      "grid_start_upper_voltage_limit": {
+        "name": "Bovengrens startspanning"
+      },
+      "grid_start_lower_voltage_limit": {
+        "name": "Ondergrens startspanning"
+      },
+      "grid_start_upper_frequency_limit": {
+        "name": "Bovengrens startfrequentie"
+      },
+      "grid_start_lower_frequency_limit": {
+        "name": "Ondergrens startfrequentie"
+      },
+      "active_alarm_names": {
+        "name": "Namen van actieve alarmen"
+      },
+      "dsp_firmware_version": {
+        "name": "DSP-firmwareversie"
+      },
+      "qcpu1_firmware_version": {
+        "name": "QCPU1-firmwareversie"
+      },
+      "qcpu2_firmware_version": {
+        "name": "QCPU2-firmwareversie"
+      }
     },
-    "binary_sensor": {"communication_online": {"name": "Micro-omvormer online"}, "inverter_alarm": {"name": "Omvormeralarm"}},
-    "button": {"refresh_data": {"name": "Gegevens vernieuwen"}}
+    "binary_sensor": {
+      "communication_online": {
+        "name": "Micro-omvormer online"
+      },
+      "inverter_alarm": {
+        "name": "Omvormeralarm"
+      }
+    },
+    "button": {
+      "refresh_data": {
+        "name": "Gegevens vernieuwen"
+      }
+    }
   },
-  "selector": {"protocol": {"options": {"auto": "Automatisch — op basis van firmware", "force": "Geforceerde detectie — protocollen testen", "1511": "Protocol 1511 gebruiken", "1097": "Protocol 1097 gebruiken — experimenteel", "02b0": "Protocol 02B0 gebruiken"}}}
+  "selector": {
+    "protocol": {
+      "options": {
+        "auto": "Automatisch — op basis van firmware",
+        "force": "Geforceerde detectie — protocollen testen",
+        "1511": "Protocol 1511 gebruiken",
+        "1097": "Protocol 1097 gebruiken — experimenteel",
+        "02b0": "Protocol 02B0 gebruiken"
+      }
+    }
+  }
 }

@@ -64,7 +64,7 @@
     "step": {
       "init": {
         "title": "Polling settings",
-        "description": "Set polling behavior for this micro-inverter. Adaptive polling progressively backs off after communication failures and progressively returns to the normal interval after recovery. Wi-Fi signal remains diagnostic and does not slow a device that is communicating successfully.",
+        "description": "Configure polling for this micro-inverter. If Adaptive polling is disabled, the intervals below keep the usual fixed behavior. If it is enabled, they become the limits used by the algorithm: the normal interval is the regular cadence, the error interval sets the first retry delay without going below the normal cadence, and the offline/night interval is applied as soon as the configured consecutive-failure threshold is reached. Between these limits, TSUN Local automatically builds progressive backoff steps. As soon as a poll succeeds again, the micro-inverter is marked online immediately and the interval progressively returns to normal. Changing the intervals or the failure threshold therefore changes the adaptive steps automatically. Wi-Fi signal is diagnostic only and never changes the polling cadence by itself.",
         "data": {
           "adaptive_polling": "Adaptive polling",
           "scan_interval": "Normal polling interval",
