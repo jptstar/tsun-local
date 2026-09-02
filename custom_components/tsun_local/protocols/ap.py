@@ -10,6 +10,8 @@ from collections import deque
 from copy import deepcopy
 from typing import Any
 
+STREAM_CLOSE_TIMEOUT = 2.0
+
 
 class TsunProtocolError(Exception):
     """Raised when a TSUN protocol frame is invalid."""
@@ -136,3 +138,18 @@ async def read_ap_frame(reader: asyncio.StreamReader) -> bytes:
         raise TsunProtocolError("Invalid AP start marker")
     remaining = int.from_bytes(header[1:3], "little") + 10
     return header + await reader.readexactly(remaining)
+
+
+async def async_close_writer(writer: asyncio.StreamWriter | None) -> None:
+    """Close a TCP writer without turning a completed poll into a failure."""
+    if writer is None:
+        return
+    try:
+        writer.close()
+    except (OSError, RuntimeError):
+        return
+    try:
+        async with asyncio.timeout(STREAM_CLOSE_TIMEOUT):
+            await writer.wait_closed()
+    except (OSError, TimeoutError, RuntimeError):
+        return
