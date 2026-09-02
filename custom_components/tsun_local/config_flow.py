@@ -29,6 +29,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_ADAPTIVE_POLLING,
     CONF_DISCOVERY_NETWORK,
     CONF_ERROR_SCAN_INTERVAL,
     CONF_FAILURE_THRESHOLD,
@@ -39,6 +40,7 @@ from .const import (
     CONF_OFFLINE_SCAN_INTERVAL,
     CONF_PROTOCOL,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ADAPTIVE_POLLING,
     DEFAULT_ERROR_SCAN_INTERVAL,
     DEFAULT_FAILURE_THRESHOLD,
     DEFAULT_OFFLINE_SCAN_INTERVAL,
@@ -85,7 +87,7 @@ async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
         data[CONF_PORT],
         data[CONF_LOGGER_SN],
     )
-    async with get_poll_lock(hass):
+    async with get_poll_lock(hass, data[CONF_LOGGER_SN]):
         await client.async_read_all()
     return client.protocol_name
 
@@ -167,6 +169,9 @@ RECONFIGURE_SCHEMA = vol.Schema(
 
 OPTIONS_SCHEMA = vol.Schema(
     {
+        vol.Required(
+            CONF_ADAPTIVE_POLLING, default=DEFAULT_ADAPTIVE_POLLING
+        ): bool,
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): NumberSelector(
@@ -602,6 +607,10 @@ class TsunOptionsFlow(config_entries.OptionsFlowWithReload):
             data_schema=self.add_suggested_values_to_schema(
                 OPTIONS_SCHEMA,
                 {
+                    CONF_ADAPTIVE_POLLING: self.config_entry.options.get(
+                        CONF_ADAPTIVE_POLLING,
+                        DEFAULT_ADAPTIVE_POLLING,
+                    ),
                     CONF_SCAN_INTERVAL: self.config_entry.options.get(
                         CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
                     ),
