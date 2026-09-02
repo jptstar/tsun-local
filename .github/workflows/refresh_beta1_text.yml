@@ -69,7 +69,8 @@ jobs:
           for path in files:
               data = json.loads(path.read_text(encoding="utf-8"))
               text = data["options"]["step"]["init"]["description"]
-              if len(text) < 300:
+              minimum = 140 if path.name == "zh-Hans.json" else 300
+              if len(text) < minimum:
                   raise SystemExit(f"Adaptive description is unexpectedly short in {path}")
           notes = Path("docs/releases/1.6.0-beta.1.md").read_text(encoding="utf-8")
           required = (
@@ -102,14 +103,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Remove the one-time helper from the final beta tree and squash both
-          # helper commits so beta-1097 contains one clean documentation commit.
+          # Remove the one-time helper from the final beta tree and squash every
+          # temporary helper commit onto the still-published beta-1097 base.
           git rm .github/scripts/refresh_beta1_adaptive_text.py
           git rm .github/workflows/refresh_beta1_text.yml
           git add custom_components/tsun_local/strings.json
           git add custom_components/tsun_local/translations/*.json
           git add docs/releases/1.6.0-beta.1.md
-          BASE_SHA="$(git rev-parse HEAD~2)"
+          BASE_SHA="$(git rev-parse origin/beta-1097)"
           git reset --soft "${BASE_SHA}"
           git commit -m "Clarify 1.6.0-beta.1 adaptive polling behavior"
 
