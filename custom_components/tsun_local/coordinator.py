@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta
 import logging
+from time import monotonic
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -23,6 +24,7 @@ from .const import (
 )
 from .protocols import TsunProtocolClient, TsunReadResult
 from .protocols.ap import safe_error_details
+from .request_queue import LoggerRequestQueue
 
 _LOGGER = logging.getLogger(__name__)
 POLL_LOCKS = "poll_locks"
@@ -31,12 +33,12 @@ INVERTER_SERIAL_PREFIX_LENGTH = 3
 
 def get_poll_lock(
     hass: HomeAssistant, logger_key: str | int | None = None
-) -> asyncio.Lock:
-    """Return the protocol lock dedicated to one local TSUN logger."""
+) -> LoggerRequestQueue:
+    """Return the FIFO request queue dedicated to one local TSUN logger."""
     domain_data = hass.data.setdefault(DOMAIN, {})
-    locks: dict[str, asyncio.Lock] = domain_data.setdefault(POLL_LOCKS, {})
+    queues: dict[str, LoggerRequestQueue] = domain_data.setdefault(POLL_LOCKS, {})
     key = "__legacy_global__" if logger_key is None else str(logger_key)
-    return locks.setdefault(key, asyncio.Lock())
+    return queues.setdefault(key, LoggerRequestQueue())
 
 
 def inverter_serial_prefix(serial_number: str | None) -> str | None:
@@ -84,7 +86,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         error_interval: int,
         offline_interval: int,
         failure_threshold: int,
-        poll_lock: asyncio.Lock,
+        poll_lock: asyncio.Lock | LoggerRequestQueue,
         logger_firmware_version: str | None = None,
         logger_mac_address: str | None = None,
         inverter_serial_number: str | None = None,
@@ -102,7 +104,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.client = client
         entry_data = getattr(entry, "data", {})
         logger_key = entry_data.get(CONF_LOGGER_SN)
-        self._poll_lock = (
+        self._poll_lock: asyncio.Lock | LoggerRequestQueue = (
             get_poll_lock(hass, logger_key) if logger_key is not None else poll_lock
         )
         if adaptive_polling is None:
@@ -131,6 +133,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._poll_successes_total = 0
         self._poll_failures_total = 0
         self._adaptive_backoff_events = 0
+        self._last_queue_wait_ms = 0
+        self._max_queue_depth = 0
         self._inverter_serial_prefix = inverter_serial_prefix(inverter_serial_number)
         self._logger_metadata = {
             key: value
@@ -155,8 +159,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return self._adaptive_polling
 
     @property
-    def poll_lock(self) -> asyncio.Lock:
-        """Return the lock shared by protocol and logger metadata reads."""
+    def poll_lock(self) -> asyncio.Lock | LoggerRequestQueue:
+        """Return the FIFO gate shared by protocol and logger metadata reads."""
         return self._poll_lock
 
     def _device_log_name(self) -> str:
@@ -176,15 +180,15 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             round(normal * 1.5),
             normal * 3,
             normal * 6,
-            offline,
         )
         steps: list[int] = []
-        previous = normal
         for candidate in candidates:
-            value = min(offline, max(previous, int(candidate)))
-            steps.append(value)
-            previous = value
-        return tuple(steps)
+            value = min(offline, max(normal, int(candidate)))
+            if value not in steps:
+                steps.append(value)
+        if offline not in steps:
+            steps.append(offline)
+        return tuple(sorted(steps))
 
     def _set_effective_polling(
         self,
@@ -234,6 +238,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Return communication state without connection identifiers."""
         summary: dict[str, Any] = {
             "online": self._online,
+            "online_basis": "protocol_poll_failure_threshold",
+            "wifi_controls_online": False,
             "inverter_serial_prefix": self._inverter_serial_prefix,
             "last_success": (
                 self._last_success.isoformat()
@@ -260,6 +266,8 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "poll_successes_total": self._poll_successes_total,
             "poll_failures_total": self._poll_failures_total,
             "adaptive_backoff_events": self._adaptive_backoff_events,
+            "last_queue_wait_ms": self._last_queue_wait_ms,
+            "max_queue_depth": self._max_queue_depth,
             "last_error": self._last_error,
         }
         if self.data:
@@ -312,8 +320,22 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._adaptive_polling:
             steps = self._adaptive_intervals()
             previous_interval = self._effective_interval_seconds
-            self._adaptive_level = min(self._adaptive_level + 1, len(steps) - 1)
-            interval_seconds = steps[self._adaptive_level]
+            if threshold_reached:
+                # Keep the adaptive state aligned with the existing
+                # ``Micro-inverter online`` binary sensor: once its configured
+                # failure threshold is reached, use the configured offline/night
+                # interval immediately rather than an intermediate backoff step.
+                self._adaptive_level = len(steps) - 1
+                interval_seconds = steps[-1]
+                state = "offline"
+            else:
+                last_degraded_level = max(0, len(steps) - 2)
+                self._adaptive_level = min(
+                    self._adaptive_level + 1,
+                    last_degraded_level,
+                )
+                interval_seconds = steps[self._adaptive_level]
+                state = "degraded"
             if interval_seconds > previous_interval:
                 self._adaptive_backoff_events += 1
             wifi_signal = self._logger_metadata.get("logger_wifi_signal")
@@ -322,7 +344,6 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if wifi_signal == 0
                 else "communication_failure"
             )
-            state = "offline" if threshold_reached else "degraded"
             self._set_effective_polling(
                 interval_seconds=interval_seconds,
                 state=state,
@@ -395,16 +416,23 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if was_offline:
             _LOGGER.info(
-                "%s communication restored; polling recovery started",
+                "%s communication restored; micro-inverter online, polling "
+                "recovery started",
                 self._device_log_name(),
             )
 
     async def _async_update_data(self) -> dict[str, Any]:
         self._poll_attempts += 1
+        queue_depth = int(getattr(self._poll_lock, "depth", 0))
+        self._max_queue_depth = max(self._max_queue_depth, queue_depth + 1)
+        queue_started = monotonic()
         try:
-            # A logger can reject concurrent local exchanges. The lock is now
-            # dedicated to this logger so an unrelated TSUN cannot block it.
+            # Protocol polling and logger HTTP metadata share the same FIFO gate.
+            # An unrelated TSUN logger has its own queue and cannot block this one.
             async with self._poll_lock:
+                self._last_queue_wait_ms = round(
+                    (monotonic() - queue_started) * 1000
+                )
                 result: TsunReadResult = await self.client.async_read_all()
         except Exception as err:
             self._handle_failed_poll(err)
