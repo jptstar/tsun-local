@@ -1,482 +1,52 @@
 {
   "config": {
     "step": {
-      "user": {
-        "title": "添加 TSUN 设备",
-        "description": "自动搜索网络中的兼容 TSUN 设备，或手动添加设备。",
-        "menu_options": {
-          "discover": "搜索 TSUN 设备",
-          "manual": "手动添加"
-        }
-      },
-      "reconfigure": {
-        "title": "修改连接",
-        "description": "修改 IP 地址或 TCP 端口。数字 SN 仍作为永久连接标识。",
-        "data": {
-          "host": "IP 地址",
-          "port": "端口"
-        }
-      },
-      "manual": {
-        "title": "手动添加设备",
-        "description": "请输入设备的 IP 地址。大多数情况下，请将协议选择保留为“自动 — 根据固件”。TSUN Local 也会尝试自动读取 logger SN。",
-        "data": {
-          "host": "IP 地址",
-          "port": "端口",
-          "logger_sn": "SN",
-          "protocol": "协议选择方式"
-        }
-      },
-      "discover": {
-        "title": "已检测到的 TSUN 设备",
-        "description": "请选择要添加的 TSUN 设备。TSUN Local 会检查固件，仅显示使用受支持协议的设备。",
-        "data": {
-          "host": "已发现的地址",
-          "port": "端口",
-          "logger_sn": "SN"
-        }
-      },
-      "discover_network": {
-        "title": "搜索其他子网",
-        "description": "未自动检测到兼容的 TSUN 设备。请输入要扫描的 IPv4 子网，例如 192.168.1.0/24。扫描最多包含 254 个地址。",
-        "data": {
-          "discovery_network": "IPv4 子网",
-          "port": "端口"
-        }
-      }
+      "user": {"title": "添加 TSUN 设备", "description": "自动搜索网络中的兼容 TSUN 设备，或手动添加设备。", "menu_options": {"discover": "搜索 TSUN 设备", "manual": "手动添加"}},
+      "reconfigure": {"title": "修改连接", "description": "修改 IP 地址或 TCP 端口。数字 SN 仍作为永久连接标识。", "data": {"host": "IP 地址", "port": "端口"}},
+      "manual": {"title": "手动添加设备", "description": "请输入设备的 IP 地址。大多数情况下，请将协议选择保留为“自动 — 根据固件”。TSUN Local 也会尝试自动读取 logger SN。", "data": {"host": "IP 地址", "port": "端口", "logger_sn": "SN", "protocol": "协议选择方式"}},
+      "discover": {"title": "已检测到的 TSUN 设备", "description": "请选择要添加的 TSUN 设备。TSUN Local 会检查固件，仅显示使用受支持协议的设备。", "data": {"host": "已发现的地址", "port": "端口", "logger_sn": "SN"}},
+      "discover_network": {"title": "搜索其他子网", "description": "未自动检测到兼容的 TSUN 设备。请输入要扫描的 IPv4 子网，例如 192.168.1.0/24。扫描最多包含 254 个地址。", "data": {"discovery_network": "IPv4 子网", "port": "端口"}}
     },
-    "error": {
-      "cannot_connect": "无法与设备通信。请确认设备在线，并且 Home Assistant 可以访问它。",
-      "cannot_detect_logger_sn": "无法自动检测 logger SN。请输入本地状态页面中 Device serial number 显示的编号，或设备标签上的编号。",
-      "invalid_network": "请输入 /24 到 /32 之间的有效 IPv4 子网",
-      "invalid_response": "设备已响应，但收到的数据无法识别。",
-      "no_devices_found": "此子网中未检测到兼容的 TSUN 设备。",
-      "unknown_firmware": "无法自动识别此设备的固件。请返回手动配置并选择“强制检测 — 测试协议”，或手动选择协议。"
-    },
-    "abort": {
-      "already_configured": "此微型逆变器已配置",
-      "all_devices_configured": "所有检测到的微型逆变器均已配置",
-      "no_devices_found": "扫描的网络中未检测到兼容的 TSUN 设备。"
-    }
+    "error": {"cannot_connect": "无法与设备通信。请确认设备在线，并且 Home Assistant 可以访问它。", "cannot_detect_logger_sn": "无法自动检测 logger SN。请输入本地状态页面中 Device serial number 显示的编号，或设备标签上的编号。", "invalid_network": "请输入 /24 到 /32 之间的有效 IPv4 子网", "invalid_response": "设备已响应，但收到的数据无法识别。", "no_devices_found": "此子网中未检测到兼容的 TSUN 设备。", "unknown_firmware": "无法自动识别此设备的固件。请返回手动配置并选择“强制检测 — 测试协议”，或手动选择协议。"},
+    "abort": {"already_configured": "此微型逆变器已配置", "all_devices_configured": "所有检测到的微型逆变器均已配置", "no_devices_found": "扫描的网络中未检测到兼容的 TSUN 设备。"}
   },
-  "options": {
-    "step": {
-      "init": {
-        "title": "轮询设置",
-        "description": "设置正常轮询、通信错误后重试、离线/夜间轮询间隔，以及设备转为离线前允许的连续失败次数。",
-        "data": {
-          "scan_interval": "正常轮询间隔",
-          "error_scan_interval": "错误后重试间隔",
-          "offline_scan_interval": "离线/夜间轮询间隔",
-          "failure_threshold": "转为离线前的失败次数"
-        }
-      }
-    }
-  },
+  "options": {"step": {"init": {"title": "轮询设置", "description": "设置此微型逆变器的轮询行为。自适应轮询会在通信失败后逐步延长轮询间隔，并在通信恢复后逐步回到正常间隔。Wi-Fi 信号仅用于诊断，不会降低通信正常设备的轮询频率。", "data": {"adaptive_polling": "自适应轮询", "scan_interval": "正常轮询间隔", "error_scan_interval": "错误后重试间隔", "offline_scan_interval": "离线/夜间轮询间隔", "failure_threshold": "转为离线前的失败次数"}}}},
   "entity": {
     "sensor": {
-      "label_serial_number": {
-        "name": "SN"
-      },
-      "inverter_serial_number": {
-        "name": "微型逆变器 SN"
-      },
-      "logger_firmware_version": {
-        "name": "Logger 固件版本"
-      },
-      "inverter_firmware_version": {
-        "name": "逆变器固件版本"
-      },
-      "logger_mac_address": {
-        "name": "Logger MAC 地址"
-      },
-      "alarm_global_0_raw": {
-        "name": "全局报警原始值 0"
-      },
-      "alarm_global_1_raw": {
-        "name": "全局报警原始值 1"
-      },
-      "alarm_global_2_raw": {
-        "name": "全局报警原始值 2"
-      },
-      "alarm_global_3_raw": {
-        "name": "全局报警原始值 3"
-      },
-      "alarm_secondary_0_raw": {
-        "name": "次级报警原始值 0"
-      },
-      "alarm_secondary_1_raw": {
-        "name": "次级报警原始值 1"
-      },
-      "alarm_secondary_2_raw": {
-        "name": "次级报警原始值 2"
-      },
-      "alarm_secondary_3_raw": {
-        "name": "次级报警原始值 3"
-      },
-      "alarm_code_1_raw": {
-        "name": "报警代码原始值 1"
-      },
-      "alarm_code_2_raw": {
-        "name": "报警代码原始值 2"
-      },
-      "alarm_code_3_raw": {
-        "name": "报警代码原始值 3"
-      },
-      "alarm_code_4_raw": {
-        "name": "报警代码原始值 4"
-      },
-      "pv1_alarm_raw": {
-        "name": "PV1 报警原始值"
-      },
-      "pv2_alarm_raw": {
-        "name": "PV2 报警原始值"
-      },
-      "pv3_alarm_raw": {
-        "name": "PV3 报警原始值"
-      },
-      "pv4_alarm_raw": {
-        "name": "PV4 报警原始值"
-      },
-      "pv5_alarm_raw": {
-        "name": "PV5 报警原始值"
-      },
-      "pv6_alarm_raw": {
-        "name": "PV6 报警原始值"
-      },
-      "ac_voltage": {
-        "name": "交流电压"
-      },
-      "ac_current": {
-        "name": "交流电流"
-      },
-      "ac_frequency": {
-        "name": "交流频率"
-      },
-      "ac_power": {
-        "name": "交流功率"
-      },
-      "ac_energy_today": {
-        "name": "今日交流电量"
-      },
-      "ac_energy_total": {
-        "name": "交流总电量"
-      },
-      "dc_power_total": {
-        "name": "直流总功率"
-      },
-      "inverter_status_raw": {
-        "name": "逆变器原始状态"
-      },
-      "rated_power": {
-        "name": "逆变器额定功率"
-      },
-      "max_designed_power": {
-        "name": "最大设计功率"
-      },
-      "register_3017_raw": {
-        "name": "原始寄存器 3017（逆变器温度）"
-      },
-      "register_3018_raw": {
-        "name": "原始寄存器 3018（含义未确认）"
-      },
-      "register_3028_raw": {
-        "name": "原始寄存器 3028（逆变器环境温度）"
-      },
-      "communication_last_success": {
-        "name": "上次成功通信"
-      },
-      "communication_duration": {
-        "name": "通信耗时"
-      },
-      "communication_blocks": {
-        "name": "已接收数据块"
-      },
-      "communication_failures": {
-        "name": "连续通信失败次数"
-      },
-      "pv1_voltage": {
-        "name": "PV1 电压"
-      },
-      "pv1_current": {
-        "name": "PV1 电流"
-      },
-      "pv1_power": {
-        "name": "PV1 功率"
-      },
-      "pv1_energy_today": {
-        "name": "PV1 今日电量"
-      },
-      "pv1_energy_total": {
-        "name": "PV1 总电量"
-      },
-      "pv2_voltage": {
-        "name": "PV2 电压"
-      },
-      "pv2_current": {
-        "name": "PV2 电流"
-      },
-      "pv2_power": {
-        "name": "PV2 功率"
-      },
-      "pv2_energy_today": {
-        "name": "PV2 今日电量"
-      },
-      "pv2_energy_total": {
-        "name": "PV2 总电量"
-      },
-      "pv3_voltage": {
-        "name": "PV3 电压"
-      },
-      "pv3_current": {
-        "name": "PV3 电流"
-      },
-      "pv3_power": {
-        "name": "PV3 功率"
-      },
-      "pv3_energy_today": {
-        "name": "PV3 今日电量"
-      },
-      "pv3_energy_total": {
-        "name": "PV3 总电量"
-      },
-      "pv4_voltage": {
-        "name": "PV4 电压"
-      },
-      "pv4_current": {
-        "name": "PV4 电流"
-      },
-      "pv4_power": {
-        "name": "PV4 功率"
-      },
-      "pv4_energy_today": {
-        "name": "PV4 今日电量"
-      },
-      "pv4_energy_total": {
-        "name": "PV4 总电量"
-      },
-      "pv5_voltage": {
-        "name": "PV5 电压"
-      },
-      "pv5_current": {
-        "name": "PV5 电流"
-      },
-      "pv5_power": {
-        "name": "PV5 功率"
-      },
-      "pv5_energy_today": {
-        "name": "PV5 今日电量"
-      },
-      "pv5_energy_total": {
-        "name": "PV5 总电量"
-      },
-      "pv6_voltage": {
-        "name": "PV6 电压"
-      },
-      "pv6_current": {
-        "name": "PV6 电流"
-      },
-      "pv6_power": {
-        "name": "PV6 功率"
-      },
-      "pv6_energy_today": {
-        "name": "PV6 今日电量"
-      },
-      "pv6_energy_total": {
-        "name": "PV6 总电量"
-      },
-      "logger_wifi_signal": {
-        "name": "记录器 Wi-Fi 信号"
-      },
-      "alarm_active_count": {
-        "name": "当前报警"
-      },
-      "grid_overvoltage_recovery_voltage": {
-        "name": "电网过压恢复电压"
-      },
-      "grid_undervoltage_recovery_voltage": {
-        "name": "电网欠压恢复电压"
-      },
-      "grid_overfrequency_recovery_frequency": {
-        "name": "电网过频恢复频率"
-      },
-      "grid_underfrequency_recovery_frequency": {
-        "name": "电网欠频恢复频率"
-      },
-      "grid_undervoltage_level_1": {
-        "name": "电网欠压阈值 1"
-      },
-      "grid_undervoltage_level_2": {
-        "name": "电网欠压阈值 2"
-      },
-      "grid_undervoltage_level_3": {
-        "name": "电网欠压阈值 3"
-      },
-      "grid_undervoltage_time_1": {
-        "name": "电网欠压时间 1"
-      },
-      "grid_undervoltage_time_2": {
-        "name": "电网欠压时间 2"
-      },
-      "grid_undervoltage_time_3": {
-        "name": "电网欠压时间 3"
-      },
-      "grid_overvoltage_level_1": {
-        "name": "电网过压阈值 1"
-      },
-      "grid_overvoltage_level_2": {
-        "name": "电网过压阈值 2"
-      },
-      "grid_overvoltage_time_1": {
-        "name": "电网过压时间 1"
-      },
-      "grid_overvoltage_time_2": {
-        "name": "电网过压时间 2"
-      },
-      "grid_underfrequency_level_1": {
-        "name": "电网欠频阈值 1"
-      },
-      "grid_underfrequency_level_2": {
-        "name": "电网欠频阈值 2"
-      },
-      "grid_underfrequency_time_1": {
-        "name": "电网欠频时间 1"
-      },
-      "grid_underfrequency_time_2": {
-        "name": "电网欠频时间 2"
-      },
-      "grid_overfrequency_level_1": {
-        "name": "电网过频阈值 1"
-      },
-      "grid_overfrequency_level_2": {
-        "name": "电网过频阈值 2"
-      },
-      "grid_overfrequency_time_1": {
-        "name": "电网过频时间 1"
-      },
-      "grid_overfrequency_time_2": {
-        "name": "电网过频时间 2"
-      },
-      "output_coefficient": {
-        "name": "功率水平"
-      },
-      "protocol_version": {
-        "name": "协议版本"
-      },
-      "inverter_version": {
-        "name": "逆变器版本"
-      },
-      "insulation_impedance_rx": {
-        "name": "绝缘阻抗 RX"
-      },
-      "insulation_impedance_ry": {
-        "name": "绝缘阻抗 RY"
-      },
-      "inverter_temperature": {
-        "name": "逆变器温度"
-      },
-      "boot_status_raw": {
-        "name": "原始启动状态"
-      },
-      "dsp_status_raw": {
-        "name": "原始 DSP 状态"
-      },
-      "work_mode_raw": {
-        "name": "原始工作模式"
-      },
-      "output_shutdown_raw": {
-        "name": "原始输出关断状态"
-      },
-      "rated_level_raw": {
-        "name": "原始额定等级"
-      },
-      "input_coefficient": {
-        "name": "输入系数"
-      },
-      "product_compliance_type_raw": {
-        "name": "原始产品合规类型"
-      },
-      "country_profile_raw": {
-        "name": "国家/配置代码"
-      },
-      "inverter_operating_state": {
-        "name": "逆变器运行状态",
-        "state": {
-          "active": "运行",
-          "standby": "待机",
-          "standby_low_solar": "待机 — 光照输入不足",
-          "fault": "故障"
-        }
-      },
-      "ambient_temperature": {
-        "name": "逆变器环境温度"
-      },
-      "grid_qp_voltage_threshold": {
-        "name": "QP 电压阈值"
-      },
-      "grid_recovery_rate": {
-        "name": "电网恢复时间"
-      },
-      "grid_overvoltage_10min": {
-        "name": "10 分钟电网过压保护"
-      },
-      "grid_overfrequency_reduction_frequency": {
-        "name": "过频降额值"
-      },
-      "grid_overfrequency_reduction_coefficient": {
-        "name": "过频降额系数"
-      },
-      "overtemperature_protection_temperature": {
-        "name": "过温保护阈值"
-      },
-      "grid_start_upper_voltage_limit": {
-        "name": "启动电压上限"
-      },
-      "grid_start_lower_voltage_limit": {
-        "name": "启动电压下限"
-      },
-      "grid_start_upper_frequency_limit": {
-        "name": "启动频率上限"
-      },
-      "grid_start_lower_frequency_limit": {
-        "name": "启动频率下限"
-      },
-      "active_alarm_names": {
-        "name": "活动报警名称"
-      },
-      "dsp_firmware_version": {
-        "name": "DSP 固件版本"
-      },
-      "qcpu1_firmware_version": {
-        "name": "QCPU1 固件版本"
-      },
-      "qcpu2_firmware_version": {
-        "name": "QCPU2 固件版本"
-      }
+      "label_serial_number": {"name": "SN"}, "inverter_serial_number": {"name": "微型逆变器 SN"}, "logger_firmware_version": {"name": "Logger 固件版本"}, "inverter_firmware_version": {"name": "逆变器固件版本"}, "logger_mac_address": {"name": "Logger MAC 地址"},
+      "alarm_global_0_raw": {"name": "全局报警原始值 0"}, "alarm_global_1_raw": {"name": "全局报警原始值 1"}, "alarm_global_2_raw": {"name": "全局报警原始值 2"}, "alarm_global_3_raw": {"name": "全局报警原始值 3"},
+      "alarm_secondary_0_raw": {"name": "次级报警原始值 0"}, "alarm_secondary_1_raw": {"name": "次级报警原始值 1"}, "alarm_secondary_2_raw": {"name": "次级报警原始值 2"}, "alarm_secondary_3_raw": {"name": "次级报警原始值 3"},
+      "alarm_code_1_raw": {"name": "报警代码原始值 1"}, "alarm_code_2_raw": {"name": "报警代码原始值 2"}, "alarm_code_3_raw": {"name": "报警代码原始值 3"}, "alarm_code_4_raw": {"name": "报警代码原始值 4"},
+      "pv1_alarm_raw": {"name": "PV1 报警原始值"}, "pv2_alarm_raw": {"name": "PV2 报警原始值"}, "pv3_alarm_raw": {"name": "PV3 报警原始值"}, "pv4_alarm_raw": {"name": "PV4 报警原始值"}, "pv5_alarm_raw": {"name": "PV5 报警原始值"}, "pv6_alarm_raw": {"name": "PV6 报警原始值"},
+      "ac_voltage": {"name": "交流电压"}, "ac_current": {"name": "交流电流"}, "ac_frequency": {"name": "交流频率"}, "ac_power": {"name": "交流功率"}, "ac_energy_today": {"name": "今日交流电量"}, "ac_energy_total": {"name": "交流总电量"}, "dc_power_total": {"name": "直流总功率"},
+      "inverter_status_raw": {"name": "逆变器原始状态"}, "rated_power": {"name": "逆变器额定功率"}, "max_designed_power": {"name": "最大设计功率"},
+      "register_3017_raw": {"name": "原始寄存器 3017（逆变器温度）"}, "register_3018_raw": {"name": "原始寄存器 3018（含义未确认）"}, "register_3028_raw": {"name": "原始寄存器 3028（逆变器环境温度）"},
+      "communication_last_success": {"name": "上次成功通信"}, "communication_duration": {"name": "通信耗时"}, "communication_blocks": {"name": "已接收数据块"}, "communication_failures": {"name": "连续通信失败次数"},
+      "communication_successes_consecutive": {"name": "连续通信成功"},
+      "adaptive_polling_interval": {"name": "实际轮询间隔"},
+      "adaptive_backoff_events": {"name": "自适应退避次数"},
+      "adaptive_polling_state": {"name": "自适应轮询状态", "state": {"disabled": "已禁用", "normal": "正常", "degraded": "降级", "recovery": "恢复中", "offline": "离线"}},
+      "adaptive_polling_reason": {"name": "自适应调整原因", "state": {"disabled": "已禁用", "normal": "正常", "communication_failure": "通信失败", "wifi_signal_zero": "记录器 Wi-Fi 信号为零", "recovery": "恢复中"}},
+      "pv1_voltage": {"name": "PV1 电压"}, "pv1_current": {"name": "PV1 电流"}, "pv1_power": {"name": "PV1 功率"}, "pv1_energy_today": {"name": "PV1 今日电量"}, "pv1_energy_total": {"name": "PV1 总电量"},
+      "pv2_voltage": {"name": "PV2 电压"}, "pv2_current": {"name": "PV2 电流"}, "pv2_power": {"name": "PV2 功率"}, "pv2_energy_today": {"name": "PV2 今日电量"}, "pv2_energy_total": {"name": "PV2 总电量"},
+      "pv3_voltage": {"name": "PV3 电压"}, "pv3_current": {"name": "PV3 电流"}, "pv3_power": {"name": "PV3 功率"}, "pv3_energy_today": {"name": "PV3 今日电量"}, "pv3_energy_total": {"name": "PV3 总电量"},
+      "pv4_voltage": {"name": "PV4 电压"}, "pv4_current": {"name": "PV4 电流"}, "pv4_power": {"name": "PV4 功率"}, "pv4_energy_today": {"name": "PV4 今日电量"}, "pv4_energy_total": {"name": "PV4 总电量"},
+      "pv5_voltage": {"name": "PV5 电压"}, "pv5_current": {"name": "PV5 电流"}, "pv5_power": {"name": "PV5 功率"}, "pv5_energy_today": {"name": "PV5 今日电量"}, "pv5_energy_total": {"name": "PV5 总电量"},
+      "pv6_voltage": {"name": "PV6 电压"}, "pv6_current": {"name": "PV6 电流"}, "pv6_power": {"name": "PV6 功率"}, "pv6_energy_today": {"name": "PV6 今日电量"}, "pv6_energy_total": {"name": "PV6 总电量"},
+      "logger_wifi_signal": {"name": "记录器 Wi-Fi 信号"}, "alarm_active_count": {"name": "当前报警"},
+      "grid_overvoltage_recovery_voltage": {"name": "电网过压恢复电压"}, "grid_undervoltage_recovery_voltage": {"name": "电网欠压恢复电压"}, "grid_overfrequency_recovery_frequency": {"name": "电网过频恢复频率"}, "grid_underfrequency_recovery_frequency": {"name": "电网欠频恢复频率"},
+      "grid_undervoltage_level_1": {"name": "电网欠压阈值 1"}, "grid_undervoltage_level_2": {"name": "电网欠压阈值 2"}, "grid_undervoltage_level_3": {"name": "电网欠压阈值 3"}, "grid_undervoltage_time_1": {"name": "电网欠压时间 1"}, "grid_undervoltage_time_2": {"name": "电网欠压时间 2"}, "grid_undervoltage_time_3": {"name": "电网欠压时间 3"},
+      "grid_overvoltage_level_1": {"name": "电网过压阈值 1"}, "grid_overvoltage_level_2": {"name": "电网过压阈值 2"}, "grid_overvoltage_time_1": {"name": "电网过压时间 1"}, "grid_overvoltage_time_2": {"name": "电网过压时间 2"},
+      "grid_underfrequency_level_1": {"name": "电网欠频阈值 1"}, "grid_underfrequency_level_2": {"name": "电网欠频阈值 2"}, "grid_underfrequency_time_1": {"name": "电网欠频时间 1"}, "grid_underfrequency_time_2": {"name": "电网欠频时间 2"},
+      "grid_overfrequency_level_1": {"name": "电网过频阈值 1"}, "grid_overfrequency_level_2": {"name": "电网过频阈值 2"}, "grid_overfrequency_time_1": {"name": "电网过频时间 1"}, "grid_overfrequency_time_2": {"name": "电网过频时间 2"},
+      "output_coefficient": {"name": "功率水平"}, "protocol_version": {"name": "协议版本"}, "inverter_version": {"name": "逆变器版本"}, "insulation_impedance_rx": {"name": "绝缘阻抗 RX"}, "insulation_impedance_ry": {"name": "绝缘阻抗 RY"}, "inverter_temperature": {"name": "逆变器温度"},
+      "boot_status_raw": {"name": "原始启动状态"}, "dsp_status_raw": {"name": "原始 DSP 状态"}, "work_mode_raw": {"name": "原始工作模式"}, "output_shutdown_raw": {"name": "原始输出关断状态"}, "rated_level_raw": {"name": "原始额定等级"}, "input_coefficient": {"name": "输入系数"}, "product_compliance_type_raw": {"name": "原始产品合规类型"}, "country_profile_raw": {"name": "国家/配置代码"},
+      "inverter_operating_state": {"name": "逆变器运行状态", "state": {"active": "运行", "standby": "待机", "standby_low_solar": "待机 — 光照输入不足", "fault": "故障"}},
+      "ambient_temperature": {"name": "逆变器环境温度"}, "grid_qp_voltage_threshold": {"name": "QP 电压阈值"}, "grid_recovery_rate": {"name": "电网恢复时间"}, "grid_overvoltage_10min": {"name": "10 分钟电网过压保护"}, "grid_overfrequency_reduction_frequency": {"name": "过频降额值"}, "grid_overfrequency_reduction_coefficient": {"name": "过频降额系数"}, "overtemperature_protection_temperature": {"name": "过温保护阈值"}, "grid_start_upper_voltage_limit": {"name": "启动电压上限"}, "grid_start_lower_voltage_limit": {"name": "启动电压下限"}, "grid_start_upper_frequency_limit": {"name": "启动频率上限"}, "grid_start_lower_frequency_limit": {"name": "启动频率下限"},
+      "active_alarm_names": {"name": "活动报警名称"}, "dsp_firmware_version": {"name": "DSP 固件版本"}, "qcpu1_firmware_version": {"name": "QCPU1 固件版本"}, "qcpu2_firmware_version": {"name": "QCPU2 固件版本"}
     },
-    "binary_sensor": {
-      "communication_online": {
-        "name": "微型逆变器在线"
-      },
-      "inverter_alarm": {
-        "name": "逆变器报警"
-      }
-    },
-    "button": {
-      "refresh_data": {
-        "name": "刷新数据"
-      }
-    }
+    "binary_sensor": {"communication_online": {"name": "微型逆变器在线"}, "inverter_alarm": {"name": "逆变器报警"}},
+    "button": {"refresh_data": {"name": "刷新数据"}}
   },
-  "selector": {
-    "protocol": {
-      "options": {
-        "auto": "自动 — 根据固件",
-        "force": "强制检测 — 测试协议",
-        "1511": "使用 1511 协议",
-        "1097": "使用 1097 协议 — 实验性",
-        "02b0": "使用 02B0 协议"
-      }
-    }
-  }
+  "selector": {"protocol": {"options": {"auto": "自动 — 根据固件", "force": "强制检测 — 测试协议", "1511": "使用 1511 协议", "1097": "使用 1097 协议 — 实验性", "02b0": "使用 02B0 协议"}}}
 }
