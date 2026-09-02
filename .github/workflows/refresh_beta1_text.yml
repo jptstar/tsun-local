@@ -1,0 +1,128 @@
+name: Refresh beta 1 adaptive polling text
+
+on:
+  push:
+    branches:
+      - tmp-beta1-text-refresh
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: contains(github.event.head_commit.message, '[beta-text-refresh]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out refresh source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Refresh adaptive polling text
+        run: python3 .github/scripts/refresh_beta1_adaptive_text.py
+
+      - name: Verify only documentation and translations changed
+        run: |
+          python3 - <<'PY'
+          import subprocess
+
+          expected = {
+              "custom_components/tsun_local/strings.json",
+              "custom_components/tsun_local/translations/de.json",
+              "custom_components/tsun_local/translations/en.json",
+              "custom_components/tsun_local/translations/es.json",
+              "custom_components/tsun_local/translations/fr.json",
+              "custom_components/tsun_local/translations/it.json",
+              "custom_components/tsun_local/translations/nl.json",
+              "custom_components/tsun_local/translations/pl.json",
+              "custom_components/tsun_local/translations/zh-Hans.json",
+              "docs/releases/1.6.0-beta.1.md",
+          }
+          changed = set(
+              subprocess.check_output(
+                  ["git", "diff", "--name-only"], text=True
+              ).splitlines()
+          )
+          if changed != expected:
+              raise SystemExit(
+                  f"Unexpected generated diff. expected={sorted(expected)} changed={sorted(changed)}"
+              )
+          print("Generated diff is limited to beta help text, translations and release notes.")
+          PY
+          git diff --check
+
+      - name: Verify adaptive polling wording
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("custom_components/tsun_local")
+          files = [root / "strings.json", *sorted((root / "translations").glob("*.json"))]
+          if len(files) != 9:
+              raise SystemExit(f"Expected strings.json plus 8 translations, found {len(files)} files")
+          for path in files:
+              data = json.loads(path.read_text(encoding="utf-8"))
+              text = data["options"]["step"]["init"]["description"]
+              if len(text) < 300:
+                  raise SystemExit(f"Adaptive description is unexpectedly short in {path}")
+          notes = Path("docs/releases/1.6.0-beta.1.md").read_text(encoding="utf-8")
+          required = (
+              "20 s → 30 s → 300 s (offline)",
+              "120 s → 60 s → 30 s → 20 s → 20 s (normal state)",
+              "max(normal, error)",
+              "Wi-Fi RSSI is never used by itself",
+          )
+          for item in required:
+              if item not in notes:
+                  raise SystemExit(f"Missing adaptive release-note detail: {item}")
+          print("Adaptive polling wording and default timing example are complete.")
+          PY
+
+      - name: Run beta unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate beta HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Validate beta Home Assistant integration
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Publish refreshed beta source and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Remove the one-time helper from the final beta tree and squash both
+          # helper commits so beta-1097 contains one clean documentation commit.
+          git rm .github/scripts/refresh_beta1_adaptive_text.py
+          git rm .github/workflows/refresh_beta1_text.yml
+          git add custom_components/tsun_local/strings.json
+          git add custom_components/tsun_local/translations/*.json
+          git add docs/releases/1.6.0-beta.1.md
+          BASE_SHA="$(git rev-parse HEAD~2)"
+          git reset --soft "${BASE_SHA}"
+          git commit -m "Clarify 1.6.0-beta.1 adaptive polling behavior"
+
+          FINAL_SHA="$(git rev-parse HEAD)"
+          echo "Publishing validated beta source ${FINAL_SHA}."
+          git push origin "${FINAL_SHA}:refs/heads/beta-1097" --force
+
+          git tag -fa v1.6.0-beta.1 -m "Version 1.6.0-beta.1"
+          git push origin refs/tags/v1.6.0-beta.1 --force
+
+          gh release edit v1.6.0-beta.1 \
+            --prerelease \
+            --title "Version 1.6.0-beta.1" \
+            --notes-file docs/releases/1.6.0-beta.1.md
+
+          echo "Refreshed v1.6.0-beta.1 published from ${FINAL_SHA}."
