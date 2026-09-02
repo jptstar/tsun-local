@@ -12,9 +12,18 @@ PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home
 
 
 class Release154WebTests(unittest.TestCase):
-    def test_manifest_is_stable_154(self) -> None:
+    def test_public_site_stays_on_stable_release_during_beta(self) -> None:
         manifest = json.loads((ROOT / "custom_components" / "tsun_local" / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual("1.5.4", manifest["version"])
+        self.assertRegex(
+            manifest["version"],
+            r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$",
+        )
+        index = (DOCS / "index.html").read_text(encoding="utf-8")
+        if "-beta." in manifest["version"]:
+            self.assertNotIn(manifest["version"], index)
+            self.assertIn("NEW IN 1.5.4", index)
+        else:
+            self.assertIn(manifest["version"], index)
 
     def test_public_pages_have_unique_h1_and_seo(self) -> None:
         seen = set()
