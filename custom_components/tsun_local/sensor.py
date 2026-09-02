@@ -164,6 +164,11 @@ COMMUNICATION_SENSOR_KEYS = frozenset(
         "communication_duration",
         "communication_blocks",
         "communication_failures",
+        "communication_successes_consecutive",
+        "adaptive_polling_state",
+        "adaptive_polling_reason",
+        "adaptive_polling_interval",
+        "adaptive_backoff_events",
     }
 )
 LOGGER_METADATA_SENSOR_KEYS = frozenset(
@@ -702,6 +707,51 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         suggested_object_id="communication_failures",
         translation_key="communication_failures",
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="communication_successes_consecutive",
+        suggested_object_id="communication_successes_consecutive",
+        translation_key="communication_successes_consecutive",
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="adaptive_polling_interval",
+        suggested_object_id="adaptive_polling_interval",
+        translation_key="adaptive_polling_interval",
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.SECONDS,
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="adaptive_backoff_events",
+        suggested_object_id="adaptive_backoff_events",
+        translation_key="adaptive_backoff_events",
+        state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="adaptive_polling_state",
+        suggested_object_id="adaptive_polling_state",
+        translation_key="adaptive_polling_state",
+        device_class=SensorDeviceClass.ENUM,
+        options=["disabled", "normal", "degraded", "recovery", "offline"],
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
+        key="adaptive_polling_reason",
+        suggested_object_id="adaptive_polling_reason",
+        translation_key="adaptive_polling_reason",
+        device_class=SensorDeviceClass.ENUM,
+        options=[
+            "disabled",
+            "normal",
+            "communication_failure",
+            "wifi_signal_zero",
+            "recovery",
+        ],
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     TsunSensorDescription(
