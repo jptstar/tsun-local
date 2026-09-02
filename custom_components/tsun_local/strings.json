@@ -64,8 +64,9 @@
     "step": {
       "init": {
         "title": "Polling settings",
-        "description": "Set normal polling, retry after a communication error, offline/night polling, and the number of consecutive failures required before the device goes offline.",
+        "description": "Set polling behavior for this micro-inverter. Adaptive polling progressively backs off after communication failures and progressively returns to the normal interval after recovery. Wi-Fi signal remains diagnostic and does not slow a device that is communicating successfully.",
         "data": {
+          "adaptive_polling": "Adaptive polling",
           "scan_interval": "Normal polling interval",
           "error_scan_interval": "Retry interval after error",
           "offline_scan_interval": "Offline/night polling interval",
@@ -180,6 +181,35 @@
       },
       "communication_failures": {
         "name": "Consecutive communication failures"
+      },
+      "communication_successes_consecutive": {
+        "name": "Consecutive communication successes"
+      },
+      "adaptive_polling_interval": {
+        "name": "Effective polling interval"
+      },
+      "adaptive_backoff_events": {
+        "name": "Adaptive backoff events"
+      },
+      "adaptive_polling_state": {
+        "name": "Adaptive polling state",
+        "state": {
+          "disabled": "Disabled",
+          "normal": "Normal",
+          "degraded": "Degraded",
+          "recovery": "Recovery",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Adaptive polling reason",
+        "state": {
+          "disabled": "Disabled",
+          "normal": "Normal",
+          "communication_failure": "Communication failure",
+          "wifi_signal_zero": "Logger Wi-Fi signal zero",
+          "recovery": "Recovery"
+        }
       },
       "label_serial_number": {
         "name": "SN"
