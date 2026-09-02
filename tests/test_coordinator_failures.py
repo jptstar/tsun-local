@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 import importlib.util
 from pathlib import Path
 import sys
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 import unittest
 
 
@@ -40,6 +40,7 @@ class _DataUpdateCoordinator:
         config_entry: object,
         update_interval: object,
     ) -> None:
+        self.hass = hass
         self.data: dict[str, object] = {}
         self.update_interval = update_interval
         self.listener_updates = 0
@@ -85,6 +86,9 @@ def _load_coordinator() -> ModuleType:
 
     _module(
         f"{PACKAGE}.const",
+        CONF_ADAPTIVE_POLLING="adaptive_polling",
+        CONF_LOGGER_SN="logger_sn",
+        DEFAULT_ADAPTIVE_POLLING=False,
         DOMAIN="tsun_local",
     )
     _module(
@@ -123,8 +127,24 @@ class _Client:
         return response
 
 
+class _Hass:
+    def __init__(self) -> None:
+        self.data: dict[str, object] = {}
+
+
+def _entry(
+    logger_sn: int = 123456,
+    *,
+    adaptive_polling: bool = False,
+) -> SimpleNamespace:
+    return SimpleNamespace(
+        data={"logger_sn": logger_sn},
+        options={"adaptive_polling": adaptive_polling},
+    )
+
+
 class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
-    """Protect the three-attempt availability threshold."""
+    """Protect fixed and adaptive communication-failure handling."""
 
     def test_builds_privacy_safe_inverter_serial_prefix(self) -> None:
         self.assertEqual(
@@ -135,6 +155,14 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertIsNone(COORDINATOR.inverter_serial_prefix(None))
         self.assertIsNone(COORDINATOR.inverter_serial_prefix("Y4"))
+
+    def test_poll_locks_are_isolated_per_logger(self) -> None:
+        hass = _Hass()
+        first = COORDINATOR.get_poll_lock(hass, 111)
+        same = COORDINATOR.get_poll_lock(hass, 111)
+        second = COORDINATOR.get_poll_lock(hass, 222)
+        self.assertIs(first, same)
+        self.assertIsNot(first, second)
 
     async def test_logger_metadata_is_exposed_and_survives_failures(self) -> None:
         client = _Client([_ReadResult({"ac_power": 400}), OSError("one")])
@@ -296,7 +324,7 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             coordinator.diagnostic_summary["offline_polling_seconds"], 300
         )
 
-    async def test_success_immediately_resets_failure_state(self) -> None:
+    async def test_success_immediately_resets_fixed_failure_state(self) -> None:
         client = _Client(
             [
                 OSError("one"),
@@ -336,6 +364,137 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         second = await coordinator._async_update_data()
         self.assertFalse(second["communication_online"])
         self.assertEqual(coordinator.update_interval.total_seconds(), 300)
+
+    async def test_adaptive_polling_backs_off_progressively(self) -> None:
+        client = _Client([OSError(str(index)) for index in range(1, 6)])
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            client,
+            20,
+            20,
+            300,
+            3,
+            asyncio.Lock(),
+            adaptive_polling=True,
+        )
+        coordinator._online = True
+
+        expected_intervals = [20, 30, 60, 120, 300]
+        expected_states = [
+            "degraded",
+            "degraded",
+            "offline",
+            "offline",
+            "offline",
+        ]
+        for interval, state in zip(expected_intervals, expected_states):
+            coordinator.data = await coordinator._async_update_data()
+            self.assertEqual(
+                coordinator.update_interval.total_seconds(), interval
+            )
+            self.assertEqual(
+                coordinator.data["adaptive_polling_state"], state
+            )
+
+        self.assertEqual(
+            coordinator.diagnostic_summary["adaptive_backoff_events"], 4
+        )
+        self.assertEqual(
+            coordinator.diagnostic_summary["poll_failures_total"], 5
+        )
+
+    async def test_adaptive_polling_recovers_progressively(self) -> None:
+        failures = [OSError(str(index)) for index in range(1, 6)]
+        successes = [_ReadResult({"ac_power": 425}) for _ in range(5)]
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            _Client([*failures, *successes]),
+            20,
+            20,
+            300,
+            3,
+            asyncio.Lock(),
+            adaptive_polling=True,
+        )
+        coordinator._online = True
+
+        for _ in failures:
+            coordinator.data = await coordinator._async_update_data()
+        self.assertEqual(coordinator.update_interval.total_seconds(), 300)
+
+        expected_intervals = [120, 60, 30, 20, 20]
+        expected_states = ["recovery", "recovery", "recovery", "recovery", "normal"]
+        for interval, state in zip(expected_intervals, expected_states):
+            coordinator.data = await coordinator._async_update_data()
+            self.assertTrue(coordinator.data["communication_online"])
+            self.assertEqual(coordinator.data["communication_failures"], 0)
+            self.assertEqual(
+                coordinator.update_interval.total_seconds(), interval
+            )
+            self.assertEqual(
+                coordinator.data["adaptive_polling_state"], state
+            )
+
+        self.assertEqual(
+            coordinator.diagnostic_summary["poll_successes_total"], 5
+        )
+
+    async def test_low_wifi_does_not_slow_successful_adaptive_polling(self) -> None:
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            _Client([_ReadResult({"ac_power": 425})]),
+            20,
+            20,
+            300,
+            3,
+            asyncio.Lock(),
+            logger_wifi_signal=8,
+            adaptive_polling=True,
+        )
+        result = await coordinator._async_update_data()
+        self.assertTrue(result["communication_online"])
+        self.assertEqual(result["adaptive_polling_state"], "normal")
+        self.assertEqual(result["adaptive_polling_interval"], 20)
+
+    async def test_zero_wifi_is_diagnostic_reason_not_extra_backoff(self) -> None:
+        coordinator = COORDINATOR.TsunCoordinator(
+            object(),
+            object(),
+            _Client([OSError("one")]),
+            20,
+            20,
+            300,
+            3,
+            asyncio.Lock(),
+            logger_wifi_signal=0,
+            adaptive_polling=True,
+        )
+        coordinator._online = True
+        result = await coordinator._async_update_data()
+        self.assertEqual(result["adaptive_polling_reason"], "wifi_signal_zero")
+        self.assertEqual(result["adaptive_polling_interval"], 20)
+
+    async def test_entry_options_enable_adaptive_mode_and_per_logger_lock(self) -> None:
+        hass = _Hass()
+        entry = _entry(999, adaptive_polling=True)
+        coordinator = COORDINATOR.TsunCoordinator(
+            hass,
+            entry,
+            _Client([_ReadResult({"ac_power": 425})]),
+            20,
+            20,
+            300,
+            3,
+            asyncio.Lock(),
+        )
+        self.assertTrue(coordinator.adaptive_polling_enabled)
+        self.assertIs(
+            coordinator.poll_lock,
+            COORDINATOR.get_poll_lock(hass, 999),
+        )
 
 
 if __name__ == "__main__":
