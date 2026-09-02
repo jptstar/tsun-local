@@ -15,7 +15,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import (
+    CONF_ADAPTIVE_POLLING,
+    CONF_LOGGER_SN,
+    DEFAULT_ADAPTIVE_POLLING,
+    DOMAIN,
+)
 from .protocols import TsunProtocolClient, TsunReadResult
 from .protocols.ap import safe_error_details
 
@@ -24,11 +29,14 @@ POLL_LOCKS = "poll_locks"
 INVERTER_SERIAL_PREFIX_LENGTH = 3
 
 
-def get_poll_lock(hass: HomeAssistant, logger_key: str | int) -> asyncio.Lock:
+def get_poll_lock(
+    hass: HomeAssistant, logger_key: str | int | None = None
+) -> asyncio.Lock:
     """Return the protocol lock dedicated to one local TSUN logger."""
     domain_data = hass.data.setdefault(DOMAIN, {})
     locks: dict[str, asyncio.Lock] = domain_data.setdefault(POLL_LOCKS, {})
-    return locks.setdefault(str(logger_key), asyncio.Lock())
+    key = "__legacy_global__" if logger_key is None else str(logger_key)
+    return locks.setdefault(key, asyncio.Lock())
 
 
 def inverter_serial_prefix(serial_number: str | None) -> str | None:
@@ -82,7 +90,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         inverter_serial_number: str | None = None,
         logger_raw_profile: str | None = None,
         logger_wifi_signal: int | None = None,
-        adaptive_polling: bool = False,
+        adaptive_polling: bool | None = None,
     ) -> None:
         super().__init__(
             hass,
@@ -92,7 +100,19 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=interval),
         )
         self.client = client
-        self._poll_lock = poll_lock
+        entry_data = getattr(entry, "data", {})
+        logger_key = entry_data.get(CONF_LOGGER_SN)
+        self._poll_lock = (
+            get_poll_lock(hass, logger_key) if logger_key is not None else poll_lock
+        )
+        if adaptive_polling is None:
+            entry_options = getattr(entry, "options", {})
+            adaptive_polling = bool(
+                entry_options.get(
+                    CONF_ADAPTIVE_POLLING,
+                    DEFAULT_ADAPTIVE_POLLING,
+                )
+            )
         self._normal_update_interval = timedelta(seconds=interval)
         self._error_update_interval = timedelta(seconds=error_interval)
         self._offline_update_interval = timedelta(seconds=offline_interval)
@@ -133,6 +153,11 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def adaptive_polling_enabled(self) -> bool:
         """Return whether adaptive polling is enabled for this device."""
         return self._adaptive_polling
+
+    @property
+    def poll_lock(self) -> asyncio.Lock:
+        """Return the lock shared by protocol and logger metadata reads."""
+        return self._poll_lock
 
     def _device_log_name(self) -> str:
         """Return a log label without exposing the complete inverter serial."""
