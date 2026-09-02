@@ -204,6 +204,11 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             coordinator.diagnostic_summary["inverter_serial_prefix"], "TES"
         )
+        self.assertEqual(
+            coordinator.diagnostic_summary["online_basis"],
+            "protocol_poll_failure_threshold",
+        )
+        self.assertFalse(coordinator.diagnostic_summary["wifi_controls_online"])
 
     async def test_refreshed_serial_updates_log_prefix(self) -> None:
         client = _Client([_ReadResult({"ac_power": 400})])
@@ -365,7 +370,7 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(second["communication_online"])
         self.assertEqual(coordinator.update_interval.total_seconds(), 300)
 
-    async def test_adaptive_polling_backs_off_progressively(self) -> None:
+    async def test_adaptive_polling_backs_off_and_matches_online_state(self) -> None:
         client = _Client([OSError(str(index)) for index in range(1, 6)])
         coordinator = COORDINATOR.TsunCoordinator(
             object(),
@@ -380,7 +385,7 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         )
         coordinator._online = True
 
-        expected_intervals = [20, 30, 60, 120, 300]
+        expected_intervals = [20, 30, 300, 300, 300]
         expected_states = [
             "degraded",
             "degraded",
@@ -388,7 +393,12 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             "offline",
             "offline",
         ]
-        for interval, state in zip(expected_intervals, expected_states):
+        expected_online = [True, True, False, False, False]
+        for interval, state, online in zip(
+            expected_intervals,
+            expected_states,
+            expected_online,
+        ):
             coordinator.data = await coordinator._async_update_data()
             self.assertEqual(
                 coordinator.update_interval.total_seconds(), interval
@@ -396,9 +406,12 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(
                 coordinator.data["adaptive_polling_state"], state
             )
+            self.assertEqual(
+                coordinator.data["communication_online"], online
+            )
 
         self.assertEqual(
-            coordinator.diagnostic_summary["adaptive_backoff_events"], 4
+            coordinator.diagnostic_summary["adaptive_backoff_events"], 2
         )
         self.assertEqual(
             coordinator.diagnostic_summary["poll_failures_total"], 5
@@ -423,9 +436,16 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         for _ in failures:
             coordinator.data = await coordinator._async_update_data()
         self.assertEqual(coordinator.update_interval.total_seconds(), 300)
+        self.assertFalse(coordinator.data["communication_online"])
 
         expected_intervals = [120, 60, 30, 20, 20]
-        expected_states = ["recovery", "recovery", "recovery", "recovery", "normal"]
+        expected_states = [
+            "recovery",
+            "recovery",
+            "recovery",
+            "recovery",
+            "normal",
+        ]
         for interval, state in zip(expected_intervals, expected_states):
             coordinator.data = await coordinator._async_update_data()
             self.assertTrue(coordinator.data["communication_online"])
@@ -474,6 +494,7 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         )
         coordinator._online = True
         result = await coordinator._async_update_data()
+        self.assertTrue(result["communication_online"])
         self.assertEqual(result["adaptive_polling_reason"], "wifi_signal_zero")
         self.assertEqual(result["adaptive_polling_interval"], 20)
 
