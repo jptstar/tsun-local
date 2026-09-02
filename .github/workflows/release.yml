@@ -42,9 +42,6 @@ jobs:
           version = manifest["version"]
           if re.fullmatch(r"\d+\.\d+\.\d+-beta\.\d+", version) is None:
               raise SystemExit(f"{version!r} is not a beta release version")
-          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
-          if f"## [{version}]" not in changelog:
-              raise SystemExit(f"CHANGELOG.md has no section for {version}")
           notes = Path("docs/releases") / f"{version}.md"
           if not notes.is_file():
               raise SystemExit(f"Missing beta release notes: {notes}")
@@ -260,9 +257,14 @@ jobs:
                   f"Tag {tag} does not match manifest version {manifest['version']}"
               )
 
-          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
-          if f"## [{version}]" not in changelog:
-              raise SystemExit(f"CHANGELOG.md has no section for {version}")
+          if "-beta." in version:
+              notes = Path("docs/releases") / f"{version}.md"
+              if not notes.is_file():
+                  raise SystemExit(f"Missing beta release notes: {notes}")
+          else:
+              changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+              if f"## [{version}]" not in changelog:
+                  raise SystemExit(f"CHANGELOG.md has no section for {version}")
 
           print(f"Version {version} is consistent")
           PY
