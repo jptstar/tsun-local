@@ -170,7 +170,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return f"TSUN device [{self._inverter_serial_prefix}]"
 
     def _adaptive_intervals(self) -> tuple[int, ...]:
-        """Build monotonic adaptive polling steps from the user limits."""
+        """Build adaptive steps while preserving the configured error retry."""
         normal = int(self._normal_update_interval.total_seconds())
         error = int(self._error_update_interval.total_seconds())
         offline = max(normal, int(self._offline_update_interval.total_seconds()))
@@ -180,15 +180,15 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             round(normal * 1.5),
             normal * 3,
             normal * 6,
+            offline,
         )
         steps: list[int] = []
+        previous = normal
         for candidate in candidates:
-            value = min(offline, max(normal, int(candidate)))
-            if value not in steps:
-                steps.append(value)
-        if offline not in steps:
-            steps.append(offline)
-        return tuple(sorted(steps))
+            value = min(offline, max(previous, int(candidate)))
+            steps.append(value)
+            previous = value
+        return tuple(steps)
 
     def _set_effective_polling(
         self,
