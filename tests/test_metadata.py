@@ -33,10 +33,14 @@ def _leaf_paths(value: object, prefix: tuple[str, ...] = ()) -> set[tuple[str, .
 class MetadataTests(unittest.TestCase):
     """Keep release metadata and public files synchronized."""
 
-    def test_manifest_version_has_matching_changelog_entry(self) -> None:
+    def test_manifest_version_has_release_metadata(self) -> None:
         manifest = _load_json(INTEGRATION / "manifest.json")
-        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-        self.assertIn(f"## [{manifest['version']}]", changelog)
+        version = manifest["version"]
+        if "-beta." in version:
+            self.assertTrue((ROOT / "docs" / "releases" / f"{version}.md").is_file())
+        else:
+            changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+            self.assertIn(f"## [{version}]", changelog)
 
     def test_translation_keys_match_strings(self) -> None:
         strings = _load_json(INTEGRATION / "strings.json")
@@ -125,15 +129,19 @@ class MetadataTests(unittest.TestCase):
             root_readme,
         )
         version = _load_json(INTEGRATION / "manifest.json")["version"]
-        self.assertIn(f"<strong>{version}</strong>", root_readme)
-        documentation_version = version.split("-beta.", 1)[0]
         if "-beta." in version:
-            self.assertIn(
-                documentation_version,
-                (ROOT / "docs" / "README_FR.md").read_text(encoding="utf-8"),
-            )
+            # Beta package metadata may advance while public documentation keeps
+            # advertising the current stable release to normal HACS users.
+            self.assertNotIn(f"<strong>{version}</strong>", root_readme)
+            self.assertNotIn("-beta.", root_readme)
+            for name in localized:
+                self.assertNotIn(
+                    "-beta.",
+                    (ROOT / "docs" / name).read_text(encoding="utf-8"),
+                )
         else:
-            documentation_series = ".".join(documentation_version.split(".")[:2])
+            self.assertIn(f"<strong>{version}</strong>", root_readme)
+            documentation_series = ".".join(version.split(".")[:2])
             version_pattern = re.compile(rf"\b{re.escape(documentation_series)}\.\d+\b")
             for name in localized:
                 self.assertRegex(
