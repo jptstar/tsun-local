@@ -28,8 +28,8 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("importlib.util", source)
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
-        self.assertEqual(TOOL.SCHEMA_VERSION, 2)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.3.1")
+        self.assertEqual(TOOL.SCHEMA_VERSION, 3)
+        self.assertEqual(TOOL.TOOL_VERSION, "2.4.0")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
         network = TOOL._parse_scan_network("10.89.10.0/24")
@@ -73,6 +73,60 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertEqual(firmware, "LSW5_SSL_1511_1.03")
         self.assertEqual(hint, "1511")
         self.assertTrue(recognized)
+
+    def test_logger_web_capture_paths_include_profile_page(self) -> None:
+        self.assertIn("/hide_set_edit.html", TOOL.LOGGER_WEB_CAPTURE_PATHS)
+
+    def test_logger_web_anonymization_keeps_only_safe_identity_fragments(self) -> None:
+        document = (
+            'var cover_mid="3890384117"; '
+            'var cover_ver="LSW5BLE_17_02B0_1.08-D1"; '
+            'var webdata_sn="Y47ABCDEF1234567"; '
+            'var cover_sta_rssi="42"; '
+            'var inv_tp="MX450"; '
+            'var cover_sta_mac="AA:BB:CC:DD:EE:FF"; '
+            'var cover_sta_ssid="PrivateWifi"; '
+            'var cover_sta_psk="VerySecretPassword"; '
+            'var local_ip="192.168.1.50"; '
+            'var contact="owner@example.com";'
+        )
+        metadata = TOOL._logger_web_metadata(document)
+        self.assertEqual(metadata["logger_firmware_version"], "LSW5BLE_17_02B0_1.08-D1")
+        self.assertEqual(metadata["logger_wifi_signal"], 42)
+        self.assertEqual(metadata["logger_raw_profile"], "MX450")
+        self.assertEqual(metadata["logger_mac_oui"], "AA:BB:CC")
+        self.assertEqual(metadata["inverter_serial_prefix"], "Y47")
+
+        sanitized = TOOL.anonymize_web_document(document)
+        self.assertIn("Y47<REDACTED>", sanitized)
+        self.assertIn("AA:BB:CC:XX:XX:XX", sanitized)
+        self.assertNotIn("Y47ABCDEF1234567", sanitized)
+        self.assertNotIn("3890384117", sanitized)
+        self.assertNotIn("AA:BB:CC:DD:EE:FF", sanitized)
+        self.assertNotIn("192.168.1.50", sanitized)
+        self.assertNotIn("PrivateWifi", sanitized)
+        self.assertNotIn("VerySecretPassword", sanitized)
+        self.assertNotIn("owner@example.com", sanitized)
+
+    def test_logger_web_capture_deduplicates_same_authenticated_page(self) -> None:
+        document = (
+            'var cover_mid="1234567890"; '
+            'var cover_ver="LSW5_SSL_02B0_1.00"; '
+            'var webdata_sn="Y471234567890123";'
+        )
+        original = TOOL._http_document
+        try:
+            TOOL._http_document = lambda host, path, timeout, authenticated: (
+                document if path == "/status.html" else None
+            )
+            result = TOOL.capture_logger_web_pages("192.0.2.10", 1.0)
+        finally:
+            TOOL._http_document = original
+
+        self.assertEqual(result["pages_found"], 1)
+        self.assertEqual(result["summary"]["inverter_serial_prefix"], "Y47")
+        self.assertNotIn("1234567890", result["pages"][0]["content"])
+        self.assertNotIn("Y471234567890123", result["pages"][0]["content"])
 
     def test_ap_identity_extraction_uses_envelope_sn(self) -> None:
         payload = TOOL.build_modbus_request(0x3000, 0x3000)

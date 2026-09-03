@@ -34,9 +34,9 @@ import time
 from typing import Any, Callable, Iterable
 
 
-TOOL_VERSION = "2.3.1"
+TOOL_VERSION = "2.4.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
 
 DEFAULT_PORT = 8899
@@ -62,6 +62,8 @@ DISCOVERY_MESSAGES = (
     b"devicelinkfind",
 )
 LOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
+LOGGER_PROFILE_PATHS = ("/hide_set_edit.html",)
+LOGGER_WEB_CAPTURE_PATHS = (*LOGGER_STATUS_PATHS, *LOGGER_PROFILE_PATHS)
 LOGGER_WEB_AUTH = base64.b64encode(b"admin:admin").decode("ascii")
 
 _SERIAL_TOKEN = re.compile(r"(?<!\d)(\d{8,10})(?!\d)")
@@ -92,6 +94,57 @@ _LOGGER_SN_PATTERNS = (
         re.IGNORECASE,
     ),
     re.compile(r"\bAP_([1-9]\d{7,9})\b", re.IGNORECASE),
+)
+
+_MAC_TOKEN = re.compile(
+    r"\b([0-9A-F]{2})[:-]([0-9A-F]{2})[:-]([0-9A-F]{2})[:-]"
+    r"([0-9A-F]{2})[:-]([0-9A-F]{2})[:-]([0-9A-F]{2})\b",
+    re.IGNORECASE,
+)
+_IPV4_TOKEN = re.compile(
+    r"(?<!\d)(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}"
+    r"(?:25[0-5]|2[0-4]\d|1?\d?\d)(?!\d)"
+)
+_EMAIL_TOKEN = re.compile(
+    r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE
+)
+_INVERTER_SERIAL_PATTERNS = (
+    re.compile(
+        r"\bwebdata[_-]sn\s*[:=]\s*[\"']\s*"
+        r"([A-Za-z0-9][A-Za-z0-9_-]{3,63})\s*[\"']",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\binverter[_-]?(?:serial(?:_number)?|sn)\b\s*[:=]\s*[\"']\s*"
+        r"([A-Za-z0-9][A-Za-z0-9_-]{3,63})\s*[\"']",
+        re.IGNORECASE,
+    ),
+)
+_RAW_PROFILE_PATTERNS = (
+    re.compile(
+        r"\binv_tp\b\s*[:=]\s*[\"']\s*([^\"']{1,127}?)\s*[\"']",
+        re.IGNORECASE,
+    ),
+)
+_WIFI_SIGNAL_PATTERNS = (
+    re.compile(
+        r"\bcover_sta_rssi\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
+        re.IGNORECASE,
+    ),
+)
+_SENSITIVE_FIELD_NAME = (
+    r"[A-Za-z0-9_-]*(?:ssid|password|passwd|pwd|psk|token|secret|"
+    r"api[_-]?key|access[_-]?key|username|user_name|email)[A-Za-z0-9_-]*"
+)
+_SENSITIVE_ASSIGNMENT = re.compile(
+    rf"(?P<prefix>\b{_SENSITIVE_FIELD_NAME}\b\s*[:=]\s*)"
+    r"(?P<quote>[\"'])(?P<value>.*?)(?P=quote)",
+    re.IGNORECASE | re.DOTALL,
+)
+_SENSITIVE_HTML_NAME_VALUE = re.compile(
+    rf"(?P<prefix><[^>]*\b(?:name|id)\s*=\s*[\"']{_SENSITIVE_FIELD_NAME}[\"']"
+    r"[^>]*\bvalue\s*=\s*)(?P<quote>[\"'])(?P<value>.*?)(?P=quote)",
+    re.IGNORECASE | re.DOTALL,
 )
 
 
@@ -548,6 +601,142 @@ def _http_document(
         return None
     finally:
         connection.close()
+
+
+def _first_web_match(patterns: tuple[re.Pattern[str], ...], document: str) -> str | None:
+    for pattern in patterns:
+        if match := pattern.search(document):
+            value = match.group(1).strip()
+            if value:
+                return value
+    return None
+
+
+def _logger_web_metadata(document: str) -> dict[str, Any]:
+    """Extract non-identifying logger metadata plus a 3-character inverter prefix."""
+    firmware: str | None = None
+    for pattern in _FIRMWARE_PATTERNS:
+        if match := pattern.search(document):
+            firmware = match.group(1)
+            break
+
+    inverter_serial = _first_web_match(_INVERTER_SERIAL_PATTERNS, document)
+    raw_profile = _first_web_match(_RAW_PROFILE_PATTERNS, document)
+    wifi_raw = _first_web_match(_WIFI_SIGNAL_PATTERNS, document)
+    wifi_signal: int | None = None
+    if wifi_raw is not None:
+        candidate = int(wifi_raw)
+        if -100 <= candidate <= 100:
+            wifi_signal = candidate
+
+    mac_match = _MAC_TOKEN.search(document)
+    mac_oui = None
+    if mac_match:
+        mac_oui = ":".join(part.upper() for part in mac_match.groups()[:3])
+
+    return {
+        "logger_firmware_version": firmware,
+        "logger_wifi_signal": wifi_signal,
+        "logger_raw_profile": raw_profile,
+        "logger_mac_oui": mac_oui,
+        "inverter_serial_prefix": (inverter_serial[:3] if inverter_serial else None),
+    }
+
+
+def anonymize_web_document(document: str) -> str:
+    """Return a research-useful web snapshot with device/user identifiers removed."""
+    sanitized = document.replace("\r\n", "\n").replace("\r", "\n")
+
+    inverter_serial = _first_web_match(_INVERTER_SERIAL_PATTERNS, document)
+    if inverter_serial:
+        replacement = f"{inverter_serial[:3]}<REDACTED>"
+        sanitized = sanitized.replace(inverter_serial, replacement)
+
+    # Remove any discovered Monitor/logger SN everywhere it appears, then also
+    # scrub standalone 8-10 digit candidates to protect alternate firmware pages.
+    logger_serials: set[str] = set()
+    for pattern in _LOGGER_SN_PATTERNS:
+        logger_serials.update(match.group(1) for match in pattern.finditer(document))
+    for value in logger_serials:
+        sanitized = sanitized.replace(value, "<LOGGER_SN>")
+    sanitized = _SERIAL_TOKEN.sub("<LOGGER_SN>", sanitized)
+
+    # Preserve only the MAC OUI (first three octets), never the complete address.
+    def _mac_replacement(match: re.Match[str]) -> str:
+        oui = ":".join(part.upper() for part in match.groups()[:3])
+        return f"{oui}:XX:XX:XX"
+
+    sanitized = _MAC_TOKEN.sub(_mac_replacement, sanitized)
+    sanitized = _IPV4_TOKEN.sub("<IP>", sanitized)
+    sanitized = _EMAIL_TOKEN.sub("<EMAIL>", sanitized)
+
+    # Collect sensitive values first so duplicate visible copies are also removed.
+    sensitive_values = {
+        match.group("value")
+        for pattern in (_SENSITIVE_ASSIGNMENT, _SENSITIVE_HTML_NAME_VALUE)
+        for match in pattern.finditer(document)
+        if match.group("value")
+    }
+    for value in sorted(sensitive_values, key=len, reverse=True):
+        sanitized = sanitized.replace(value, "<REDACTED>")
+
+    return sanitized
+
+
+def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
+    """Capture known local logger pages as anonymized, read-only research evidence."""
+    pages: list[dict[str, Any]] = []
+    summary: dict[str, Any] = {
+        "logger_firmware_version": None,
+        "logger_wifi_signal": None,
+        "logger_raw_profile": None,
+        "logger_mac_oui": None,
+        "inverter_serial_prefix": None,
+    }
+
+    for path in LOGGER_WEB_CAPTURE_PATHS:
+        seen_hashes: set[str] = set()
+        for authenticated in (False, True):
+            document = _http_document(host, path, timeout, authenticated)
+            if document is None:
+                continue
+
+            metadata = _logger_web_metadata(document)
+            for key, value in metadata.items():
+                if summary[key] is None and value is not None:
+                    summary[key] = value
+
+            sanitized = anonymize_web_document(document)
+            digest = hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
+            if digest in seen_hashes:
+                continue
+            seen_hashes.add(digest)
+            pages.append(
+                {
+                    "path": path,
+                    "authenticated": authenticated,
+                    "content_sha256": digest,
+                    "content": sanitized,
+                }
+            )
+
+    return {
+        "attempted": True,
+        "pages_found": len(pages),
+        "summary": summary,
+        "pages": pages,
+        "privacy": {
+            "raw_html_stored": False,
+            "anonymized_html_stored": True,
+            "logger_sn_stored": False,
+            "host_ip_stored": False,
+            "full_inverter_serial_stored": False,
+            "inverter_serial_prefix_characters": 3,
+            "full_mac_stored": False,
+            "mac_oui_stored": True,
+            "wifi_credentials_stored": False,
+        },
+    }
 
 
 def _web_identity_from_document(
@@ -1485,6 +1674,7 @@ def capture(
         "02b0": "GEN3 / GEN3 PLUS",
         "1097": "GEN3 / GEN3 PLUS (1097)",
     }[protocol]
+    logger_web = capture_logger_web_pages(host, args.http_page_timeout)
 
     return {
         "format": DUMP_FORMAT,
@@ -1510,8 +1700,12 @@ def capture(
                 "inverter_serial_in_output": False,
                 "ap_envelope_in_output": False,
                 "udp_discovery_payload_in_output": False,
+                "logger_web_raw_html_in_output": False,
+                "logger_web_anonymized_html_in_output": True,
+                "inverter_serial_prefix_characters": 3,
             },
         },
+        "logger_web": logger_web,
         "discovery": discovery,
         "protocol_detection": {
             "requested": args.protocol,

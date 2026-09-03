@@ -224,12 +224,18 @@ The generated JSON does **not** store:
 
 - logger IP address;
 - Monitor SN used by the AP envelope;
+- full inverter serial number (only its first 3 characters may be retained as a family/OEM prefix);
 - known inverter serial-number register words;
+- full logger MAC address (only the OUI may be retained);
+- Wi-Fi SSID, Wi-Fi password/PSK, tokens, secrets, email addresses or other recognized credentials from logger web pages;
+- raw, non-anonymized logger HTML;
 - UDP discovery payloads;
 - the AP envelope itself.
 
 It does include:
 
+- anonymized snapshots of the known local logger web pages (`/index_cn.html`, `/index.html`, `/status.html`, `/` and `/hide_set_edit.html`) so future firmware layouts can be re-analysed without requesting a new dump;
+- logger firmware, Wi-Fi signal, raw inverter profile (`inv_tp`) when available, MAC OUI only (first three octets), and only the first **3 characters** of the inverter serial number (for example `Y47`);
 - raw decimal and hexadecimal register values;
 - successful and failed read blocks;
 - multiple timestamped snapshots;
