@@ -59,10 +59,11 @@ class Beta2ReleaseContractTests(unittest.TestCase):
         self.assertEqual(options["data"]["error_scan_interval"], "Intervalle après erreur")
         self.assertEqual(options["data"]["offline_scan_interval"], "Hors ligne / nuit")
         sensors = fr["entity"]["sensor"]
-        self.assertEqual(sensors["adaptive_polling_state"]["name"], "Com. — État")
-        self.assertEqual(sensors["communication_last_success"]["name"], "Com. — Dernière réponse")
-        self.assertEqual(sensors["communication_failures"]["name"], "Com. — Échecs")
-        self.assertEqual(sensors["adaptive_polling_interval"]["name"], "Com. — Intervalle")
+        self.assertEqual(sensors["adaptive_polling_state"]["name"], "Communication — État")
+        self.assertEqual(sensors["communication_last_success"]["name"], "Communication — Dernière réponse")
+        self.assertEqual(sensors["communication_failures"]["name"], "Communication — Échecs")
+        self.assertEqual(sensors["adaptive_polling_interval"]["name"], "Communication — Intervalle")
+        self.assertEqual(sensors["adaptive_backoff_events"]["name"], "Communication — Ralentissements")
         self.assertEqual(sensors["country_profile_raw"]["name"], sensors["product_compliance_type_raw"]["name"])
 
 

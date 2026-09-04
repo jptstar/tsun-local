@@ -170,28 +170,28 @@
         "name": "Raw register 3028 (inverter ambient temperature)"
       },
       "communication_last_success": {
-        "name": "Com. — Last response"
+        "name": "Communication — Last response"
       },
       "communication_duration": {
-        "name": "Com. — Duration"
+        "name": "Communication — Duration"
       },
       "communication_blocks": {
-        "name": "Com. — Blocks"
+        "name": "Communication — Blocks"
       },
       "communication_failures": {
-        "name": "Com. — Failures"
+        "name": "Communication — Failures"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Successes"
+        "name": "Communication — Successes"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Interval"
+        "name": "Communication — Interval"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Communication — Slowdowns"
       },
       "adaptive_polling_state": {
-        "name": "Com. — State",
+        "name": "Communication — State",
         "state": {
           "disabled": "Disabled",
           "normal": "Normal",
@@ -201,7 +201,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Reason",
+        "name": "Communication — Reason",
         "state": {
           "disabled": "Disabled",
           "normal": "Normal",

@@ -185,28 +185,28 @@
         "name": "Registro grezzo 3028 (temperatura ambiente inverter)"
       },
       "communication_last_success": {
-        "name": "Com. — Ultima risposta"
+        "name": "Comunicazione — Ultima risposta"
       },
       "communication_duration": {
-        "name": "Com. — Durata"
+        "name": "Comunicazione — Durata"
       },
       "communication_blocks": {
-        "name": "Com. — Blocchi"
+        "name": "Comunicazione — Blocchi"
       },
       "communication_failures": {
-        "name": "Com. — Errori"
+        "name": "Comunicazione — Errori"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Successi"
+        "name": "Comunicazione — Successi"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Intervallo"
+        "name": "Comunicazione — Intervallo"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Comunicazione — Rallentamenti"
       },
       "adaptive_polling_state": {
-        "name": "Com. — Stato",
+        "name": "Comunicazione — Stato",
         "state": {
           "disabled": "Disattivato",
           "normal": "Normale",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Motivo",
+        "name": "Comunicazione — Motivo",
         "state": {
           "disabled": "Disattivato",
           "normal": "Normale",

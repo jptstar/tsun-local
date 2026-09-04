@@ -185,28 +185,28 @@
         "name": "Rohregister 3028 (Umgebungstemperatur des Wechselrichters)"
       },
       "communication_last_success": {
-        "name": "Com. — Letzte Antwort"
+        "name": "Kommunikation — Letzte Antwort"
       },
       "communication_duration": {
-        "name": "Com. — Dauer"
+        "name": "Kommunikation — Dauer"
       },
       "communication_blocks": {
-        "name": "Com. — Blöcke"
+        "name": "Kommunikation — Blöcke"
       },
       "communication_failures": {
-        "name": "Com. — Fehler"
+        "name": "Kommunikation — Fehler"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Erfolge"
+        "name": "Kommunikation — Erfolge"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Intervall"
+        "name": "Kommunikation — Intervall"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Kommunikation — Verlangsamungen"
       },
       "adaptive_polling_state": {
-        "name": "Com. — Status",
+        "name": "Kommunikation — Status",
         "state": {
           "disabled": "Deaktiviert",
           "normal": "Normal",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Grund",
+        "name": "Kommunikation — Grund",
         "state": {
           "disabled": "Deaktiviert",
           "normal": "Normal",

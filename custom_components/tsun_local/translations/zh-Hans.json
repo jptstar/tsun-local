@@ -185,28 +185,28 @@
         "name": "原始寄存器 3028（逆变器环境温度）"
       },
       "communication_last_success": {
-        "name": "Com. — 最近响应"
+        "name": "通信 — 最近响应"
       },
       "communication_duration": {
-        "name": "Com. — 时长"
+        "name": "通信 — 时长"
       },
       "communication_blocks": {
-        "name": "Com. — 数据块"
+        "name": "通信 — 数据块"
       },
       "communication_failures": {
-        "name": "Com. — 失败"
+        "name": "通信 — 失败"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — 成功"
+        "name": "通信 — 成功"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — 间隔"
+        "name": "通信 — 间隔"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "通信 — 降速次数"
       },
       "adaptive_polling_state": {
-        "name": "Com. — 状态",
+        "name": "通信 — 状态",
         "state": {
           "disabled": "已禁用",
           "normal": "正常",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — 原因",
+        "name": "通信 — 原因",
         "state": {
           "disabled": "已禁用",
           "normal": "正常",

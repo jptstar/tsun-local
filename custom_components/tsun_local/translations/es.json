@@ -185,28 +185,28 @@
         "name": "Registro bruto 3028 (temperatura ambiente del inversor)"
       },
       "communication_last_success": {
-        "name": "Com. — Última respuesta"
+        "name": "Comunicación — Última respuesta"
       },
       "communication_duration": {
-        "name": "Com. — Duración"
+        "name": "Comunicación — Duración"
       },
       "communication_blocks": {
-        "name": "Com. — Bloques"
+        "name": "Comunicación — Bloques"
       },
       "communication_failures": {
-        "name": "Com. — Fallos"
+        "name": "Comunicación — Fallos"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Éxitos"
+        "name": "Comunicación — Éxitos"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Intervalo"
+        "name": "Comunicación — Intervalo"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Comunicación — Ralentizaciones"
       },
       "adaptive_polling_state": {
-        "name": "Com. — Estado",
+        "name": "Comunicación — Estado",
         "state": {
           "disabled": "Desactivado",
           "normal": "Normal",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Motivo",
+        "name": "Comunicación — Motivo",
         "state": {
           "disabled": "Desactivado",
           "normal": "Normal",

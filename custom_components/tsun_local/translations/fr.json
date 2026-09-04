@@ -170,28 +170,28 @@
         "name": "Registre brut 3028 (température ambiante onduleur)"
       },
       "communication_last_success": {
-        "name": "Com. — Dernière réponse"
+        "name": "Communication — Dernière réponse"
       },
       "communication_duration": {
-        "name": "Com. — Durée"
+        "name": "Communication — Durée"
       },
       "communication_blocks": {
-        "name": "Com. — Blocs"
+        "name": "Communication — Blocs"
       },
       "communication_failures": {
-        "name": "Com. — Échecs"
+        "name": "Communication — Échecs"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Succès"
+        "name": "Communication — Succès"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Intervalle"
+        "name": "Communication — Intervalle"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Communication — Ralentissements"
       },
       "adaptive_polling_state": {
-        "name": "Com. — État",
+        "name": "Communication — État",
         "state": {
           "disabled": "Désactivé",
           "normal": "Normal",
@@ -201,7 +201,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Raison",
+        "name": "Communication — Raison",
         "state": {
           "disabled": "Désactivé",
           "normal": "Normal",

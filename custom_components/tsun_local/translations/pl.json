@@ -185,28 +185,28 @@
         "name": "Surowy rejestr 3028 (temperatura otoczenia falownika)"
       },
       "communication_last_success": {
-        "name": "Com. — Ostatnia odpowiedź"
+        "name": "Komunikacja — Ostatnia odpowiedź"
       },
       "communication_duration": {
-        "name": "Com. — Czas"
+        "name": "Komunikacja — Czas"
       },
       "communication_blocks": {
-        "name": "Com. — Bloki"
+        "name": "Komunikacja — Bloki"
       },
       "communication_failures": {
-        "name": "Com. — Błędy"
+        "name": "Komunikacja — Błędy"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Sukcesy"
+        "name": "Komunikacja — Sukcesy"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Interwał"
+        "name": "Komunikacja — Interwał"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Komunikacja — Spowolnienia"
       },
       "adaptive_polling_state": {
-        "name": "Com. — Stan",
+        "name": "Komunikacja — Stan",
         "state": {
           "disabled": "Wyłączone",
           "normal": "Normalny",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Powód",
+        "name": "Komunikacja — Powód",
         "state": {
           "disabled": "Wyłączone",
           "normal": "Normalny",

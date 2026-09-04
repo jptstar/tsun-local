@@ -185,28 +185,28 @@
         "name": "Ruw register 3028 (omgevingstemperatuur omvormer)"
       },
       "communication_last_success": {
-        "name": "Com. — Laatste antwoord"
+        "name": "Communicatie — Laatste antwoord"
       },
       "communication_duration": {
-        "name": "Com. — Duur"
+        "name": "Communicatie — Duur"
       },
       "communication_blocks": {
-        "name": "Com. — Blokken"
+        "name": "Communicatie — Blokken"
       },
       "communication_failures": {
-        "name": "Com. — Fouten"
+        "name": "Communicatie — Fouten"
       },
       "communication_successes_consecutive": {
-        "name": "Com. — Successen"
+        "name": "Communicatie — Successen"
       },
       "adaptive_polling_interval": {
-        "name": "Com. — Interval"
+        "name": "Communicatie — Interval"
       },
       "adaptive_backoff_events": {
-        "name": "Com. — Backoff"
+        "name": "Communicatie — Vertragingen"
       },
       "adaptive_polling_state": {
-        "name": "Com. — Status",
+        "name": "Communicatie — Status",
         "state": {
           "disabled": "Uitgeschakeld",
           "normal": "Normaal",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Com. — Reden",
+        "name": "Communicatie — Reden",
         "state": {
           "disabled": "Uitgeschakeld",
           "normal": "Normaal",
