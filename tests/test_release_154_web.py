@@ -11,10 +11,19 @@ FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <
 PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "contributors.html", "test-your-inverter.html")
 
 
-class Release154WebTests(unittest.TestCase):
-    def test_manifest_is_stable_154(self) -> None:
+class Release160WebTests(unittest.TestCase):
+    def test_public_site_stays_on_stable_release_during_beta(self) -> None:
         manifest = json.loads((ROOT / "custom_components" / "tsun_local" / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual("1.5.4", manifest["version"])
+        self.assertRegex(
+            manifest["version"],
+            r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$",
+        )
+        index = (DOCS / "index.html").read_text(encoding="utf-8")
+        if "-beta." in manifest["version"]:
+            self.assertNotIn(manifest["version"], index)
+            self.assertIn("NEW IN 1.6.0", index)
+        else:
+            self.assertIn(manifest["version"], index)
 
     def test_public_pages_have_unique_h1_and_seo(self) -> None:
         seen = set()
@@ -34,11 +43,11 @@ class Release154WebTests(unittest.TestCase):
             self.assertIsNotNone(match, filename)
             self.assertEqual(FOOTER, match.group(1), filename)
 
-    def test_public_pages_do_not_advertise_beta_154(self) -> None:
+    def test_public_pages_do_not_advertise_beta_160(self) -> None:
         for filename in PAGES:
             text = (DOCS / filename).read_text(encoding="utf-8").lower()
-            self.assertNotIn("1.5.4 beta", text, filename)
-            self.assertNotIn("1.5.4-beta", text, filename)
+            self.assertNotIn("1.6.0 beta", text, filename)
+            self.assertNotIn("1.6.0-beta", text, filename)
 
     def test_sitemap_contains_validated_hardware_pages(self) -> None:
         sitemap = (DOCS / "sitemap.xml").read_text(encoding="utf-8")
@@ -59,7 +68,7 @@ class Release154WebTests(unittest.TestCase):
         self.assertIn("contributors.html", text)
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
-        self.assertIn("NEW IN 1.5.4", text)
+        self.assertIn("NEW IN 1.6.0", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
 
 

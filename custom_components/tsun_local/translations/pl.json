@@ -62,13 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Ustawienia odpytywania",
-        "description": "Ustaw normalny interwał, ponowienie po błędzie, interwał offline/noc oraz liczbę kolejnych błędów przed przejściem offline.",
+        "title": "Ustawienia odczytu",
+        "description": "Odczyt adaptacyjny automatycznie dostosowuje częstotliwość odczytów, gdy komunikacja staje się niestabilna lub mikrofalownik jest offline. Udana komunikacja stopniowo przywraca normalne tempo odczytu.",
         "data": {
-          "scan_interval": "Normalny interwał odpytywania",
-          "error_scan_interval": "Interwał ponowienia po błędzie",
-          "offline_scan_interval": "Interwał odpytywania offline/noc",
-          "failure_threshold": "Błędy przed przejściem offline"
+          "adaptive_polling": "Odczyt adaptacyjny",
+          "scan_interval": "Normalny interwał",
+          "error_scan_interval": "Interwał po błędzie",
+          "offline_scan_interval": "Offline / noc",
+          "failure_threshold": "Błędy przed offline"
         }
       }
     }
@@ -184,16 +185,45 @@
         "name": "Surowy rejestr 3028 (temperatura otoczenia falownika)"
       },
       "communication_last_success": {
-        "name": "Ostatnia udana komunikacja"
+        "name": "Komunikacja — Ostatnia odpowiedź"
       },
       "communication_duration": {
-        "name": "Czas komunikacji"
+        "name": "Komunikacja — Czas"
       },
       "communication_blocks": {
-        "name": "Odebrane bloki"
+        "name": "Komunikacja — Bloki"
       },
       "communication_failures": {
-        "name": "Kolejne błędy komunikacji"
+        "name": "Komunikacja — Błędy"
+      },
+      "communication_successes_consecutive": {
+        "name": "Komunikacja — Sukcesy"
+      },
+      "adaptive_polling_interval": {
+        "name": "Komunikacja — Interwał"
+      },
+      "adaptive_backoff_events": {
+        "name": "Komunikacja — Spowolnienia"
+      },
+      "adaptive_polling_state": {
+        "name": "Komunikacja — Stan",
+        "state": {
+          "disabled": "Wyłączone",
+          "normal": "Normalny",
+          "degraded": "Pogorszony",
+          "recovery": "Odzyskiwanie",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Komunikacja — Powód",
+        "state": {
+          "disabled": "Wyłączone",
+          "normal": "Normalny",
+          "communication_failure": "Błąd komunikacji",
+          "wifi_signal_zero": "Sygnał Wi-Fi loggera równy zero",
+          "recovery": "Odzyskiwanie"
+        }
       },
       "pv1_voltage": {
         "name": "Napięcie PV1"
@@ -394,10 +424,10 @@
         "name": "Współczynnik wejściowy"
       },
       "product_compliance_type_raw": {
-        "name": "Surowy typ zgodności produktu"
+        "name": "Profil kraju (surowy)"
       },
       "country_profile_raw": {
-        "name": "Kod kraju/profilu"
+        "name": "Profil kraju (surowy)"
       },
       "inverter_operating_state": {
         "name": "Stan pracy falownika",

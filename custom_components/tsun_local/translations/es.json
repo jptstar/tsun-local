@@ -62,13 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Ajustes de sondeo",
-        "description": "Configura el intervalo normal, el reintento tras un error, el intervalo sin conexión/nocturno y el número de fallos consecutivos antes de pasar a desconectado.",
+        "title": "Ajustes de lectura",
+        "description": "La lectura adaptativa ajusta automáticamente la frecuencia de las lecturas cuando la comunicación se vuelve inestable o el microinversor está sin conexión. Una comunicación correcta devuelve progresivamente la lectura a su ritmo normal.",
         "data": {
-          "scan_interval": "Intervalo de sondeo normal",
-          "error_scan_interval": "Intervalo de reintento tras error",
-          "offline_scan_interval": "Intervalo de sondeo sin conexión/nocturno",
-          "failure_threshold": "Fallos antes de desconectarse"
+          "adaptive_polling": "Lectura adaptativa",
+          "scan_interval": "Intervalo normal",
+          "error_scan_interval": "Intervalo tras error",
+          "offline_scan_interval": "Sin conexión / noche",
+          "failure_threshold": "Fallos antes de desconectar"
         }
       }
     }
@@ -184,16 +185,45 @@
         "name": "Registro bruto 3028 (temperatura ambiente del inversor)"
       },
       "communication_last_success": {
-        "name": "Última comunicación correcta"
+        "name": "Comunicación — Última respuesta"
       },
       "communication_duration": {
-        "name": "Duración de la comunicación"
+        "name": "Comunicación — Duración"
       },
       "communication_blocks": {
-        "name": "Bloques recibidos"
+        "name": "Comunicación — Bloques"
       },
       "communication_failures": {
-        "name": "Fallos de comunicación consecutivos"
+        "name": "Comunicación — Fallos"
+      },
+      "communication_successes_consecutive": {
+        "name": "Comunicación — Éxitos"
+      },
+      "adaptive_polling_interval": {
+        "name": "Comunicación — Intervalo"
+      },
+      "adaptive_backoff_events": {
+        "name": "Comunicación — Ralentizaciones"
+      },
+      "adaptive_polling_state": {
+        "name": "Comunicación — Estado",
+        "state": {
+          "disabled": "Desactivado",
+          "normal": "Normal",
+          "degraded": "Degradado",
+          "recovery": "Recuperación",
+          "offline": "Sin conexión"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Comunicación — Motivo",
+        "state": {
+          "disabled": "Desactivado",
+          "normal": "Normal",
+          "communication_failure": "Fallo de comunicación",
+          "wifi_signal_zero": "Señal Wi-Fi del logger nula",
+          "recovery": "Recuperación"
+        }
       },
       "pv1_voltage": {
         "name": "Tensión PV1"
@@ -394,10 +424,10 @@
         "name": "Coeficiente de entrada"
       },
       "product_compliance_type_raw": {
-        "name": "Tipo de conformidad del producto bruto"
+        "name": "Perfil de país (bruto)"
       },
       "country_profile_raw": {
-        "name": "Código de país/perfil"
+        "name": "Perfil de país (bruto)"
       },
       "inverter_operating_state": {
         "name": "Estado de funcionamiento del inversor",

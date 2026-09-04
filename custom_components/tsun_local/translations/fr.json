@@ -62,13 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Paramètres d’interrogation",
-        "description": "Réglez l’intervalle normal, la nouvelle tentative après une erreur, l’intervalle hors ligne/nuit et le nombre d’échecs consécutifs avant le passage hors ligne.",
+        "title": "Réglages de la relève",
+        "description": "La relève adaptative ajuste automatiquement la fréquence des lectures lorsque la communication devient instable ou que le micro-onduleur est hors ligne. Une communication réussie ramène progressivement la relève à son rythme normal.",
         "data": {
+          "adaptive_polling": "Relève adaptative",
           "scan_interval": "Intervalle normal",
-          "error_scan_interval": "Intervalle après une erreur",
-          "offline_scan_interval": "Intervalle hors ligne/nuit",
-          "failure_threshold": "Échecs avant passage hors ligne"
+          "error_scan_interval": "Intervalle après erreur",
+          "offline_scan_interval": "Hors ligne / nuit",
+          "failure_threshold": "Échecs avant hors ligne"
         }
       }
     }
@@ -169,16 +170,45 @@
         "name": "Registre brut 3028 (température ambiante onduleur)"
       },
       "communication_last_success": {
-        "name": "Dernière communication réussie"
+        "name": "Communication — Dernière réponse"
       },
       "communication_duration": {
-        "name": "Durée de communication"
+        "name": "Communication — Durée"
       },
       "communication_blocks": {
-        "name": "Blocs reçus"
+        "name": "Communication — Blocs"
       },
       "communication_failures": {
-        "name": "Échecs de communication consécutifs"
+        "name": "Communication — Échecs"
+      },
+      "communication_successes_consecutive": {
+        "name": "Communication — Succès"
+      },
+      "adaptive_polling_interval": {
+        "name": "Communication — Intervalle"
+      },
+      "adaptive_backoff_events": {
+        "name": "Communication — Ralentissements"
+      },
+      "adaptive_polling_state": {
+        "name": "Communication — État",
+        "state": {
+          "disabled": "Désactivé",
+          "normal": "Normal",
+          "degraded": "Dégradé",
+          "recovery": "Récupération",
+          "offline": "Hors ligne"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Communication — Raison",
+        "state": {
+          "disabled": "Désactivé",
+          "normal": "Normal",
+          "communication_failure": "Échec de communication",
+          "wifi_signal_zero": "Signal Wi-Fi du logger nul",
+          "recovery": "Récupération"
+        }
       },
       "label_serial_number": {
         "name": "SN"
@@ -394,10 +424,10 @@
         "name": "Coefficient d’entrée"
       },
       "product_compliance_type_raw": {
-        "name": "Type de conformité produit brut"
+        "name": "Profil pays (brut)"
       },
       "country_profile_raw": {
-        "name": "Code pays/profil"
+        "name": "Profil pays (brut)"
       },
       "inverter_operating_state": {
         "name": "État de fonctionnement de l’onduleur",

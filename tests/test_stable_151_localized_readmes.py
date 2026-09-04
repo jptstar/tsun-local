@@ -16,10 +16,10 @@ FILES = (
     "README_ZH.md",
 )
 
-VERSION_PATTERN = re.compile(r"<strong>1\.5\.4</strong>")
+VERSION_PATTERN = re.compile(r"<strong>1\.6\.0</strong>")
 
 
-class Stable154LocalizedReadmeTests(unittest.TestCase):
+class Stable160LocalizedReadmeTests(unittest.TestCase):
     def test_all_localized_readmes_follow_compact_current_structure(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")

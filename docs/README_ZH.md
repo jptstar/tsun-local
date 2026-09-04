@@ -16,8 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">你的逆变器。你的网络。你的数据。</h3>
 <p align="center"><strong>本地。只读。无需云端。无需代理。</strong></p>
-<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.5.4</strong></p>
-<p align="center"><strong>1.6.0-beta.2 测试版现已可用。</strong><br>自适应采集默认启用：正常 20 秒 · 出错后 30 秒 · 离线/夜间 300 秒。在 HACS 中显示测试版并下载 <strong>1.6.0-beta.2</strong>。</p>
+<p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.6.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -54,7 +53,7 @@
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
-**1.5.4 新增：**02B0 设备可提供逆变器固件版本、逆变器温度以及更多只读运行诊断。
+**1.6.0 新增：** **自适应采集**默认启用，并在通信失败时自动调整采集间隔：正常 20 秒、出错后 30 秒、离线/夜间 300 秒。
 
 📚 **[完整实体参考](ENTITIES.md)**
 

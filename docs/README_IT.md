@@ -16,8 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Il tuo inverter. La tua rete. I tuoi dati.</h3>
 <p align="center"><strong>Locale. Sola lettura. Nessun cloud. Nessun proxy.</strong></p>
-<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.5.4</strong></p>
-<p align="center"><strong>Beta 1.6.0-beta.2 disponibile per i test.</strong><br>La lettura adattiva è attiva per impostazione predefinita: 20 s normale · 30 s dopo un errore · 300 s offline/notte. In HACS, mostra le versioni beta e scarica <strong>1.6.0-beta.2</strong>.</p>
+<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.6.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -54,7 +53,7 @@
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
-**Novità in 1.5.4:** i dispositivi 02B0 possono esporre firmware e temperatura dell’inverter, oltre a diagnostica operativa aggiuntiva in sola lettura.
+**Novità in 1.6.0:** La **lettura adattiva** è attiva per impostazione predefinita e regola automaticamente l’intervallo in caso di errori di comunicazione: 20 s normale, 30 s dopo un errore e 300 s offline/notte.
 
 📚 **[Riferimento completo delle entità](ENTITIES.md)**
 

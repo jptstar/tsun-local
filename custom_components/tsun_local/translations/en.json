@@ -63,11 +63,12 @@
     "step": {
       "init": {
         "title": "Polling settings",
-        "description": "Set normal polling, retry after a communication error, offline/night polling, and the number of consecutive failures required before the device goes offline.",
+        "description": "Adaptive polling automatically adjusts the reading frequency when communication becomes unstable or the micro-inverter is offline. Successful communication progressively returns polling to its normal rate.",
         "data": {
-          "scan_interval": "Normal polling interval",
-          "error_scan_interval": "Retry interval after error",
-          "offline_scan_interval": "Offline/night polling interval",
+          "adaptive_polling": "Adaptive polling",
+          "scan_interval": "Normal interval",
+          "error_scan_interval": "Interval after error",
+          "offline_scan_interval": "Offline / night",
           "failure_threshold": "Failures before offline"
         }
       }
@@ -169,16 +170,45 @@
         "name": "Raw register 3028 (inverter ambient temperature)"
       },
       "communication_last_success": {
-        "name": "Last successful communication"
+        "name": "Communication — Last response"
       },
       "communication_duration": {
-        "name": "Communication duration"
+        "name": "Communication — Duration"
       },
       "communication_blocks": {
-        "name": "Blocks received"
+        "name": "Communication — Blocks"
       },
       "communication_failures": {
-        "name": "Consecutive communication failures"
+        "name": "Communication — Failures"
+      },
+      "communication_successes_consecutive": {
+        "name": "Communication — Successes"
+      },
+      "adaptive_polling_interval": {
+        "name": "Communication — Interval"
+      },
+      "adaptive_backoff_events": {
+        "name": "Communication — Slowdowns"
+      },
+      "adaptive_polling_state": {
+        "name": "Communication — State",
+        "state": {
+          "disabled": "Disabled",
+          "normal": "Normal",
+          "degraded": "Degraded",
+          "recovery": "Recovery",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Communication — Reason",
+        "state": {
+          "disabled": "Disabled",
+          "normal": "Normal",
+          "communication_failure": "Communication failure",
+          "wifi_signal_zero": "Logger Wi-Fi signal zero",
+          "recovery": "Recovery"
+        }
       },
       "label_serial_number": {
         "name": "SN"
@@ -394,10 +424,10 @@
         "name": "Input coefficient"
       },
       "product_compliance_type_raw": {
-        "name": "Raw product compliance type"
+        "name": "Country profile (raw)"
       },
       "country_profile_raw": {
-        "name": "Country/profile code"
+        "name": "Country profile (raw)"
       },
       "inverter_operating_state": {
         "name": "Inverter operating state",

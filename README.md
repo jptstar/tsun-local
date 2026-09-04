@@ -16,8 +16,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.4</strong></p>
-<p align="center"><strong>Beta 1.6.0-beta.2 available for testing.</strong><br>Adaptive polling is enabled by default: 20 s normal · 30 s after an error · 300 s offline/night. In HACS, show beta versions and download <strong>1.6.0-beta.2</strong>.</p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.6.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -56,7 +55,7 @@
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
-**New in 1.5.4:** 02B0 devices can expose inverter firmware, inverter temperature and additional read-only operating diagnostics.
+**New in 1.6.0:** **Adaptive polling** is enabled by default and automatically adjusts the read interval after communication failures: 20 s normal, 30 s after an error and 300 s offline/night.
 
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
