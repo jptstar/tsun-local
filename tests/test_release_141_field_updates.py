@@ -91,7 +91,11 @@ class Release141FieldUpdateTests(unittest.TestCase):
         )
         version = manifest["version"]
         self.assertRegex(version, r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$")
-        self.assertIn(f"<strong>{version}</strong>", readme)
+        if "-beta." in version:
+            self.assertNotIn(f"<strong>{version}</strong>", readme)
+            self.assertIn("<strong>1.5.4</strong>", readme)
+        else:
+            self.assertIn(f"<strong>{version}</strong>", readme)
 
 
 if __name__ == "__main__":

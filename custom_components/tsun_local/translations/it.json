@@ -62,13 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Impostazioni di polling",
-        "description": "Imposta l'intervallo normale, il nuovo tentativo dopo un errore, l'intervallo offline/notturno e il numero di errori consecutivi prima dello stato offline.",
+        "title": "Impostazioni di lettura",
+        "description": "La lettura adattiva regola automaticamente la frequenza delle letture quando la comunicazione diventa instabile o il microinverter è offline. Una comunicazione riuscita riporta progressivamente la lettura al ritmo normale.",
         "data": {
-          "scan_interval": "Intervallo di polling normale",
-          "error_scan_interval": "Intervallo di nuovo tentativo dopo errore",
-          "offline_scan_interval": "Intervallo di polling offline/notturno",
-          "failure_threshold": "Errori prima dello stato offline"
+          "adaptive_polling": "Lettura adattiva",
+          "scan_interval": "Intervallo normale",
+          "error_scan_interval": "Intervallo dopo errore",
+          "offline_scan_interval": "Offline / notte",
+          "failure_threshold": "Errori prima di offline"
         }
       }
     }
@@ -184,16 +185,45 @@
         "name": "Registro grezzo 3028 (temperatura ambiente inverter)"
       },
       "communication_last_success": {
-        "name": "Ultima comunicazione riuscita"
+        "name": "Comunicazione — Ultima risposta"
       },
       "communication_duration": {
-        "name": "Durata della comunicazione"
+        "name": "Comunicazione — Durata"
       },
       "communication_blocks": {
-        "name": "Blocchi ricevuti"
+        "name": "Comunicazione — Blocchi"
       },
       "communication_failures": {
-        "name": "Errori di comunicazione consecutivi"
+        "name": "Comunicazione — Errori"
+      },
+      "communication_successes_consecutive": {
+        "name": "Comunicazione — Successi"
+      },
+      "adaptive_polling_interval": {
+        "name": "Comunicazione — Intervallo"
+      },
+      "adaptive_backoff_events": {
+        "name": "Comunicazione — Rallentamenti"
+      },
+      "adaptive_polling_state": {
+        "name": "Comunicazione — Stato",
+        "state": {
+          "disabled": "Disattivato",
+          "normal": "Normale",
+          "degraded": "Degradato",
+          "recovery": "Ripristino",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Comunicazione — Motivo",
+        "state": {
+          "disabled": "Disattivato",
+          "normal": "Normale",
+          "communication_failure": "Errore di comunicazione",
+          "wifi_signal_zero": "Segnale Wi-Fi del logger nullo",
+          "recovery": "Ripristino"
+        }
       },
       "pv1_voltage": {
         "name": "Tensione PV1"
@@ -394,10 +424,10 @@
         "name": "Coefficiente di ingresso"
       },
       "product_compliance_type_raw": {
-        "name": "Tipo di conformità prodotto grezzo"
+        "name": "Profilo paese (grezzo)"
       },
       "country_profile_raw": {
-        "name": "Codice paese/profilo"
+        "name": "Profilo paese (grezzo)"
       },
       "inverter_operating_state": {
         "name": "Stato operativo dell'inverter",

@@ -62,12 +62,13 @@
   "options": {
     "step": {
       "init": {
-        "title": "Abfrageeinstellungen",
-        "description": "Lege das normale Intervall, das Wiederholungsintervall nach einem Fehler, das Offline-/Nachtintervall und die Anzahl aufeinanderfolgender Fehler bis offline fest.",
+        "title": "Abrufeinstellungen",
+        "description": "Der adaptive Abruf passt die Lesehäufigkeit automatisch an, wenn die Kommunikation instabil wird oder der Mikro-Wechselrichter offline ist. Erfolgreiche Kommunikation führt den Abruf schrittweise zum normalen Intervall zurück.",
         "data": {
-          "scan_interval": "Normales Abfrageintervall",
-          "error_scan_interval": "Wiederholungsintervall nach Fehler",
-          "offline_scan_interval": "Abfrageintervall offline/nachts",
+          "adaptive_polling": "Adaptiver Abruf",
+          "scan_interval": "Normales Intervall",
+          "error_scan_interval": "Intervall nach Fehler",
+          "offline_scan_interval": "Offline / Nacht",
           "failure_threshold": "Fehler bis offline"
         }
       }
@@ -184,16 +185,45 @@
         "name": "Rohregister 3028 (Umgebungstemperatur des Wechselrichters)"
       },
       "communication_last_success": {
-        "name": "Letzte erfolgreiche Kommunikation"
+        "name": "Kommunikation — Letzte Antwort"
       },
       "communication_duration": {
-        "name": "Kommunikationsdauer"
+        "name": "Kommunikation — Dauer"
       },
       "communication_blocks": {
-        "name": "Empfangene Blöcke"
+        "name": "Kommunikation — Blöcke"
       },
       "communication_failures": {
-        "name": "Aufeinanderfolgende Kommunikationsfehler"
+        "name": "Kommunikation — Fehler"
+      },
+      "communication_successes_consecutive": {
+        "name": "Kommunikation — Erfolge"
+      },
+      "adaptive_polling_interval": {
+        "name": "Kommunikation — Intervall"
+      },
+      "adaptive_backoff_events": {
+        "name": "Kommunikation — Verlangsamungen"
+      },
+      "adaptive_polling_state": {
+        "name": "Kommunikation — Status",
+        "state": {
+          "disabled": "Deaktiviert",
+          "normal": "Normal",
+          "degraded": "Beeinträchtigt",
+          "recovery": "Wiederherstellung",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Kommunikation — Grund",
+        "state": {
+          "disabled": "Deaktiviert",
+          "normal": "Normal",
+          "communication_failure": "Kommunikationsfehler",
+          "wifi_signal_zero": "WLAN-Signal des Loggers null",
+          "recovery": "Wiederherstellung"
+        }
       },
       "pv1_voltage": {
         "name": "PV1-Spannung"
@@ -394,10 +424,10 @@
         "name": "Eingangskoeffizient"
       },
       "product_compliance_type_raw": {
-        "name": "Roher Produktkonformitätstyp"
+        "name": "Länderprofil (roh)"
       },
       "country_profile_raw": {
-        "name": "Länder-/Profilcode"
+        "name": "Länderprofil (roh)"
       },
       "inverter_operating_state": {
         "name": "Betriebszustand des Wechselrichters",

@@ -62,12 +62,13 @@
   "options": {
     "step": {
       "init": {
-        "title": "Pollinginstellingen",
-        "description": "Stel het normale interval, de herhaling na een fout, het offline-/nachtinterval en het aantal opeenvolgende fouten vóór offline in.",
+        "title": "Uitleesinstellingen",
+        "description": "Adaptief uitlezen past de leesfrequentie automatisch aan wanneer de communicatie instabiel wordt of de micro-omvormer offline is. Succesvolle communicatie brengt het uitlezen geleidelijk terug naar het normale tempo.",
         "data": {
-          "scan_interval": "Normaal pollinginterval",
-          "error_scan_interval": "Herhalingsinterval na fout",
-          "offline_scan_interval": "Pollinginterval offline/'s nachts",
+          "adaptive_polling": "Adaptief uitlezen",
+          "scan_interval": "Normaal interval",
+          "error_scan_interval": "Interval na fout",
+          "offline_scan_interval": "Offline / nacht",
           "failure_threshold": "Fouten vóór offline"
         }
       }
@@ -184,16 +185,45 @@
         "name": "Ruw register 3028 (omgevingstemperatuur omvormer)"
       },
       "communication_last_success": {
-        "name": "Laatste geslaagde communicatie"
+        "name": "Communicatie — Laatste antwoord"
       },
       "communication_duration": {
-        "name": "Communicatieduur"
+        "name": "Communicatie — Duur"
       },
       "communication_blocks": {
-        "name": "Ontvangen blokken"
+        "name": "Communicatie — Blokken"
       },
       "communication_failures": {
-        "name": "Opeenvolgende communicatiefouten"
+        "name": "Communicatie — Fouten"
+      },
+      "communication_successes_consecutive": {
+        "name": "Communicatie — Successen"
+      },
+      "adaptive_polling_interval": {
+        "name": "Communicatie — Interval"
+      },
+      "adaptive_backoff_events": {
+        "name": "Communicatie — Vertragingen"
+      },
+      "adaptive_polling_state": {
+        "name": "Communicatie — Status",
+        "state": {
+          "disabled": "Uitgeschakeld",
+          "normal": "Normaal",
+          "degraded": "Verslechterd",
+          "recovery": "Herstel",
+          "offline": "Offline"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "Communicatie — Reden",
+        "state": {
+          "disabled": "Uitgeschakeld",
+          "normal": "Normaal",
+          "communication_failure": "Communicatiefout",
+          "wifi_signal_zero": "Wi-Fi-signaal van logger nul",
+          "recovery": "Herstel"
+        }
       },
       "pv1_voltage": {
         "name": "PV1-spanning"
@@ -394,10 +424,10 @@
         "name": "Ingangscoëfficiënt"
       },
       "product_compliance_type_raw": {
-        "name": "Ruw productconformiteitstype"
+        "name": "Landprofiel (ruw)"
       },
       "country_profile_raw": {
-        "name": "Land-/profielcode"
+        "name": "Landprofiel (ruw)"
       },
       "inverter_operating_state": {
         "name": "Bedrijfstoestand omvormer",

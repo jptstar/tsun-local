@@ -115,6 +115,7 @@ def _load_config_flow() -> ModuleType:
 
     _module(
         f"{PACKAGE}.const",
+        CONF_ADAPTIVE_POLLING="adaptive_polling",
         CONF_DISCOVERY_NETWORK="discovery_network",
         CONF_ERROR_SCAN_INTERVAL="error_scan_interval",
         CONF_FAILURE_THRESHOLD="failure_threshold",
@@ -125,6 +126,7 @@ def _load_config_flow() -> ModuleType:
         CONF_OFFLINE_SCAN_INTERVAL="offline_scan_interval",
         CONF_PROTOCOL="protocol",
         CONF_SCAN_INTERVAL="scan_interval",
+        DEFAULT_ADAPTIVE_POLLING=False,
         DEFAULT_ERROR_SCAN_INTERVAL=20,
         DEFAULT_FAILURE_THRESHOLD=3,
         DEFAULT_OFFLINE_SCAN_INTERVAL=300,
@@ -140,7 +142,10 @@ def _load_config_flow() -> ModuleType:
         MIN_OFFLINE_SCAN_INTERVAL=60,
         MIN_SCAN_INTERVAL=10,
     )
-    _module(f"{PACKAGE}.coordinator", get_poll_lock=lambda hass: None)
+    _module(
+        f"{PACKAGE}.coordinator",
+        get_poll_lock=lambda hass, logger_key=None: None,
+    )
     _module(
         f"{PACKAGE}.logger_web",
         async_read_logger_web_data=lambda *args: None,
@@ -151,7 +156,11 @@ def _load_config_flow() -> ModuleType:
         FORCE_PROTOCOL="force_probe",
         SUPPORTED_PROTOCOLS=("1511", "1097", "02b0"),
         protocol_from_firmware=lambda firmware: next(
-            (protocol for protocol in ("1511", "1097", "02b0") if protocol in str(firmware).lower()),
+            (
+                protocol
+                for protocol in ("1511", "1097", "02b0")
+                if protocol in str(firmware).lower()
+            ),
             None,
         ),
         create_protocol_client=lambda *args: None,
@@ -244,18 +253,20 @@ class DiscoveryContinuationTests(unittest.IsolatedAsyncioTestCase):
             ["192.0.2.0/24", "198.51.100.0/24"],
         )
 
-    def test_polling_options_expose_three_intervals_and_failure_threshold(
+    def test_polling_options_include_adaptive_mode_and_existing_limits(
         self,
     ) -> None:
         self.assertEqual(
             set(CONFIG_FLOW.OPTIONS_SCHEMA),
             {
+                "adaptive_polling",
                 "scan_interval",
                 "error_scan_interval",
                 "offline_scan_interval",
                 "failure_threshold",
             },
         )
+        self.assertFalse(CONFIG_FLOW.DEFAULT_ADAPTIVE_POLLING)
         self.assertEqual(CONFIG_FLOW.DEFAULT_SCAN_INTERVAL, 20)
         self.assertEqual(CONFIG_FLOW.DEFAULT_ERROR_SCAN_INTERVAL, 20)
         self.assertEqual(CONFIG_FLOW.DEFAULT_OFFLINE_SCAN_INTERVAL, 300)

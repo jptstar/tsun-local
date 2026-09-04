@@ -62,13 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "轮询设置",
-        "description": "设置正常轮询、通信错误后重试、离线/夜间轮询间隔，以及设备转为离线前允许的连续失败次数。",
+        "title": "采集设置",
+        "description": "自适应采集会在通信不稳定或微型逆变器离线时自动调整读取频率。通信恢复成功后，采集频率会逐步回到正常值。",
         "data": {
-          "scan_interval": "正常轮询间隔",
-          "error_scan_interval": "错误后重试间隔",
-          "offline_scan_interval": "离线/夜间轮询间隔",
-          "failure_threshold": "转为离线前的失败次数"
+          "adaptive_polling": "自适应采集",
+          "scan_interval": "正常间隔",
+          "error_scan_interval": "出错后间隔",
+          "offline_scan_interval": "离线 / 夜间",
+          "failure_threshold": "判定离线前失败次数"
         }
       }
     }
@@ -184,16 +185,45 @@
         "name": "原始寄存器 3028（逆变器环境温度）"
       },
       "communication_last_success": {
-        "name": "上次成功通信"
+        "name": "通信 — 最近响应"
       },
       "communication_duration": {
-        "name": "通信耗时"
+        "name": "通信 — 时长"
       },
       "communication_blocks": {
-        "name": "已接收数据块"
+        "name": "通信 — 数据块"
       },
       "communication_failures": {
-        "name": "连续通信失败次数"
+        "name": "通信 — 失败"
+      },
+      "communication_successes_consecutive": {
+        "name": "通信 — 成功"
+      },
+      "adaptive_polling_interval": {
+        "name": "通信 — 间隔"
+      },
+      "adaptive_backoff_events": {
+        "name": "通信 — 降速次数"
+      },
+      "adaptive_polling_state": {
+        "name": "通信 — 状态",
+        "state": {
+          "disabled": "已禁用",
+          "normal": "正常",
+          "degraded": "降级",
+          "recovery": "恢复中",
+          "offline": "离线"
+        }
+      },
+      "adaptive_polling_reason": {
+        "name": "通信 — 原因",
+        "state": {
+          "disabled": "已禁用",
+          "normal": "正常",
+          "communication_failure": "通信失败",
+          "wifi_signal_zero": "记录器 Wi-Fi 信号为零",
+          "recovery": "恢复中"
+        }
       },
       "pv1_voltage": {
         "name": "PV1 电压"
@@ -394,10 +424,10 @@
         "name": "输入系数"
       },
       "product_compliance_type_raw": {
-        "name": "原始产品合规类型"
+        "name": "国家配置（原始）"
       },
       "country_profile_raw": {
-        "name": "国家/配置代码"
+        "name": "国家配置（原始）"
       },
       "inverter_operating_state": {
         "name": "逆变器运行状态",

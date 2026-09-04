@@ -13,6 +13,7 @@ from . import TsunReadResult
 from .ap import (
     ProtocolTrace,
     TsunProtocolError,
+    async_close_writer,
     build_ap_frame,
     parse_ap_frame,
     read_ap_frame,
@@ -429,9 +430,7 @@ class Tsun02b0Client:
             )
             raise
         finally:
-            if writer is not None:
-                writer.close()
-                await writer.wait_closed()
+            await async_close_writer(writer)
 
     async def async_read_all(self) -> TsunReadResult:
         """Read telemetry and the additional 02B0 alarm block."""

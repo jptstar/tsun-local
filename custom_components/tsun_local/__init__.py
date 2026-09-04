@@ -209,7 +209,7 @@ async def async_setup_entry(
         error_interval,
         offline_interval,
         failure_threshold,
-        get_poll_lock(hass),
+        get_poll_lock(hass, entry.data[CONF_LOGGER_SN]),
         logger_firmware_version,
         logger_mac_address,
         inverter_serial_number,
@@ -220,23 +220,29 @@ async def async_setup_entry(
     _async_sync_device_info(hass, entry, coordinator)
 
     async def _async_refresh_logger_metadata(_now: datetime) -> None:
-        """Refresh logger web data independently of inverter polling."""
+        """Refresh logger web data through the same per-logger FIFO queue."""
         updates: dict[str, Any] = {}
-        if coordinator.data.get("logger_raw_profile") is None:
-            refreshed = await async_read_logger_web_data(hass, host)
-            for key, value in (
-                ("logger_firmware_version", refreshed.firmware_version),
-                ("logger_mac_address", refreshed.mac_address),
-                ("inverter_serial_number", refreshed.inverter_serial_number),
-                ("logger_raw_profile", refreshed.raw_profile),
-                ("logger_wifi_signal", refreshed.wifi_signal),
-            ):
-                if value is not None:
-                    updates[key] = value
-        else:
-            signal = await async_read_logger_wifi_signal(hass, host)
-            if signal is not None:
-                updates["logger_wifi_signal"] = signal
+        async with coordinator.poll_lock:
+            if coordinator.data.get("logger_raw_profile") is None:
+                refreshed = await async_read_logger_web_data(hass, host)
+                for key, value in (
+                    ("logger_firmware_version", refreshed.firmware_version),
+                    ("logger_mac_address", refreshed.mac_address),
+                    ("inverter_serial_number", refreshed.inverter_serial_number),
+                    ("logger_raw_profile", refreshed.raw_profile),
+                ):
+                    if value is not None:
+                        updates[key] = value
+                updates["logger_wifi_signal"] = (
+                    refreshed.wifi_signal
+                    if refreshed.wifi_signal is not None
+                    else 0
+                )
+            else:
+                signal = await async_read_logger_wifi_signal(hass, host)
+                updates["logger_wifi_signal"] = (
+                    signal if signal is not None else 0
+                )
 
         if not updates or not coordinator.async_update_logger_metadata(
             updates
