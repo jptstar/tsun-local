@@ -45,7 +45,7 @@ jobs:
       - name: Validate Home Assistant integration
         uses: home-assistant/actions/hassfest@master
 
-      - name: Commit public beta2 documentation
+      - name: Commit public beta2 documentation branch
         run: |
           rm -f .github/workflows/update-beta2-public-docs.yml
           rm -f .github/scripts/update_beta2_public_docs.py
@@ -53,4 +53,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Document 1.6.0-beta.2 prerelease [release-notes]"
-          git push origin HEAD:main
+          git push --force-with-lease origin HEAD:refs/heads/docs/beta2-public-sync
