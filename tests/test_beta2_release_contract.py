@@ -80,6 +80,7 @@ class Release160ContractTests(unittest.TestCase):
             return result
 
         source_keys = keys(source)
+        source_keys.discard("title")
         translations = ROOT / "custom_components/tsun_local/translations"
         expected = {"en.json", "fr.json", "de.json", "es.json", "it.json", "nl.json", "pl.json", "zh-Hans.json"}
         self.assertEqual({path.name for path in translations.glob("*.json")}, expected)

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Beta 1.6.0-beta.2 adds adaptive polling. Validated on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2; no cloud or proxy.">
+  <meta name="description" content="Monitor TSUN microinverters locally in Home Assistant with TSUN Local 1.6.0, including adaptive polling. Validated on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2; no cloud or proxy.">
   <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, TSOL-MS800, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
@@ -112,7 +112,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
-  <meta property="og:description" content="Automatic local TSUN microinverter monitoring in Home Assistant. Stable 1.5.4 keeps clear-text alarms; beta 1.6.0-beta.2 adds adaptive polling. Read-only, no cloud, no proxy.">
+  <meta property="og:description" content="Automatic local TSUN microinverter monitoring in Home Assistant with TSUN Local 1.6.0 adaptive polling and clear-text alarms. Read-only, no cloud, no proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
@@ -124,7 +124,7 @@
     "@context":"https://schema.org",
     "@graph":[
       {"@type": "WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/","description":"Local TSUN microinverter monitoring for Home Assistant."},
-      {"@type": "SoftwareSourceCode","name":"TSUN Local","softwareVersion":"1.5.4","codeRepository":"https://github.com/jptstar/tsun-local","runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration with real-hardware validation on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","TSOL-MP3000","TSOL-MX500","TSOL-MS800","Sunology PLAY2","1511","02B0","1097"]}
+      {"@type": "SoftwareSourceCode","name":"TSUN Local","softwareVersion":"1.6.0","codeRepository":"https://github.com/jptstar/tsun-local","runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration with real-hardware validation on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","TSOL-MP3000","TSOL-MX500","TSOL-MS800","Sunology PLAY2","1511","02B0","1097"]}
     ]
   }
   </script>
@@ -150,34 +150,34 @@
           <a class="button secondary" href="#compatibility">Compatibility</a>
         </div>
       </div>
-      <aside class="preview-card" aria-label="TSUN Local 1.5.4 highlights">
-        <span class="preview-kicker">NEW IN 1.5.4</span>
-        <h3>More 02B0 diagnostics</h3>
+      <aside class="preview-card" aria-label="TSUN Local 1.6.0 highlights">
+        <span class="preview-kicker">NEW IN 1.6.0</span>
+        <h3>Adaptive polling</h3>
         <div class="preview-primary">
-          <strong>Temperature, inverter firmware and additional read-only diagnostics</strong>
-          <span>02B0 devices now expose nine additional operating and configuration diagnostics without adding any inverter write operation.</span>
+          <strong>Automatic communication pacing for unstable and offline micro-inverters</strong>
+          <span>Enabled by default. TSUN Local reacts to protocol failures, slows polling when communication becomes unavailable and progressively returns toward the normal interval after successful reads.</span>
         </div>
         <div class="preview-stats">
-          <div class="preview-stat"><strong>9</strong><span>new 02B0 diagnostic entities</span></div>
-          <div class="preview-stat"><strong>0</strong><span>new write operations<br>read-only by design</span></div>
+          <div class="preview-stat"><strong>20 s</strong><span>normal interval</span></div>
+          <div class="preview-stat"><strong>300 s</strong><span>offline / night interval</span></div>
         </div>
-        <div class="preview-note">Product compliance type remains raw until its country/grid-profile meaning is independently validated.</div>
+        <div class="preview-note">Default retry interval: 30 s · Offline after 3 consecutive protocol failures · Logger Wi-Fi remains diagnostic only.</div>
       </aside>
     </div>
   </div>
 </header>
 
 <main class="wrap">
-  <section id="beta2">
-    <span class="section-badge beta">BETA 1.6.0-beta.2</span>
+  <section id="adaptive-polling">
+    <span class="section-badge good">NEW IN 1.6.0</span>
     <h2>Adaptive polling for unstable and offline communication</h2>
-    <p class="intro">Beta2 enables adaptive polling by default. TSUN Local starts at 20 s, retries after an error at 30 s, and uses 300 s when the configured failure threshold marks the micro-inverter offline. Successful reads progressively return polling toward the normal interval.</p>
+    <p class="intro">TSUN Local 1.6.0 enables adaptive polling by default. TSUN Local starts at 20 s, retries after an error at 30 s, and uses 300 s when the configured failure threshold marks the micro-inverter offline. Successful reads progressively return polling toward the normal interval.</p>
     <div class="grid">
       <div class="card"><strong>20 s</strong><span class="muted">Normal interval</span></div>
       <div class="card"><strong>30 s</strong><span class="muted">Interval after an error</span></div>
       <div class="card"><strong>300 s</strong><span class="muted">Offline / night interval</span></div>
     </div>
-    <div class="install-note">Test it in HACS: TSUN Local → Redownload → show beta versions → 1.6.0-beta.2.</div>
+    <div class="install-note">Install or update TSUN Local 1.6.0 directly from HACS.</div>
   </section>
   <section id="features">
     <h2>Everything you need from your TSUN inverter</h2>

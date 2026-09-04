@@ -19,9 +19,9 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 
 ---
 
-## 1.6.0-beta.2 — adaptive polling diagnostics
+## 1.6.0 — adaptive polling diagnostics
 
-Beta2 enables **adaptive polling by default** for entries without an explicit stored choice. Defaults are **20 s normal · 30 s after an error · 300 s offline/night**, with offline state after **3 consecutive protocol failures**.
+TSUN Local 1.6.0 enables **adaptive polling by default** for entries without an explicit stored choice. Defaults are **20 s normal · 30 s after an error · 300 s offline/night**, with offline state after **3 consecutive protocol failures**.
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
@@ -35,7 +35,7 @@ Beta2 enables **adaptive polling by default** for entries without an explicit st
 | `adaptive_polling_reason` | Communication — Reason | 🛡️ |
 | `adaptive_backoff_events` | Communication — Slowdowns | 🛡️ |
 
-Logger Wi-Fi remains diagnostic only. If the periodic HTTP refresh cannot obtain a current signal, beta2 exposes **0%** instead of leaving the previous percentage visible. Online/offline state and adaptive pacing remain driven by protocol communication results.
+Logger Wi-Fi remains diagnostic only. If the periodic HTTP refresh cannot obtain a current signal, TSUN Local 1.6.0 exposes **0%** instead of leaving the previous percentage visible. Online/offline state and adaptive pacing remain driven by protocol communication results.
 
 ---
 

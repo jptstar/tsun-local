@@ -16,8 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Dein Wechselrichter. Dein Netzwerk. Deine Daten.</h3>
 <p align="center"><strong>Lokal. Nur lesen. Keine Cloud. Kein Proxy.</strong></p>
-<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.5.4</strong></p>
-<p align="center"><strong>Beta 1.6.0-beta.2 zum Testen verfügbar.</strong><br>Der adaptive Abruf ist standardmäßig aktiviert: 20 s normal · 30 s nach einem Fehler · 300 s offline/Nacht. In HACS Beta-Versionen anzeigen und <strong>1.6.0-beta.2</strong> herunterladen.</p>
+<p align="center">Direkter lokaler Zugriff auf kompatible TSUN-Mikrowechselrichter in Home Assistant.<br><strong>1.6.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -54,7 +53,7 @@
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
-**Neu in 1.5.4:** 02B0-Geräte können Wechselrichter-Firmware, Wechselrichtertemperatur und zusätzliche schreibgeschützte Betriebsdiagnosen bereitstellen.
+**Neu in 1.6.0:** Der **adaptive Abruf** ist standardmäßig aktiviert und passt das Abfrageintervall bei Kommunikationsfehlern automatisch an: 20 s normal, 30 s nach einem Fehler und 300 s offline/Nacht.
 
 📚 **[Vollständige Entitätsreferenz](ENTITIES.md)**
 

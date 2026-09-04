@@ -2,6 +2,33 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-09-04
+
+### Added
+
+- Add **adaptive polling**, enabled by default for entries without an explicit stored choice.
+- Add chartable communication diagnostics for adaptive state, effective polling interval, consecutive successes/failures, adaptation reason and slowdown events.
+- Add a per-logger FIFO request queue so one slow or unavailable logger does not block unrelated TSUN devices.
+
+### Changed
+
+- Use default polling limits of **20 s normal**, **30 s after an error** and **300 s offline/night**, with offline state after **3 consecutive protocol failures**.
+- Keep an explicitly saved adaptive-polling choice, including an existing explicit disabled setting.
+- Report logger Wi-Fi signal as **0%** when the periodic local HTTP refresh cannot obtain a current value instead of retaining a stale percentage.
+- Group communication entities under full localized **Communication** labels; the four everyday entities remain enabled by default while duration, blocks, successes, reason and slowdown count remain advanced diagnostics.
+- Harmonize the visible country/profile diagnostic wording across protocol families while keeping protocol-specific internal keys stable.
+
+### Fixed
+
+- Bound TCP writer shutdown on 02B0, 1097 and 1511 so a hanging stream close cannot stall integration cleanup.
+- Keep adaptive availability based on actual protocol polling failures; logger Wi-Fi remains diagnostic only.
+- Mark a micro-inverter online on the first successful protocol poll after an offline period, then recover the polling cadence progressively toward the configured normal interval.
+
+### Validation
+
+- Validate all eight interface languages: English, French, German, Spanish, Italian, Dutch, Polish and Simplified Chinese.
+- Run the complete unit-test suite, HACS repository validation and Home Assistant Hassfest before publication.
+
 ## [1.5.4] - 2026-08-27
 
 ### Added

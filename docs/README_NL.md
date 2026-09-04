@@ -16,8 +16,7 @@
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Jouw omvormer. Jouw netwerk. Jouw data.</h3>
 <p align="center"><strong>Lokaal. Alleen-lezen. Geen cloud. Geen proxy.</strong></p>
-<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.5.4</strong></p>
-<p align="center"><strong>Beta 1.6.0-beta.2 beschikbaar om te testen.</strong><br>Adaptief uitlezen staat standaard aan: 20 s normaal · 30 s na een fout · 300 s offline/nacht. Toon in HACS de bètaversies en download <strong>1.6.0-beta.2</strong>.</p>
+<p align="center">Directe lokale toegang tot compatibele TSUN-micro-omvormers in Home Assistant.<br><strong>1.6.0</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -54,7 +53,7 @@
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
 
-**Nieuw in 1.5.4:** 02B0-apparaten kunnen omvormerfirmware, omvormertemperatuur en extra alleen-lezen bedrijfsdiagnostiek tonen.
+**Nieuw in 1.6.0:** **Adaptief uitlezen** staat standaard aan en past het uitleesinterval automatisch aan bij communicatiefouten: 20 s normaal, 30 s na een fout en 300 s offline/nacht.
 
 📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
