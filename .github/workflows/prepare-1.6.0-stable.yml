@@ -24,10 +24,11 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Normalize translation audit
+      - name: Normalize release audit and public metadata
         run: |
           sed -i '/expected_keys = key_paths(source)/a expected_keys.discard("title")' .github/scripts/prepare_160_stable.py
           sed -i '/source_keys = keys(source)/a\        source_keys.discard("title")' tests/test_beta2_release_contract.py
+          sed -i 's/TSUN Local 1.6.0 adaptive polling\. Read-only, no cloud, no proxy\./TSUN Local 1.6.0 adaptive polling and clear-text alarms. Read-only, no cloud, no proxy./' .github/scripts/prepare_160_stable.py
 
       - name: Finalize stable documentation and release metadata
         run: python3 .github/scripts/prepare_160_stable.py
@@ -41,6 +42,7 @@ jobs:
           grep -q '<strong>1.6.0</strong>' README.md
           grep -q 'NEW IN 1.6.0' docs/index.html
           grep -q '1.6.0 STABLE' docs/entities.html
+          grep -q 'clear-text alarms' docs/index.html
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
