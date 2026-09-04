@@ -65,6 +65,20 @@ jobs:
               sensors['adaptive_backoff_events']['name'] = f'{prefix} — {slowdown}'
               path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
+          test_path = root / 'tests/test_beta2_release_contract.py'
+          test_text = test_path.read_text(encoding='utf-8')
+          test_text = test_text.replace('"Com. — État"', '"Communication — État"')
+          test_text = test_text.replace('"Com. — Dernière réponse"', '"Communication — Dernière réponse"')
+          test_text = test_text.replace('"Com. — Échecs"', '"Communication — Échecs"')
+          test_text = test_text.replace('"Com. — Intervalle"', '"Communication — Intervalle"')
+          anchor = '        self.assertEqual(sensors["adaptive_polling_interval"]["name"], "Communication — Intervalle")\n'
+          if 'Communication — Ralentissements' not in test_text:
+              test_text = test_text.replace(
+                  anchor,
+                  anchor + '        self.assertEqual(sensors["adaptive_backoff_events"]["name"], "Communication — Ralentissements")\n',
+              )
+          test_path.write_text(test_text, encoding='utf-8')
+
           notes = root / 'docs/releases/1.6.0-beta.2.md'
           text = notes.read_text(encoding='utf-8')
           text = text.replace(
@@ -87,6 +101,7 @@ jobs:
           git diff --check
           grep -q '"name": "Communication — Slowdowns"' custom_components/tsun_local/strings.json
           grep -q '"name": "Communication — Ralentissements"' custom_components/tsun_local/translations/fr.json
+          grep -q 'Communication — Ralentissements' tests/test_beta2_release_contract.py
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
