@@ -19,6 +19,26 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 
 ---
 
+## 1.6.0-beta.2 — adaptive polling diagnostics
+
+Beta2 enables **adaptive polling by default** for entries without an explicit stored choice. Defaults are **20 s normal · 30 s after an error · 300 s offline/night**, with offline state after **3 consecutive protocol failures**.
+
+| Entity key | Home Assistant name | Default |
+|---|---|:---:|
+| `adaptive_polling_state` | Com. — State | ✅ |
+| `communication_last_success` | Com. — Last response | ✅ |
+| `communication_failures` | Com. — Failures | ✅ |
+| `adaptive_polling_interval` | Com. — Interval | ✅ |
+| `communication_duration` | Com. — Duration | 🛡️ |
+| `communication_blocks` | Com. — Blocks | 🛡️ |
+| `communication_successes_consecutive` | Com. — Successes | 🛡️ |
+| `adaptive_polling_reason` | Com. — Reason | 🛡️ |
+| `adaptive_backoff_events` | Com. — Backoff | 🛡️ |
+
+Logger Wi-Fi remains diagnostic only. If the periodic HTTP refresh cannot obtain a current signal, beta2 exposes **0%** instead of leaving the previous percentage visible. Online/offline state and adaptive pacing remain driven by protocol communication results.
+
+---
+
 ## MP3000 entity summary — 1511 with six PV inputs
 
 The maximum 1.5.1 MP3000 configuration exposes **108 Home Assistant entities**. The actual number is lower until all six PV inputs have been detected; each additional PV input contributes five production sensors and one disabled raw-alarm diagnostic.

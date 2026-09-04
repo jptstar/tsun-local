@@ -17,6 +17,7 @@
 <h3 align="center">你的逆变器。你的网络。你的数据。</h3>
 <p align="center"><strong>本地。只读。无需云端。无需代理。</strong></p>
 <p align="center">在 Home Assistant 中直接本地访问兼容的 TSUN 微型逆变器。<br><strong>1.5.4</strong></p>
+<p align="center"><strong>1.6.0-beta.2 测试版现已可用。</strong><br>自适应采集默认启用：正常 20 秒 · 出错后 30 秒 · 离线/夜间 300 秒。在 HACS 中显示测试版并下载 <strong>1.6.0-beta.2</strong>。</p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>

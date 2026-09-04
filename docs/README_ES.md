@@ -17,6 +17,7 @@
 <h3 align="center">Tu inversor. Tu red. Tus datos.</h3>
 <p align="center"><strong>Local. Solo lectura. Sin nube. Sin proxy.</strong></p>
 <p align="center">Acceso local directo a microinversores TSUN compatibles en Home Assistant.<br><strong>1.5.4</strong></p>
+<p align="center"><strong>Beta 1.6.0-beta.2 disponible para pruebas.</strong><br>La lectura adaptativa está activada de forma predeterminada: 20 s normal · 30 s tras un error · 300 s sin conexión/noche. En HACS, muestre las versiones beta y descargue <strong>1.6.0-beta.2</strong>.</p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
