@@ -62,14 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Impostazioni di polling",
-        "description": "Configura l’interrogazione di questo microinverter. Se l’interrogazione adattiva è disattivata, gli intervalli seguenti mantengono il normale comportamento fisso. Se è attivata, diventano i limiti usati dall’algoritmo: l’intervallo normale è la cadenza abituale, l’intervallo dopo errore imposta il primo tentativo senza scendere sotto la cadenza normale e l’intervallo offline/notte viene applicato non appena si raggiunge la soglia configurata di errori consecutivi. Tra questi limiti, TSUN Local calcola automaticamente livelli progressivi di backoff. Appena una lettura riesce di nuovo, il microinverter viene marcato immediatamente online e l’intervallo torna progressivamente alla normalità. Modificare intervalli o soglia modifica quindi automaticamente i livelli adattivi. Il segnale Wi-Fi è solo diagnostico e non modifica mai da solo la cadenza di interrogazione.",
+        "title": "Impostazioni di lettura",
+        "description": "La lettura adattiva regola automaticamente la frequenza delle letture quando la comunicazione diventa instabile o il microinverter è offline. Una comunicazione riuscita riporta progressivamente la lettura al ritmo normale.",
         "data": {
-          "adaptive_polling": "Polling adattivo",
-          "scan_interval": "Intervallo di polling normale",
-          "error_scan_interval": "Intervallo di nuovo tentativo dopo errore",
-          "offline_scan_interval": "Intervallo di polling offline/notturno",
-          "failure_threshold": "Errori prima dello stato offline"
+          "adaptive_polling": "Lettura adattiva",
+          "scan_interval": "Intervallo normale",
+          "error_scan_interval": "Intervallo dopo errore",
+          "offline_scan_interval": "Offline / notte",
+          "failure_threshold": "Errori prima di offline"
         }
       }
     }
@@ -185,28 +185,28 @@
         "name": "Registro grezzo 3028 (temperatura ambiente inverter)"
       },
       "communication_last_success": {
-        "name": "Ultima comunicazione riuscita"
+        "name": "Com. — Ultima risposta"
       },
       "communication_duration": {
-        "name": "Durata della comunicazione"
+        "name": "Com. — Durata"
       },
       "communication_blocks": {
-        "name": "Blocchi ricevuti"
+        "name": "Com. — Blocchi"
       },
       "communication_failures": {
-        "name": "Errori di comunicazione consecutivi"
+        "name": "Com. — Errori"
       },
       "communication_successes_consecutive": {
-        "name": "Comunicazioni riuscite consecutive"
+        "name": "Com. — Successi"
       },
       "adaptive_polling_interval": {
-        "name": "Intervallo di polling effettivo"
+        "name": "Com. — Intervallo"
       },
       "adaptive_backoff_events": {
-        "name": "Rallentamenti adattivi"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "Stato del polling adattivo",
+        "name": "Com. — Stato",
         "state": {
           "disabled": "Disattivato",
           "normal": "Normale",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Motivo dell’adattamento",
+        "name": "Com. — Motivo",
         "state": {
           "disabled": "Disattivato",
           "normal": "Normale",
@@ -424,10 +424,10 @@
         "name": "Coefficiente di ingresso"
       },
       "product_compliance_type_raw": {
-        "name": "Tipo di conformità prodotto grezzo"
+        "name": "Profilo paese (grezzo)"
       },
       "country_profile_raw": {
-        "name": "Codice paese/profilo"
+        "name": "Profilo paese (grezzo)"
       },
       "inverter_operating_state": {
         "name": "Stato operativo dell'inverter",

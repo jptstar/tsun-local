@@ -62,14 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "轮询设置",
-        "description": "配置此微型逆变器的轮询行为。关闭自适应轮询时，下方各间隔保持原有的固定轮询逻辑。启用后，这些值将作为算法边界：正常间隔是常规轮询周期；错误间隔决定第一次重试的延迟，且不会短于正常间隔；达到所配置的连续失败阈值后，会立即使用离线/夜间间隔。TSUN Local 会在这些边界之间自动计算逐级退避间隔。只要再次成功读取，微型逆变器会立即恢复为在线状态，随后轮询间隔逐步恢复到正常值。因此，修改任一间隔或失败阈值都会自动改变自适应轮询的阶梯。Wi-Fi 信号仅用于诊断，本身绝不会改变轮询频率。",
+        "title": "采集设置",
+        "description": "自适应采集会在通信不稳定或微型逆变器离线时自动调整读取频率。通信恢复成功后，采集频率会逐步回到正常值。",
         "data": {
-          "adaptive_polling": "自适应轮询",
-          "scan_interval": "正常轮询间隔",
-          "error_scan_interval": "错误后重试间隔",
-          "offline_scan_interval": "离线/夜间轮询间隔",
-          "failure_threshold": "转为离线前的失败次数"
+          "adaptive_polling": "自适应采集",
+          "scan_interval": "正常间隔",
+          "error_scan_interval": "出错后间隔",
+          "offline_scan_interval": "离线 / 夜间",
+          "failure_threshold": "判定离线前失败次数"
         }
       }
     }
@@ -185,28 +185,28 @@
         "name": "原始寄存器 3028（逆变器环境温度）"
       },
       "communication_last_success": {
-        "name": "上次成功通信"
+        "name": "Com. — 最近响应"
       },
       "communication_duration": {
-        "name": "通信耗时"
+        "name": "Com. — 时长"
       },
       "communication_blocks": {
-        "name": "已接收数据块"
+        "name": "Com. — 数据块"
       },
       "communication_failures": {
-        "name": "连续通信失败次数"
+        "name": "Com. — 失败"
       },
       "communication_successes_consecutive": {
-        "name": "连续通信成功"
+        "name": "Com. — 成功"
       },
       "adaptive_polling_interval": {
-        "name": "实际轮询间隔"
+        "name": "Com. — 间隔"
       },
       "adaptive_backoff_events": {
-        "name": "自适应退避次数"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "自适应轮询状态",
+        "name": "Com. — 状态",
         "state": {
           "disabled": "已禁用",
           "normal": "正常",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "自适应调整原因",
+        "name": "Com. — 原因",
         "state": {
           "disabled": "已禁用",
           "normal": "正常",
@@ -424,10 +424,10 @@
         "name": "输入系数"
       },
       "product_compliance_type_raw": {
-        "name": "原始产品合规类型"
+        "name": "国家配置（原始）"
       },
       "country_profile_raw": {
-        "name": "国家/配置代码"
+        "name": "国家配置（原始）"
       },
       "inverter_operating_state": {
         "name": "逆变器运行状态",

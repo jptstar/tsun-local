@@ -62,14 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Ustawienia odpytywania",
-        "description": "Skonfiguruj odpytywanie tego mikrofalownika. Gdy adaptacyjne odpytywanie jest wyłączone, poniższe interwały zachowują dotychczasowe stałe działanie. Po włączeniu stają się granicami algorytmu: interwał normalny jest zwykłą częstotliwością, interwał po błędzie określa pierwszą ponowną próbę bez zejścia poniżej interwału normalnego, a interwał offline/noc jest stosowany natychmiast po osiągnięciu ustawionego progu kolejnych błędów. Pomiędzy tymi granicami TSUN Local automatycznie wylicza stopniowe poziomy backoff. Gdy odczyt ponownie się powiedzie, mikrofalownik jest natychmiast oznaczany jako online, a interwał stopniowo wraca do normalnego. Zmiana interwałów lub progu automatycznie zmienia więc poziomy adaptacyjne. Sygnał Wi-Fi ma wyłącznie znaczenie diagnostyczne i sam nigdy nie zmienia częstotliwości odpytywania.",
+        "title": "Ustawienia odczytu",
+        "description": "Odczyt adaptacyjny automatycznie dostosowuje częstotliwość odczytów, gdy komunikacja staje się niestabilna lub mikrofalownik jest offline. Udana komunikacja stopniowo przywraca normalne tempo odczytu.",
         "data": {
-          "adaptive_polling": "Adaptacyjne odpytywanie",
-          "scan_interval": "Normalny interwał odpytywania",
-          "error_scan_interval": "Interwał ponowienia po błędzie",
-          "offline_scan_interval": "Interwał odpytywania offline/noc",
-          "failure_threshold": "Błędy przed przejściem offline"
+          "adaptive_polling": "Odczyt adaptacyjny",
+          "scan_interval": "Normalny interwał",
+          "error_scan_interval": "Interwał po błędzie",
+          "offline_scan_interval": "Offline / noc",
+          "failure_threshold": "Błędy przed offline"
         }
       }
     }
@@ -185,28 +185,28 @@
         "name": "Surowy rejestr 3028 (temperatura otoczenia falownika)"
       },
       "communication_last_success": {
-        "name": "Ostatnia udana komunikacja"
+        "name": "Com. — Ostatnia odpowiedź"
       },
       "communication_duration": {
-        "name": "Czas komunikacji"
+        "name": "Com. — Czas"
       },
       "communication_blocks": {
-        "name": "Odebrane bloki"
+        "name": "Com. — Bloki"
       },
       "communication_failures": {
-        "name": "Kolejne błędy komunikacji"
+        "name": "Com. — Błędy"
       },
       "communication_successes_consecutive": {
-        "name": "Kolejne udane komunikacje"
+        "name": "Com. — Sukcesy"
       },
       "adaptive_polling_interval": {
-        "name": "Efektywny interwał odpytywania"
+        "name": "Com. — Interwał"
       },
       "adaptive_backoff_events": {
-        "name": "Adaptacyjne wydłużenia interwału"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "Stan adaptacyjnego odpytywania",
+        "name": "Com. — Stan",
         "state": {
           "disabled": "Wyłączone",
           "normal": "Normalny",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Powód adaptacji",
+        "name": "Com. — Powód",
         "state": {
           "disabled": "Wyłączone",
           "normal": "Normalny",
@@ -424,10 +424,10 @@
         "name": "Współczynnik wejściowy"
       },
       "product_compliance_type_raw": {
-        "name": "Surowy typ zgodności produktu"
+        "name": "Profil kraju (surowy)"
       },
       "country_profile_raw": {
-        "name": "Kod kraju/profilu"
+        "name": "Profil kraju (surowy)"
       },
       "inverter_operating_state": {
         "name": "Stan pracy falownika",

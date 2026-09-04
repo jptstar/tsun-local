@@ -62,14 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Paramètres d’interrogation",
-        "description": "Réglez l’interrogation de ce micro-onduleur. Si l’interrogation adaptative est désactivée, les intervalles ci-dessous gardent le comportement fixe habituel. Si elle est activée, ils servent de limites à l’algorithme : l’intervalle normal est la cadence habituelle, l’intervalle après erreur fixe le premier délai de nouvelle tentative sans descendre sous la cadence normale, et l’intervalle hors ligne/nuit est appliqué dès que le seuil configuré d’échecs consécutifs est atteint. Entre ces limites, TSUN Local calcule automatiquement des paliers progressifs. Dès qu’une lecture réussit de nouveau, le micro-onduleur repasse immédiatement en ligne puis l’intervalle revient progressivement à la normale. Modifier les intervalles ou le seuil modifie donc automatiquement les paliers adaptatifs. Le signal Wi-Fi reste uniquement diagnostique et ne change jamais la cadence à lui seul.",
+        "title": "Réglages de la relève",
+        "description": "La relève adaptative ajuste automatiquement la fréquence des lectures lorsque la communication devient instable ou que le micro-onduleur est hors ligne. Une communication réussie ramène progressivement la relève à son rythme normal.",
         "data": {
-          "adaptive_polling": "Interrogation adaptative",
+          "adaptive_polling": "Relève adaptative",
           "scan_interval": "Intervalle normal",
-          "error_scan_interval": "Intervalle après une erreur",
-          "offline_scan_interval": "Intervalle hors ligne/nuit",
-          "failure_threshold": "Échecs avant passage hors ligne"
+          "error_scan_interval": "Intervalle après erreur",
+          "offline_scan_interval": "Hors ligne / nuit",
+          "failure_threshold": "Échecs avant hors ligne"
         }
       }
     }
@@ -170,28 +170,28 @@
         "name": "Registre brut 3028 (température ambiante onduleur)"
       },
       "communication_last_success": {
-        "name": "Dernière communication réussie"
+        "name": "Com. — Dernière réponse"
       },
       "communication_duration": {
-        "name": "Durée de communication"
+        "name": "Com. — Durée"
       },
       "communication_blocks": {
-        "name": "Blocs reçus"
+        "name": "Com. — Blocs"
       },
       "communication_failures": {
-        "name": "Échecs de communication consécutifs"
+        "name": "Com. — Échecs"
       },
       "communication_successes_consecutive": {
-        "name": "Succès de communication consécutifs"
+        "name": "Com. — Succès"
       },
       "adaptive_polling_interval": {
-        "name": "Intervalle d’interrogation effectif"
+        "name": "Com. — Intervalle"
       },
       "adaptive_backoff_events": {
-        "name": "Ralentissements adaptatifs"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "État de l’interrogation adaptative",
+        "name": "Com. — État",
         "state": {
           "disabled": "Désactivé",
           "normal": "Normal",
@@ -201,7 +201,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Raison de l’adaptation",
+        "name": "Com. — Raison",
         "state": {
           "disabled": "Désactivé",
           "normal": "Normal",
@@ -424,10 +424,10 @@
         "name": "Coefficient d’entrée"
       },
       "product_compliance_type_raw": {
-        "name": "Type de conformité produit brut"
+        "name": "Profil pays (brut)"
       },
       "country_profile_raw": {
-        "name": "Code pays/profil"
+        "name": "Profil pays (brut)"
       },
       "inverter_operating_state": {
         "name": "État de fonctionnement de l’onduleur",

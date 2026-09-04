@@ -64,12 +64,12 @@
     "step": {
       "init": {
         "title": "Polling settings",
-        "description": "Configure polling for this micro-inverter. If Adaptive polling is disabled, the intervals below keep the usual fixed behavior. If it is enabled, they become the limits used by the algorithm: the normal interval is the regular cadence, the error interval sets the first retry delay without going below the normal cadence, and the offline/night interval is applied as soon as the configured consecutive-failure threshold is reached. Between these limits, TSUN Local automatically builds progressive backoff steps. As soon as a poll succeeds again, the micro-inverter is marked online immediately and the interval progressively returns to normal. Changing the intervals or the failure threshold therefore changes the adaptive steps automatically. Wi-Fi signal is diagnostic only and never changes the polling cadence by itself.",
+        "description": "Adaptive polling automatically adjusts the reading frequency when communication becomes unstable or the micro-inverter is offline. Successful communication progressively returns polling to its normal rate.",
         "data": {
           "adaptive_polling": "Adaptive polling",
-          "scan_interval": "Normal polling interval",
-          "error_scan_interval": "Retry interval after error",
-          "offline_scan_interval": "Offline/night polling interval",
+          "scan_interval": "Normal interval",
+          "error_scan_interval": "Interval after error",
+          "offline_scan_interval": "Offline / night",
           "failure_threshold": "Failures before offline"
         }
       }
@@ -171,28 +171,28 @@
         "name": "Raw register 3028 (inverter ambient temperature)"
       },
       "communication_last_success": {
-        "name": "Last successful communication"
+        "name": "Com. — Last response"
       },
       "communication_duration": {
-        "name": "Communication duration"
+        "name": "Com. — Duration"
       },
       "communication_blocks": {
-        "name": "Blocks received"
+        "name": "Com. — Blocks"
       },
       "communication_failures": {
-        "name": "Consecutive communication failures"
+        "name": "Com. — Failures"
       },
       "communication_successes_consecutive": {
-        "name": "Consecutive communication successes"
+        "name": "Com. — Successes"
       },
       "adaptive_polling_interval": {
-        "name": "Effective polling interval"
+        "name": "Com. — Interval"
       },
       "adaptive_backoff_events": {
-        "name": "Adaptive backoff events"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "Adaptive polling state",
+        "name": "Com. — State",
         "state": {
           "disabled": "Disabled",
           "normal": "Normal",
@@ -202,7 +202,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Adaptive polling reason",
+        "name": "Com. — Reason",
         "state": {
           "disabled": "Disabled",
           "normal": "Normal",
@@ -425,10 +425,10 @@
         "name": "Input coefficient"
       },
       "product_compliance_type_raw": {
-        "name": "Raw product compliance type"
+        "name": "Country profile (raw)"
       },
       "country_profile_raw": {
-        "name": "Country/profile code"
+        "name": "Country profile (raw)"
       },
       "inverter_operating_state": {
         "name": "Inverter operating state",

@@ -62,13 +62,13 @@
   "options": {
     "step": {
       "init": {
-        "title": "Abfrageeinstellungen",
-        "description": "Legen Sie das Abfrageverhalten dieses Mikro-Wechselrichters fest. Ist die adaptive Abfrage deaktiviert, behalten die folgenden Intervalle das gewohnte feste Verhalten. Ist sie aktiviert, dienen sie als Grenzen des Algorithmus: Das normale Intervall ist der übliche Takt, das Fehlerintervall legt die erste Wiederholungsverzögerung fest, ohne den normalen Takt zu unterschreiten, und das Offline-/Nachtintervall wird angewendet, sobald die konfigurierte Schwelle aufeinanderfolgender Fehler erreicht ist. Dazwischen berechnet TSUN Local automatisch progressive Backoff-Stufen. Sobald eine Abfrage wieder erfolgreich ist, wird der Mikro-Wechselrichter sofort als online markiert und das Intervall schrittweise auf normal zurückgeführt. Änderungen an Intervallen oder Schwelle ändern somit automatisch die adaptiven Stufen. Das WLAN-Signal dient nur der Diagnose und verändert den Abfragetakt niemals allein.",
+        "title": "Abrufeinstellungen",
+        "description": "Der adaptive Abruf passt die Lesehäufigkeit automatisch an, wenn die Kommunikation instabil wird oder der Mikro-Wechselrichter offline ist. Erfolgreiche Kommunikation führt den Abruf schrittweise zum normalen Intervall zurück.",
         "data": {
-          "adaptive_polling": "Adaptive Abfrage",
-          "scan_interval": "Normales Abfrageintervall",
-          "error_scan_interval": "Wiederholungsintervall nach Fehler",
-          "offline_scan_interval": "Abfrageintervall offline/nachts",
+          "adaptive_polling": "Adaptiver Abruf",
+          "scan_interval": "Normales Intervall",
+          "error_scan_interval": "Intervall nach Fehler",
+          "offline_scan_interval": "Offline / Nacht",
           "failure_threshold": "Fehler bis offline"
         }
       }
@@ -185,28 +185,28 @@
         "name": "Rohregister 3028 (Umgebungstemperatur des Wechselrichters)"
       },
       "communication_last_success": {
-        "name": "Letzte erfolgreiche Kommunikation"
+        "name": "Com. — Letzte Antwort"
       },
       "communication_duration": {
-        "name": "Kommunikationsdauer"
+        "name": "Com. — Dauer"
       },
       "communication_blocks": {
-        "name": "Empfangene Blöcke"
+        "name": "Com. — Blöcke"
       },
       "communication_failures": {
-        "name": "Aufeinanderfolgende Kommunikationsfehler"
+        "name": "Com. — Fehler"
       },
       "communication_successes_consecutive": {
-        "name": "Aufeinanderfolgende Kommunikationserfolge"
+        "name": "Com. — Erfolge"
       },
       "adaptive_polling_interval": {
-        "name": "Effektives Abfrageintervall"
+        "name": "Com. — Intervall"
       },
       "adaptive_backoff_events": {
-        "name": "Adaptive Intervallverlängerungen"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "Status der adaptiven Abfrage",
+        "name": "Com. — Status",
         "state": {
           "disabled": "Deaktiviert",
           "normal": "Normal",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Grund der Anpassung",
+        "name": "Com. — Grund",
         "state": {
           "disabled": "Deaktiviert",
           "normal": "Normal",
@@ -424,10 +424,10 @@
         "name": "Eingangskoeffizient"
       },
       "product_compliance_type_raw": {
-        "name": "Roher Produktkonformitätstyp"
+        "name": "Länderprofil (roh)"
       },
       "country_profile_raw": {
-        "name": "Länder-/Profilcode"
+        "name": "Länderprofil (roh)"
       },
       "inverter_operating_state": {
         "name": "Betriebszustand des Wechselrichters",

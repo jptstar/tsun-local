@@ -62,14 +62,14 @@
   "options": {
     "step": {
       "init": {
-        "title": "Ajustes de sondeo",
-        "description": "Configure el sondeo de este microinversor. Si el sondeo adaptativo está desactivado, los intervalos siguientes mantienen el comportamiento fijo habitual. Si está activado, pasan a ser los límites del algoritmo: el intervalo normal es la cadencia habitual, el intervalo tras error fija el primer reintento sin bajar de la cadencia normal y el intervalo sin conexión/nocturno se aplica en cuanto se alcanza el umbral configurado de fallos consecutivos. Entre estos límites, TSUN Local calcula automáticamente pasos progresivos de espera. En cuanto una lectura vuelve a tener éxito, el microinversor se marca inmediatamente como en línea y el intervalo vuelve progresivamente a la normalidad. Cambiar los intervalos o el umbral cambia automáticamente los pasos adaptativos. La señal Wi-Fi es solo diagnóstica y nunca modifica por sí sola la cadencia de sondeo.",
+        "title": "Ajustes de lectura",
+        "description": "La lectura adaptativa ajusta automáticamente la frecuencia de las lecturas cuando la comunicación se vuelve inestable o el microinversor está sin conexión. Una comunicación correcta devuelve progresivamente la lectura a su ritmo normal.",
         "data": {
-          "adaptive_polling": "Sondeo adaptativo",
-          "scan_interval": "Intervalo de sondeo normal",
-          "error_scan_interval": "Intervalo de reintento tras error",
-          "offline_scan_interval": "Intervalo de sondeo sin conexión/nocturno",
-          "failure_threshold": "Fallos antes de desconectarse"
+          "adaptive_polling": "Lectura adaptativa",
+          "scan_interval": "Intervalo normal",
+          "error_scan_interval": "Intervalo tras error",
+          "offline_scan_interval": "Sin conexión / noche",
+          "failure_threshold": "Fallos antes de desconectar"
         }
       }
     }
@@ -185,28 +185,28 @@
         "name": "Registro bruto 3028 (temperatura ambiente del inversor)"
       },
       "communication_last_success": {
-        "name": "Última comunicación correcta"
+        "name": "Com. — Última respuesta"
       },
       "communication_duration": {
-        "name": "Duración de la comunicación"
+        "name": "Com. — Duración"
       },
       "communication_blocks": {
-        "name": "Bloques recibidos"
+        "name": "Com. — Bloques"
       },
       "communication_failures": {
-        "name": "Fallos de comunicación consecutivos"
+        "name": "Com. — Fallos"
       },
       "communication_successes_consecutive": {
-        "name": "Comunicaciones correctas consecutivas"
+        "name": "Com. — Éxitos"
       },
       "adaptive_polling_interval": {
-        "name": "Intervalo de sondeo efectivo"
+        "name": "Com. — Intervalo"
       },
       "adaptive_backoff_events": {
-        "name": "Reducciones de frecuencia adaptativas"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "Estado del sondeo adaptativo",
+        "name": "Com. — Estado",
         "state": {
           "disabled": "Desactivado",
           "normal": "Normal",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Motivo de la adaptación",
+        "name": "Com. — Motivo",
         "state": {
           "disabled": "Desactivado",
           "normal": "Normal",
@@ -424,10 +424,10 @@
         "name": "Coeficiente de entrada"
       },
       "product_compliance_type_raw": {
-        "name": "Tipo de conformidad del producto bruto"
+        "name": "Perfil de país (bruto)"
       },
       "country_profile_raw": {
-        "name": "Código de país/perfil"
+        "name": "Perfil de país (bruto)"
       },
       "inverter_operating_state": {
         "name": "Estado de funcionamiento del inversor",

@@ -62,13 +62,13 @@
   "options": {
     "step": {
       "init": {
-        "title": "Pollinginstellingen",
-        "description": "Stel het pollinggedrag van deze micro-omvormer in. Als Adaptieve polling is uitgeschakeld, behouden de onderstaande intervallen het gebruikelijke vaste gedrag. Als het is ingeschakeld, vormen ze de grenzen voor het algoritme: het normale interval is het gebruikelijke tempo, het foutinterval bepaalt de eerste nieuwe poging zonder onder het normale tempo te komen en het offline-/nachtinterval wordt toegepast zodra de ingestelde drempel voor opeenvolgende fouten is bereikt. Tussen deze grenzen berekent TSUN Local automatisch oplopende backoff-stappen. Zodra een poll opnieuw slaagt, wordt de micro-omvormer onmiddellijk online gemarkeerd en keert het interval stapsgewijs terug naar normaal. Wijzigingen aan intervallen of drempel wijzigen dus automatisch de adaptieve stappen. Het wifi-signaal is alleen voor diagnose en verandert nooit zelfstandig het pollingtempo.",
+        "title": "Uitleesinstellingen",
+        "description": "Adaptief uitlezen past de leesfrequentie automatisch aan wanneer de communicatie instabiel wordt of de micro-omvormer offline is. Succesvolle communicatie brengt het uitlezen geleidelijk terug naar het normale tempo.",
         "data": {
-          "adaptive_polling": "Adaptieve polling",
-          "scan_interval": "Normaal pollinginterval",
-          "error_scan_interval": "Herhalingsinterval na fout",
-          "offline_scan_interval": "Pollinginterval offline/'s nachts",
+          "adaptive_polling": "Adaptief uitlezen",
+          "scan_interval": "Normaal interval",
+          "error_scan_interval": "Interval na fout",
+          "offline_scan_interval": "Offline / nacht",
           "failure_threshold": "Fouten vóór offline"
         }
       }
@@ -185,28 +185,28 @@
         "name": "Ruw register 3028 (omgevingstemperatuur omvormer)"
       },
       "communication_last_success": {
-        "name": "Laatste geslaagde communicatie"
+        "name": "Com. — Laatste antwoord"
       },
       "communication_duration": {
-        "name": "Communicatieduur"
+        "name": "Com. — Duur"
       },
       "communication_blocks": {
-        "name": "Ontvangen blokken"
+        "name": "Com. — Blokken"
       },
       "communication_failures": {
-        "name": "Opeenvolgende communicatiefouten"
+        "name": "Com. — Fouten"
       },
       "communication_successes_consecutive": {
-        "name": "Opeenvolgende succesvolle communicaties"
+        "name": "Com. — Successen"
       },
       "adaptive_polling_interval": {
-        "name": "Effectief pollinginterval"
+        "name": "Com. — Interval"
       },
       "adaptive_backoff_events": {
-        "name": "Adaptieve vertragingen"
+        "name": "Com. — Backoff"
       },
       "adaptive_polling_state": {
-        "name": "Status adaptieve polling",
+        "name": "Com. — Status",
         "state": {
           "disabled": "Uitgeschakeld",
           "normal": "Normaal",
@@ -216,7 +216,7 @@
         }
       },
       "adaptive_polling_reason": {
-        "name": "Reden voor aanpassing",
+        "name": "Com. — Reden",
         "state": {
           "disabled": "Uitgeschakeld",
           "normal": "Normaal",
@@ -424,10 +424,10 @@
         "name": "Ingangscoëfficiënt"
       },
       "product_compliance_type_raw": {
-        "name": "Ruw productconformiteitstype"
+        "name": "Landprofiel (ruw)"
       },
       "country_profile_raw": {
-        "name": "Land-/profielcode"
+        "name": "Landprofiel (ruw)"
       },
       "inverter_operating_state": {
         "name": "Bedrijfstoestand omvormer",

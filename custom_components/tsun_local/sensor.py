@@ -693,6 +693,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.MILLISECONDS,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     TsunSensorDescription(
         key="communication_blocks",
@@ -701,6 +702,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         native_unit_of_measurement="blocks",
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     TsunSensorDescription(
         key="communication_failures",
@@ -715,6 +717,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         translation_key="communication_successes_consecutive",
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     TsunSensorDescription(
         key="adaptive_polling_interval",
@@ -731,6 +734,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         translation_key="adaptive_backoff_events",
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     TsunSensorDescription(
         key="adaptive_polling_state",
@@ -753,6 +757,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
             "recovery",
         ],
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
     TsunSensorDescription(
         key="label_serial_number",

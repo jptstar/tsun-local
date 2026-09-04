@@ -230,14 +230,19 @@ async def async_setup_entry(
                     ("logger_mac_address", refreshed.mac_address),
                     ("inverter_serial_number", refreshed.inverter_serial_number),
                     ("logger_raw_profile", refreshed.raw_profile),
-                    ("logger_wifi_signal", refreshed.wifi_signal),
                 ):
                     if value is not None:
                         updates[key] = value
+                updates["logger_wifi_signal"] = (
+                    refreshed.wifi_signal
+                    if refreshed.wifi_signal is not None
+                    else 0
+                )
             else:
                 signal = await async_read_logger_wifi_signal(hass, host)
-                if signal is not None:
-                    updates["logger_wifi_signal"] = signal
+                updates["logger_wifi_signal"] = (
+                    signal if signal is not None else 0
+                )
 
         if not updates or not coordinator.async_update_logger_metadata(
             updates
