@@ -25,15 +25,15 @@ Beta2 enables **adaptive polling by default** for entries without an explicit st
 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
-| `adaptive_polling_state` | Com. — State | ✅ |
-| `communication_last_success` | Com. — Last response | ✅ |
-| `communication_failures` | Com. — Failures | ✅ |
-| `adaptive_polling_interval` | Com. — Interval | ✅ |
-| `communication_duration` | Com. — Duration | 🛡️ |
-| `communication_blocks` | Com. — Blocks | 🛡️ |
-| `communication_successes_consecutive` | Com. — Successes | 🛡️ |
-| `adaptive_polling_reason` | Com. — Reason | 🛡️ |
-| `adaptive_backoff_events` | Com. — Backoff | 🛡️ |
+| `adaptive_polling_state` | Communication — State | ✅ |
+| `communication_last_success` | Communication — Last response | ✅ |
+| `communication_failures` | Communication — Failures | ✅ |
+| `adaptive_polling_interval` | Communication — Interval | ✅ |
+| `communication_duration` | Communication — Duration | 🛡️ |
+| `communication_blocks` | Communication — Blocks | 🛡️ |
+| `communication_successes_consecutive` | Communication — Successes | 🛡️ |
+| `adaptive_polling_reason` | Communication — Reason | 🛡️ |
+| `adaptive_backoff_events` | Communication — Slowdowns | 🛡️ |
 
 Logger Wi-Fi remains diagnostic only. If the periodic HTTP refresh cannot obtain a current signal, beta2 exposes **0%** instead of leaving the previous percentage visible. Online/offline state and adaptive pacing remain driven by protocol communication results.
 
