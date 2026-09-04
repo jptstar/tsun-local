@@ -17,6 +17,7 @@
 <h3 align="center">Votre onduleur. Votre réseau. Vos données.</h3>
 <p align="center"><strong>Local. Lecture seule. Sans cloud. Sans proxy.</strong></p>
 <p align="center">Accès local direct aux micro-onduleurs TSUN compatibles dans Home Assistant.<br><strong>1.5.4</strong></p>
+<p align="center"><strong>Bêta 1.6.0-beta.2 disponible pour test.</strong><br>La relève adaptative est activée par défaut : 20 s normal · 30 s après erreur · 300 s hors ligne/nuit. Dans HACS, affichez les versions bêta puis téléchargez <strong>1.6.0-beta.2</strong>.</p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>

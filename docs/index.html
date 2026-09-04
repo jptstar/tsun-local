@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Monitor TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Validated on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2; no cloud or proxy.">
+  <meta name="description" content="Monitor TSUN microinverters locally in Home Assistant with TSUN Local 1.5.4. Beta 1.6.0-beta.2 adds adaptive polling. Validated on TSOL-MP3000, TSOL-MX500, TSOL-MS800 and Sunology PLAY2; no cloud or proxy.">
   <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, TSOL-MP3000, TSOL-MX500, TSOL-MS800, Sunology PLAY2, Sunology Play 2, HACS, local solar monitoring, 1511, 02B0, 1097">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
@@ -112,7 +112,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="TSUN Local — TSUN Microinverters in Home Assistant">
-  <meta property="og:description" content="Automatic local TSUN microinverter monitoring in Home Assistant. Read-only, no cloud, no proxy, with clear-text alarms in 1.5.4.">
+  <meta property="og:description" content="Automatic local TSUN microinverter monitoring in Home Assistant. Stable 1.5.4 keeps clear-text alarms; beta 1.6.0-beta.2 adds adaptive polling. Read-only, no cloud, no proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
@@ -168,6 +168,17 @@
 </header>
 
 <main class="wrap">
+  <section id="beta2">
+    <span class="section-badge beta">BETA 1.6.0-beta.2</span>
+    <h2>Adaptive polling for unstable and offline communication</h2>
+    <p class="intro">Beta2 enables adaptive polling by default. TSUN Local starts at 20 s, retries after an error at 30 s, and uses 300 s when the configured failure threshold marks the micro-inverter offline. Successful reads progressively return polling toward the normal interval.</p>
+    <div class="grid">
+      <div class="card"><strong>20 s</strong><span class="muted">Normal interval</span></div>
+      <div class="card"><strong>30 s</strong><span class="muted">Interval after an error</span></div>
+      <div class="card"><strong>300 s</strong><span class="muted">Offline / night interval</span></div>
+    </div>
+    <div class="install-note">Test it in HACS: TSUN Local → Redownload → show beta versions → 1.6.0-beta.2.</div>
+  </section>
   <section id="features">
     <h2>Everything you need from your TSUN inverter</h2>
     <p class="intro">TSUN Local focuses on useful Home Assistant entities first, while keeping protocol details and advanced diagnostics out of the way until you need them.</p>
@@ -175,7 +186,7 @@
       <div class="card"><strong>☀️ PV production</strong><span class="muted">Voltage, current, power, daily energy and total energy for each detected PV input.</span></div>
       <div class="card"><strong>⚡ AC telemetry</strong><span class="muted">Voltage, current, frequency, power, daily energy and total energy.</span></div>
       <div class="card"><strong>🚨 Alarms</strong><span class="muted">Compact alarm state, active alarm count and readable alarm names where available.</span></div>
-      <div class="card"><strong>📡 Communication</strong><span class="muted">Online state, last successful communication, duration and consecutive failures.</span></div>
+      <div class="card"><strong>📡 Communication</strong><span class="muted">Online state plus concise adaptive-polling diagnostics: state, last response, failures and current interval.</span></div>
       <div class="card"><strong>🧩 Device information</strong><span class="muted">Firmware, logger information and dynamically detected PV inputs.</span></div>
       <div class="card"><strong>🛡️ Advanced diagnostics</strong><span class="muted">Read-only expert diagnostics stay disabled by default until they are needed.</span></div>
     </div>

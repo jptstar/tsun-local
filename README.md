@@ -17,6 +17,7 @@
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
 <p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.5.4</strong></p>
+<p align="center"><strong>Beta 1.6.0-beta.2 available for testing.</strong><br>Adaptive polling is enabled by default: 20 s normal · 30 s after an error · 300 s offline/night. In HACS, show beta versions and download <strong>1.6.0-beta.2</strong>.</p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>

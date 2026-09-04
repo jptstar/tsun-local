@@ -17,6 +17,7 @@
 <h3 align="center">Twój falownik. Twoja sieć. Twoje dane.</h3>
 <p align="center"><strong>Lokalnie. Tylko odczyt. Bez chmury. Bez proxy.</strong></p>
 <p align="center">Bezpośredni lokalny dostęp do zgodnych mikrofalowników TSUN w Home Assistant.<br><strong>1.5.4</strong></p>
+<p align="center"><strong>Beta 1.6.0-beta.2 jest dostępna do testów.</strong><br>Odczyt adaptacyjny jest domyślnie włączony: 20 s normalnie · 30 s po błędzie · 300 s offline/noc. W HACS pokaż wersje beta i pobierz <strong>1.6.0-beta.2</strong>.</p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
