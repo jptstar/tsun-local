@@ -2,12 +2,30 @@
 
 [← Back to the project README](../README.md)
 
-`tsun_dump.py` creates standardized hardware-validation captures for TSUN micro-inverters without Home Assistant and without installing TSUN Local.
+TSUN Local provides two front ends for the same privacy-safe, strictly read-only hardware-validation engine: a portable Windows executable for normal users and the standalone `tsun_dump.py` script for advanced use.
 
 > [!IMPORTANT]
-> The tool is **strictly read-only**. It contains no inverter configuration write path. It only implements the local read operations needed for hardware validation.
+> Both tools are **strictly read-only**. They contain no inverter configuration write path and only implement the local read operations needed for hardware validation.
 
-## ⬇️ Download one file
+## ⬇️ Windows — portable executable
+
+**[Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+
+No installation, Python environment or command prompt is required. The interface is available in French and English and uses the same dump engine described below.
+
+For a communication problem, use this sequence:
+
+1. Keep the problem present and download the Home Assistant diagnostic before reloading the integration.
+2. Disable the affected TSUN Local config entry.
+3. Run `TSUN-Local-Diagnostic.exe`.
+4. Confirm that the affected TSUN Local entry is disabled.
+5. Run the **full diagnostic**.
+6. Send the generated anonymized JSON together with the Home Assistant diagnostic when available.
+7. Re-enable the TSUN Local config entry.
+
+The executable is currently unsigned, so Windows SmartScreen may display an unknown-publisher warning. Its source and the complete GitHub Actions build workflow are public in this repository. A SHA-256 checksum is published next to the executable in the stable release.
+
+## ⬇️ Python script — macOS, Linux and advanced users
 
 **[Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
@@ -28,15 +46,15 @@ cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-### Windows
+### Windows command line
 
-From PowerShell or Command Prompt in the folder containing the file:
+The Python script remains available for advanced Windows users. From PowerShell or Command Prompt in the folder containing the file:
 
 ```powershell
 py tsun_dump.py --full
 ```
 
-Python **3.10 or newer** is required.
+Python **3.10 or newer** is required for the script only; it is not required for `TSUN-Local-Diagnostic.exe`.
 
 If the Monitor SN is already known, it can be passed directly to avoid any interactive terminal input:
 
@@ -250,8 +268,8 @@ Unknown research registers are never assigned speculative semantic names by the 
 
 ## Safety design
 
-- one standalone auditable Python file;
-- Python standard library only;
+- one standalone auditable Python engine plus a small Windows GUI wrapper;
+- Python standard library only for the dump engine;
 - read-only UDP discovery;
 - repeated UDP discovery plus bounded `/24` TCP fallback on port 8899;
 - direct UDP retry for TCP-only candidates;
@@ -269,7 +287,7 @@ Unknown research registers are never assigned speculative semantic names by the 
 - no address-space brute force;
 - no inverter configuration command.
 
-The normal developer/tester command is simply:
+The normal developer/tester command remains:
 
 ```bash
 python3 tsun_dump.py --full
