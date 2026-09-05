@@ -53,6 +53,18 @@ jobs:
             --paths tools `
             tools/tsun_diagnostic_gui.py
 
+      - name: Smoke-test executable launch
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path "dist/TSUN-Local-Diagnostic.exe").Path
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 8
+          if ($process.HasExited) {
+            throw "Executable exited unexpectedly during startup smoke test (exit code $($process.ExitCode))"
+          }
+          Stop-Process -Id $process.Id -Force
+          Write-Host "Executable launched successfully and remained running for the smoke-test window."
+
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
