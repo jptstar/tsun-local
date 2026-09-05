@@ -27,14 +27,16 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
+REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _TEXT = {
     "fr": {
         "title": "TSUN Local — Diagnostic",
         "intro": (
             "Outil portable Windows — aucune installation ni Python requis.\n"
-            "Le diagnostic est strictement en lecture seule et anonymise les données sensibles."
+            "Le diagnostic est strictement en lecture seule et anonymise les données sensibles.\n"
+            f"Envoyez le rapport JSON généré à : {REPORT_EMAIL}"
         ),
         "timing": (
             "Lancez-le pendant que le problème est présent, avant de recharger l'intégration."
@@ -48,7 +50,7 @@ _TEXT = {
         "open": "Ouvrir le dossier",
         "ready": "Prêt.",
         "running": "Diagnostic en cours…",
-        "done": "Diagnostic terminé. Envoyez le fichier JSON généré à dev@jptstar.com.",
+        "done": f"Diagnostic terminé. Envoyez le fichier JSON généré à {REPORT_EMAIL}.",
         "failed": "Le diagnostic s'est terminé avec une erreur.",
         "need_disable": (
             "Désactivez d'abord l'entrée TSUN Local concernée dans Home Assistant, "
@@ -63,7 +65,8 @@ _TEXT = {
         "title": "TSUN Local — Diagnostic",
         "intro": (
             "Portable Windows tool — no installation or Python required.\n"
-            "The diagnostic is strictly read-only and redacts sensitive data."
+            "The diagnostic is strictly read-only and redacts sensitive data.\n"
+            f"Send the generated JSON report to: {REPORT_EMAIL}"
         ),
         "timing": "Run it while the problem is present, before reloading the integration.",
         "disabled": "I disabled the affected TSUN Local entry in Home Assistant",
@@ -75,7 +78,7 @@ _TEXT = {
         "open": "Open folder",
         "ready": "Ready.",
         "running": "Diagnostic running…",
-        "done": "Diagnostic complete. Send the generated JSON file to dev@jptstar.com.",
+        "done": f"Diagnostic complete. Send the generated JSON file to {REPORT_EMAIL}.",
         "failed": "The diagnostic ended with an error.",
         "need_disable": (
             "First disable the affected TSUN Local entry in Home Assistant, "
