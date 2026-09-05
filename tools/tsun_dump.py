@@ -34,10 +34,11 @@ import time
 from typing import Any, Callable, Iterable
 
 
-TOOL_VERSION = "2.4.0"
+TOOL_VERSION = "2.4.1"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
+REPORT_EMAIL = "dev@jptstar.com"
 
 DEFAULT_PORT = 8899
 DEFAULT_DISCOVERY_PORT = 48899
@@ -1951,6 +1952,7 @@ def main() -> int:
 
     print("TSUN Local Hardware Validation Dump Tool")
     print(f"Standalone v{TOOL_VERSION} · READ-ONLY · Python standard library only")
+    print(f"Send generated JSON reports to: {REPORT_EMAIL}")
     print("No inverter configuration write operation is implemented.\n")
 
     try:
@@ -2019,6 +2021,7 @@ def main() -> int:
         print("Generated files:")
         for output in completed:
             print(f"  {output}")
+        print(f"Send the generated JSON file(s) to: {REPORT_EMAIL}")
         return 0
     return 1
 
