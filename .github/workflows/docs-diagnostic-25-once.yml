@@ -1,5 +1,6 @@
 name: One-shot diagnostic documentation refresh
 
+# Triggered after the workflow exists on the documentation branch.
 on:
   push:
     branches:
