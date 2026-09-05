@@ -27,7 +27,7 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.1.0"
+APP_VERSION = "1.2.0"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _BG = "#f4f7fb"
@@ -47,24 +47,24 @@ _TEXT = {
         "title": "Diagnostic TSUN Local",
         "subtitle": "Diagnostic matériel local, portable et strictement en lecture seule.",
         "readonly": "LECTURE SEULE",
-        "step_title": "Avant de commencer",
+        "step_title": "1 · Désactivez TSUN Local",
         "step_text": (
             "Désactivez uniquement l'entrée TSUN Local concernée dans Home Assistant. "
             "Cela évite que Home Assistant et l'outil interrogent le logger en même temps."
         ),
         "disabled": "TSUN Local est désactivé dans Home Assistant",
-        "auto_title": "Détection automatique",
+        "auto_title": "Tout est automatique",
         "auto_text": (
             "Laissez les options avancées vides dans la majorité des cas : le logger, "
             "le protocole et les appareils sont recherchés automatiquement."
         ),
-        "run": "Lancer le diagnostic",
+        "run": "2 · Lancer le diagnostic",
         "ready": "Prêt à analyser",
         "running": "Diagnostic en cours…",
         "done": f"Diagnostic terminé — envoyez le JSON à {REPORT_EMAIL}",
         "failed": "Le diagnostic s'est terminé avec une erreur. Ouvrez les détails pour en savoir plus.",
         "cancelled": "Diagnostic annulé.",
-        "output_title": "Rapport",
+        "output_title": "3 · Rapport à envoyer",
         "output": "Enregistrement dans",
         "change": "Modifier",
         "open": "Ouvrir le dossier",
@@ -89,24 +89,24 @@ _TEXT = {
         "title": "TSUN Local Diagnostic",
         "subtitle": "Portable, local hardware diagnostic with a strictly read-only engine.",
         "readonly": "READ-ONLY",
-        "step_title": "Before you start",
+        "step_title": "1 · Disable TSUN Local",
         "step_text": (
             "Disable only the affected TSUN Local entry in Home Assistant. "
             "This prevents Home Assistant and the diagnostic tool from polling the logger at the same time."
         ),
         "disabled": "TSUN Local is disabled in Home Assistant",
-        "auto_title": "Automatic discovery",
+        "auto_title": "Automatic by default",
         "auto_text": (
             "Leave advanced options empty in most cases: the logger, protocol and devices "
             "are discovered automatically."
         ),
-        "run": "Run diagnostic",
+        "run": "2 · Run diagnostic",
         "ready": "Ready to scan",
         "running": "Diagnostic running…",
         "done": f"Diagnostic complete — send the JSON to {REPORT_EMAIL}",
         "failed": "The diagnostic ended with an error. Open technical details for more information.",
         "cancelled": "Diagnostic cancelled.",
-        "output_title": "Report",
+        "output_title": "3 · Report to send",
         "output": "Saved to",
         "change": "Change",
         "open": "Open folder",
@@ -579,10 +579,7 @@ class DiagnosticApp:
     def _toggle_details(self) -> None:
         self.details_visible = not self.details_visible
         if self.details_visible:
-            self.log_card.pack(fill="both", expand=True, pady=(0, 14), before=self.details_button.master.winfo_children()[-1])
-            # Move the details button above the log if Tk reordered packed children.
-            self.details_button.pack_forget()
-            self.details_button.pack(anchor="w", pady=(0, 8), before=self.log_card)
+            self.log_card.pack(fill="both", expand=True, pady=(0, 14), after=self.details_button)
             self.details_button.configure(text=self.t["details_hide"])
         else:
             self.log_card.pack_forget()
