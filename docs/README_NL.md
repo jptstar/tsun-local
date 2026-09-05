@@ -161,7 +161,7 @@ TSUN Local biedt een privacyvriendelijke en **strikt alleen-lezen** hardwarediag
 
 ### Windows — eenvoudigste optie
 
-**⬇️ [`TSUN-Local-Diagnostic.exe` downloaden](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+**⬇️ [`TSUN-Local-Diagnostic.exe` downloaden](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
 Geen installatie of Python-omgeving nodig. De draagbare toepassing gebruikt dezelfde alleen-lezen diagnose-engine, ontdekt TSUN-loggers, test de protocollen **1511 / 02B0 / 1097** en maakt een geanonimiseerd JSON-rapport.
 
