@@ -157,7 +157,17 @@ Interrogation locale directe uniquement.
 
 ## 🔬 Valider un autre modèle TSUN
 
-TSUN Local inclut un outil autonome de capture matérielle, respectueux de la confidentialité et **strictement en lecture seule**.
+TSUN Local inclut un outil autonome de diagnostic matériel, respectueux de la confidentialité et **strictement en lecture seule**.
+
+### Windows — solution la plus simple
+
+**⬇️ [Télécharger `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+
+Aucune installation de Python ni ligne de commande n’est nécessaire. Pour diagnostiquer une perte de communication, désactivez d’abord l’entrée TSUN Local concernée, lancez le **diagnostic complet**, puis envoyez le JSON anonymisé généré avec le diagnostic Home Assistant lorsqu’il est disponible.
+
+L’exécutable utilise le même moteur de capture en lecture seule que `tsun_dump.py`. Il n’est pas encore signé ; Windows SmartScreen peut donc afficher un avertissement d’éditeur inconnu.
+
+### macOS / Linux / utilisateurs avancés
 
 **⬇️ [Télécharger `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
@@ -170,7 +180,7 @@ cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-Windows :
+La ligne de commande Windows reste disponible :
 
 ```powershell
 py tsun_dump.py --full
@@ -200,6 +210,8 @@ Pour les VLAN, la découverte ciblée, les comparaisons avant/après et la valid
 Si TSUN Local détecte `1511`, `02B0` ou `1097`, laissez-le fonctionner et vérifiez les entités découvertes.
 
 Les retours les plus utiles comprennent le modèle exact, le protocole détecté, la version firmware, le nombre d’entrées PV et les entités qui renvoient des valeurs plausibles.
+
+Si l’installation échoue, si la communication est instable ou si des entités restent indisponibles, lancez l’exécutable de diagnostic Windows ou `tsun_dump.py --full` et joignez le JSON anonymisé généré.
 
 > [!TIP]
 > **Votre onduleur pourrait devenir le prochain modèle validé.**
