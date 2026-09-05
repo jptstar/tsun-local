@@ -36,7 +36,7 @@ from typing import Any, Callable, Iterable
 from urllib.parse import urljoin, urlsplit
 
 
-TOOL_VERSION = "2.5.0"
+TOOL_VERSION = "2.5.1"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -739,22 +739,84 @@ def _parse_wifi_signal_metadata(document: str) -> tuple[int | None, str | None, 
     return None, None, None
 
 
+def _extract_logger_firmware(document: str) -> str | None:
+    """Extract a real logger firmware value while ignoring UI help labels."""
+    placeholders = {
+        "main",
+        "slave",
+        "master",
+        "primary",
+        "secondary",
+        "current",
+        "version",
+        "firmware",
+        "number",
+    }
+
+    # Prefer explicit firmware variables. Optional quotes around the key also
+    # cover JSON-like firmware pages in addition to the usual JavaScript form.
+    explicit = re.compile(
+        r"[\"']?\b(?:cover|webdata|logger|device|monitor)[_-]ver(?:sion)?\b[\"']?"
+        r"\s*[:=]\s*[\"']\s*([A-Za-z0-9][A-Za-z0-9._-]{1,79})",
+        re.IGNORECASE,
+    )
+    if match := explicit.search(document):
+        return match.group(1).strip()
+
+    # Keep the existing visible-label fallback for alternate firmware layouts,
+    # but reject generic UI text such as "Firmware version (main)".
+    for pattern in _FIRMWARE_PATTERNS:
+        for match in pattern.finditer(document):
+            candidate = match.group(1).strip()
+            if candidate.lower() in placeholders:
+                continue
+            return candidate
+    return None
+
+
+def _extract_logger_mac_oui(document: str) -> str | None:
+    """Extract the logger MAC OUI only from actual named device fields."""
+    mac_value = r"(?P<mac>[0-9A-F]{2}(?:[:-][0-9A-F]{2}){5})"
+    field_names = (
+        r"cover[_-]sta[_-]mac",
+        r"cover[_-]ap[_-]mac",
+        r"webdata[_-]mac",
+        r"(?:logger|device|monitor|sta|ap)[_-]?mac",
+        r"mac",
+    )
+
+    # Field priority matters: STA is the actual network-side logger identity
+    # when both AP and STA values are present. Generic free-text MAC tokens are
+    # deliberately ignored so examples such as "E.g. 00:01:02:..." cannot win.
+    for field_name in field_names:
+        assignment = re.compile(
+            rf"[\"']?\b(?:{field_name})\b[\"']?\s*[:=]\s*[\"']?\s*{mac_value}",
+            re.IGNORECASE,
+        )
+        if match := assignment.search(document):
+            token = _MAC_TOKEN.search(match.group("mac"))
+            if token:
+                return ":".join(part.upper() for part in token.groups()[:3])
+
+        element = re.compile(
+            rf"(?:id|name)\s*=\s*[\"'](?:{field_name})[\"'][^>]*>\s*{mac_value}",
+            re.IGNORECASE,
+        )
+        if match := element.search(document):
+            token = _MAC_TOKEN.search(match.group("mac"))
+            if token:
+                return ":".join(part.upper() for part in token.groups()[:3])
+
+    return None
+
+
 def _logger_web_metadata(document: str) -> dict[str, Any]:
     """Extract non-identifying logger metadata plus a 3-character inverter prefix."""
-    firmware: str | None = None
-    for pattern in _FIRMWARE_PATTERNS:
-        if match := pattern.search(document):
-            firmware = match.group(1)
-            break
-
+    firmware = _extract_logger_firmware(document)
     inverter_serial = _first_web_match(_INVERTER_SERIAL_PATTERNS, document)
     raw_profile = _first_web_match(_RAW_PROFILE_PATTERNS, document)
     wifi_signal, wifi_unit, wifi_source = _parse_wifi_signal_metadata(document)
-
-    mac_match = _MAC_TOKEN.search(document)
-    mac_oui = None
-    if mac_match:
-        mac_oui = ":".join(part.upper() for part in mac_match.groups()[:3])
+    mac_oui = _extract_logger_mac_oui(document)
 
     return {
         "logger_firmware_version": firmware,
@@ -765,6 +827,7 @@ def _logger_web_metadata(document: str) -> dict[str, Any]:
         "logger_mac_oui": mac_oui,
         "inverter_serial_prefix": (inverter_serial[:3] if inverter_serial else None),
     }
+
 
 def anonymize_web_document(document: str) -> str:
     """Return a research-useful web snapshot with device/user identifiers removed."""
@@ -904,12 +967,7 @@ def _web_identity_from_document(
             if _valid_monitor_sn(candidate):
                 serials.add(candidate)
 
-    firmware: str | None = None
-    for pattern in _FIRMWARE_PATTERNS:
-        match = pattern.search(document)
-        if match:
-            firmware = match.group(1)
-            break
+    firmware = _extract_logger_firmware(document)
     hint = protocol_from_firmware(firmware)
     recognized = bool(
         serials

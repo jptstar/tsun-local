@@ -16,7 +16,7 @@
 
 No installation and no Python environment are required. The executable is built from the same **strictly read-only** `tsun_dump.py` engine and creates the same privacy-safe JSON reports. The Windows diagnostic is distributed independently from Home Assistant integration releases through the rolling **`diagnostic-latest`** release.
 
-Current standalone diagnostic versions: **dump engine 2.5.0** · **Windows GUI 1.3.0**.
+Current standalone diagnostic versions: **dump engine 2.5.1** · **Windows GUI 1.3.0**.
 
 When diagnosing a communication failure or unavailable entities:
 
@@ -31,10 +31,11 @@ The Windows executable is currently unsigned, so Windows SmartScreen may show an
 
 ### Firmware-resilient logger web capture
 
-Firmware revisions do not always expose logger metadata on the same HTML page or under the same variable name. The 2.5.0 dump engine therefore:
+Firmware revisions do not always expose logger metadata on the same HTML page or under the same variable name. The 2.5.1 dump engine therefore:
 
 - accepts multiple Wi-Fi signal layouts and preserves whether the value is **%** or **dBm**;
 - records the page/key source used for the detected Wi-Fi signal;
+- prioritizes real logger firmware/MAC fields and ignores generic help placeholders or example MAC addresses;
 - starts from the known logger pages and may follow a **bounded maximum of 10 passive same-logger HTML navigation paths**;
 - stores only **anonymized HTML** in the JSON so future firmware layouts can be analysed without keeping the logger IP, full serial number, full MAC address, Wi-Fi credentials or user email;
 - never follows external links, submits forms or calls paths associated with reboot, reset, firmware update, upload, delete or erase actions.

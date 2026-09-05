@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.5.0")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.5.1")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -119,6 +119,33 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertEqual(dbm["logger_wifi_signal"], -67)
         self.assertEqual(dbm["logger_wifi_signal_unit"], "dBm")
         self.assertEqual(dbm["logger_wifi_signal_source"], "visible_wifi_label")
+
+    def test_ms2000_web_metadata_ignores_help_placeholders_and_example_mac(self) -> None:
+        help_document = (
+            'Firmware version (main) '
+            'Firmware version (slave) '
+            'E.g. 00:01:02:AA:BB:CC'
+        )
+        help_metadata = TOOL._logger_web_metadata(help_document)
+        self.assertIsNone(help_metadata["logger_firmware_version"])
+        self.assertIsNone(help_metadata["logger_mac_oui"])
+
+        status_document = (
+            'var cover_ver="LSW5_SSL_02B0_1.05"; '
+            'var cover_ap_mac="AA:BB:CC:11:22:33"; '
+            'var cover_sta_mac="74:E9:D8:44:55:66"; '
+            'var cover_sta_rssi="76%"; '
+            'var webdata_sn="Y001234567890";'
+        )
+        status_metadata = TOOL._logger_web_metadata(status_document)
+        self.assertEqual(status_metadata["logger_firmware_version"], "LSW5_SSL_02B0_1.05")
+        self.assertEqual(status_metadata["logger_mac_oui"], "74:E9:D8")
+        self.assertEqual(status_metadata["logger_wifi_signal"], 76)
+        self.assertEqual(status_metadata["logger_wifi_signal_unit"], "%")
+        self.assertEqual(status_metadata["inverter_serial_prefix"], "Y00")
+
+        visible_firmware = TOOL._logger_web_metadata("Firmware version: V4.0.39")
+        self.assertEqual(visible_firmware["logger_firmware_version"], "V4.0.39")
 
     def test_logger_web_link_discovery_is_local_bounded_and_passive(self) -> None:
         document = (
