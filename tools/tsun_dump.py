@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import hashlib
 import http.client
+from html.parser import HTMLParser
 from ipaddress import IPv4Address, IPv4Network, ip_network
 import json
 import math
@@ -32,9 +33,10 @@ import socket
 import sys
 import time
 from typing import Any, Callable, Iterable
+from urllib.parse import urljoin, urlsplit
 
 
-TOOL_VERSION = "2.4.1"
+TOOL_VERSION = "2.5.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -52,6 +54,7 @@ DEFAULT_SNAPSHOTS = 3
 DEFAULT_SNAPSHOT_INTERVAL = 3.0
 MAX_MODBUS_REGISTERS_PER_READ = 16
 MAX_HTTP_PAGE_SIZE = 512 * 1024
+MAX_LOGGER_WEB_PATHS = 10
 MIN_SCAN_PREFIX = 24
 PROTOCOL_PROBE_RETRIES = 3
 PROTOCOL_RETRY_DELAY = 0.4
@@ -66,6 +69,11 @@ LOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
 LOGGER_PROFILE_PATHS = ("/hide_set_edit.html",)
 LOGGER_WEB_CAPTURE_PATHS = (*LOGGER_STATUS_PATHS, *LOGGER_PROFILE_PATHS)
 LOGGER_WEB_AUTH = base64.b64encode(b"admin:admin").decode("ascii")
+_ALLOWED_WEB_SUFFIXES = (".htm", ".html", ".shtml", ".xhtml", ".cgi", ".asp")
+_WEB_ACTION_TOKENS = (
+    "reboot", "restart", "reset", "factory", "restore", "upgrade",
+    "update", "flash", "upload", "delete", "format", "erase",
+)
 
 _SERIAL_TOKEN = re.compile(r"(?<!\d)(\d{8,10})(?!\d)")
 _SAFE_NAME = re.compile(r"[^a-z0-9._-]+")
@@ -128,11 +136,49 @@ _RAW_PROFILE_PATTERNS = (
     ),
 )
 _WIFI_SIGNAL_PATTERNS = (
-    re.compile(
-        r"\bcover_sta_rssi\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
-        re.IGNORECASE,
+    (
+        "cover_sta_rssi",
+        re.compile(
+            r"\bcover_sta_rssi\b\s*[:=]\s*[\"']?\s*"
+            r"(?P<value>-?\d{1,3})\s*(?P<unit>dBm|%)?",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "sta_rssi",
+        re.compile(
+            r"\bsta[_-]rssi\b\s*[:=]\s*[\"']?\s*"
+            r"(?P<value>-?\d{1,3})\s*(?P<unit>dBm|%)?",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "wifi_rssi",
+        re.compile(
+            r"\b(?:wifi|wlan)[_-]rssi\b\s*[:=]\s*[\"']?\s*"
+            r"(?P<value>-?\d{1,3})\s*(?P<unit>dBm|%)?",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "wifi_signal",
+        re.compile(
+            r"\b(?:cover[_-]sta[_-]signal|wifi[_-]signal|wlan[_-]signal|signal[_-]strength)\b"
+            r"\s*[:=]\s*[\"']?\s*(?P<value>-?\d{1,3})\s*(?P<unit>dBm|%)?",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "visible_wifi_label",
+        re.compile(
+            r"(?:wi[\s_-]?fi|wlan)[\s\S]{0,40}?"
+            r"(?:signal(?:\s*strength)?|rssi)[^\d-]{0,20}"
+            r"(?P<value>-?\d{1,3})\s*(?P<unit>dBm|%)?",
+            re.IGNORECASE,
+        ),
     ),
 )
+
 _SENSITIVE_FIELD_NAME = (
     r"[A-Za-z0-9_-]*(?:ssid|password|passwd|pwd|psk|token|secret|"
     r"api[_-]?key|access[_-]?key|username|user_name|email)[A-Za-z0-9_-]*"
@@ -613,6 +659,86 @@ def _first_web_match(patterns: tuple[re.Pattern[str], ...], document: str) -> st
     return None
 
 
+class _LocalLinkParser(HTMLParser):
+    """Collect navigation targets from local logger HTML without executing anything."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.targets: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        attribute = "href" if tag == "a" else "src" if tag in ("frame", "iframe") else None
+        if attribute is None:
+            return
+        for name, value in attrs:
+            if name.lower() == attribute and value:
+                self.targets.append(value)
+                break
+
+
+def _safe_local_web_path(value: str, current_path: str, host: str) -> str | None:
+    """Return a same-logger, GET-only page path suitable for bounded evidence capture."""
+    value = value.strip()
+    if not value or value.startswith("#"):
+        return None
+    try:
+        target = urlsplit(urljoin(f"http://{host}{current_path}", value))
+        port = target.port
+    except ValueError:
+        return None
+    if target.scheme.lower() != "http" or target.hostname != host or port not in (None, 80):
+        return None
+    path = target.path or "/"
+    if not path.startswith("/") or len(path) > 192:
+        return None
+    lowered = path.lower()
+    if any(token in lowered for token in _WEB_ACTION_TOKENS):
+        return None
+    leaf = lowered.rsplit("/", 1)[-1]
+    if "." in leaf and not any(leaf.endswith(suffix) for suffix in _ALLOWED_WEB_SUFFIXES):
+        return None
+    return path
+
+
+def _discover_local_web_paths(document: str, current_path: str, host: str) -> list[str]:
+    """Discover passive same-device HTML navigation links from one logger page."""
+    parser = _LocalLinkParser()
+    try:
+        parser.feed(document)
+        parser.close()
+    except (ValueError, TypeError):
+        return []
+    result: list[str] = []
+    for target in parser.targets:
+        path = _safe_local_web_path(target, current_path, host)
+        if path is not None and path not in result:
+            result.append(path)
+    return result
+
+
+def _parse_wifi_signal_metadata(document: str) -> tuple[int | None, str | None, str | None]:
+    """Extract Wi-Fi signal across known firmware layouts, preserving its unit and source."""
+    for source, pattern in _WIFI_SIGNAL_PATTERNS:
+        if match := pattern.search(document):
+            candidate = int(match.group("value"))
+            raw_unit = (match.groupdict().get("unit") or "").lower()
+            if raw_unit == "dbm":
+                if -120 <= candidate <= 0:
+                    return candidate, "dBm", source
+                continue
+            if raw_unit == "%":
+                if 0 <= candidate <= 100:
+                    return candidate, "%", source
+                continue
+            if candidate < 0:
+                if -120 <= candidate <= 0:
+                    return candidate, "dBm", source
+            elif candidate <= 100:
+                return candidate, "%", source
+    return None, None, None
+
+
 def _logger_web_metadata(document: str) -> dict[str, Any]:
     """Extract non-identifying logger metadata plus a 3-character inverter prefix."""
     firmware: str | None = None
@@ -623,12 +749,7 @@ def _logger_web_metadata(document: str) -> dict[str, Any]:
 
     inverter_serial = _first_web_match(_INVERTER_SERIAL_PATTERNS, document)
     raw_profile = _first_web_match(_RAW_PROFILE_PATTERNS, document)
-    wifi_raw = _first_web_match(_WIFI_SIGNAL_PATTERNS, document)
-    wifi_signal: int | None = None
-    if wifi_raw is not None:
-        candidate = int(wifi_raw)
-        if -100 <= candidate <= 100:
-            wifi_signal = candidate
+    wifi_signal, wifi_unit, wifi_source = _parse_wifi_signal_metadata(document)
 
     mac_match = _MAC_TOKEN.search(document)
     mac_oui = None
@@ -638,11 +759,12 @@ def _logger_web_metadata(document: str) -> dict[str, Any]:
     return {
         "logger_firmware_version": firmware,
         "logger_wifi_signal": wifi_signal,
+        "logger_wifi_signal_unit": wifi_unit,
+        "logger_wifi_signal_source": wifi_source,
         "logger_raw_profile": raw_profile,
         "logger_mac_oui": mac_oui,
         "inverter_serial_prefix": (inverter_serial[:3] if inverter_serial else None),
     }
-
 
 def anonymize_web_document(document: str) -> str:
     """Return a research-useful web snapshot with device/user identifiers removed."""
@@ -685,45 +807,75 @@ def anonymize_web_document(document: str) -> str:
 
 
 def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
-    """Capture known local logger pages as anonymized, read-only research evidence."""
+    """Capture bounded anonymized logger pages, including safe local links."""
     pages: list[dict[str, Any]] = []
     summary: dict[str, Any] = {
         "logger_firmware_version": None,
         "logger_wifi_signal": None,
+        "logger_wifi_signal_unit": None,
+        "logger_wifi_signal_source": None,
         "logger_raw_profile": None,
         "logger_mac_oui": None,
         "inverter_serial_prefix": None,
     }
 
-    for path in LOGGER_WEB_CAPTURE_PATHS:
+    pending = list(dict.fromkeys(LOGGER_WEB_CAPTURE_PATHS))
+    queued = set(pending)
+    attempted_paths: list[str] = []
+
+    while pending and len(attempted_paths) < MAX_LOGGER_WEB_PATHS:
+        path = pending.pop(0)
+        attempted_paths.append(path)
         seen_hashes: set[str] = set()
+
         for authenticated in (False, True):
             document = _http_document(host, path, timeout, authenticated)
             if document is None:
                 continue
 
             metadata = _logger_web_metadata(document)
-            for key, value in metadata.items():
+            for key in (
+                "logger_firmware_version",
+                "logger_raw_profile",
+                "logger_mac_oui",
+                "inverter_serial_prefix",
+            ):
+                value = metadata[key]
                 if summary[key] is None and value is not None:
                     summary[key] = value
 
+            if summary["logger_wifi_signal"] is None and metadata["logger_wifi_signal"] is not None:
+                summary["logger_wifi_signal"] = metadata["logger_wifi_signal"]
+                summary["logger_wifi_signal_unit"] = metadata["logger_wifi_signal_unit"]
+                source = metadata["logger_wifi_signal_source"] or "unknown"
+                summary["logger_wifi_signal_source"] = f"{path}:{source}"
+
             sanitized = anonymize_web_document(document)
             digest = hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
-            if digest in seen_hashes:
-                continue
-            seen_hashes.add(digest)
-            pages.append(
-                {
-                    "path": path,
-                    "authenticated": authenticated,
-                    "content_sha256": digest,
-                    "content": sanitized,
-                }
-            )
+            if digest not in seen_hashes:
+                seen_hashes.add(digest)
+                pages.append(
+                    {
+                        "path": path,
+                        "authenticated": authenticated,
+                        "content_sha256": digest,
+                        "content": sanitized,
+                    }
+                )
 
+            for discovered in _discover_local_web_paths(document, path, host):
+                if discovered in queued or len(queued) >= MAX_LOGGER_WEB_PATHS:
+                    continue
+                queued.add(discovered)
+                pending.append(discovered)
+
+    known = set(LOGGER_WEB_CAPTURE_PATHS)
     return {
         "attempted": True,
         "pages_found": len(pages),
+        "page_paths_found": sorted({page["path"] for page in pages}),
+        "paths_attempted": attempted_paths,
+        "discovered_paths": [path for path in attempted_paths if path not in known],
         "summary": summary,
         "pages": pages,
         "privacy": {
@@ -736,9 +888,11 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
             "full_mac_stored": False,
             "mac_oui_stored": True,
             "wifi_credentials_stored": False,
+            "same_logger_links_only": True,
+            "form_submission_performed": False,
+            "max_page_paths": MAX_LOGGER_WEB_PATHS,
         },
     }
-
 
 def _web_identity_from_document(
     document: str,

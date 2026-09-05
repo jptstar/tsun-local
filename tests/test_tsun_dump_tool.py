@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.4.1")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.5.0")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -106,6 +106,35 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertEqual(metadata["logger_mac_oui"], "AA:BB:CC")
         self.assertEqual(metadata["logger_raw_profile"], "TSOL-MX500")
         self.assertEqual(metadata["logger_wifi_signal"], -70)
+        self.assertEqual(metadata["logger_wifi_signal_unit"], "dBm")
+        self.assertEqual(metadata["logger_wifi_signal_source"], "cover_sta_rssi")
+
+    def test_wifi_signal_variants_keep_unit_and_source(self) -> None:
+        percent = TOOL._logger_web_metadata('var wifi_signal="72%";')
+        self.assertEqual(percent["logger_wifi_signal"], 72)
+        self.assertEqual(percent["logger_wifi_signal_unit"], "%")
+        self.assertEqual(percent["logger_wifi_signal_source"], "wifi_signal")
+
+        dbm = TOOL._logger_web_metadata('<div>WiFi Signal: -67 dBm</div>')
+        self.assertEqual(dbm["logger_wifi_signal"], -67)
+        self.assertEqual(dbm["logger_wifi_signal_unit"], "dBm")
+        self.assertEqual(dbm["logger_wifi_signal_source"], "visible_wifi_label")
+
+    def test_logger_web_link_discovery_is_local_bounded_and_passive(self) -> None:
+        document = (
+            '<a href="/wifi_status.html">WiFi</a>'
+            '<a href="device.html">Device</a>'
+            '<iframe src="/info.cgi"></iframe>'
+            '<a href="/reboot.cgi">Reboot</a>'
+            '<a href="https://example.com/status.html">External</a>'
+            '<a href="javascript:reset()">JS</a>'
+            '<a href="/image.png">Image</a>'
+        )
+        paths = TOOL._discover_local_web_paths(
+            document, "/index.html", "192.168.1.25"
+        )
+        self.assertEqual(paths, ["/wifi_status.html", "/device.html", "/info.cgi"])
+        self.assertEqual(TOOL.MAX_LOGGER_WEB_PATHS, 10)
 
     def test_capture_plans_stay_read_only(self) -> None:
         for protocol in ("02b0", "1097", "1511"):
