@@ -19,7 +19,13 @@ def replace_once(text: str, old: str, new: str, label: str) -> str:
 
 
 def regex_replace_once(text: str, pattern: str, replacement: str, label: str) -> str:
-    updated, count = re.subn(pattern, replacement, text, count=1, flags=re.DOTALL)
+    updated, count = re.subn(
+        pattern,
+        lambda _match: replacement,
+        text,
+        count=1,
+        flags=re.DOTALL,
+    )
     if count != 1:
         raise RuntimeError(f"{label}: expected exactly one regex match, got {count}")
     return updated
@@ -33,7 +39,7 @@ dump = replace_once(
     "tool version",
 )
 
-metadata_block = '''def _extract_logger_firmware(document: str) -> str | None:
+metadata_block = r'''def _extract_logger_firmware(document: str) -> str | None:
     """Extract a real logger firmware value while ignoring UI help labels."""
     placeholders = {
         "main",
@@ -50,8 +56,8 @@ metadata_block = '''def _extract_logger_firmware(document: str) -> str | None:
     # Prefer explicit firmware variables. Optional quotes around the key also
     # cover JSON-like firmware pages in addition to the usual JavaScript form.
     explicit = re.compile(
-        r'''["']?\\b(?:cover|webdata|logger|device|monitor)[_-]ver(?:sion)?\\b["']?'''
-        r'''\\s*[:=]\\s*["']\\s*([A-Za-z0-9][A-Za-z0-9._-]{1,79})''',
+        r"[\"']?\b(?:cover|webdata|logger|device|monitor)[_-]ver(?:sion)?\b[\"']?"
+        r"\s*[:=]\s*[\"']\s*([A-Za-z0-9][A-Za-z0-9._-]{1,79})",
         re.IGNORECASE,
     )
     if match := explicit.search(document):
@@ -84,7 +90,7 @@ def _extract_logger_mac_oui(document: str) -> str | None:
     # deliberately ignored so examples such as "E.g. 00:01:02:..." cannot win.
     for field_name in field_names:
         assignment = re.compile(
-            rf'''["']?\\b(?:{field_name})\\b["']?\\s*[:=]\\s*["']?\\s*{mac_value}''',
+            rf"[\"']?\b(?:{field_name})\b[\"']?\s*[:=]\s*[\"']?\s*{mac_value}",
             re.IGNORECASE,
         )
         if match := assignment.search(document):
@@ -93,7 +99,7 @@ def _extract_logger_mac_oui(document: str) -> str | None:
                 return ":".join(part.upper() for part in token.groups()[:3])
 
         element = re.compile(
-            rf'''(?:id|name)\\s*=\\s*["'](?:{field_name})["'][^>]*>\\s*{mac_value}''',
+            rf"(?:id|name)\s*=\s*[\"'](?:{field_name})[\"'][^>]*>\s*{mac_value}",
             re.IGNORECASE,
         )
         if match := element.search(document):
@@ -199,7 +205,8 @@ TOOLS_README.write_text(tools_readme, encoding="utf-8")
 hardware_doc = HARDWARE_DOC.read_text(encoding="utf-8")
 hardware_doc = hardware_doc.replace("dump engine 2.5.0", "dump engine 2.5.1")
 hardware_doc = hardware_doc.replace("The 2.5.0 dump engine therefore:", "The 2.5.1 dump engine therefore:")
-needle = '''- records the page/key source used for the detected Wi-Fi signal;\n'''
+needle = '''- records the page/key source used for the detected Wi-Fi signal;
+'''
 addition = (
     needle
     + '- prioritizes real logger firmware/MAC fields and ignores generic help placeholders or example MAC addresses;\n'
