@@ -1,0 +1,45 @@
+name: One-shot GUI 1.3 docs sync
+
+on:
+  push:
+    branches:
+      - ui/compact-diagnostic
+    paths:
+      - "tools/_sync_gui_130_docs.py"
+      - ".github/workflows/sync-gui-130-docs-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync documentation
+        run: python tools/_sync_gui_130_docs.py
+
+      - name: Validate sources and docs
+        shell: bash
+        run: |
+          python -m py_compile tools/tsun_diagnostic_gui.py
+          python -m unittest discover -s tests -p 'test_tsun_dump_tool.py'
+          grep -q 'APP_VERSION = "1.3.0"' tools/tsun_diagnostic_gui.py
+          grep -q 'Windows GUI 1.3.0' docs/HARDWARE_DUMP.md
+          grep -q 'current GUI is 1.3.0' tools/README.md
+          ! grep -q 'tk.Canvas' tools/tsun_diagnostic_gui.py
+          git diff --check
+
+      - name: Commit documentation sync
+        shell: bash
+        run: |
+          rm tools/_sync_gui_130_docs.py .github/workflows/sync-gui-130-docs-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Document compact scroll-free diagnostic GUI"
+          git push origin HEAD:ui/compact-diagnostic
