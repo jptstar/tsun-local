@@ -153,6 +153,7 @@ class MetadataTests(unittest.TestCase):
         index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         entities = (ROOT / "docs" / "entities.html").read_text(encoding="utf-8")
         play2 = (ROOT / "docs" / "sunology-play2.html").read_text(encoding="utf-8")
+        ms2000 = (ROOT / "docs" / "tsol-ms2000-home-assistant.html").read_text(encoding="utf-8")
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
@@ -180,6 +181,12 @@ class MetadataTests(unittest.TestCase):
         self.assertIn("LSW5BLE_17_02B0_1.08-D1", play2)
         self.assertIn("No proxy", play2)
 
+        self.assertIn("TSOL-MS2000 in Home Assistant", ms2000)
+        self.assertIn("COMMUNITY VALIDATED ON REAL TSOL-MS2000 HARDWARE", ms2000)
+        self.assertIn("LSW5_SSL_02B0_1.05", ms2000)
+        self.assertIn("V4.0.39", ms2000)
+        self.assertIn("paloindici", ms2000)
+
         expected_sitemap_urls = (
             "https://jptstar.github.io/tsun-local/",
             "https://jptstar.github.io/tsun-local/entities.html",
@@ -187,6 +194,7 @@ class MetadataTests(unittest.TestCase):
             "https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html",
+            "https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html",
             "https://jptstar.github.io/tsun-local/test-your-inverter.html",
             "https://jptstar.github.io/tsun-local/contributors.html",
         )

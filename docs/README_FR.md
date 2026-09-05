@@ -34,7 +34,7 @@
 | Protocole | Famille | Matériel validé | Statut |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validé** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2** | ✅ **Validé** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validé** |
 | **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Expérimental** |
 
 > [!TIP]
@@ -44,14 +44,14 @@
 <summary><strong>Modèles probablement compatibles par protocole</strong></summary>
 
 - **1511 — Probablement compatible:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — Probablement compatible:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · `TSOL-MS2000` · variantes `-D` correspondantes
+- **02B0 — Probablement compatible:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · variantes `-D` correspondantes
 - **1097 — Probablement compatible:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
 
 </details>
 
 📚 **[Validation MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
 
-📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)**
+📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
 **Nouveau dans la 1.6.0 :** la **relève adaptative** est activée par défaut et ajuste automatiquement la cadence de lecture en cas d’échecs de communication : 20 s en fonctionnement normal, 30 s après erreur et 300 s hors ligne/nuit.
 
@@ -223,6 +223,7 @@ TSUN Local bénéficie de recherches protocolaires publiques et de validations i
 - **TheSmartGerman** — test sur matériel réel ayant révélé la famille de protocole 1097.
 - **dca31** — validation indépendante du Sunology PLAY2 via le parcours Home Assistant normal de TSUN Local.
 - **Kmotr** — validation indépendante du TSOL-MS800 avec TSUN Local et un diagnostic Home Assistant anonymisé.
+- **paloindici** — validation indépendante du TSOL-MS2000 avec TSUN Local, avec diagnostics Home Assistant anonymisés du TSOL-MS2000 et du TSOL-MP3000 ainsi qu’un dump matériel confirmant le chemin 02B0 / 4 entrées PV.
 
 📚 **[Tous les contributeurs et crédits](contributors.html)**
 

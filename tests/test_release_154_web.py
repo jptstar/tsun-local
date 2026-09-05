@@ -8,7 +8,7 @@ import unittest
 ROOT = Path(__file__).parents[1]
 DOCS = ROOT / "docs"
 FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design'
-PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "contributors.html", "test-your-inverter.html")
+PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
 
 
 class Release160WebTests(unittest.TestCase):
@@ -55,6 +55,7 @@ class Release160WebTests(unittest.TestCase):
             "tsol-mp3000-home-assistant.html",
             "tsol-mx500-home-assistant.html",
             "tsol-ms800-home-assistant.html",
+            "tsol-ms2000-home-assistant.html",
             "sunology-play2.html",
         ):
             self.assertIn(filename, sitemap)
@@ -68,6 +69,8 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("contributors.html", text)
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
+        self.assertIn("tsol-ms2000-home-assistant.html", text)
+        self.assertIn("paloindici", text)
         self.assertIn("NEW IN 1.6.0", text)
         self.assertIn("TSUN-Local-Diagnostic.exe", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))

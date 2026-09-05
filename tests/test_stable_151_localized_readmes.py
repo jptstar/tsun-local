@@ -28,16 +28,19 @@ class Stable160LocalizedReadmeTests(unittest.TestCase):
             self.assertEqual(text.count("| **02B0** | GEN3 / GEN3 PLUS |"), 1, filename)
             self.assertEqual(text.count("| **1097** | GEN3 / GEN3 PLUS |"), 1, filename)
             self.assertIn("Sunology PLAY2", text, filename)
-            self.assertIn("**TSOL-MX500** · **TSOL-MS800** · **Sunology PLAY2**", text, filename)
+            self.assertIn("**TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2**", text, filename)
             self.assertIn("tsol-mx500-home-assistant.html", text, filename)
             self.assertIn("tsol-ms800-home-assistant.html", text, filename)
+            self.assertIn("tsol-ms2000-home-assistant.html", text, filename)
             likely_02b0 = next(line for line in text.splitlines() if line.startswith("- **02B0"))
             self.assertNotIn("`TSOL-MS800`", likely_02b0, filename)
+            self.assertNotIn("`TSOL-MS2000`", likely_02b0, filename)
             self.assertIn("MP3000_FIELD_VALIDATION.md", text, filename)
             self.assertIn("HARDWARE_DUMP.md", text, filename)
             self.assertIn("PLAY2_LOCAL_RESEARCH.md", text, filename)
             self.assertIn("ha-solarman", text, filename)
             self.assertIn("dca31", text, filename)
+            self.assertIn("paloindici", text, filename)
 
     def test_verbose_play2_transport_details_live_outside_readmes(self) -> None:
         for filename in FILES:
