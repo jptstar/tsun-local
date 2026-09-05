@@ -26,6 +26,8 @@ for name in LINK_FILES:
     path = ROOT / name
     text = path.read_text(encoding="utf-8")
     text = text.replace(OLD_EXE, NEW_EXE).replace(OLD_SHA, NEW_SHA)
+    # Avoid introducing trailing-space Markdown line breaks on changed download links.
+    text = text.replace(f"]({NEW_EXE})**  \n", f"]({NEW_EXE})**\n")
     path.write_text(text, encoding="utf-8")
 
 
