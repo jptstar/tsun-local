@@ -157,28 +157,25 @@ Solo polling locale diretto.
 
 ## 🔬 Valida un altro modello TSUN
 
-TSUN Local include uno strumento di dump hardware autonomo, rispettoso della privacy e **rigorosamente in sola lettura**.
+TSUN Local offre una diagnostica hardware rispettosa della privacy e **rigorosamente in sola lettura** per modelli non elencati e problemi di comunicazione.
 
-**⬇️ [Scarica `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
+### Windows — opzione più semplice
 
-È sufficiente Python 3.10+.
+**⬇️ [Scarica `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
 
-macOS / Linux:
+Non servono installazione né ambiente Python. L’app portatile usa lo stesso motore diagnostico in sola lettura, rileva i logger TSUN, prova i protocolli **1511 / 02B0 / 1097** e crea un rapporto JSON anonimizzato.
+
+Per problemi di comunicazione o entità non disponibili, **disattiva la voce di configurazione TSUN Local interessata prima della cattura** e riattivala al termine.
+
+### macOS / Linux / utenti avanzati
+
+**⬇️ [Scarica `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — Python 3.10+.
 
 ```bash
-cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-Windows:
-
-```powershell
-py tsun_dump.py --full
-```
-
-Lo strumento può rilevare logger TSUN compatibili, identificare le famiglie di protocollo supportate e creare un dump JSON rispettoso della privacy per ogni dispositivo. Non implementa alcuna scrittura verso l’inverter.
-
-Per VLAN, rilevamento mirato, confronti prima/dopo e validazione avanzata:
+Su Windows lo script resta utilizzabile con `py tsun_dump.py --full`.
 
 📚 **[Guida Hardware Validation Dump Tool](HARDWARE_DUMP.md)**
 

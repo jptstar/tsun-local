@@ -26,31 +26,34 @@ The executable is currently unsigned, so Windows SmartScreen may display an unkn
 
 ## Hardware validation dump
 
-[`tsun_dump.py`](tsun_dump.py) is a **single-file, standalone, privacy-safe, strictly read-only** hardware dumper for protocol **1511**, **02B0** and **1097**.
+[`tsun_dump.py`](tsun_dump.py) is the single-file, standalone, privacy-safe and **strictly read-only** hardware dumper for protocols **1511**, **02B0** and **1097**.
 
-It uses only the Python standard library and does not require Home Assistant or the rest of the TSUN Local repository.
+### Windows portable diagnostic
+
+For users who are not comfortable with Python or a command prompt:
+
+**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**  
+**[SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe.sha256)**
+
+No installation or Python environment is required. The French/English GUI uses the same read-only dump engine and writes anonymized JSON reports into the folder selected by the user.
+
+If the capture is intended to diagnose a communication problem, take the Home Assistant diagnostic first when possible, then **disable the affected TSUN Local config entry before running the executable**. Re-enable it after the capture.
+
+### Python / command-line version
 
 Direct download:
 
 [`https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)
 
-Run it with Python 3.10+:
+Run with Python 3.10+:
 
 ```bash
 python3 tsun_dump.py --full
 ```
 
-The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON.
+The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON. `--monitor-sn` and the legacy `--serial` option are equivalent.
 
-For Windows terminals where interactive input is inconvenient, the Monitor SN can be supplied directly:
-
-```powershell
-py tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
-```
-
-`--monitor-sn` and the legacy `--serial` option are equivalent.
-
-For the capture ranges, safety model, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
+For capture ranges, safety, privacy, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
 
 ## Sunology PLAY2 super-probe
 
