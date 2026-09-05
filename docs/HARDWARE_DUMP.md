@@ -16,7 +16,7 @@
 
 No installation and no Python environment are required. The executable is built from the same **strictly read-only** `tsun_dump.py` engine and creates the same privacy-safe JSON reports. The Windows diagnostic is distributed independently from Home Assistant integration releases through the rolling **`diagnostic-latest`** release.
 
-Current standalone diagnostic versions: **dump engine 2.5.0** · **Windows GUI 1.2.0**.
+Current standalone diagnostic versions: **dump engine 2.5.0** · **Windows GUI 1.3.0**.
 
 When diagnosing a communication failure or unavailable entities:
 

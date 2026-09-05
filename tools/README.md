@@ -4,11 +4,11 @@ Diagnostic and validation utilities for TSUN Local.
 
 ## Windows portable diagnostic
 
-For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.2.0 and uses the 2.5.0 dump engine.
+For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.3.0 and uses the 2.5.0 dump engine.
 
 **⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
-No installation and no Python environment are required. The executable provides a small French/English interface, performs the same privacy-safe **strictly read-only** capture as `tsun_dump.py`, and writes the anonymized JSON report into the folder selected by the user.
+No installation and no Python environment are required. The executable provides a compact French/English **scroll-free main screen** with the three essential steps visible at once. Advanced settings and technical logs open separately, while the same privacy-safe **strictly read-only** `tsun_dump.py` engine writes the anonymized JSON report into the selected folder.
 
 Recommended sequence:
 
