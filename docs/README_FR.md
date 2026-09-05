@@ -157,28 +157,25 @@ Interrogation locale directe uniquement.
 
 ## 🔬 Valider un autre modèle TSUN
 
-TSUN Local inclut un outil autonome de capture matérielle, respectueux de la confidentialité et **strictement en lecture seule**.
+TSUN Local propose un diagnostic matériel respectueux de la confidentialité et **strictement en lecture seule** pour les modèles non listés et les problèmes de communication.
 
-**⬇️ [Télécharger `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
+### Windows — solution la plus simple
 
-Python 3.10+ suffit.
+**⬇️ [Télécharger `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
 
-macOS / Linux :
+Aucune installation et aucun environnement Python ne sont nécessaires. L’application portable utilise le même moteur de diagnostic en lecture seule, découvre les loggers TSUN, teste les protocoles **1511 / 02B0 / 1097** et génère un rapport JSON anonymisé.
+
+Pour diagnostiquer une perte de communication ou des entités indisponibles, **désactivez l’entrée de configuration TSUN Local concernée avant de lancer la capture**, puis réactivez-la ensuite.
+
+### macOS / Linux / utilisateurs avancés
+
+**⬇️ [Télécharger `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — Python 3.10+.
 
 ```bash
-cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-Windows :
-
-```powershell
-py tsun_dump.py --full
-```
-
-L’outil peut découvrir les loggers TSUN compatibles, détecter la famille de protocole et produire un fichier JSON respectueux de la confidentialité pour chaque appareil. Aucune écriture vers l’onduleur n’est implémentée.
-
-Pour les VLAN, la découverte ciblée, les comparaisons avant/après et la validation avancée :
+Sous Windows, le script reste utilisable avec `py tsun_dump.py --full` si vous le préférez.
 
 📚 **[Guide de l’outil Hardware Validation Dump](HARDWARE_DUMP.md)**
 

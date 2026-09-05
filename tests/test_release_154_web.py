@@ -69,7 +69,15 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
         self.assertIn("NEW IN 1.6.0", text)
+        self.assertIn("TSUN-Local-Diagnostic.exe", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
+
+    def test_hardware_test_page_promotes_current_diagnostic(self) -> None:
+        text = (DOCS / "test-your-inverter.html").read_text(encoding="utf-8")
+        self.assertIn("TSUN Local 1.6.0", text)
+        self.assertNotIn("TSUN Local 1.5.3", text)
+        self.assertIn("TSUN-Local-Diagnostic.exe", text)
+        self.assertIn("disable the affected TSUN Local config entry", text)
 
 
 if __name__ == "__main__":

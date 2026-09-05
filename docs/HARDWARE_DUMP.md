@@ -7,38 +7,45 @@
 > [!IMPORTANT]
 > The tool is **strictly read-only**. It contains no inverter configuration write path. It only implements the local read operations needed for hardware validation.
 
-## ⬇️ Download one file
+## ⬇️ Choose the easiest diagnostic
+
+### Windows — portable executable (recommended for end users)
+
+**[Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**  
+**[SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe.sha256)**
+
+No installation and no Python environment are required. The executable is built from the same **strictly read-only** `tsun_dump.py` engine and creates the same privacy-safe JSON reports.
+
+When diagnosing a communication failure or unavailable entities:
+
+1. reproduce the problem and **do not reload TSUN Local first**;
+2. download the Home Assistant diagnostic when possible;
+3. **disable the affected TSUN Local config entry** so it does not compete for the logger connection;
+4. run `TSUN-Local-Diagnostic.exe` and start the full diagnostic;
+5. re-enable TSUN Local when the capture is finished;
+6. send the generated JSON file(s) together with the Home Assistant diagnostic.
+
+The Windows executable is currently unsigned, so Windows SmartScreen may show an **Unknown publisher** warning. The published SHA-256 file can be used to verify the download.
+
+### Python script — macOS, Linux and advanced users
 
 **[Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
-That single Python file is enough. It uses **only the Python standard library**: no Home Assistant, pip package, Node.js or cloned repository is required.
+The single Python file uses **only the Python standard library**: no Home Assistant, pip package, Node.js or cloned repository is required. Python **3.10 or newer** is required.
 
-### macOS / Linux
-
-Save the file as `tsun_dump.py`, open Terminal in the same folder, then run:
+macOS / Linux:
 
 ```bash
 python3 tsun_dump.py --full
 ```
 
-For example, when the file is in Downloads:
-
-```bash
-cd ~/Downloads
-python3 tsun_dump.py --full
-```
-
-### Windows
-
-From PowerShell or Command Prompt in the folder containing the file:
+Windows terminal alternative:
 
 ```powershell
 py tsun_dump.py --full
 ```
 
-Python **3.10 or newer** is required.
-
-If the Monitor SN is already known, it can be passed directly to avoid any interactive terminal input:
+If the Monitor SN is already known, it can be passed directly:
 
 ```powershell
 py tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full

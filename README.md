@@ -158,31 +158,27 @@ Direct local polling only.
 
 ## 🔬 Validate another TSUN model
 
-TSUN Local includes a standalone, privacy-safe and **strictly read-only** hardware dump tool.
+TSUN Local provides a privacy-safe, **strictly read-only** hardware diagnostic for unlisted models and communication issues.
 
-**⬇️ [Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
+### Windows — easiest option
 
-Python 3.10+ is enough.
+**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
 
-macOS / Linux:
+No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report.
+
+If you are investigating a communication problem or unavailable entities, **disable the affected TSUN Local config entry before starting the capture**, then re-enable it afterwards.
+
+### macOS / Linux / advanced users
+
+**⬇️ [Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — Python 3.10+.
 
 ```bash
-cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-Windows:
-
-```powershell
-py tsun_dump.py --full
-```
-
-The tool can discover compatible TSUN loggers, detect supported protocol families and create one privacy-safe JSON dump per device. No inverter write operation is implemented.
-
-For VLANs, targeted discovery, before/after comparisons and advanced validation:
+On Windows, the script remains available with `py tsun_dump.py --full` if preferred.
 
 📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)**
-
 
 ### Sunology PLAY2
 

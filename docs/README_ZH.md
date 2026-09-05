@@ -157,28 +157,25 @@ Home Assistant
 
 ## 🔬 验证其他 TSUN 型号
 
-TSUN Local 提供一个独立、注重隐私且 **严格只读** 的硬件采集工具。
+TSUN Local 为未列出的型号和通信问题提供注重隐私且 **严格只读** 的硬件诊断工具。
 
-**⬇️ [下载 `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
+### Windows — 最简单的方式
 
-只需要 Python 3.10+。
+**⬇️ [下载 `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
 
-macOS / Linux：
+无需安装，也无需 Python 环境。便携应用使用相同的只读诊断引擎，可发现 TSUN Logger、测试 **1511 / 02B0 / 1097** 协议并生成匿名化 JSON 报告。
+
+如果正在排查通信问题或实体不可用，**请在开始采集前禁用受影响的 TSUN Local 配置项**，完成后再重新启用。
+
+### macOS / Linux / 高级用户
+
+**⬇️ [下载 `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — 需要 Python 3.10+。
 
 ```bash
-cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-Windows：
-
-```powershell
-py tsun_dump.py --full
-```
-
-该工具可以发现兼容的 TSUN Logger、识别支持的协议系列，并为每台设备生成注重隐私的 JSON dump。它不实现任何逆变器写入操作。
-
-对于 VLAN、定向发现、前后对比以及高级验证：
+在 Windows 上仍可使用 `py tsun_dump.py --full` 运行脚本。
 
 📚 **[Hardware Validation Dump Tool 指南](HARDWARE_DUMP.md)**
 
