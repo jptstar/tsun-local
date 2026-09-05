@@ -18,8 +18,12 @@ import locale
 import os
 from pathlib import Path
 import queue
+import shutil
+import subprocess
 import sys
+import tempfile
 import threading
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 from typing import Any
@@ -27,7 +31,7 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.3.0"
+APP_VERSION = "1.4.0"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _BG = "#f4f7fb"
@@ -140,6 +144,78 @@ def _language() -> str:
     except (ValueError, TypeError):
         current = ""
     return "fr" if current.startswith("fr") else "en"
+
+
+_INTERNAL_UPDATE_SWITCH = "--apply-update"
+
+
+def _run_downloaded_windows_updater(target: Path) -> int:
+    """Replace the old portable EXE after its process releases the file lock."""
+    if os.name != "nt" or not getattr(sys, "frozen", False):
+        return 2
+    if target.name.lower() != "tsun-local-diagnostic.exe":
+        return 2
+
+    source = Path(sys.executable).resolve()
+    deadline = time.monotonic() + 20.0
+    last_error: OSError | None = None
+    while time.monotonic() < deadline:
+        try:
+            shutil.copy2(source, target)
+        except OSError as err:
+            last_error = err
+            time.sleep(0.25)
+            continue
+        try:
+            subprocess.Popen([str(target), "--no-update"], close_fds=True)
+        except OSError:
+            return 1
+        return 0
+    if last_error is not None:
+        return 1
+    return 1
+
+
+def _internal_update_mode() -> int | None:
+    """Handle the hidden helper mode used by the newly downloaded EXE."""
+    if len(sys.argv) >= 3 and sys.argv[1] == _INTERNAL_UPDATE_SWITCH:
+        return _run_downloaded_windows_updater(Path(sys.argv[2]).resolve())
+    return None
+
+
+def _maybe_auto_update_windows() -> bool:
+    """Download, verify and hand off to a newer portable Windows executable."""
+    if (
+        os.name != "nt"
+        or not getattr(sys, "frozen", False)
+        or "--no-update" in sys.argv
+    ):
+        return False
+    try:
+        update = tsun_dump.check_for_update(
+            tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
+            APP_VERSION,
+        )
+        if update is None:
+            return False
+        destination = Path(tempfile.gettempdir()) / (
+            f"TSUN-Local-Diagnostic-update-{update['version']}-{os.getpid()}.exe"
+        )
+        tsun_dump.download_verified_update(update, destination)
+        creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        subprocess.Popen(
+            [
+                str(destination),
+                _INTERNAL_UPDATE_SWITCH,
+                str(Path(sys.executable).resolve()),
+            ],
+            close_fds=True,
+            creationflags=creationflags,
+        )
+        return True
+    except Exception:
+        # Updating must never prevent the currently installed diagnostic from running.
+        return False
 
 
 class _QueueWriter(io.TextIOBase):
@@ -741,6 +817,12 @@ class DiagnosticApp:
 
 
 def main() -> int:
+    internal_result = _internal_update_mode()
+    if internal_result is not None:
+        return internal_result
+    if _maybe_auto_update_windows():
+        return 0
+
     root = tk.Tk()
     DiagnosticApp(root)
     root.mainloop()

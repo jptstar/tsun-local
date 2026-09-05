@@ -4,7 +4,7 @@ Diagnostic and validation utilities for TSUN Local.
 
 ## Windows portable diagnostic
 
-For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.3.0 and uses the 2.5.1 dump engine.
+For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.4.0 and uses the 2.7.0 dump engine.
 
 **⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
@@ -23,6 +23,8 @@ Recommended sequence:
 The Monitor SN, logger IP, SSID, passwords, tokens, e-mail addresses and full MAC addresses are not stored in the generated report. The workflow also publishes a `.sha256` checksum next to the executable.
 
 The executable is currently unsigned, so Windows SmartScreen may display an unknown-publisher warning. The source of the GUI and the complete build workflow are public in this repository.
+
+At startup the portable EXE checks the rolling `diagnostic-latest` manifest. When a newer GUI is available it downloads the replacement EXE, verifies its SHA-256 before replacing anything, restarts automatically, and falls back to the currently installed copy if GitHub is unavailable or validation fails. Launching the EXE with `--no-update` skips that check for troubleshooting.
 
 ## Hardware validation dump
 
@@ -50,6 +52,8 @@ Run with Python 3.10+:
 ```bash
 python3 tsun_dump.py --full
 ```
+
+Starting with dump engine 2.7.0, the standalone Python file checks the same `diagnostic-latest` manifest on startup, downloads a newer `tsun_dump.py` when available, verifies SHA-256, atomically replaces the current script and restarts. `--no-update` disables the check for one run and `--check-update` only reports availability. If the script location is not writable, the diagnostic continues with the local version and never requests `sudo`.
 
 The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON. `--monitor-sn` and the legacy `--serial` option are equivalent.
 

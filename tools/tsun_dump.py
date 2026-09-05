@@ -27,6 +27,7 @@ from html.parser import HTMLParser
 from ipaddress import IPv4Address, IPv4Network, ip_network
 import json
 import math
+import os
 from pathlib import Path
 import re
 import socket
@@ -34,13 +35,24 @@ import sys
 import time
 from typing import Any, Callable, Iterable
 from urllib.parse import urljoin, urlsplit
+import urllib.request
 
 
-TOOL_VERSION = "2.6.0"
+TOOL_VERSION = "2.7.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
 REPORT_EMAIL = "dev@jptstar.com"
+
+UPDATE_RELEASE_BASE = (
+    "https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest"
+)
+UPDATE_MANIFEST_URL = f"{UPDATE_RELEASE_BASE}/update.json"
+UPDATE_TIMEOUT = 3.0
+UPDATE_MAX_MANIFEST_BYTES = 64 * 1024
+UPDATE_MAX_ASSET_BYTES = 150 * 1024 * 1024
+UPDATE_COMPONENT_DUMP = "dump"
+UPDATE_COMPONENT_WINDOWS_GUI = "windows_gui"
 
 DEFAULT_PORT = 8899
 DEFAULT_DISCOVERY_PORT = 48899
@@ -203,6 +215,166 @@ _SENSITIVE_HTML_NAME_VALUE = re.compile(
 
 class TsunProtocolError(Exception):
     """Raised when a TSUN protocol frame is invalid."""
+
+
+class TsunUpdateError(Exception):
+    """Raised when a diagnostic self-update cannot be validated safely."""
+
+
+def _version_key(value: str) -> tuple[int, int, int, int]:
+    """Return a comparable numeric key for the diagnostic release versions."""
+    core = value.strip().split("+", 1)[0].split("-", 1)[0]
+    parts = core.split(".")
+    if not 1 <= len(parts) <= 4 or any(not part.isdigit() for part in parts):
+        raise TsunUpdateError(f"Invalid update version: {value!r}")
+    numbers = [int(part) for part in parts]
+    numbers.extend([0] * (4 - len(numbers)))
+    return tuple(numbers)  # type: ignore[return-value]
+
+
+def _download_bytes(url: str, *, timeout: float, max_bytes: int) -> bytes:
+    """Download one bounded HTTPS resource from the public diagnostic release."""
+    if not url.startswith("https://github.com/"):
+        raise TsunUpdateError("Update URL is not an approved GitHub HTTPS URL")
+    request = urllib.request.Request(
+        url,
+        headers={"User-Agent": f"TSUN-Local-Diagnostic/{TOOL_VERSION}"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        data = response.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        raise TsunUpdateError("Update download exceeds the allowed size")
+    return data
+
+
+def fetch_update_manifest(timeout: float = UPDATE_TIMEOUT) -> dict[str, Any]:
+    """Fetch and validate the rolling diagnostic release manifest."""
+    raw = _download_bytes(
+        UPDATE_MANIFEST_URL, timeout=timeout, max_bytes=UPDATE_MAX_MANIFEST_BYTES
+    )
+    try:
+        manifest = json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as err:
+        raise TsunUpdateError("Invalid diagnostic update manifest") from err
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != 1:
+        raise TsunUpdateError("Unsupported diagnostic update manifest")
+    if not isinstance(manifest.get("components"), dict):
+        raise TsunUpdateError("Diagnostic update manifest has no components")
+    return manifest
+
+
+def select_update_component(
+    manifest: dict[str, Any], component: str, current_version: str
+) -> dict[str, str] | None:
+    """Return one newer validated component description, or None when current."""
+    components = manifest.get("components")
+    if not isinstance(components, dict):
+        raise TsunUpdateError("Diagnostic update manifest has no components")
+    candidate = components.get(component)
+    if not isinstance(candidate, dict):
+        raise TsunUpdateError(f"Diagnostic update component {component!r} is missing")
+
+    version = candidate.get("version")
+    asset = candidate.get("asset")
+    sha256 = candidate.get("sha256")
+    if not isinstance(version, str) or not isinstance(asset, str) or not isinstance(sha256, str):
+        raise TsunUpdateError("Diagnostic update component metadata is incomplete")
+    if Path(asset).name != asset or not re.fullmatch(r"[A-Za-z0-9._-]+", asset):
+        raise TsunUpdateError("Unsafe diagnostic update asset name")
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", sha256):
+        raise TsunUpdateError("Invalid diagnostic update SHA-256")
+    if _version_key(version) <= _version_key(current_version):
+        return None
+    return {
+        "component": component,
+        "version": version,
+        "asset": asset,
+        "sha256": sha256.lower(),
+        "build_commit": str(manifest.get("build_commit") or ""),
+    }
+
+
+def check_for_update(
+    component: str, current_version: str, *, timeout: float = UPDATE_TIMEOUT
+) -> dict[str, str] | None:
+    """Check the rolling release and return a newer component when available."""
+    return select_update_component(
+        fetch_update_manifest(timeout=timeout), component, current_version
+    )
+
+
+def download_verified_update(
+    update: dict[str, str], destination: Path, *, timeout: float = UPDATE_TIMEOUT
+) -> Path:
+    """Download one release asset and write it only after SHA-256 verification."""
+    asset = update["asset"]
+    expected = update["sha256"].lower()
+    payload = _download_bytes(
+        f"{UPDATE_RELEASE_BASE}/{asset}",
+        timeout=timeout,
+        max_bytes=UPDATE_MAX_ASSET_BYTES,
+    )
+    actual = hashlib.sha256(payload).hexdigest()
+    if actual != expected:
+        raise TsunUpdateError(
+            f"SHA-256 mismatch for {asset}: expected {expected}, got {actual}"
+        )
+
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    staged = destination.with_name(f".{destination.name}.download-{os.getpid()}")
+    try:
+        staged.write_bytes(payload)
+        os.replace(staged, destination)
+    finally:
+        try:
+            staged.unlink()
+        except FileNotFoundError:
+            pass
+    return destination
+
+
+def update_python_script_if_available(
+    *, timeout: float = UPDATE_TIMEOUT
+) -> dict[str, str]:
+    """Atomically replace this standalone .py when a newer verified release exists."""
+    if getattr(sys, "frozen", False):
+        return {"status": "not_applicable", "version": TOOL_VERSION}
+
+    update = check_for_update(UPDATE_COMPONENT_DUMP, TOOL_VERSION, timeout=timeout)
+    if update is None:
+        return {"status": "up_to_date", "version": TOOL_VERSION}
+
+    target = Path(__file__).resolve()
+    try:
+        mode = target.stat().st_mode
+    except OSError as err:
+        raise TsunUpdateError(f"Cannot inspect current script: {err}") from err
+
+    staged = target.with_name(f".{target.name}.update-{os.getpid()}")
+    try:
+        download_verified_update(update, staged, timeout=timeout)
+        os.replace(staged, target)
+        try:
+            os.chmod(target, mode)
+        except OSError:
+            pass
+    except OSError as err:
+        raise TsunUpdateError(
+            "A newer diagnostic script is available, but the current file cannot "
+            "be replaced automatically"
+        ) from err
+    finally:
+        try:
+            staged.unlink()
+        except FileNotFoundError:
+            pass
+
+    return {
+        "status": "updated",
+        "version": update["version"],
+        "target": str(target),
+    }
 
 
 @dataclass(slots=True)
@@ -2380,6 +2552,16 @@ def build_parser() -> argparse.ArgumentParser:
         metavar=("BEFORE_JSON", "AFTER_JSON"),
         help="compare two existing dump files without connecting to an inverter",
     )
+    parser.add_argument(
+        "--no-update",
+        action="store_true",
+        help="skip the automatic diagnostic-tool update check for this run",
+    )
+    parser.add_argument(
+        "--check-update",
+        action="store_true",
+        help="check diagnostic-latest for a newer tsun_dump.py and exit",
+    )
     return parser
 
 
@@ -2411,6 +2593,41 @@ def main() -> int:
         return 2
 
     args = build_parser().parse_args()
+
+    if args.check_update:
+        try:
+            update = check_for_update(UPDATE_COMPONENT_DUMP, TOOL_VERSION)
+        except Exception as err:
+            print(f"Update check failed: {type(err).__name__}: {err}", file=sys.stderr)
+            return 1
+        if update is None:
+            print(f"tsun_dump.py v{TOOL_VERSION} is up to date.")
+        else:
+            print(
+                f"tsun_dump.py v{update['version']} is available "
+                f"(current v{TOOL_VERSION})."
+            )
+        return 0
+
+    if not args.no_update and not getattr(sys, "frozen", False):
+        try:
+            update_result = update_python_script_if_available()
+        except Exception as err:
+            print(
+                f"Update check unavailable; continuing with v{TOOL_VERSION}: "
+                f"{type(err).__name__}: {err}",
+                file=sys.stderr,
+            )
+        else:
+            if update_result.get("status") == "updated":
+                print(
+                    f"Updated tsun_dump.py to v{update_result['version']}; restarting..."
+                )
+                target = update_result.get("target", str(Path(__file__).resolve()))
+                os.execv(
+                    sys.executable,
+                    [sys.executable, target, *sys.argv[1:]],
+                )
 
     if args.compare:
         before_path, after_path = map(Path, args.compare)
