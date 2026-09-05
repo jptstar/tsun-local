@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Small Windows GUI wrapper for the TSUN Local read-only hardware dump tool.
+"""Small desktop GUI wrapper for the TSUN Local read-only hardware dump tool.
 
 The executable built from this file contains the existing ``tsun_dump.py``
 engine. It does not implement any additional TSUN write command: all device
@@ -27,65 +27,103 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.1.0"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
+
+_BG = "#f4f7fb"
+_CARD = "#ffffff"
+_TEXT_COLOR = "#10223a"
+_MUTED = "#617188"
+_LINE = "#dce5ef"
+_ACCENT = "#1167d8"
+_ACCENT_HOVER = "#0d57b8"
+_SUCCESS = "#148660"
+_DANGER = "#b42318"
+_SOFT_BLUE = "#eaf2ff"
+_SOFT_GREEN = "#e7f7f1"
 
 _TEXT = {
     "fr": {
-        "title": "TSUN Local — Diagnostic",
-        "intro": (
-            "Outil portable Windows — aucune installation ni Python requis.\n"
-            "Le diagnostic est strictement en lecture seule et anonymise les données sensibles.\n"
-            f"Envoyez le rapport JSON généré à : {REPORT_EMAIL}"
+        "title": "Diagnostic TSUN Local",
+        "subtitle": "Diagnostic matériel local, portable et strictement en lecture seule.",
+        "readonly": "LECTURE SEULE",
+        "step_title": "Avant de commencer",
+        "step_text": (
+            "Désactivez uniquement l'entrée TSUN Local concernée dans Home Assistant. "
+            "Cela évite que Home Assistant et l'outil interrogent le logger en même temps."
         ),
-        "timing": (
-            "Lancez-le pendant que le problème est présent, avant de recharger l'intégration."
+        "disabled": "TSUN Local est désactivé dans Home Assistant",
+        "auto_title": "Détection automatique",
+        "auto_text": (
+            "Laissez les options avancées vides dans la majorité des cas : le logger, "
+            "le protocole et les appareils sont recherchés automatiquement."
         ),
-        "disabled": "J'ai désactivé l'entrée TSUN Local concernée dans Home Assistant",
-        "host": "IP du logger (optionnel)",
-        "sn": "Monitor SN (optionnel — non enregistré)",
+        "run": "Lancer le diagnostic",
+        "ready": "Prêt à analyser",
+        "running": "Diagnostic en cours…",
+        "done": f"Diagnostic terminé — envoyez le JSON à {REPORT_EMAIL}",
+        "failed": "Le diagnostic s'est terminé avec une erreur. Ouvrez les détails pour en savoir plus.",
+        "cancelled": "Diagnostic annulé.",
+        "output_title": "Rapport",
+        "output": "Enregistrement dans",
+        "change": "Modifier",
+        "open": "Ouvrir le dossier",
+        "send": "Envoyer le JSON à",
+        "copy": "Copier l'adresse",
+        "copied": "Adresse copiée",
+        "advanced_show": "Options avancées",
+        "advanced_hide": "Masquer les options avancées",
+        "details_show": "Afficher les détails techniques",
+        "details_hide": "Masquer les détails techniques",
+        "host": "IP du logger",
+        "host_hint": "Optionnel — laissez vide pour la détection automatique",
+        "sn": "Monitor SN",
+        "sn_hint": "Optionnel — utilisé pour la communication, jamais enregistré dans le JSON",
         "folder": "Dossier de sortie",
         "browse": "Parcourir…",
-        "run": "Lancer le diagnostic complet",
-        "open": "Ouvrir le dossier",
-        "ready": "Prêt.",
-        "running": "Diagnostic en cours…",
-        "done": f"Diagnostic terminé. Envoyez le fichier JSON généré à {REPORT_EMAIL}.",
-        "failed": "Le diagnostic s'est terminé avec une erreur.",
-        "need_disable": (
-            "Désactivez d'abord l'entrée TSUN Local concernée dans Home Assistant, "
-            "puis cochez la case de confirmation."
-        ),
         "input_title": "Information nécessaire",
-        "cancelled": "Diagnostic annulé.",
         "folder_error": "Impossible d'utiliser le dossier de sortie sélectionné.",
         "footer": "Moteur tsun_dump.py v{dump} · Interface v{gui} · Lecture seule",
     },
     "en": {
-        "title": "TSUN Local — Diagnostic",
-        "intro": (
-            "Portable Windows tool — no installation or Python required.\n"
-            "The diagnostic is strictly read-only and redacts sensitive data.\n"
-            f"Send the generated JSON report to: {REPORT_EMAIL}"
+        "title": "TSUN Local Diagnostic",
+        "subtitle": "Portable, local hardware diagnostic with a strictly read-only engine.",
+        "readonly": "READ-ONLY",
+        "step_title": "Before you start",
+        "step_text": (
+            "Disable only the affected TSUN Local entry in Home Assistant. "
+            "This prevents Home Assistant and the diagnostic tool from polling the logger at the same time."
         ),
-        "timing": "Run it while the problem is present, before reloading the integration.",
-        "disabled": "I disabled the affected TSUN Local entry in Home Assistant",
-        "host": "Logger IP (optional)",
-        "sn": "Monitor SN (optional — not stored)",
+        "disabled": "TSUN Local is disabled in Home Assistant",
+        "auto_title": "Automatic discovery",
+        "auto_text": (
+            "Leave advanced options empty in most cases: the logger, protocol and devices "
+            "are discovered automatically."
+        ),
+        "run": "Run diagnostic",
+        "ready": "Ready to scan",
+        "running": "Diagnostic running…",
+        "done": f"Diagnostic complete — send the JSON to {REPORT_EMAIL}",
+        "failed": "The diagnostic ended with an error. Open technical details for more information.",
+        "cancelled": "Diagnostic cancelled.",
+        "output_title": "Report",
+        "output": "Saved to",
+        "change": "Change",
+        "open": "Open folder",
+        "send": "Send the JSON to",
+        "copy": "Copy address",
+        "copied": "Address copied",
+        "advanced_show": "Advanced options",
+        "advanced_hide": "Hide advanced options",
+        "details_show": "Show technical details",
+        "details_hide": "Hide technical details",
+        "host": "Logger IP",
+        "host_hint": "Optional — leave empty for automatic discovery",
+        "sn": "Monitor SN",
+        "sn_hint": "Optional — used for communication, never stored in the JSON",
         "folder": "Output folder",
         "browse": "Browse…",
-        "run": "Run full diagnostic",
-        "open": "Open folder",
-        "ready": "Ready.",
-        "running": "Diagnostic running…",
-        "done": f"Diagnostic complete. Send the generated JSON file to {REPORT_EMAIL}.",
-        "failed": "The diagnostic ended with an error.",
-        "need_disable": (
-            "First disable the affected TSUN Local entry in Home Assistant, "
-            "then tick the confirmation box."
-        ),
         "input_title": "Information required",
-        "cancelled": "Diagnostic cancelled.",
         "folder_error": "The selected output folder cannot be used.",
         "footer": "tsun_dump.py engine v{dump} · GUI v{gui} · Read-only",
     },
@@ -120,10 +158,13 @@ class DiagnosticApp:
         self.t = _TEXT[self.lang]
         self.events: queue.Queue[tuple[Any, ...]] = queue.Queue()
         self.worker: threading.Thread | None = None
+        self.advanced_visible = False
+        self.details_visible = False
 
         self.root.title(self.t["title"])
-        self.root.geometry("760x620")
-        self.root.minsize(680, 540)
+        self.root.geometry("780x690")
+        self.root.minsize(700, 600)
+        self.root.configure(bg=_BG)
 
         self.confirm_disabled = tk.BooleanVar(value=False)
         self.host = tk.StringVar()
@@ -131,7 +172,9 @@ class DiagnosticApp:
         self.output_dir = tk.StringVar(value=str(self._default_output_dir()))
         self.status = tk.StringVar(value=self.t["ready"])
 
+        self._configure_ttk()
         self._build_ui()
+        self.confirm_disabled.trace_add("write", self._sync_run_button)
         self.root.after(100, self._poll_events)
 
     @staticmethod
@@ -142,78 +185,415 @@ class DiagnosticApp:
                 return candidate
         return home
 
+    def _configure_ttk(self) -> None:
+        style = ttk.Style(self.root)
+        style.configure("TProgressbar", thickness=6)
+
+    @staticmethod
+    def _card(parent: tk.Misc) -> tk.Frame:
+        return tk.Frame(
+            parent,
+            bg=_CARD,
+            highlightbackground=_LINE,
+            highlightcolor=_LINE,
+            highlightthickness=1,
+            bd=0,
+        )
+
+    @staticmethod
+    def _flat_button(
+        parent: tk.Misc,
+        text: str,
+        command: Any,
+        *,
+        primary: bool = False,
+        compact: bool = False,
+    ) -> tk.Button:
+        bg = _ACCENT if primary else _CARD
+        fg = "#ffffff" if primary else _TEXT_COLOR
+        active_bg = _ACCENT_HOVER if primary else _SOFT_BLUE
+        return tk.Button(
+            parent,
+            text=text,
+            command=command,
+            bg=bg,
+            fg=fg,
+            activebackground=active_bg,
+            activeforeground=fg,
+            disabledforeground="#96a1b0",
+            relief="flat",
+            bd=0,
+            cursor="hand2",
+            font=("Segoe UI", 10 if compact else 11, "bold"),
+            padx=13 if compact else 20,
+            pady=7 if compact else 12,
+            highlightthickness=1 if not primary else 0,
+            highlightbackground=_LINE,
+        )
+
     def _build_ui(self) -> None:
-        outer = ttk.Frame(self.root, padding=18)
-        outer.pack(fill="both", expand=True)
-        outer.columnconfigure(0, weight=1)
-        outer.rowconfigure(8, weight=1)
+        canvas = tk.Canvas(self.root, bg=_BG, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
 
-        ttk.Label(outer, text=APP_NAME, font=("Segoe UI", 18, "bold")).grid(
-            row=0, column=0, sticky="w"
-        )
-        ttk.Label(outer, text=self.t["intro"], wraplength=700).grid(
-            row=1, column=0, sticky="w", pady=(6, 2)
-        )
-        ttk.Label(outer, text=self.t["timing"], wraplength=700).grid(
-            row=2, column=0, sticky="w", pady=(0, 12)
-        )
+        outer = tk.Frame(canvas, bg=_BG)
+        window = canvas.create_window((0, 0), window=outer, anchor="nw")
 
-        ttk.Checkbutton(
-            outer, text=self.t["disabled"], variable=self.confirm_disabled
-        ).grid(row=3, column=0, sticky="w", pady=(0, 12))
+        def _resize_canvas(event: tk.Event[Any]) -> None:
+            canvas.itemconfigure(window, width=event.width)
 
-        fields = ttk.Frame(outer)
-        fields.grid(row=4, column=0, sticky="ew")
-        fields.columnconfigure(1, weight=1)
+        def _resize_scroll_region(_event: tk.Event[Any]) -> None:
+            canvas.configure(scrollregion=canvas.bbox("all"))
 
-        ttk.Label(fields, text=self.t["host"]).grid(
-            row=0, column=0, sticky="w", padx=(0, 10)
-        )
-        ttk.Entry(fields, textvariable=self.host, width=30).grid(
-            row=0, column=1, sticky="ew"
-        )
-        ttk.Label(fields, text=self.t["sn"]).grid(
-            row=1, column=0, sticky="w", padx=(0, 10), pady=(8, 0)
-        )
-        ttk.Entry(fields, textvariable=self.monitor_sn, width=30).grid(
-            row=1, column=1, sticky="ew", pady=(8, 0)
-        )
-        ttk.Label(fields, text=self.t["folder"]).grid(
-            row=2, column=0, sticky="w", padx=(0, 10), pady=(8, 0)
-        )
-        ttk.Entry(fields, textvariable=self.output_dir).grid(
-            row=2, column=1, sticky="ew", pady=(8, 0)
-        )
-        ttk.Button(fields, text=self.t["browse"], command=self._choose_folder).grid(
-            row=2, column=2, padx=(8, 0), pady=(8, 0)
-        )
+        canvas.bind("<Configure>", _resize_canvas)
+        outer.bind("<Configure>", _resize_scroll_region)
 
-        buttons = ttk.Frame(outer)
-        buttons.grid(row=5, column=0, sticky="ew", pady=(14, 8))
-        self.run_button = ttk.Button(buttons, text=self.t["run"], command=self._start)
-        self.run_button.pack(side="left")
-        ttk.Button(buttons, text=self.t["open"], command=self._open_folder).pack(
-            side="left", padx=(8, 0)
-        )
+        content = tk.Frame(outer, bg=_BG)
+        content.pack(fill="both", expand=True, padx=28, pady=24)
 
-        ttk.Label(outer, textvariable=self.status, font=("Segoe UI", 10, "bold")).grid(
-            row=6, column=0, sticky="w", pady=(0, 8)
-        )
+        header = tk.Frame(content, bg=_BG)
+        header.pack(fill="x", pady=(0, 18))
+        title_row = tk.Frame(header, bg=_BG)
+        title_row.pack(fill="x")
+        tk.Label(
+            title_row,
+            text=self.t["title"],
+            bg=_BG,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 22, "bold"),
+        ).pack(side="left")
+        tk.Label(
+            title_row,
+            text=self.t["readonly"],
+            bg=_SOFT_GREEN,
+            fg=_SUCCESS,
+            font=("Segoe UI", 9, "bold"),
+            padx=9,
+            pady=4,
+        ).pack(side="right", pady=(4, 0))
+        tk.Label(
+            header,
+            text=self.t["subtitle"],
+            bg=_BG,
+            fg=_MUTED,
+            font=("Segoe UI", 10),
+            anchor="w",
+        ).pack(fill="x", pady=(5, 0))
 
-        log_frame = ttk.Frame(outer)
-        log_frame.grid(row=8, column=0, sticky="nsew")
-        log_frame.columnconfigure(0, weight=1)
-        log_frame.rowconfigure(0, weight=1)
-        self.log = tk.Text(log_frame, height=16, wrap="word", state="disabled")
-        scroll = ttk.Scrollbar(log_frame, orient="vertical", command=self.log.yview)
+        start_card = self._card(content)
+        start_card.pack(fill="x", pady=(0, 14))
+        start_inner = tk.Frame(start_card, bg=_CARD)
+        start_inner.pack(fill="x", padx=20, pady=18)
+        tk.Label(
+            start_inner,
+            text=self.t["step_title"],
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 12, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            start_inner,
+            text=self.t["step_text"],
+            bg=_CARD,
+            fg=_MUTED,
+            font=("Segoe UI", 9),
+            justify="left",
+            wraplength=680,
+            anchor="w",
+        ).pack(fill="x", pady=(5, 12))
+        self.confirm_check = tk.Checkbutton(
+            start_inner,
+            text=self.t["disabled"],
+            variable=self.confirm_disabled,
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            activebackground=_CARD,
+            activeforeground=_TEXT_COLOR,
+            selectcolor=_CARD,
+            font=("Segoe UI", 10, "bold"),
+            anchor="w",
+            padx=0,
+            pady=0,
+        )
+        self.confirm_check.pack(fill="x")
+
+        auto_card = self._card(content)
+        auto_card.pack(fill="x", pady=(0, 14))
+        auto_inner = tk.Frame(auto_card, bg=_CARD)
+        auto_inner.pack(fill="x", padx=20, pady=17)
+        tk.Label(
+            auto_inner,
+            text=self.t["auto_title"],
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 12, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            auto_inner,
+            text=self.t["auto_text"],
+            bg=_CARD,
+            fg=_MUTED,
+            font=("Segoe UI", 9),
+            justify="left",
+            wraplength=680,
+            anchor="w",
+        ).pack(fill="x", pady=(5, 0))
+
+        action_area = tk.Frame(content, bg=_BG)
+        action_area.pack(fill="x", pady=(2, 14))
+        self.run_button = self._flat_button(
+            action_area, self.t["run"], self._start, primary=True
+        )
+        self.run_button.pack(fill="x")
+        self.run_button.configure(state="disabled")
+        self.progress = ttk.Progressbar(action_area, mode="indeterminate")
+        self.progress.pack(fill="x", pady=(8, 0))
+        self.status_label = tk.Label(
+            action_area,
+            textvariable=self.status,
+            bg=_BG,
+            fg=_MUTED,
+            font=("Segoe UI", 10, "bold"),
+            anchor="w",
+        )
+        self.status_label.pack(fill="x", pady=(8, 0))
+
+        report_card = self._card(content)
+        report_card.pack(fill="x", pady=(0, 14))
+        report_inner = tk.Frame(report_card, bg=_CARD)
+        report_inner.pack(fill="x", padx=20, pady=17)
+        tk.Label(
+            report_inner,
+            text=self.t["output_title"],
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 12, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+
+        folder_row = tk.Frame(report_inner, bg=_CARD)
+        folder_row.pack(fill="x", pady=(10, 0))
+        folder_text = tk.Frame(folder_row, bg=_CARD)
+        folder_text.pack(side="left", fill="x", expand=True)
+        tk.Label(
+            folder_text,
+            text=self.t["output"],
+            bg=_CARD,
+            fg=_MUTED,
+            font=("Segoe UI", 8),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            folder_text,
+            textvariable=self.output_dir,
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 9),
+            anchor="w",
+        ).pack(fill="x", pady=(1, 0))
+        self._flat_button(
+            folder_row, self.t["change"], self._choose_folder, compact=True
+        ).pack(side="right", padx=(10, 0))
+
+        email_row = tk.Frame(report_inner, bg=_CARD)
+        email_row.pack(fill="x", pady=(14, 0))
+        email_text = tk.Frame(email_row, bg=_CARD)
+        email_text.pack(side="left", fill="x", expand=True)
+        tk.Label(
+            email_text,
+            text=self.t["send"],
+            bg=_CARD,
+            fg=_MUTED,
+            font=("Segoe UI", 8),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            email_text,
+            text=REPORT_EMAIL,
+            bg=_CARD,
+            fg=_ACCENT,
+            font=("Segoe UI", 10, "bold"),
+            anchor="w",
+        ).pack(fill="x", pady=(1, 0))
+        self.copy_button = self._flat_button(
+            email_row, self.t["copy"], self._copy_email, compact=True
+        )
+        self.copy_button.pack(side="right", padx=(10, 0))
+
+        button_row = tk.Frame(report_inner, bg=_CARD)
+        button_row.pack(fill="x", pady=(14, 0))
+        self._flat_button(
+            button_row, self.t["open"], self._open_folder, compact=True
+        ).pack(side="left")
+
+        self.advanced_button = self._flat_button(
+            content,
+            self.t["advanced_show"],
+            self._toggle_advanced,
+            compact=True,
+        )
+        self.advanced_button.pack(anchor="w", pady=(0, 8))
+
+        self.advanced_card = self._card(content)
+        advanced_inner = tk.Frame(self.advanced_card, bg=_CARD)
+        advanced_inner.pack(fill="x", padx=20, pady=17)
+
+        self._field(
+            advanced_inner,
+            self.t["host"],
+            self.t["host_hint"],
+            self.host,
+            row=0,
+        )
+        self._field(
+            advanced_inner,
+            self.t["sn"],
+            self.t["sn_hint"],
+            self.monitor_sn,
+            row=1,
+        )
+        advanced_inner.columnconfigure(0, weight=1)
+
+        folder_adv = tk.Frame(advanced_inner, bg=_CARD)
+        folder_adv.grid(row=2, column=0, sticky="ew", pady=(11, 0))
+        tk.Label(
+            folder_adv,
+            text=self.t["folder"],
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        folder_entry_row = tk.Frame(folder_adv, bg=_CARD)
+        folder_entry_row.pack(fill="x", pady=(5, 0))
+        tk.Entry(
+            folder_entry_row,
+            textvariable=self.output_dir,
+            relief="solid",
+            bd=1,
+            highlightthickness=0,
+            font=("Segoe UI", 9),
+        ).pack(side="left", fill="x", expand=True, ipady=6)
+        self._flat_button(
+            folder_entry_row, self.t["browse"], self._choose_folder, compact=True
+        ).pack(side="right", padx=(8, 0))
+
+        self.details_button = self._flat_button(
+            content,
+            self.t["details_show"],
+            self._toggle_details,
+            compact=True,
+        )
+        self.details_button.pack(anchor="w", pady=(0, 8))
+
+        self.log_card = self._card(content)
+        log_inner = tk.Frame(self.log_card, bg=_CARD)
+        log_inner.pack(fill="both", expand=True, padx=12, pady=12)
+        self.log = tk.Text(
+            log_inner,
+            height=12,
+            wrap="word",
+            state="disabled",
+            bg="#0e2036",
+            fg="#dceaff",
+            insertbackground="#ffffff",
+            relief="flat",
+            bd=0,
+            font=("Consolas", 9),
+            padx=10,
+            pady=10,
+        )
+        scroll = ttk.Scrollbar(log_inner, orient="vertical", command=self.log.yview)
         self.log.configure(yscrollcommand=scroll.set)
-        self.log.grid(row=0, column=0, sticky="nsew")
-        scroll.grid(row=0, column=1, sticky="ns")
+        self.log.pack(side="left", fill="both", expand=True)
+        scroll.pack(side="right", fill="y")
 
         footer = self.t["footer"].format(
             dump=getattr(tsun_dump, "TOOL_VERSION", "?"), gui=APP_VERSION
         )
-        ttk.Label(outer, text=footer).grid(row=9, column=0, sticky="w", pady=(8, 0))
+        tk.Label(
+            content,
+            text=footer,
+            bg=_BG,
+            fg=_MUTED,
+            font=("Segoe UI", 8),
+            anchor="w",
+        ).pack(fill="x", pady=(8, 6))
+
+    def _field(
+        self,
+        parent: tk.Misc,
+        label: str,
+        hint: str,
+        variable: tk.StringVar,
+        *,
+        row: int,
+    ) -> None:
+        holder = tk.Frame(parent, bg=_CARD)
+        holder.grid(row=row, column=0, sticky="ew", pady=(0 if row == 0 else 11, 0))
+        tk.Label(
+            holder,
+            text=label,
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        tk.Label(
+            holder,
+            text=hint,
+            bg=_CARD,
+            fg=_MUTED,
+            font=("Segoe UI", 8),
+            anchor="w",
+        ).pack(fill="x", pady=(1, 4))
+        tk.Entry(
+            holder,
+            textvariable=variable,
+            relief="solid",
+            bd=1,
+            highlightthickness=0,
+            font=("Segoe UI", 9),
+        ).pack(fill="x", ipady=6)
+
+    def _sync_run_button(self, *_args: Any) -> None:
+        if self.worker and self.worker.is_alive():
+            self.run_button.configure(state="disabled")
+            return
+        state = "normal" if self.confirm_disabled.get() else "disabled"
+        self.run_button.configure(state=state)
+
+    def _toggle_advanced(self) -> None:
+        self.advanced_visible = not self.advanced_visible
+        if self.advanced_visible:
+            self.advanced_card.pack(fill="x", pady=(0, 14), before=self.details_button)
+            self.advanced_button.configure(text=self.t["advanced_hide"])
+        else:
+            self.advanced_card.pack_forget()
+            self.advanced_button.configure(text=self.t["advanced_show"])
+
+    def _toggle_details(self) -> None:
+        self.details_visible = not self.details_visible
+        if self.details_visible:
+            self.log_card.pack(fill="both", expand=True, pady=(0, 14), before=self.details_button.master.winfo_children()[-1])
+            # Move the details button above the log if Tk reordered packed children.
+            self.details_button.pack_forget()
+            self.details_button.pack(anchor="w", pady=(0, 8), before=self.log_card)
+            self.details_button.configure(text=self.t["details_hide"])
+        else:
+            self.log_card.pack_forget()
+            self.details_button.configure(text=self.t["details_show"])
+
+    def _copy_email(self) -> None:
+        self.root.clipboard_clear()
+        self.root.clipboard_append(REPORT_EMAIL)
+        original = self.t["copy"]
+        self.copy_button.configure(text=self.t["copied"])
+        self.root.after(1500, lambda: self.copy_button.configure(text=original))
 
     def _choose_folder(self) -> None:
         selected = filedialog.askdirectory(initialdir=self.output_dir.get() or None)
@@ -241,7 +621,6 @@ class DiagnosticApp:
         if self.worker and self.worker.is_alive():
             return
         if not self.confirm_disabled.get():
-            messagebox.showwarning(APP_NAME, self.t["need_disable"])
             return
 
         folder = Path(self.output_dir.get()).expanduser()
@@ -252,7 +631,10 @@ class DiagnosticApp:
             return
 
         self.run_button.configure(state="disabled")
+        self.confirm_check.configure(state="disabled")
         self.status.set(self.t["running"])
+        self.status_label.configure(fg=_ACCENT)
+        self.progress.start(12)
         self._append_log("\n=== TSUN Local Diagnostic ===\n")
 
         host = self.host.get().strip()
@@ -325,10 +707,14 @@ class DiagnosticApp:
                 if kind == "log":
                     self._append_log(str(event[1]))
                 elif kind == "status":
+                    success = bool(event[2])
                     self.status.set(str(event[1]))
-                    self.run_button.configure(state="normal")
-                    if bool(event[2]):
-                        messagebox.showinfo(APP_NAME, str(event[1]))
+                    self.progress.stop()
+                    self.confirm_check.configure(state="normal")
+                    self.status_label.configure(fg=_SUCCESS if success else _DANGER)
+                    self._sync_run_button()
+                    if not success and not self.details_visible:
+                        self._toggle_details()
                 elif kind == "input":
                     prompt, done, result = str(event[1]), event[2], event[3]
                     value = simpledialog.askstring(
