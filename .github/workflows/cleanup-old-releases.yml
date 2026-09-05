@@ -18,7 +18,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const protectedTags = new Set(["1.5.1", "v1.5.1"]);
+            const protectedTags = new Set(["1.5.1", "v1.5.1", "diagnostic-latest"]);
             const shouldDelete = (tag, prerelease = false) => {
               const value = tag.toLowerCase();
               return prerelease || value.includes("beta") || value === "1.5.0" || value === "v1.5.0";
@@ -35,7 +35,7 @@ jobs:
             for (const release of releases) {
               const tag = release.tag_name;
               if (protectedTags.has(tag)) {
-                core.info(`Protected stable release: ${tag}`);
+                core.info(`Protected release: ${tag}`);
                 continue;
               }
               if (!shouldDelete(tag, release.prerelease)) {
@@ -86,4 +86,4 @@ jobs:
               });
             }
 
-            core.info("Cleanup complete. Stable 1.5.1 was protected.");
+            core.info("Cleanup complete. Stable integration releases and diagnostic-latest are protected.");
