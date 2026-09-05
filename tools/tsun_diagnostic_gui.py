@@ -2,7 +2,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Small desktop GUI wrapper for the TSUN Local read-only hardware dump tool.
+"""Compact desktop GUI wrapper for the TSUN Local read-only hardware dump tool.
 
 The executable built from this file contains the existing ``tsun_dump.py``
 engine. It does not implement any additional TSUN write command: all device
@@ -27,7 +27,7 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.3.0"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _BG = "#f4f7fb"
@@ -49,80 +49,84 @@ _TEXT = {
         "readonly": "LECTURE SEULE",
         "step_title": "1 · Désactivez TSUN Local",
         "step_text": (
-            "Désactivez uniquement l'entrée TSUN Local concernée dans Home Assistant. "
-            "Cela évite que Home Assistant et l'outil interrogent le logger en même temps."
+            "Désactivez l'entrée TSUN Local concernée dans Home Assistant pour éviter "
+            "deux interrogations simultanées du logger."
         ),
-        "disabled": "TSUN Local est désactivé dans Home Assistant",
-        "auto_title": "Tout est automatique",
+        "disabled": "TSUN Local est désactivé",
+        "auto_title": "2 · Lancez le diagnostic",
         "auto_text": (
-            "Laissez les options avancées vides dans la majorité des cas : le logger, "
-            "le protocole et les appareils sont recherchés automatiquement."
+            "Tout est automatique : logger, protocole et appareils sont recherchés "
+            "sans réglage dans la majorité des cas."
         ),
-        "run": "2 · Lancer le diagnostic",
+        "run": "Lancer le diagnostic",
         "ready": "Prêt à analyser",
         "running": "Diagnostic en cours…",
         "done": f"Diagnostic terminé — envoyez le JSON à {REPORT_EMAIL}",
-        "failed": "Le diagnostic s'est terminé avec une erreur. Ouvrez les détails pour en savoir plus.",
+        "failed": "Le diagnostic s'est terminé avec une erreur.",
         "cancelled": "Diagnostic annulé.",
-        "output_title": "3 · Rapport à envoyer",
-        "output": "Enregistrement dans",
+        "output_title": "3 · Envoyez le rapport",
+        "output": "Dossier du JSON",
         "change": "Modifier",
         "open": "Ouvrir le dossier",
-        "send": "Envoyer le JSON à",
+        "send": "Adresse d'envoi",
         "copy": "Copier l'adresse",
         "copied": "Adresse copiée",
+        "report_hint": "Le JSON est anonymisé. Vous pouvez le vérifier avant l'envoi.",
         "advanced_show": "Options avancées",
-        "advanced_hide": "Masquer les options avancées",
-        "details_show": "Afficher les détails techniques",
-        "details_hide": "Masquer les détails techniques",
+        "details_show": "Détails techniques",
+        "advanced_title": "Options avancées",
+        "details_title": "Détails techniques",
         "host": "IP du logger",
-        "host_hint": "Optionnel — laissez vide pour la détection automatique",
+        "host_hint": "Optionnel — vide = détection automatique",
         "sn": "Monitor SN",
-        "sn_hint": "Optionnel — utilisé pour la communication, jamais enregistré dans le JSON",
+        "sn_hint": "Optionnel — utilisé pour communiquer, jamais enregistré dans le JSON",
         "folder": "Dossier de sortie",
         "browse": "Parcourir…",
+        "close": "Fermer",
         "input_title": "Information nécessaire",
         "folder_error": "Impossible d'utiliser le dossier de sortie sélectionné.",
         "footer": "Moteur tsun_dump.py v{dump} · Interface v{gui} · Lecture seule",
     },
     "en": {
         "title": "TSUN Local Diagnostic",
-        "subtitle": "Portable, local hardware diagnostic with a strictly read-only engine.",
+        "subtitle": "Portable local hardware diagnostic with a strictly read-only engine.",
         "readonly": "READ-ONLY",
         "step_title": "1 · Disable TSUN Local",
         "step_text": (
-            "Disable only the affected TSUN Local entry in Home Assistant. "
-            "This prevents Home Assistant and the diagnostic tool from polling the logger at the same time."
+            "Disable the affected TSUN Local entry in Home Assistant to avoid two "
+            "simultaneous polling sessions on the logger."
         ),
-        "disabled": "TSUN Local is disabled in Home Assistant",
-        "auto_title": "Automatic by default",
+        "disabled": "TSUN Local is disabled",
+        "auto_title": "2 · Run the diagnostic",
         "auto_text": (
-            "Leave advanced options empty in most cases: the logger, protocol and devices "
-            "are discovered automatically."
+            "Automatic by default: logger, protocol and devices are discovered "
+            "without extra settings in most cases."
         ),
-        "run": "2 · Run diagnostic",
+        "run": "Run diagnostic",
         "ready": "Ready to scan",
         "running": "Diagnostic running…",
         "done": f"Diagnostic complete — send the JSON to {REPORT_EMAIL}",
-        "failed": "The diagnostic ended with an error. Open technical details for more information.",
+        "failed": "The diagnostic ended with an error.",
         "cancelled": "Diagnostic cancelled.",
-        "output_title": "3 · Report to send",
-        "output": "Saved to",
+        "output_title": "3 · Send the report",
+        "output": "JSON folder",
         "change": "Change",
         "open": "Open folder",
-        "send": "Send the JSON to",
+        "send": "Send to",
         "copy": "Copy address",
         "copied": "Address copied",
+        "report_hint": "The JSON is anonymized. You can review it before sending.",
         "advanced_show": "Advanced options",
-        "advanced_hide": "Hide advanced options",
-        "details_show": "Show technical details",
-        "details_hide": "Hide technical details",
+        "details_show": "Technical details",
+        "advanced_title": "Advanced options",
+        "details_title": "Technical details",
         "host": "Logger IP",
-        "host_hint": "Optional — leave empty for automatic discovery",
+        "host_hint": "Optional — empty = automatic discovery",
         "sn": "Monitor SN",
         "sn_hint": "Optional — used for communication, never stored in the JSON",
         "folder": "Output folder",
         "browse": "Browse…",
+        "close": "Close",
         "input_title": "Information required",
         "folder_error": "The selected output folder cannot be used.",
         "footer": "tsun_dump.py engine v{dump} · GUI v{gui} · Read-only",
@@ -158,12 +162,14 @@ class DiagnosticApp:
         self.t = _TEXT[self.lang]
         self.events: queue.Queue[tuple[Any, ...]] = queue.Queue()
         self.worker: threading.Thread | None = None
-        self.advanced_visible = False
-        self.details_visible = False
+        self.advanced_window: tk.Toplevel | None = None
+        self.details_window: tk.Toplevel | None = None
+        self.log: tk.Text | None = None
+        self.log_buffer: list[str] = []
 
         self.root.title(self.t["title"])
-        self.root.geometry("780x690")
-        self.root.minsize(700, 600)
+        self.root.geometry("920x570")
+        self.root.minsize(860, 540)
         self.root.configure(bg=_BG)
 
         self.confirm_disabled = tk.BooleanVar(value=False)
@@ -224,45 +230,38 @@ class DiagnosticApp:
             relief="flat",
             bd=0,
             cursor="hand2",
-            font=("Segoe UI", 10 if compact else 11, "bold"),
-            padx=13 if compact else 20,
-            pady=7 if compact else 12,
+            font=("Segoe UI", 9 if compact else 11, "bold"),
+            padx=12 if compact else 18,
+            pady=6 if compact else 11,
             highlightthickness=1 if not primary else 0,
             highlightbackground=_LINE,
         )
 
+    def _section_title(self, parent: tk.Misc, text: str) -> None:
+        tk.Label(
+            parent,
+            text=text,
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 12, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+
     def _build_ui(self) -> None:
-        canvas = tk.Canvas(self.root, bg=_BG, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=canvas.yview)
-        canvas.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
-        canvas.pack(side="left", fill="both", expand=True)
-
-        outer = tk.Frame(canvas, bg=_BG)
-        window = canvas.create_window((0, 0), window=outer, anchor="nw")
-
-        def _resize_canvas(event: tk.Event[Any]) -> None:
-            canvas.itemconfigure(window, width=event.width)
-
-        def _resize_scroll_region(_event: tk.Event[Any]) -> None:
-            canvas.configure(scrollregion=canvas.bbox("all"))
-
-        canvas.bind("<Configure>", _resize_canvas)
-        outer.bind("<Configure>", _resize_scroll_region)
-
-        content = tk.Frame(outer, bg=_BG)
-        content.pack(fill="both", expand=True, padx=28, pady=24)
+        content = tk.Frame(self.root, bg=_BG)
+        content.pack(fill="both", expand=True, padx=24, pady=18)
 
         header = tk.Frame(content, bg=_BG)
-        header.pack(fill="x", pady=(0, 18))
+        header.pack(fill="x", pady=(0, 14))
         title_row = tk.Frame(header, bg=_BG)
         title_row.pack(fill="x")
+
         tk.Label(
             title_row,
             text=self.t["title"],
             bg=_BG,
             fg=_TEXT_COLOR,
-            font=("Segoe UI", 22, "bold"),
+            font=("Segoe UI", 21, "bold"),
         ).pack(side="left")
         tk.Label(
             title_row,
@@ -272,40 +271,44 @@ class DiagnosticApp:
             font=("Segoe UI", 9, "bold"),
             padx=9,
             pady=4,
-        ).pack(side="right", pady=(4, 0))
+        ).pack(side="right", pady=(3, 0))
         tk.Label(
             header,
             text=self.t["subtitle"],
             bg=_BG,
             fg=_MUTED,
-            font=("Segoe UI", 10),
+            font=("Segoe UI", 9),
             anchor="w",
-        ).pack(fill="x", pady=(5, 0))
+        ).pack(fill="x", pady=(4, 0))
 
-        start_card = self._card(content)
-        start_card.pack(fill="x", pady=(0, 14))
-        start_inner = tk.Frame(start_card, bg=_CARD)
-        start_inner.pack(fill="x", padx=20, pady=18)
+        main = tk.Frame(content, bg=_BG)
+        main.pack(fill="both", expand=True)
+        main.columnconfigure(0, weight=1, uniform="main")
+        main.columnconfigure(1, weight=1, uniform="main")
+        main.rowconfigure(0, weight=1)
+
+        left = tk.Frame(main, bg=_BG)
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 7))
+        right = tk.Frame(main, bg=_BG)
+        right.grid(row=0, column=1, sticky="nsew", padx=(7, 0))
+
+        step1 = self._card(left)
+        step1.pack(fill="x", pady=(0, 12))
+        step1_inner = tk.Frame(step1, bg=_CARD)
+        step1_inner.pack(fill="x", padx=18, pady=15)
+        self._section_title(step1_inner, self.t["step_title"])
         tk.Label(
-            start_inner,
-            text=self.t["step_title"],
-            bg=_CARD,
-            fg=_TEXT_COLOR,
-            font=("Segoe UI", 12, "bold"),
-            anchor="w",
-        ).pack(fill="x")
-        tk.Label(
-            start_inner,
+            step1_inner,
             text=self.t["step_text"],
             bg=_CARD,
             fg=_MUTED,
             font=("Segoe UI", 9),
             justify="left",
-            wraplength=680,
+            wraplength=385,
             anchor="w",
-        ).pack(fill="x", pady=(5, 12))
+        ).pack(fill="x", pady=(5, 10))
         self.confirm_check = tk.Checkbutton(
-            start_inner,
+            step1_inner,
             text=self.t["disabled"],
             variable=self.confirm_disabled,
             bg=_CARD,
@@ -320,67 +323,74 @@ class DiagnosticApp:
         )
         self.confirm_check.pack(fill="x")
 
-        auto_card = self._card(content)
-        auto_card.pack(fill="x", pady=(0, 14))
-        auto_inner = tk.Frame(auto_card, bg=_CARD)
-        auto_inner.pack(fill="x", padx=20, pady=17)
+        step2 = self._card(left)
+        step2.pack(fill="both", expand=True)
+        step2_inner = tk.Frame(step2, bg=_CARD)
+        step2_inner.pack(fill="both", expand=True, padx=18, pady=15)
+        self._section_title(step2_inner, self.t["auto_title"])
         tk.Label(
-            auto_inner,
-            text=self.t["auto_title"],
-            bg=_CARD,
-            fg=_TEXT_COLOR,
-            font=("Segoe UI", 12, "bold"),
-            anchor="w",
-        ).pack(fill="x")
-        tk.Label(
-            auto_inner,
+            step2_inner,
             text=self.t["auto_text"],
             bg=_CARD,
             fg=_MUTED,
             font=("Segoe UI", 9),
             justify="left",
-            wraplength=680,
+            wraplength=385,
             anchor="w",
-        ).pack(fill="x", pady=(5, 0))
+        ).pack(fill="x", pady=(5, 14))
 
-        action_area = tk.Frame(content, bg=_BG)
-        action_area.pack(fill="x", pady=(2, 14))
         self.run_button = self._flat_button(
-            action_area, self.t["run"], self._start, primary=True
+            step2_inner, self.t["run"], self._start, primary=True
         )
         self.run_button.pack(fill="x")
         self.run_button.configure(state="disabled")
-        self.progress = ttk.Progressbar(action_area, mode="indeterminate")
-        self.progress.pack(fill="x", pady=(8, 0))
+
+        self.progress = ttk.Progressbar(step2_inner, mode="indeterminate")
+        self.progress.pack(fill="x", pady=(10, 0))
         self.status_label = tk.Label(
-            action_area,
+            step2_inner,
             textvariable=self.status,
-            bg=_BG,
+            bg=_CARD,
             fg=_MUTED,
-            font=("Segoe UI", 10, "bold"),
+            font=("Segoe UI", 9, "bold"),
+            justify="left",
+            wraplength=385,
             anchor="w",
         )
-        self.status_label.pack(fill="x", pady=(8, 0))
+        self.status_label.pack(fill="x", pady=(10, 0))
 
-        report_card = self._card(content)
-        report_card.pack(fill="x", pady=(0, 14))
-        report_inner = tk.Frame(report_card, bg=_CARD)
-        report_inner.pack(fill="x", padx=20, pady=17)
+        step3 = self._card(right)
+        step3.pack(fill="both", expand=True)
+        step3_inner = tk.Frame(step3, bg=_CARD)
+        step3_inner.pack(fill="both", expand=True, padx=18, pady=15)
+        self._section_title(step3_inner, self.t["output_title"])
+
         tk.Label(
-            report_inner,
-            text=self.t["output_title"],
+            step3_inner,
+            text=self.t["send"],
             bg=_CARD,
-            fg=_TEXT_COLOR,
+            fg=_MUTED,
+            font=("Segoe UI", 8),
+            anchor="w",
+        ).pack(fill="x", pady=(14, 0))
+        tk.Label(
+            step3_inner,
+            text=REPORT_EMAIL,
+            bg=_CARD,
+            fg=_ACCENT,
             font=("Segoe UI", 12, "bold"),
             anchor="w",
-        ).pack(fill="x")
+        ).pack(fill="x", pady=(2, 8))
+        self.copy_button = self._flat_button(
+            step3_inner, self.t["copy"], self._copy_email, compact=True
+        )
+        self.copy_button.pack(anchor="w")
 
-        folder_row = tk.Frame(report_inner, bg=_CARD)
-        folder_row.pack(fill="x", pady=(10, 0))
-        folder_text = tk.Frame(folder_row, bg=_CARD)
-        folder_text.pack(side="left", fill="x", expand=True)
+        divider = tk.Frame(step3_inner, bg=_LINE, height=1)
+        divider.pack(fill="x", pady=15)
+
         tk.Label(
-            folder_text,
+            step3_inner,
             text=self.t["output"],
             bg=_CARD,
             fg=_MUTED,
@@ -388,153 +398,70 @@ class DiagnosticApp:
             anchor="w",
         ).pack(fill="x")
         tk.Label(
-            folder_text,
+            step3_inner,
             textvariable=self.output_dir,
-            bg=_CARD,
+            bg=_SOFT_BLUE,
             fg=_TEXT_COLOR,
             font=("Segoe UI", 9),
+            justify="left",
+            wraplength=385,
             anchor="w",
-        ).pack(fill="x", pady=(1, 0))
-        self._flat_button(
-            folder_row, self.t["change"], self._choose_folder, compact=True
-        ).pack(side="right", padx=(10, 0))
+            padx=9,
+            pady=8,
+        ).pack(fill="x", pady=(4, 9))
 
-        email_row = tk.Frame(report_inner, bg=_CARD)
-        email_row.pack(fill="x", pady=(14, 0))
-        email_text = tk.Frame(email_row, bg=_CARD)
-        email_text.pack(side="left", fill="x", expand=True)
+        folder_buttons = tk.Frame(step3_inner, bg=_CARD)
+        folder_buttons.pack(fill="x")
+        self._flat_button(
+            folder_buttons, self.t["open"], self._open_folder, compact=True
+        ).pack(side="left")
+        self._flat_button(
+            folder_buttons, self.t["change"], self._choose_folder, compact=True
+        ).pack(side="left", padx=(8, 0))
+
         tk.Label(
-            email_text,
-            text=self.t["send"],
+            step3_inner,
+            text=self.t["report_hint"],
             bg=_CARD,
             fg=_MUTED,
             font=("Segoe UI", 8),
+            justify="left",
+            wraplength=385,
             anchor="w",
-        ).pack(fill="x")
-        tk.Label(
-            email_text,
-            text=REPORT_EMAIL,
-            bg=_CARD,
-            fg=_ACCENT,
-            font=("Segoe UI", 10, "bold"),
-            anchor="w",
-        ).pack(fill="x", pady=(1, 0))
-        self.copy_button = self._flat_button(
-            email_row, self.t["copy"], self._copy_email, compact=True
-        )
-        self.copy_button.pack(side="right", padx=(10, 0))
+        ).pack(fill="x", pady=(15, 0))
 
-        button_row = tk.Frame(report_inner, bg=_CARD)
-        button_row.pack(fill="x", pady=(14, 0))
-        self._flat_button(
-            button_row, self.t["open"], self._open_folder, compact=True
-        ).pack(side="left")
-
+        bottom = tk.Frame(content, bg=_BG)
+        bottom.pack(fill="x", pady=(12, 0))
         self.advanced_button = self._flat_button(
-            content,
-            self.t["advanced_show"],
-            self._toggle_advanced,
-            compact=True,
+            bottom, self.t["advanced_show"], self._show_advanced, compact=True
         )
-        self.advanced_button.pack(anchor="w", pady=(0, 8))
-
-        self.advanced_card = self._card(content)
-        advanced_inner = tk.Frame(self.advanced_card, bg=_CARD)
-        advanced_inner.pack(fill="x", padx=20, pady=17)
-
-        self._field(
-            advanced_inner,
-            self.t["host"],
-            self.t["host_hint"],
-            self.host,
-            row=0,
-        )
-        self._field(
-            advanced_inner,
-            self.t["sn"],
-            self.t["sn_hint"],
-            self.monitor_sn,
-            row=1,
-        )
-        advanced_inner.columnconfigure(0, weight=1)
-
-        folder_adv = tk.Frame(advanced_inner, bg=_CARD)
-        folder_adv.grid(row=2, column=0, sticky="ew", pady=(11, 0))
-        tk.Label(
-            folder_adv,
-            text=self.t["folder"],
-            bg=_CARD,
-            fg=_TEXT_COLOR,
-            font=("Segoe UI", 9, "bold"),
-            anchor="w",
-        ).pack(fill="x")
-        folder_entry_row = tk.Frame(folder_adv, bg=_CARD)
-        folder_entry_row.pack(fill="x", pady=(5, 0))
-        tk.Entry(
-            folder_entry_row,
-            textvariable=self.output_dir,
-            relief="solid",
-            bd=1,
-            highlightthickness=0,
-            font=("Segoe UI", 9),
-        ).pack(side="left", fill="x", expand=True, ipady=6)
-        self._flat_button(
-            folder_entry_row, self.t["browse"], self._choose_folder, compact=True
-        ).pack(side="right", padx=(8, 0))
-
+        self.advanced_button.pack(side="left")
         self.details_button = self._flat_button(
-            content,
-            self.t["details_show"],
-            self._toggle_details,
-            compact=True,
+            bottom, self.t["details_show"], self._show_details, compact=True
         )
-        self.details_button.pack(anchor="w", pady=(0, 8))
-
-        self.log_card = self._card(content)
-        log_inner = tk.Frame(self.log_card, bg=_CARD)
-        log_inner.pack(fill="both", expand=True, padx=12, pady=12)
-        self.log = tk.Text(
-            log_inner,
-            height=12,
-            wrap="word",
-            state="disabled",
-            bg="#0e2036",
-            fg="#dceaff",
-            insertbackground="#ffffff",
-            relief="flat",
-            bd=0,
-            font=("Consolas", 9),
-            padx=10,
-            pady=10,
-        )
-        scroll = ttk.Scrollbar(log_inner, orient="vertical", command=self.log.yview)
-        self.log.configure(yscrollcommand=scroll.set)
-        self.log.pack(side="left", fill="both", expand=True)
-        scroll.pack(side="right", fill="y")
+        self.details_button.pack(side="left", padx=(8, 0))
 
         footer = self.t["footer"].format(
             dump=getattr(tsun_dump, "TOOL_VERSION", "?"), gui=APP_VERSION
         )
         tk.Label(
-            content,
+            bottom,
             text=footer,
             bg=_BG,
             fg=_MUTED,
             font=("Segoe UI", 8),
-            anchor="w",
-        ).pack(fill="x", pady=(8, 6))
+            anchor="e",
+        ).pack(side="right", pady=6)
 
-    def _field(
+    def _popup_field(
         self,
         parent: tk.Misc,
         label: str,
         hint: str,
         variable: tk.StringVar,
-        *,
-        row: int,
     ) -> None:
         holder = tk.Frame(parent, bg=_CARD)
-        holder.grid(row=row, column=0, sticky="ew", pady=(0 if row == 0 else 11, 0))
+        holder.pack(fill="x", pady=(0, 13))
         tk.Label(
             holder,
             text=label,
@@ -560,30 +487,116 @@ class DiagnosticApp:
             font=("Segoe UI", 9),
         ).pack(fill="x", ipady=6)
 
+    def _show_advanced(self) -> None:
+        if self.advanced_window and self.advanced_window.winfo_exists():
+            self.advanced_window.deiconify()
+            self.advanced_window.lift()
+            self.advanced_window.focus_force()
+            return
+
+        win = tk.Toplevel(self.root)
+        self.advanced_window = win
+        win.title(self.t["advanced_title"])
+        win.geometry("590x355")
+        win.minsize(540, 330)
+        win.configure(bg=_BG)
+        win.transient(self.root)
+
+        def close() -> None:
+            self.advanced_window = None
+            win.destroy()
+
+        win.protocol("WM_DELETE_WINDOW", close)
+        card = self._card(win)
+        card.pack(fill="both", expand=True, padx=18, pady=18)
+        inner = tk.Frame(card, bg=_CARD)
+        inner.pack(fill="both", expand=True, padx=18, pady=16)
+
+        self._section_title(inner, self.t["advanced_title"])
+        fields = tk.Frame(inner, bg=_CARD)
+        fields.pack(fill="x", pady=(14, 0))
+        self._popup_field(fields, self.t["host"], self.t["host_hint"], self.host)
+        self._popup_field(fields, self.t["sn"], self.t["sn_hint"], self.monitor_sn)
+
+        tk.Label(
+            fields,
+            text=self.t["folder"],
+            bg=_CARD,
+            fg=_TEXT_COLOR,
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        ).pack(fill="x")
+        folder_row = tk.Frame(fields, bg=_CARD)
+        folder_row.pack(fill="x", pady=(5, 0))
+        tk.Entry(
+            folder_row,
+            textvariable=self.output_dir,
+            relief="solid",
+            bd=1,
+            highlightthickness=0,
+            font=("Segoe UI", 9),
+        ).pack(side="left", fill="x", expand=True, ipady=6)
+        self._flat_button(
+            folder_row, self.t["browse"], self._choose_folder, compact=True
+        ).pack(side="right", padx=(8, 0))
+        self._flat_button(inner, self.t["close"], close, compact=True).pack(
+            anchor="e", pady=(14, 0)
+        )
+
+    def _show_details(self) -> None:
+        if self.details_window and self.details_window.winfo_exists():
+            self.details_window.deiconify()
+            self.details_window.lift()
+            self.details_window.focus_force()
+            return
+
+        win = tk.Toplevel(self.root)
+        self.details_window = win
+        win.title(self.t["details_title"])
+        win.geometry("780x440")
+        win.minsize(620, 340)
+        win.configure(bg=_BG)
+        win.transient(self.root)
+
+        def close() -> None:
+            self.log = None
+            self.details_window = None
+            win.destroy()
+
+        win.protocol("WM_DELETE_WINDOW", close)
+        card = self._card(win)
+        card.pack(fill="both", expand=True, padx=16, pady=16)
+        inner = tk.Frame(card, bg=_CARD)
+        inner.pack(fill="both", expand=True, padx=12, pady=12)
+
+        log = tk.Text(
+            inner,
+            wrap="word",
+            state="normal",
+            bg="#0e2036",
+            fg="#dceaff",
+            insertbackground="#ffffff",
+            relief="flat",
+            bd=0,
+            font=("Consolas", 9),
+            padx=10,
+            pady=10,
+        )
+        scroll = ttk.Scrollbar(inner, orient="vertical", command=log.yview)
+        log.configure(yscrollcommand=scroll.set)
+        log.pack(side="left", fill="both", expand=True)
+        scroll.pack(side="right", fill="y")
+        log.insert("end", "".join(self.log_buffer))
+        log.see("end")
+        log.configure(state="disabled")
+        self.log = log
+
     def _sync_run_button(self, *_args: Any) -> None:
         if self.worker and self.worker.is_alive():
             self.run_button.configure(state="disabled")
             return
         state = "normal" if self.confirm_disabled.get() else "disabled"
         self.run_button.configure(state=state)
-
-    def _toggle_advanced(self) -> None:
-        self.advanced_visible = not self.advanced_visible
-        if self.advanced_visible:
-            self.advanced_card.pack(fill="x", pady=(0, 14), before=self.details_button)
-            self.advanced_button.configure(text=self.t["advanced_hide"])
-        else:
-            self.advanced_card.pack_forget()
-            self.advanced_button.configure(text=self.t["advanced_show"])
-
-    def _toggle_details(self) -> None:
-        self.details_visible = not self.details_visible
-        if self.details_visible:
-            self.log_card.pack(fill="both", expand=True, pady=(0, 14), after=self.details_button)
-            self.details_button.configure(text=self.t["details_hide"])
-        else:
-            self.log_card.pack_forget()
-            self.details_button.configure(text=self.t["details_show"])
 
     def _copy_email(self) -> None:
         self.root.clipboard_clear()
@@ -609,10 +622,12 @@ class DiagnosticApp:
             messagebox.showerror(APP_NAME, f"{self.t['folder_error']}\n\n{exc}")
 
     def _append_log(self, text: str) -> None:
-        self.log.configure(state="normal")
-        self.log.insert("end", text)
-        self.log.see("end")
-        self.log.configure(state="disabled")
+        self.log_buffer.append(text)
+        if self.log is not None and self.log.winfo_exists():
+            self.log.configure(state="normal")
+            self.log.insert("end", text)
+            self.log.see("end")
+            self.log.configure(state="disabled")
 
     def _start(self) -> None:
         if self.worker and self.worker.is_alive():
@@ -710,8 +725,8 @@ class DiagnosticApp:
                     self.confirm_check.configure(state="normal")
                     self.status_label.configure(fg=_SUCCESS if success else _DANGER)
                     self._sync_run_button()
-                    if not success and not self.details_visible:
-                        self._toggle_details()
+                    if not success:
+                        self._show_details()
                 elif kind == "input":
                     prompt, done, result = str(event[1]), event[2], event[3]
                     value = simpledialog.askstring(
