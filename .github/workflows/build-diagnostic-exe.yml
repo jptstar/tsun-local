@@ -86,22 +86,34 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Attach executable to current stable release
+      - name: Publish dedicated diagnostic release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $version = python -c "import json; print(json.load(open('custom_components/tsun_local/manifest.json', encoding='utf-8'))['version'])"
-          $tag = "v$version"
+          $tag = "diagnostic-latest"
+
+          # Keep the rolling diagnostic tag on the exact source revision used for this build.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f $tag $env:GITHUB_SHA
+          git push --force origin "refs/tags/$tag"
+
           gh release view $tag --repo "${{ github.repository }}" *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag `
-              "dist/TSUN-Local-Diagnostic.exe" `
-              "dist/TSUN-Local-Diagnostic.exe.sha256" `
-              --clobber `
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag `
+              --verify-tag `
+              --title "TSUN Local Diagnostic — latest" `
+              --notes "Rolling prerelease for the standalone TSUN Local read-only diagnostic tool. Assets are rebuilt and smoke-tested independently of Home Assistant integration releases." `
+              --prerelease `
               --repo "${{ github.repository }}"
-            Write-Host "Attached Windows diagnostic executable to $tag"
-          } else {
-            Write-Host "Release $tag does not exist yet; workflow artifact remains available."
           }
+
+          gh release upload $tag `
+            "dist/TSUN-Local-Diagnostic.exe" `
+            "dist/TSUN-Local-Diagnostic.exe.sha256" `
+            --clobber `
+            --repo "${{ github.repository }}"
+
+          Write-Host "Published Windows diagnostic assets to the dedicated $tag release."
