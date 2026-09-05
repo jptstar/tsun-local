@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
         run: |
           $exe = (Resolve-Path "dist/TSUN-Local-Diagnostic.exe").Path
-          $process = Start-Process -FilePath $exe -PassThru
+          $process = Start-Process -FilePath $exe -ArgumentList "--no-update" -PassThru
           Start-Sleep -Seconds 8
           if ($process.HasExited) {
             throw "Executable exited unexpectedly during startup smoke test (exit code $($process.ExitCode))"
@@ -65,16 +65,41 @@ jobs:
           Stop-Process -Id $process.Id -Force
           Write-Host "Executable launched successfully and remained running for the smoke-test window."
 
-      - name: Create SHA-256 checksum
+      - name: Create rolling update assets and manifest
         shell: pwsh
         run: |
           $exe = "dist/TSUN-Local-Diagnostic.exe"
-          if (!(Test-Path $exe)) {
-            throw "Executable was not created"
+          $py = "dist/tsun_dump.py"
+          if (!(Test-Path $exe)) { throw "Executable was not created" }
+
+          Copy-Item "tools/tsun_dump.py" $py -Force
+          $exeHash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
+          $pyHash = (Get-FileHash -Algorithm SHA256 $py).Hash.ToLowerInvariant()
+          "$exeHash  TSUN-Local-Diagnostic.exe" | Set-Content -Encoding ascii "dist/TSUN-Local-Diagnostic.exe.sha256"
+          "$pyHash  tsun_dump.py" | Set-Content -Encoding ascii "dist/tsun_dump.py.sha256"
+
+          $dumpVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump; print(tsun_dump.TOOL_VERSION)").Trim()
+          $guiVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_diagnostic_gui; print(tsun_diagnostic_gui.APP_VERSION)").Trim()
+          $manifest = [ordered]@{
+            schema_version = 1
+            channel = "diagnostic-latest"
+            build_commit = $env:GITHUB_SHA
+            components = [ordered]@{
+              dump = [ordered]@{
+                version = $dumpVersion
+                asset = "tsun_dump.py"
+                sha256 = $pyHash
+              }
+              windows_gui = [ordered]@{
+                version = $guiVersion
+                asset = "TSUN-Local-Diagnostic.exe"
+                sha256 = $exeHash
+              }
+            }
           }
-          $hash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
-          "$hash  TSUN-Local-Diagnostic.exe" | Set-Content -Encoding ascii "dist/TSUN-Local-Diagnostic.exe.sha256"
-          Write-Host "SHA256: $hash"
+          $manifest | ConvertTo-Json -Depth 6 | Set-Content -Encoding utf8 "dist/update.json"
+          Write-Host "tsun_dump.py $dumpVersion SHA256: $pyHash"
+          Write-Host "Windows GUI $guiVersion SHA256: $exeHash"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -83,6 +108,9 @@ jobs:
           path: |
             dist/TSUN-Local-Diagnostic.exe
             dist/TSUN-Local-Diagnostic.exe.sha256
+            dist/tsun_dump.py
+            dist/tsun_dump.py.sha256
+            dist/update.json
           if-no-files-found: error
           retention-days: 30
 
@@ -94,7 +122,6 @@ jobs:
         run: |
           $tag = "diagnostic-latest"
 
-          # Keep the rolling diagnostic tag on the exact source revision used for this build.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git tag -f $tag $env:GITHUB_SHA
@@ -105,7 +132,7 @@ jobs:
             gh release create $tag `
               --verify-tag `
               --title "TSUN Local Diagnostic — latest" `
-              --notes "Rolling prerelease for the standalone TSUN Local read-only diagnostic tool. Assets are rebuilt and smoke-tested independently of Home Assistant integration releases." `
+              --notes "Rolling prerelease for the standalone TSUN Local read-only diagnostic tool. Windows EXE and Python dumper self-update from verified SHA-256 assets on this release." `
               --prerelease `
               --repo "${{ github.repository }}"
           }
@@ -113,7 +140,10 @@ jobs:
           gh release upload $tag `
             "dist/TSUN-Local-Diagnostic.exe" `
             "dist/TSUN-Local-Diagnostic.exe.sha256" `
+            "dist/tsun_dump.py" `
+            "dist/tsun_dump.py.sha256" `
+            "dist/update.json" `
             --clobber `
             --repo "${{ github.repository }}"
 
-          Write-Host "Published Windows diagnostic assets to the dedicated $tag release."
+          Write-Host "Published self-updating diagnostic assets to the dedicated $tag release."
