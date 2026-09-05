@@ -36,7 +36,7 @@ from typing import Any, Callable, Iterable
 from urllib.parse import urljoin, urlsplit
 
 
-TOOL_VERSION = "2.5.1"
+TOOL_VERSION = "2.6.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -58,6 +58,12 @@ MAX_LOGGER_WEB_PATHS = 10
 MIN_SCAN_PREFIX = 24
 PROTOCOL_PROBE_RETRIES = 3
 PROTOCOL_RETRY_DELAY = 0.4
+CHARACTERIZATION_REPEATS = 3
+CHARACTERIZATION_CONTROL_REPEATS = 2
+CHARACTERIZATION_TIMEOUT_CAP = 2.0
+CHARACTERIZATION_MARKER_WAIT = 1.0
+CHARACTERIZATION_DELAY = 0.15
+SHORT_LOGGER_MARKERS = (b"\x05\x00", b"\x06\x00")
 SUPPORTED_PROTOCOLS = ("1511", "02b0", "1097")
 
 DISCOVERY_MESSAGES = (
@@ -403,6 +409,249 @@ def read_modbus_block(
         host, port, logger_sn, payload, sensor_list=sensor_list, timeout=timeout
     )
     return parse_modbus_response(response, start, end), payload, response
+
+
+
+def _observe_02b0_read(
+    host: str,
+    port: int,
+    logger_sn: int,
+    start: int,
+    end: int,
+    *,
+    sensor_list: int,
+    timeout: float,
+    marker_wait: float = CHARACTERIZATION_MARKER_WAIT,
+) -> dict[str, Any]:
+    """Observe one read without treating short logger markers as Modbus data."""
+    payload = build_modbus_request(start, end)
+    request = build_ap_frame(logger_sn, payload, sensor_list=sensor_list)
+    started = time.monotonic()
+    with socket.create_connection((host, port), timeout=timeout) as sock:
+        sock.settimeout(timeout)
+        sock.sendall(request)
+        first_frame = read_ap_frame(sock)
+        first_latency_ms = round((time.monotonic() - started) * 1000, 1)
+        first_payload = parse_ap_frame(first_frame)
+        observation: dict[str, Any] = {
+            "result": "failure",
+            "latency_ms": first_latency_ms,
+            "request_payload": payload.hex(" ").upper(),
+            "first_payload": first_payload.hex(" ").upper(),
+            "first_payload_bytes": len(first_payload),
+        }
+
+        if first_payload in SHORT_LOGGER_MARKERS:
+            observation["result"] = "short_marker_only"
+            observation["short_marker"] = first_payload.hex(" ").upper()
+            followup_started = time.monotonic()
+            try:
+                sock.settimeout(min(timeout, marker_wait))
+                second_frame = read_ap_frame(sock)
+                second_payload = parse_ap_frame(second_frame)
+            except (socket.timeout, TimeoutError):
+                observation["followup"] = "none_before_timeout"
+                observation["followup_wait_ms"] = round(
+                    (time.monotonic() - followup_started) * 1000, 1
+                )
+                return observation
+            except Exception as err:
+                observation["followup"] = "invalid"
+                observation["followup_error"] = safe_error_details(err)
+                return observation
+
+            observation["followup_payload"] = second_payload.hex(" ").upper()
+            observation["followup_payload_bytes"] = len(second_payload)
+            observation["followup_wait_ms"] = round(
+                (time.monotonic() - followup_started) * 1000, 1
+            )
+            try:
+                registers = parse_modbus_response(second_payload, start, end)
+            except Exception as err:
+                observation["followup"] = "non_modbus"
+                observation["followup_error"] = safe_error_details(err)
+            else:
+                observation["result"] = "success_after_short_marker"
+                observation["followup"] = "valid_modbus"
+                observation["register_count"] = len(registers)
+            return observation
+
+        try:
+            registers = parse_modbus_response(first_payload, start, end)
+        except Exception as err:
+            observation["error"] = safe_error_details(err)
+        else:
+            observation["result"] = "success"
+            observation["register_count"] = len(registers)
+        return observation
+
+
+def _attempt_succeeded(attempt: dict[str, Any]) -> bool:
+    return attempt.get("result") in ("success", "success_after_short_marker")
+
+
+def _summarize_characterization_test(test: dict[str, Any]) -> None:
+    attempts = test.get("attempts", [])
+    test["successes"] = sum(_attempt_succeeded(item) for item in attempts)
+    test["short_marker_only"] = sum(
+        item.get("result") == "short_marker_only" for item in attempts
+    )
+    test["success_after_short_marker"] = sum(
+        item.get("result") == "success_after_short_marker" for item in attempts
+    )
+
+
+def _characterization_test_by_id(
+    tests: list[dict[str, Any]], test_id: str
+) -> dict[str, Any] | None:
+    return next((item for item in tests if item.get("id") == test_id), None)
+
+
+def analyze_02b0_characterization(
+    tests: list[dict[str, Any]], controls: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Classify only conclusions directly supported by the read matrix."""
+    by_id = {item["id"]: item for item in tests}
+
+    def successes(test_id: str) -> int:
+        item = by_id.get(test_id)
+        return int(item.get("successes", 0)) if item else 0
+
+    over_16_ids = ("cross_boundary_17", "legacy_v153_22", "current_v154_v160_23")
+    any_over_16_success = any(successes(test_id) for test_id in over_16_ids)
+    if any_over_16_success:
+        size_limit = "not_a_strict_16_register_limit"
+    elif successes("cross_boundary_16") and successes("dynamic_3010_16"):
+        size_limit = "evidence_supports_max_16_registers"
+    else:
+        size_limit = "inconclusive"
+
+    short_markers = sorted(
+        {
+            attempt["short_marker"]
+            for item in [*tests, *controls]
+            for attempt in item.get("attempts", [])
+            if attempt.get("short_marker")
+        }
+    )
+    followup_modbus = any(
+        attempt.get("result") == "success_after_short_marker"
+        for item in [*tests, *controls]
+        for attempt in item.get("attempts", [])
+    )
+
+    canonical_current = _characterization_test_by_id(tests, "current_v154_v160_23")
+    control_current = _characterization_test_by_id(
+        controls, "current_v154_v160_23_sensor_list_0000"
+    )
+    selector_comparison = "inconclusive"
+    if canonical_current is not None and control_current is not None:
+        canonical_ok = bool(canonical_current.get("successes"))
+        control_ok = bool(control_current.get("successes"))
+        if canonical_ok != control_ok:
+            selector_comparison = "different_behavior_observed"
+        elif canonical_ok and control_ok:
+            selector_comparison = "both_selectors_succeeded"
+        elif canonical_current.get("attempts") and control_current.get("attempts"):
+            selector_comparison = "neither_selector_succeeded"
+
+    return {
+        "size_limit_16": size_limit,
+        "register_0x3008_readable": bool(successes("start_3008_8")),
+        "crosses_0x300F_boundary": bool(
+            successes("cross_boundary_16") or successes("cross_boundary_17")
+        ),
+        "short_markers_seen": short_markers,
+        "modbus_followup_after_short_marker_seen": followup_modbus,
+        "sensor_list_02b0_vs_0000": selector_comparison,
+        "interpretation_note": (
+            "These are read-only observations, not assumptions about undocumented "
+            "05 00 / 06 00 marker meanings."
+        ),
+    }
+
+
+def characterize_02b0(
+    host: str,
+    port: int,
+    logger_sn: int,
+    timeout: float,
+) -> dict[str, Any]:
+    """Run a bounded, read-only matrix reproducing known 02B0 read shapes."""
+    cases = (
+        ("start_3008_8", 0x3008, 0x300F),
+        ("cross_boundary_16", 0x3008, 0x3017),
+        ("cross_boundary_17", 0x3008, 0x3018),
+        ("legacy_v153_22", 0x3009, 0x301E),
+        ("current_v154_v160_23", 0x3008, 0x301E),
+        ("dynamic_3000_16", 0x3000, 0x300F),
+        ("dynamic_3010_16", 0x3010, 0x301F),
+        ("dynamic_3020_16", 0x3020, 0x302F),
+    )
+    test_timeout = min(timeout, CHARACTERIZATION_TIMEOUT_CAP)
+
+    def run_case(
+        test_id: str,
+        start: int,
+        end: int,
+        sensor_list: int,
+        repeats: int,
+    ) -> dict[str, Any]:
+        record: dict[str, Any] = {
+            "id": test_id,
+            "function": "0x03",
+            "start": f"0x{start:04X}",
+            "end": f"0x{end:04X}",
+            "register_count": end - start + 1,
+            "sensor_list": f"0x{sensor_list:04X}",
+            "attempts": [],
+        }
+        for attempt_index in range(repeats):
+            try:
+                observation = _observe_02b0_read(
+                    host,
+                    port,
+                    logger_sn,
+                    start,
+                    end,
+                    sensor_list=sensor_list,
+                    timeout=test_timeout,
+                )
+            except Exception as err:
+                observation = {
+                    "result": "failure",
+                    "error": safe_error_details(err),
+                }
+            observation["attempt"] = attempt_index + 1
+            record["attempts"].append(observation)
+            if attempt_index + 1 < repeats:
+                time.sleep(CHARACTERIZATION_DELAY)
+        _summarize_characterization_test(record)
+        return record
+
+    tests = [
+        run_case(test_id, start, end, 0x02B0, CHARACTERIZATION_REPEATS)
+        for test_id, start, end in cases
+    ]
+    control_cases = (
+        ("current_v154_v160_23_sensor_list_0000", 0x3008, 0x301E),
+        ("dynamic_3010_16_sensor_list_0000", 0x3010, 0x301F),
+    )
+    controls = [
+        run_case(test_id, start, end, 0x0000, CHARACTERIZATION_CONTROL_REPEATS)
+        for test_id, start, end in control_cases
+    ]
+    return {
+        "attempted": True,
+        "read_only": True,
+        "canonical_sensor_list": "0x02B0",
+        "regular_dump_sensor_list": "0x0000",
+        "timeout_seconds": test_timeout,
+        "short_marker_followup_wait_seconds": CHARACTERIZATION_MARKER_WAIT,
+        "tests": tests,
+        "sensor_list_controls": controls,
+        "analysis": analyze_02b0_characterization(tests, controls),
+    }
 
 
 def read_1511_block(
@@ -1857,11 +2106,17 @@ def capture(
             dynamic_plan,
             args.timeout,
         )
+        successful_snapshot_blocks = sum(
+            block["result"] == "success" for block in blocks
+        )
         snapshots.append(
             {
                 "index": index + 1,
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                 "registers": registers,
+                "coherent": successful_snapshot_blocks == len(blocks),
+                "successful_blocks": successful_snapshot_blocks,
+                "failed_blocks": len(blocks) - successful_snapshot_blocks,
             }
         )
         for block in blocks:
@@ -1872,7 +2127,11 @@ def capture(
         if index + 1 < args.snapshots and args.interval:
             time.sleep(args.interval)
 
-    latest = snapshots[-1]["registers"] if snapshots else {}
+    coherent_snapshots = [
+        snapshot for snapshot in snapshots if snapshot.get("coherent") is True
+    ]
+    decoded_snapshot = coherent_snapshots[-1] if coherent_snapshots else None
+    latest = decoded_snapshot["registers"] if decoded_snapshot is not None else {}
     merged = {**supplemental_registers, **latest}
     supplemental_blocks = [
         {**block, "snapshot": None, "scope": "supplemental"}
@@ -1888,6 +2147,14 @@ def capture(
         "1097": "GEN3 / GEN3 PLUS (1097)",
     }[protocol]
     logger_web = capture_logger_web_pages(host, args.http_page_timeout)
+    protocol_characterization = (
+        characterize_02b0(host, args.port, sn, args.timeout)
+        if protocol == "02b0" and args.full
+        else {
+            "attempted": False,
+            "reason": "requires a full 02B0 capture",
+        }
+    )
 
     return {
         "format": DUMP_FORMAT,
@@ -1919,6 +2186,7 @@ def capture(
             },
         },
         "logger_web": logger_web,
+        "protocol_characterization": protocol_characterization,
         "discovery": discovery,
         "protocol_detection": {
             "requested": args.protocol,
@@ -1930,6 +2198,10 @@ def capture(
         "capture_summary": {
             "snapshots": len(snapshots),
             "snapshot_interval_seconds": args.interval,
+            "coherent_snapshots": len(coherent_snapshots),
+            "decoded_snapshot_index": (
+                decoded_snapshot["index"] if decoded_snapshot is not None else None
+            ),
             "successful_block_reads": successful,
             "failed_block_reads": failed,
             "unique_raw_registers": len(merged),
