@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Microinverter Home Assistant Compatibility Test | TSUN Local</title>
-  <meta name="description" content="Test whether your TSUN microinverter works locally with Home Assistant using TSUN Local 1.5.3. Automatic discovery supports the 1511, 02B0 and experimental 1097 protocol families.">
-  <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local, HACS, TSOL-MP3000, TSOL-MX500, 1511, 02B0, 1097, microinverter compatibility">
+  <meta name="description" content="Test whether your TSUN microinverter works locally with Home Assistant using TSUN Local 1.6.0. If setup fails or entities are unavailable, use the portable read-only Windows diagnostic tool.">
+  <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local, HACS, TSUN diagnostic, TSOL-MP3000, TSOL-MX500, TSOL-MS300, TSOL-MX450, 1511, 02B0, 1097, microinverter compatibility">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/test-your-inverter.html">
@@ -13,25 +13,26 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta property="og:description" content="Your TSUN microinverter may already work with TSUN Local. Test local Home Assistant discovery and share the result.">
+  <meta property="og:description" content="Your TSUN microinverter may already work with TSUN Local. Test automatic discovery and use the read-only diagnostic tool if more evidence is needed.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/test-your-inverter.html">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta name="twitter:description" content="Test TSUN Local automatic discovery for 1511, 02B0 and experimental 1097 devices.">
+  <meta name="twitter:description" content="Test TSUN Local 1.6.0 and collect a read-only diagnostic if setup or entities fail.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"HowTo",
     "name":"Test a TSUN microinverter with TSUN Local in Home Assistant",
-    "description":"Test whether an unlisted TSUN microinverter is compatible with TSUN Local through automatic local discovery in Home Assistant.",
+    "description":"Test whether an unlisted TSUN microinverter is compatible with TSUN Local and collect a read-only diagnostic when automatic setup or entities fail.",
     "url":"https://jptstar.github.io/tsun-local/test-your-inverter.html",
-    "dateModified":"2026-08-27",
+    "dateModified":"2026-09-05",
     "step":[
-      {"@type":"HowToStep","name":"Install TSUN Local","text":"Install TSUN Local through HACS and restart Home Assistant."},
+      {"@type":"HowToStep","name":"Install TSUN Local","text":"Install TSUN Local 1.6.0 through HACS and restart Home Assistant."},
       {"@type":"HowToStep","name":"Try automatic discovery","text":"Add TSUN Local from Devices & services and let the integration discover the inverter."},
-      {"@type":"HowToStep","name":"Share the result","text":"Share the exact model, firmware, PV input count and Home Assistant diagnostic when available."}
+      {"@type":"HowToStep","name":"Collect a diagnostic if needed","text":"If setup fails, communication is unstable or entities remain unavailable, disable the affected TSUN Local entry and run the portable Windows diagnostic or tsun_dump.py --full."},
+      {"@type":"HowToStep","name":"Share the result","text":"Share the exact model, firmware, PV input count, Home Assistant diagnostic and generated anonymized TSUN diagnostic when available."}
     ]
   }
   </script>
@@ -62,7 +63,7 @@
     .intro{margin:0;color:var(--muted);font-size:18px}
     .callout{margin-top:20px;padding:18px 20px;border:1px solid #bfe7d6;border-radius:16px;background:var(--green-soft);color:#0d684d}
     .callout strong{display:block;font-size:18px}
-    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:24px}
+    .steps{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:24px}
     .step{padding:21px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}
     .n{display:grid;place-items:center;width:34px;height:34px;margin-bottom:13px;border-radius:50%;color:#fff;background:var(--blue);font-weight:900}
     .step strong{display:block;margin-bottom:5px;font-size:18px}
@@ -93,10 +94,10 @@
       <a class="back" href="index.html">← Back to TSUN Local</a>
     </nav>
     <div class="hero">
-      <p class="eyebrow">TSUN Local 1.5.3 · Community hardware validation</p>
+      <p class="eyebrow">TSUN Local 1.6.0 · Community hardware validation</p>
       <h1>Test your TSUN microinverter with TSUN Local</h1>
       <p class="lead"><strong>Not listed yet?</strong> Your TSUN microinverter may already work locally with Home Assistant even if its exact commercial model has never been tested before.</p>
-      <p class="hero-note">Install · Discover · Share the result</p>
+      <p class="hero-note">Install · Discover · Diagnose if needed · Share</p>
     </div>
   </div>
 </header>
@@ -104,7 +105,7 @@
 <main class="wrap">
   <section>
     <h2>Your model may already be compatible</h2>
-    <p class="intro">TSUN Local 1.5.3 detects supported local protocol families, not only a fixed list of commercial model names. The validated families currently include 1511 and 02B0, while 1097 support remains experimental.</p>
+    <p class="intro">TSUN Local 1.6.0 detects supported local protocol families, not only a fixed list of commercial model names. The validated families currently include 1511 and 02B0, while 1097 support remains experimental.</p>
     <div class="callout">
       <strong>✅ An unlisted model does not mean an unsupported model.</strong>
       If your inverter exposes a supported local protocol, automatic discovery may already be enough.
@@ -112,12 +113,12 @@
   </section>
 
   <section>
-    <h2>Three simple steps</h2>
+    <h2>Test first, diagnose only if needed</h2>
     <div class="steps">
       <div class="step">
         <span class="n">1</span>
         <strong>Install TSUN Local</strong>
-        <p>Add the integration through HACS and restart Home Assistant.</p>
+        <p>Add version 1.6.0 through HACS and restart Home Assistant.</p>
       </div>
       <div class="step">
         <span class="n">2</span>
@@ -126,9 +127,26 @@
       </div>
       <div class="step">
         <span class="n">3</span>
-        <strong>Share your result</strong>
-        <p>Send the exact model, firmware, number of PV inputs and the Home Assistant diagnostic when available.</p>
+        <strong>Collect evidence if it fails</strong>
+        <p>If setup fails, communication is unstable or entities remain unavailable, keep the problem present, download the Home Assistant diagnostic, disable the affected TSUN Local entry and run the read-only diagnostic tool.</p>
       </div>
+      <div class="step">
+        <span class="n">4</span>
+        <strong>Share the result</strong>
+        <p>Send the exact model, firmware, PV input count and the generated diagnostics. Re-enable TSUN Local after the capture.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Windows diagnostic — no Python required</h2>
+    <p class="intro">For users who are not comfortable with scripts, the portable Windows executable runs the same privacy-safe, strictly read-only dump engine through a small French/English interface.</p>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe">Download TSUN-Local-Diagnostic.exe</a>
+      <a class="button secondary" href="HARDWARE_DUMP.html">Diagnostic guide</a>
+    </div>
+    <div class="privacy">
+      The executable is currently unsigned, so Windows SmartScreen may show an unknown-publisher warning. A SHA-256 checksum is published beside the executable in the stable GitHub release.
     </div>
   </section>
 
@@ -141,7 +159,7 @@
       </div>
       <div class="outcome warn">
         <strong>❌ It does not work</strong>
-        Still useful. The result can reveal another logger, protocol revision or hardware variant that needs investigation.
+        Still useful. The result can reveal another logger, protocol revision or hardware variant that needs investigation — but a diagnostic captured while the problem is present is what makes the report actionable.
       </div>
     </div>
   </section>
@@ -150,7 +168,7 @@
     <h2>What to share</h2>
     <p class="intro">The community hardware-test form asks for the information needed to understand the result without requiring protocol expertise.</p>
     <div class="privacy">
-      <strong>Recommended:</strong> exact microinverter model, firmware, number of PV inputs, TSUN Local version, Home Assistant version, test result and Home Assistant diagnostic.
+      <strong>Recommended:</strong> exact microinverter model, firmware, number of PV inputs, TSUN Local version, Home Assistant version, test result, Home Assistant diagnostic and the generated anonymized TSUN diagnostic when the test fails or entities are unavailable.
       <br><br>
       TSUN Local diagnostics omit the device IP address, Monitor SN and AP envelope, but they can still contain production and energy readings. Review attachments before publishing them.
     </div>
