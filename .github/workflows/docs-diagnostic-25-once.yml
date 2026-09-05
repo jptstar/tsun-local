@@ -1,0 +1,45 @@
+name: One-shot diagnostic documentation refresh
+
+on:
+  push:
+    branches:
+      - docs/diagnostic-2.5.0
+    paths:
+      - "tools/_docs_diagnostic_25_patch.py"
+      - ".github/workflows/docs-diagnostic-25-once.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply documentation refresh
+        run: python tools/_docs_diagnostic_25_patch.py
+
+      - name: Validate documentation
+        shell: bash
+        run: |
+          python -m unittest discover -s tests -p 'test_release_154_web.py'
+          python -m unittest discover -s tests -p 'test_tsun_dump_tool.py'
+          ! grep -R "releases/latest/download/TSUN-Local-Diagnostic" README.md tools/README.md docs
+          grep -q "diagnostic-latest/TSUN-Local-Diagnostic.exe" README.md
+          grep -q "diagnostic-latest/TSUN-Local-Diagnostic.exe" docs/index.html
+          grep -q "diagnostic-latest/TSUN-Local-Diagnostic.exe" docs/test-your-inverter.html
+          git diff --check
+
+      - name: Commit documentation
+        shell: bash
+        run: |
+          rm tools/_docs_diagnostic_25_patch.py .github/workflows/docs-diagnostic-25-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Refresh diagnostic documentation and website"
+          git push origin HEAD:docs/diagnostic-2.5.0
