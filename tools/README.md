@@ -2,6 +2,28 @@
 
 Diagnostic and validation utilities for TSUN Local.
 
+## Windows portable diagnostic
+
+For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine.
+
+**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+
+No installation and no Python environment are required. The executable provides a small French/English interface, performs the same privacy-safe **strictly read-only** capture as `tsun_dump.py`, and writes the anonymized JSON report into the folder selected by the user.
+
+Recommended sequence:
+
+1. Keep the communication problem present and do **not** reload TSUN Local yet.
+2. Disable the affected TSUN Local config entry in Home Assistant.
+3. Start `TSUN-Local-Diagnostic.exe` and confirm that the entry is disabled.
+4. Leave the logger IP and Monitor SN empty when automatic discovery works; the application asks for missing information only when required.
+5. Click **Run full diagnostic / Lancer le diagnostic complet**.
+6. Send the generated JSON file to `dev@jptstar.com`, together with the Home Assistant diagnostic when available.
+7. Re-enable the TSUN Local config entry.
+
+The Monitor SN, logger IP, SSID, passwords, tokens, e-mail addresses and full MAC addresses are not stored in the generated report. The workflow also publishes a `.sha256` checksum next to the executable.
+
+The executable is currently unsigned, so Windows SmartScreen may display an unknown-publisher warning. The source of the GUI and the complete build workflow are public in this repository.
+
 ## Hardware validation dump
 
 [`tsun_dump.py`](tsun_dump.py) is a **single-file, standalone, privacy-safe, strictly read-only** hardware dumper for protocol **1511**, **02B0** and **1097**.

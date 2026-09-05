@@ -1,0 +1,95 @@
+name: Build Windows diagnostic executable
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/tsun_dump.py"
+      - "tools/tsun_diagnostic_gui.py"
+      - ".github/workflows/build-diagnostic-exe.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/tsun_dump.py"
+      - "tools/tsun_diagnostic_gui.py"
+      - ".github/workflows/build-diagnostic-exe.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyInstaller
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check pyinstaller
+
+      - name: Validate sources
+        shell: pwsh
+        run: |
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic_gui; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', tsun_diagnostic_gui.APP_VERSION)"
+
+      - name: Build portable executable
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean --onefile --windowed `
+            --name TSUN-Local-Diagnostic `
+            --paths tools `
+            tools/tsun_diagnostic_gui.py
+
+      - name: Create SHA-256 checksum
+        shell: pwsh
+        run: |
+          $exe = "dist/TSUN-Local-Diagnostic.exe"
+          if (!(Test-Path $exe)) {
+            throw "Executable was not created"
+          }
+          $hash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
+          "$hash  TSUN-Local-Diagnostic.exe" | Set-Content -Encoding ascii "dist/TSUN-Local-Diagnostic.exe.sha256"
+          Write-Host "SHA256: $hash"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TSUN-Local-Diagnostic-Windows
+          path: |
+            dist/TSUN-Local-Diagnostic.exe
+            dist/TSUN-Local-Diagnostic.exe.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach executable to current stable release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = python -c "import json; print(json.load(open('custom_components/tsun_local/manifest.json', encoding='utf-8'))['version'])"
+          $tag = "v$version"
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag `
+              "dist/TSUN-Local-Diagnostic.exe" `
+              "dist/TSUN-Local-Diagnostic.exe.sha256" `
+              --clobber `
+              --repo "${{ github.repository }}"
+            Write-Host "Attached Windows diagnostic executable to $tag"
+          } else {
+            Write-Host "Release $tag does not exist yet; workflow artifact remains available."
+          }
