@@ -161,7 +161,7 @@ TSUN Local ofrece un diagnóstico de hardware respetuoso con la privacidad y **e
 
 ### Windows — opción más sencilla
 
-**⬇️ [Descargar `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+**⬇️ [Descargar `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
 No requiere instalación ni entorno Python. La aplicación portátil utiliza el mismo motor de diagnóstico de solo lectura, descubre loggers TSUN, prueba los protocolos **1511 / 02B0 / 1097** y genera un informe JSON anonimizado.
 

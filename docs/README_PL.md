@@ -161,7 +161,7 @@ TSUN Local udostępnia bezpieczną dla prywatności i **ściśle tylko do odczyt
 
 ### Windows — najprostsza opcja
 
-**⬇️ [Pobierz `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+**⬇️ [Pobierz `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
 Nie wymaga instalacji ani środowiska Python. Przenośna aplikacja używa tego samego silnika diagnostycznego tylko do odczytu, wykrywa loggery TSUN, testuje protokoły **1511 / 02B0 / 1097** i tworzy zanonimizowany raport JSON.
 

@@ -161,7 +161,7 @@ TSUN Local bietet eine datenschutzfreundliche, **streng schreibgeschützte** Har
 
 ### Windows — einfachste Variante
 
-**⬇️ [`TSUN-Local-Diagnostic.exe` herunterladen](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+**⬇️ [`TSUN-Local-Diagnostic.exe` herunterladen](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
 Keine Installation und keine Python-Umgebung erforderlich. Die portable Anwendung verwendet dieselbe schreibgeschützte Diagnose-Engine, erkennt TSUN-Logger, prüft die Protokolle **1511 / 02B0 / 1097** und erstellt einen anonymisierten JSON-Bericht.
 

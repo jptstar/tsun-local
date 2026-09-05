@@ -162,9 +162,13 @@ TSUN Local provides a privacy-safe, **strictly read-only** hardware diagnostic f
 
 ### Windows — easiest option
 
-**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
-No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report.
+No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report. The diagnostic tool is distributed independently from TSUN Local integration releases through the rolling **`diagnostic-latest`** release.
+
+The current Windows interface uses a simple **1 → 2 → 3** flow: disable the affected TSUN Local entry, run the diagnostic, then send the generated JSON to **dev@jptstar.com**. Advanced IP / Monitor SN options and technical logs stay collapsed by default.
+
+The dump engine is firmware-resilient: it recognizes several Wi-Fi signal layouts (`%` and `dBm`) and can capture a bounded set of passive, same-logger web pages as **anonymized HTML evidence**. It never submits forms, follows external links or calls reboot/reset/update pages.
 
 If you are investigating a communication problem or unavailable entities, **disable the affected TSUN Local config entry before starting the capture**, then re-enable it afterwards.
 

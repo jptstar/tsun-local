@@ -11,10 +11,12 @@
 
 ### Windows — portable executable (recommended for end users)
 
-**[Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**  
-**[SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe.sha256)**
+**[Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
+**[SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256)**
 
-No installation and no Python environment are required. The executable is built from the same **strictly read-only** `tsun_dump.py` engine and creates the same privacy-safe JSON reports.
+No installation and no Python environment are required. The executable is built from the same **strictly read-only** `tsun_dump.py` engine and creates the same privacy-safe JSON reports. The Windows diagnostic is distributed independently from Home Assistant integration releases through the rolling **`diagnostic-latest`** release.
+
+Current standalone diagnostic versions: **dump engine 2.5.0** · **Windows GUI 1.2.0**.
 
 When diagnosing a communication failure or unavailable entities:
 
@@ -26,6 +28,18 @@ When diagnosing a communication failure or unavailable entities:
 6. send the generated JSON file(s) together with the Home Assistant diagnostic.
 
 The Windows executable is currently unsigned, so Windows SmartScreen may show an **Unknown publisher** warning. The published SHA-256 file can be used to verify the download.
+
+### Firmware-resilient logger web capture
+
+Firmware revisions do not always expose logger metadata on the same HTML page or under the same variable name. The 2.5.0 dump engine therefore:
+
+- accepts multiple Wi-Fi signal layouts and preserves whether the value is **%** or **dBm**;
+- records the page/key source used for the detected Wi-Fi signal;
+- starts from the known logger pages and may follow a **bounded maximum of 10 passive same-logger HTML navigation paths**;
+- stores only **anonymized HTML** in the JSON so future firmware layouts can be analysed without keeping the logger IP, full serial number, full MAC address, Wi-Fi credentials or user email;
+- never follows external links, submits forms or calls paths associated with reboot, reset, firmware update, upload, delete or erase actions.
+
+This web-page capture is diagnostic evidence only. It does not turn the Home Assistant integration into a web crawler and does not add any write path.
 
 ### Python script — macOS, Linux and advanced users
 

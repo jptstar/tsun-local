@@ -161,7 +161,7 @@ TSUN Local 为未列出的型号和通信问题提供注重隐私且 **严格只
 
 ### Windows — 最简单的方式
 
-**⬇️ [下载 `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+**⬇️ [下载 `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
 无需安装，也无需 Python 环境。便携应用使用相同的只读诊断引擎，可发现 TSUN Logger、测试 **1511 / 02B0 / 1097** 协议并生成匿名化 JSON 报告。
 
