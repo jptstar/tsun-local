@@ -158,7 +158,17 @@ Direct local polling only.
 
 ## 🔬 Validate another TSUN model
 
-TSUN Local includes a standalone, privacy-safe and **strictly read-only** hardware dump tool.
+TSUN Local includes a standalone, privacy-safe and **strictly read-only** hardware diagnostic tool.
+
+### Windows — easiest option
+
+**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/latest/download/TSUN-Local-Diagnostic.exe)**
+
+No installation, Python environment or command prompt is required. Before running a capture for a communication problem, disable the affected TSUN Local config entry, run the **full diagnostic**, then send the generated anonymized JSON together with the Home Assistant diagnostic when available.
+
+The executable uses the same read-only dump engine as `tsun_dump.py`. It is currently unsigned, so Windows SmartScreen may show an unknown-publisher warning.
+
+### macOS / Linux / advanced users
 
 **⬇️ [Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)**
 
@@ -171,7 +181,7 @@ cd ~/Downloads
 python3 tsun_dump.py --full
 ```
 
-Windows:
+Windows command line remains supported:
 
 ```powershell
 py tsun_dump.py --full
@@ -202,6 +212,8 @@ For VLANs, targeted discovery, before/after comparisons and advanced validation:
 If TSUN Local detects `1511`, `02B0` or `1097`, let it run and check the discovered entities.
 
 Useful compatibility feedback includes the exact inverter model, detected protocol, firmware version, number of PV inputs and which entities return plausible values.
+
+If setup fails, communication is unstable or entities remain unavailable, run the Windows diagnostic executable or `tsun_dump.py --full` and attach the generated anonymized JSON.
 
 > [!TIP]
 > **Your inverter could become the next validated model.**
