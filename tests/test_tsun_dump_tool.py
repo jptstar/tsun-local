@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.5.1")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.6.0")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -171,6 +171,56 @@ class TsunDumpToolTests(unittest.TestCase):
             if protocol != "1511":
                 for start, end in [*dynamic, *supplemental]:
                     self.assertLessEqual(end - start + 1, 16)
+
+    def test_02b0_characterization_classifies_strict_16_limit(self) -> None:
+        def record(test_id: str, successes: int) -> dict[str, object]:
+            return {
+                "id": test_id,
+                "successes": successes,
+                "attempts": [{"result": "success"}] if successes else [{"result": "failure"}],
+            }
+
+        tests = [
+            record("start_3008_8", 1),
+            record("cross_boundary_16", 1),
+            record("cross_boundary_17", 0),
+            record("legacy_v153_22", 0),
+            record("current_v154_v160_23", 0),
+            record("dynamic_3000_16", 1),
+            record("dynamic_3010_16", 1),
+            record("dynamic_3020_16", 1),
+        ]
+        analysis = TOOL.analyze_02b0_characterization(tests, [])
+        self.assertEqual(
+            analysis["size_limit_16"], "evidence_supports_max_16_registers"
+        )
+        self.assertTrue(analysis["register_0x3008_readable"])
+        self.assertTrue(analysis["crosses_0x300F_boundary"])
+
+    def test_02b0_characterization_rejects_strict_limit_if_17_succeeds(self) -> None:
+        tests = [
+            {"id": "cross_boundary_17", "successes": 1, "attempts": [{"result": "success"}]},
+            {"id": "cross_boundary_16", "successes": 1, "attempts": [{"result": "success"}]},
+            {"id": "dynamic_3010_16", "successes": 1, "attempts": [{"result": "success"}]},
+        ]
+        analysis = TOOL.analyze_02b0_characterization(tests, [])
+        self.assertEqual(
+            analysis["size_limit_16"], "not_a_strict_16_register_limit"
+        )
+
+    def test_02b0_characterization_preserves_short_marker_without_meaning(self) -> None:
+        tests = [
+            {
+                "id": "current_v154_v160_23",
+                "successes": 0,
+                "attempts": [
+                    {"result": "short_marker_only", "short_marker": "05 00"}
+                ],
+            }
+        ]
+        analysis = TOOL.analyze_02b0_characterization(tests, [])
+        self.assertEqual(analysis["short_markers_seen"], ["05 00"])
+        self.assertFalse(analysis["modbus_followup_after_short_marker_seen"])
 
     def test_1511_plan_uses_only_known_native_read_functions(self) -> None:
         dynamic, supplemental = TOOL.capture_plans("1511", full=True)

@@ -296,3 +296,14 @@ The normal developer/tester command is simply:
 ```bash
 python3 tsun_dump.py --full
 ```
+
+## 02B0 compatibility characterization
+
+Full 02B0 captures run an additional strictly read-only characterization matrix. It reproduces the short and long telemetry read shapes used by TSUN Local, including the historical 1.5.3 block and the 1.5.4/1.6.0 block, and compares the explicit `0x02B0` AP sensor-list selector with the legacy `0x0000` selector on bounded control reads.
+
+Short inner logger payloads such as `05 00` and `06 00` are preserved as unknown markers. The dumper briefly keeps the same socket open to observe whether a second AP envelope containing valid Modbus data follows; it does not assign an undocumented error meaning to those markers.
+
+The JSON `protocol_characterization` section records every request shape, attempt result, inner response payload, response timing, optional follow-up payload and a conservative classification. This can distinguish a strict 16-register limit from register-boundary, selector, timing or short-marker behavior without writing to the inverter.
+
+Dynamic snapshots now include a `coherent` flag. Only the latest snapshot in which every planned dynamic block succeeded is used for decoded measurements and PV-count inference. A partial later snapshot remains in the evidence but cannot overwrite a coherent earlier one or create false PV inputs from shifted/stale responses.
+
