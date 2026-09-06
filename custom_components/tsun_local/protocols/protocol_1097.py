@@ -50,6 +50,7 @@ SLOW_BLOCKS = (
 # runtime uses the larger slow blocks above.
 DIAGNOSTIC_BLOCKS = (
     (0x03, 0x1400, 0x1400),
+    # Experimental 1097 power-level field.
     (0x03, 0x1423, 0x1423),
     (0x03, 0x1437, 0x1437),
 )
