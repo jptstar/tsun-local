@@ -25,7 +25,10 @@ PROTOCOL_NAME = "02b0"
 MODEL = "GEN3 / GEN3 PLUS"
 SENSOR_LIST = 0x02B0
 DIAGNOSTIC_INTERVAL = 300.0
+MAX_BLOCK_RETRIES = 1
 
+# IMPORTANT: keep the exact validated register coverage unchanged.  The
+# resilience work below changes only the TCP/session lifecycle and retry policy.
 BLOCKS = (
     # 0x3008 adds the inverter firmware register; 0x300C is the inverter
     # temperature and already sits inside this regular telemetry block.
@@ -137,7 +140,6 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_undervoltage_time_3": (0x202B, 0.02),
     "output_coefficient": (0x202C, 100 / 1024),
 }
-
 
 PV_MEASUREMENT_NAMES = (
     "voltage",
@@ -350,31 +352,27 @@ class Tsun02b0Client:
         """Return recent protocol transactions without connection identifiers."""
         return self._trace.events
 
-    async def _read_block(self, block: tuple[int, int, int]) -> dict[int, int]:
+    async def _exchange_block(
+        self,
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter,
+        block: tuple[int, int, int],
+    ) -> dict[int, int]:
+        """Exchange one 02B0 Modbus block over an existing TCP session."""
         function, start, end = block
         payload = build_modbus_request(function, start, end)
-        # 02B0 is the protocol's Solarman sensor-list selector. Some loggers
-        # tolerate 0x0000, but LSW5BLE/PLAY2 requires the explicit 0x02B0 value.
         request = build_ap_frame(
             self.logger_sn,
             payload,
             sensor_list=SENSOR_LIST,
         )
-        writer: asyncio.StreamWriter | None = None
-        stage = "connection"
+        stage = "send"
         response: bytes | None = None
         protocol_response: bytes | None = None
         try:
             async with asyncio.timeout(self.timeout):
                 _LOGGER.debug(
-                    "02B0 diagnostic: opening connection for registers 0x%04X-0x%04X",
-                    start,
-                    end,
-                )
-                reader, writer = await asyncio.open_connection(self.host, self.port)
-                stage = "send"
-                _LOGGER.debug(
-                    "02B0 diagnostic request for registers 0x%04X-0x%04X: %s",
+                    "02B0 request for registers 0x%04X-0x%04X: %s",
                     start,
                     end,
                     payload.hex(" ").upper(),
@@ -385,12 +383,6 @@ class Tsun02b0Client:
                 response = await read_ap_frame(reader)
             stage = "validation"
             protocol_response = parse_ap_frame(response)
-            _LOGGER.debug(
-                "02B0 diagnostic response for registers 0x%04X-0x%04X: %s",
-                start,
-                end,
-                protocol_response.hex(" ").upper(),
-            )
             registers = parse_modbus_response(
                 protocol_response, function, start, end
             )
@@ -421,54 +413,118 @@ class Tsun02b0Client:
                 else type(err).__name__
             )
             _LOGGER.debug(
-                "02B0 diagnostic failure during %s for registers "
-                "0x%04X-0x%04X: %s",
+                "02B0 failure during %s for registers 0x%04X-0x%04X: %s",
                 stage,
                 start,
                 end,
                 detail,
             )
             raise
+
+    async def _open_session(
+        self,
+    ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        """Open one TCP session to the logger."""
+        async with asyncio.timeout(self.timeout):
+            return await asyncio.open_connection(self.host, self.port)
+
+    async def _read_with_retry(
+        self,
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter,
+        block: tuple[int, int, int],
+    ) -> tuple[dict[int, int], asyncio.StreamReader, asyncio.StreamWriter]:
+        """Read a block, reconnecting once on a transient communication error."""
+        current_reader = reader
+        current_writer = writer
+        for attempt in range(MAX_BLOCK_RETRIES + 1):
+            try:
+                registers = await self._exchange_block(
+                    current_reader, current_writer, block
+                )
+                return registers, current_reader, current_writer
+            except Exception:
+                await async_close_writer(current_writer)
+                if attempt >= MAX_BLOCK_RETRIES:
+                    raise
+                _LOGGER.debug(
+                    "02B0 retrying registers 0x%04X-0x%04X on a fresh session",
+                    block[1],
+                    block[2],
+                )
+                current_reader, current_writer = await self._open_session()
+        raise AssertionError("unreachable")
+
+    async def _read_block(self, block: tuple[int, int, int]) -> dict[int, int]:
+        """Read one block in its own session for compatibility with callers/tests."""
+        writer: asyncio.StreamWriter | None = None
+        try:
+            reader, writer = await self._open_session()
+            return await self._exchange_block(reader, writer, block)
         finally:
             await async_close_writer(writer)
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read telemetry and the additional 02B0 alarm block."""
+        """Read the unchanged 02B0 register set over a resilient TCP session."""
         started = time.monotonic()
         registers: dict[int, int] = {}
-        for block in BLOCKS:
-            registers.update(await self._read_block(block))
-        blocks_ok = len(BLOCKS)
-        for block in ALARM_BLOCKS:
-            try:
-                registers.update(await self._read_block(block))
-            except Exception as err:
-                _LOGGER.debug(
-                    "02B0 alarm block 0x%04X-0x%04X is unavailable: %s",
-                    block[1],
-                    block[2],
-                    type(err).__name__,
+        blocks_ok = 0
+        writer: asyncio.StreamWriter | None = None
+
+        try:
+            reader, writer = await self._open_session()
+
+            # Critical telemetry: same blocks and addresses as before. A block
+            # gets one reconnect/retry before the full polling cycle fails.
+            for block in BLOCKS:
+                block_registers, reader, writer = await self._read_with_retry(
+                    reader, writer, block
                 )
-            else:
+                registers.update(block_registers)
                 blocks_ok += 1
 
-        now = time.monotonic()
-        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
-            self._last_diagnostic_read = now
-            for block in DIAGNOSTIC_BLOCKS:
+            # Alarms remain best effort, exactly as before. If both attempts
+            # fail, reopen a clean session so later diagnostics are unaffected.
+            for block in ALARM_BLOCKS:
                 try:
-                    self._diagnostic_registers.update(await self._read_block(block))
+                    block_registers, reader, writer = await self._read_with_retry(
+                        reader, writer, block
+                    )
                 except Exception as err:
                     _LOGGER.debug(
-                        "02B0 diagnostic block 0x%04X-0x%04X is unavailable: %s",
+                        "02B0 alarm block 0x%04X-0x%04X is unavailable: %s",
                         block[1],
                         block[2],
                         type(err).__name__,
                     )
+                    reader, writer = await self._open_session()
                 else:
+                    registers.update(block_registers)
                     blocks_ok += 1
-        registers.update(self._diagnostic_registers)
 
+            now = time.monotonic()
+            if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+                self._last_diagnostic_read = now
+                for block in DIAGNOSTIC_BLOCKS:
+                    try:
+                        block_registers, reader, writer = (
+                            await self._read_with_retry(reader, writer, block)
+                        )
+                    except Exception as err:
+                        _LOGGER.debug(
+                            "02B0 diagnostic block 0x%04X-0x%04X is unavailable: %s",
+                            block[1],
+                            block[2],
+                            type(err).__name__,
+                        )
+                        reader, writer = await self._open_session()
+                    else:
+                        self._diagnostic_registers.update(block_registers)
+                        blocks_ok += 1
+        finally:
+            await async_close_writer(writer)
+
+        registers.update(self._diagnostic_registers)
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
         measurements.update(decode_device_diagnostics(registers))
