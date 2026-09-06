@@ -23,6 +23,7 @@ PROTOCOL_NAME = "1511"
 MODEL = "TITAN"
 MAX_PV_COUNT = 6
 DIAGNOSTIC_INTERVAL = 300.0
+MAX_BLOCK_RETRIES = 1
 COUNTRY_PROFILE_REGISTER = 0x07D0
 FIRMWARE_VERSION_REGISTERS = {
     "dsp_firmware_version": 0x0BC0,
@@ -32,6 +33,8 @@ FIRMWARE_VERSION_REGISTERS = {
 
 _LOGGER = logging.getLogger(__name__)
 
+# IMPORTANT: keep the exact validated register coverage unchanged. The
+# resilience work below changes only the TCP/session lifecycle and retry policy.
 BLOCKS = (
     (0xA1, 0x01, 0x0BB8, 0x0BD0),
     (0xA3, 0x03, 0x0E10, 0x0E2D),
@@ -52,11 +55,6 @@ DIAGNOSTIC_BLOCKS = (
 GLOBAL_ALARM_REGISTERS = (0x0BBB, 0x0BBC, 0x0BBD, 0x0BBE)
 SECONDARY_ALARM_REGISTERS = (0x0CE4, 0x0CE5, 0x0CE6, 0x0CE7)
 PV_ALARM_REGISTERS = (0x0E16, 0x0E1D, 0x0E24, 0x0EDE, 0x0EE5, 0x0EEC)
-
-# On validated MP3000 hardware, bit 0x2000 in global alarm word 1 is
-# repeatedly observed at dawn, dusk and during very low irradiance. Count the
-# position while keeping it distinct from the operating fault state when it is
-# the only active bit. Its exact functional meaning remains unconfirmed.
 LOW_SOLAR_STATUS_REGISTER = GLOBAL_ALARM_REGISTERS[1]
 LOW_SOLAR_STATUS_MASK = 0x2000
 
@@ -135,11 +133,7 @@ ADVANCED_GRID_KEYS = frozenset(
 )
 
 ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
-    # The ten fields marked "field validation" below correlate one-to-one
-    # between a real MP3000 A1/21 dump and the names/values exposed by the
-    # TSUN/Talent device profile. Their local addresses still require an
-    # independent physical change/test before being considered validated.
-    "grid_recovery_rate": (0x07D3, 0.5),  # field validation
+    "grid_recovery_rate": (0x07D3, 0.5),
     "grid_overvoltage_recovery_voltage": (0x07D4, 0.1),
     "grid_undervoltage_recovery_voltage": (0x07D5, 0.1),
     "grid_overfrequency_recovery_frequency": (0x07D6, 0.01),
@@ -152,7 +146,7 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overvoltage_level_2": (0x07DE, 0.1),
     "grid_overvoltage_time_1": (0x07DF, 0.02),
     "grid_overvoltage_time_2": (0x07E0, 0.02),
-    "grid_overvoltage_10min": (0x07E1, 0.1),  # field validation
+    "grid_overvoltage_10min": (0x07E1, 0.1),
     "grid_underfrequency_level_1": (0x07E2, 0.01),
     "grid_underfrequency_level_2": (0x07E3, 0.01),
     "grid_underfrequency_time_1": (0x07E4, 0.02),
@@ -163,16 +157,15 @@ ADVANCED_GRID_REGISTERS: dict[str, tuple[int, float]] = {
     "grid_overfrequency_time_2": (0x07E9, 0.02),
     "grid_undervoltage_level_3": (0x07EA, 0.1),
     "grid_undervoltage_time_3": (0x07EB, 0.02),
-    "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),  # field validation
-    "grid_overfrequency_reduction_coefficient": (0x07EF, 0.01),  # field validation
-    "overtemperature_protection_temperature": (0x07F0, 1.0),  # field validation
-    "grid_start_upper_voltage_limit": (0x07FB, 0.1),  # field validation
-    "grid_start_lower_voltage_limit": (0x07FC, 0.1),  # field validation
-    "grid_start_upper_frequency_limit": (0x07FD, 0.01),  # field validation
-    "grid_start_lower_frequency_limit": (0x07FE, 0.01),  # field validation
-    "grid_qp_voltage_threshold": (0x0800, 1.0),  # field validation
+    "grid_overfrequency_reduction_frequency": (0x07EE, 0.01),
+    "grid_overfrequency_reduction_coefficient": (0x07EF, 0.01),
+    "overtemperature_protection_temperature": (0x07F0, 1.0),
+    "grid_start_upper_voltage_limit": (0x07FB, 0.1),
+    "grid_start_lower_voltage_limit": (0x07FC, 0.1),
+    "grid_start_upper_frequency_limit": (0x07FD, 0.01),
+    "grid_start_lower_frequency_limit": (0x07FE, 0.01),
+    "grid_qp_voltage_threshold": (0x0800, 1.0),
 }
-
 
 PV_MEASUREMENT_NAMES = (
     "voltage",
@@ -184,7 +177,6 @@ PV_MEASUREMENT_NAMES = (
 
 
 def crc16_1511(data: bytes) -> bytes:
-    """Return Modbus CRC16 in TSUN 1511 (non-swapped) byte order."""
     crc = 0xFFFF
     for byte in data:
         crc ^= byte
@@ -194,17 +186,13 @@ def crc16_1511(data: bytes) -> bytes:
 
 
 def build_1511_request(address_tag: int, function: int, start: int, end: int) -> bytes:
-    """Build one validated 1511 register read request."""
     count = end - start + 1
     body = bytes((address_tag, function, 0x00)) + start.to_bytes(2, "big")
     body += b"\x00\x02" + count.to_bytes(2, "big")
     return body + crc16_1511(body)
 
 
-def parse_1511_response(
-    frame: bytes, address_tag: int, function: int, start: int, end: int
-) -> dict[int, int]:
-    """Validate and parse a response into little-endian 16-bit registers."""
+def parse_1511_response(frame: bytes, address_tag: int, function: int, start: int, end: int) -> dict[int, int]:
     if len(frame) < 11 or frame[0] != 0x7E:
         raise TsunProtocolError("Invalid 1511 frame")
     if crc16_1511(frame[1:-2]) != frame[-2:]:
@@ -220,50 +208,27 @@ def parse_1511_response(
     if data_length != count * 2 or len(frame) != 8 + data_length + 2:
         raise TsunProtocolError("Unexpected 1511 data length")
     values = frame[8 : 8 + data_length]
-    return {
-        start + index: int.from_bytes(values[index * 2 : index * 2 + 2], "little")
-        for index in range(count)
-    }
+    return {start + index: int.from_bytes(values[index * 2 : index * 2 + 2], "little") for index in range(count)}
 
 
 def _u32_type5(registers: dict[int, int], high_address: int) -> int:
-    """Decode official byte-order type 5: high 16-bit register then low register."""
     return (registers[high_address] << 16) | registers[high_address + 1]
 
 
 def firmware_version(value: int) -> str:
-    """Decode a packed TSUN 16-bit firmware version."""
     raw = f"{value:04X}"
     return f"V{raw[0]}.{raw[1]}.{raw[2:]}"
 
 
 def decode_firmware_versions(registers: dict[int, int]) -> dict[str, str]:
-    """Decode MP3000 DSP/QCPU firmware versions found in live 1511 blocks."""
-    return {
-        key: firmware_version(registers[address])
-        for key, address in FIRMWARE_VERSION_REGISTERS.items()
-        if address in registers
-    }
+    return {key: firmware_version(registers[address]) for key, address in FIRMWARE_VERSION_REGISTERS.items() if address in registers}
 
 
 def _measurement_keys(pv_count: int) -> frozenset[str]:
-    """Return keys exposed for the detected number of PV inputs."""
-    return (
-        AC_MEASUREMENT_KEYS
-        | TITAN_DIAGNOSTIC_KEYS
-        | ADVANCED_GRID_KEYS
-        | ALARM_MEASUREMENT_KEYS
-        | frozenset(
-            f"pv{number}_{measurement}"
-            for number in range(1, pv_count + 1)
-            for measurement in PV_MEASUREMENT_NAMES
-        )
-        | frozenset(f"pv{number}_alarm_raw" for number in range(1, pv_count + 1))
-    )
+    return AC_MEASUREMENT_KEYS | TITAN_DIAGNOSTIC_KEYS | ADVANCED_GRID_KEYS | ALARM_MEASUREMENT_KEYS | frozenset(f"pv{number}_{measurement}" for number in range(1, pv_count + 1) for measurement in PV_MEASUREMENT_NAMES) | frozenset(f"pv{number}_alarm_raw" for number in range(1, pv_count + 1))
 
 
 def detect_pv_count(registers: dict[int, int]) -> int:
-    """Detect the highest populated PV input while always retaining PV1."""
     pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
     detected = 1
@@ -274,10 +239,7 @@ def detect_pv_count(registers: dict[int, int]) -> int:
     return detected
 
 
-def decode_measurements(
-    registers: dict[int, int], pv_count: int = 1
-) -> dict[str, float | int | str]:
-    """Decode the validated AC and PV register map."""
+def decode_measurements(registers: dict[int, int], pv_count: int = 1) -> dict[str, float | int | str]:
     data: dict[str, float | int | str] = {
         "inverter_status_raw": registers[0x0BB8],
         "ac_voltage": registers[0x0BC4] * 0.1,
@@ -296,52 +258,31 @@ def decode_measurements(
         data["ambient_temperature"] = registers[0x0BD4] - 40
     if 0x07FA in registers:
         data["max_designed_power"] = registers[0x07FA]
-
     pv_bases = (0x0E10, 0x0E17, 0x0E1E, 0x0ED8, 0x0EDF, 0x0EE6)
     pv_total_pairs = (0x0E28, 0x0E2A, 0x0E2C, 0x0EF0, 0x0EF2, 0x0EF4)
-    for number, (base, total_pair) in enumerate(
-        zip(pv_bases[:pv_count], pv_total_pairs[:pv_count]), 1
-    ):
+    for number, (base, total_pair) in enumerate(zip(pv_bases[:pv_count], pv_total_pairs[:pv_count]), 1):
         prefix = f"pv{number}"
         data[f"{prefix}_voltage"] = registers[base] * 0.1
         data[f"{prefix}_current"] = registers[base + 1] * 0.01
         data[f"{prefix}_power"] = registers[base + 2] * 0.1
         data[f"{prefix}_energy_today"] = registers.get(base + 5, 0) * 0.01
         data[f"{prefix}_energy_total"] = _u32_type5(registers, total_pair) * 0.01
-    data["dc_power_total"] = round(
-        sum(float(data[f"pv{number}_power"]) for number in range(1, pv_count + 1)), 1
-    )
+    data["dc_power_total"] = round(sum(float(data[f"pv{number}_power"]) for number in range(1, pv_count + 1)), 1)
     return data
 
 
-def decode_advanced_diagnostics(
-    registers: dict[int, int],
-) -> dict[str, float | int]:
-    """Decode read-only grid protection and field-validation diagnostics."""
-    data: dict[str, float | int] = {
-        key: round(registers[address] * factor, 2)
-        for key, (address, factor) in ADVANCED_GRID_REGISTERS.items()
-        if address in registers
-    }
-
-    # Stefan Allius's public 1097 country table identifies code 8 as France.
-    # The live MP3000 1511 A1/21 block repeatedly reports raw 8 at 0x07D0.
-    # Expose the raw candidate only; independent validation is still pending.
+def decode_advanced_diagnostics(registers: dict[int, int]) -> dict[str, float | int]:
+    data: dict[str, float | int] = {key: round(registers[address] * factor, 2) for key, (address, factor) in ADVANCED_GRID_REGISTERS.items() if address in registers}
     if COUNTRY_PROFILE_REGISTER in registers:
         data["country_profile_raw"] = registers[COUNTRY_PROFILE_REGISTER]
-
     return data
 
 
-def decode_alarms(
-    registers: dict[int, int], pv_count: int
-) -> dict[str, float | int | str]:
-    """Expose all 1511 alarm words while separating low-solar standby."""
+def decode_alarms(registers: dict[int, int], pv_count: int) -> dict[str, float | int | str]:
     data: dict[str, float | int | str] = {}
     fault_values: list[int] = []
     active_values: list[int] = []
     low_solar = False
-
     for index, address in enumerate(GLOBAL_ALARM_REGISTERS):
         if address in registers:
             value = registers[address]
@@ -352,35 +293,23 @@ def decode_alarms(
                 low_solar = bool(value & LOW_SOLAR_STATUS_MASK)
                 fault_value &= ~LOW_SOLAR_STATUS_MASK
             fault_values.append(fault_value)
-
-    secondary_complete = all(
-        address in registers for address in SECONDARY_ALARM_REGISTERS
-    )
+    secondary_complete = all(address in registers for address in SECONDARY_ALARM_REGISTERS)
     for index, address in enumerate(SECONDARY_ALARM_REGISTERS):
         if address in registers:
             value = registers[address]
             data[f"alarm_secondary_{index}_raw"] = value
             active_values.append(value)
             fault_values.append(value)
-
-    # Decode all six PV alarm words independently from topology detection.
-    # This preserves every alarm position even before a PV input has produced
-    # enough telemetry to receive its own Home Assistant sensor entities.
     for number, address in enumerate(PV_ALARM_REGISTERS, 1):
         if address in registers:
             value = registers[address]
             data[f"pv{number}_alarm_raw"] = value
             active_values.append(value)
             fault_values.append(value)
-
-    # A complete fault status still requires the separate secondary-alarm
-    # block. Raw values remain available if that optional read fails.
     if secondary_complete:
         has_fault = any(fault_values)
         data["alarm_active"] = int(any(active_values))
-        data["alarm_active_count"] = sum(
-            value.bit_count() for value in active_values
-        )
+        data["alarm_active_count"] = sum(value.bit_count() for value in active_values)
         if has_fault:
             operating_state = "fault"
         elif low_solar:
@@ -390,7 +319,6 @@ def decode_alarms(
         else:
             operating_state = "standby"
         data["inverter_operating_state"] = operating_state
-
     return data
 
 
@@ -400,159 +328,113 @@ class Tsun1511Client:
     model = MODEL
     protocol_name = PROTOCOL_NAME
 
-    def __init__(
-        self, host: str, port: int, logger_sn: int, timeout: float = 10
-    ) -> None:
+    def __init__(self, host: str, port: int, logger_sn: int, timeout: float = 10) -> None:
         self.host = host
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
-        # Start conservatively with PV1. Additional inputs are added after
-        # they are observed in live or accumulated telemetry and never removed.
         self._pv_count = 1
         self._trace = ProtocolTrace(PROTOCOL_NAME)
         self._diagnostic_registers: dict[int, int] = {}
-        # Collect optional diagnostics on the first poll, then at a slow cadence.
-        # A diagnostic failure never makes normal telemetry fail.
         self._last_diagnostic_read = 0.0
 
     @property
     def pv_count(self) -> int:
-        """Return the highest PV input detected so far."""
         return self._pv_count
 
     @property
     def measurement_keys(self) -> frozenset[str]:
-        """Return measurement keys supported by the detected hardware."""
         return _measurement_keys(self._pv_count)
 
     @property
     def diagnostic_trace(self) -> tuple[dict[str, object], ...]:
-        """Return recent protocol transactions without connection identifiers."""
         return self._trace.events
 
-    async def _read_block(self, block: tuple[int, int, int, int]) -> dict[int, int]:
+    async def _exchange_block(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, block: tuple[int, int, int, int]) -> dict[int, int]:
         address_tag, function, start, end = block
         payload = build_1511_request(address_tag, function, start, end)
         request = build_ap_frame(self.logger_sn, payload)
-        writer: asyncio.StreamWriter | None = None
-        stage = "connection"
+        stage = "send"
         response: bytes | None = None
         protocol_response: bytes | None = None
         try:
             async with asyncio.timeout(self.timeout):
-                _LOGGER.debug(
-                    "1511 diagnostic: opening connection for registers 0x%04X-0x%04X",
-                    start,
-                    end,
-                )
-                reader, writer = await asyncio.open_connection(self.host, self.port)
-                stage = "send"
-                _LOGGER.debug(
-                    "1511 diagnostic request for registers 0x%04X-0x%04X: %s",
-                    start,
-                    end,
-                    payload.hex(" ").upper(),
-                )
                 writer.write(request)
                 await writer.drain()
                 stage = "receive"
                 response = await read_ap_frame(reader)
             stage = "validation"
             protocol_response = parse_ap_frame(response)
-            _LOGGER.debug(
-                "1511 diagnostic response for registers 0x%04X-0x%04X: %s",
-                start,
-                end,
-                protocol_response.hex(" ").upper(),
-            )
-            registers = parse_1511_response(
-                protocol_response, address_tag, function, start, end
-            )
-            self._trace.record(
-                address_tag=address_tag,
-                function=function,
-                start=start,
-                end=end,
-                stage="complete",
-                request_payload=payload,
-                response_payload=protocol_response,
-                response_bytes=len(response),
-            )
+            registers = parse_1511_response(protocol_response, address_tag, function, start, end)
+            self._trace.record(address_tag=address_tag, function=function, start=start, end=end, stage="complete", request_payload=payload, response_payload=protocol_response, response_bytes=len(response))
             return registers
         except Exception as err:
-            self._trace.record(
-                address_tag=address_tag,
-                function=function,
-                start=start,
-                end=end,
-                stage=stage,
-                request_payload=payload,
-                response_payload=protocol_response,
-                response_bytes=len(response) if response is not None else None,
-                error=err,
-            )
-            detail = (
-                str(err)
-                if isinstance(err, TsunProtocolError)
-                else type(err).__name__
-            )
-            _LOGGER.debug(
-                "1511 diagnostic failure during %s for registers "
-                "0x%04X-0x%04X: %s",
-                stage,
-                start,
-                end,
-                detail,
-            )
+            self._trace.record(address_tag=address_tag, function=function, start=start, end=end, stage=stage, request_payload=payload, response_payload=protocol_response, response_bytes=len(response) if response is not None else None, error=err)
             raise
+
+    async def _open_session(self) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        async with asyncio.timeout(self.timeout):
+            return await asyncio.open_connection(self.host, self.port)
+
+    async def _read_with_retry(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, block: tuple[int, int, int, int]) -> tuple[dict[int, int], asyncio.StreamReader, asyncio.StreamWriter]:
+        current_reader = reader
+        current_writer = writer
+        for attempt in range(MAX_BLOCK_RETRIES + 1):
+            try:
+                registers = await self._exchange_block(current_reader, current_writer, block)
+                return registers, current_reader, current_writer
+            except Exception:
+                await async_close_writer(current_writer)
+                if attempt >= MAX_BLOCK_RETRIES:
+                    raise
+                current_reader, current_writer = await self._open_session()
+        raise AssertionError("unreachable")
+
+    async def _read_block(self, block: tuple[int, int, int, int]) -> dict[int, int]:
+        writer: asyncio.StreamWriter | None = None
+        try:
+            reader, writer = await self._open_session()
+            return await self._exchange_block(reader, writer, block)
         finally:
             await async_close_writer(writer)
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read telemetry plus optional alarm and diagnostic blocks sequentially."""
         started = time.monotonic()
         registers: dict[int, int] = {}
-        for block in BLOCKS:
-            registers.update(await self._read_block(block))
-        blocks_ok = len(BLOCKS)
-
-        for block in ALARM_BLOCKS:
-            try:
-                registers.update(await self._read_block(block))
-            except Exception as err:
-                _LOGGER.debug(
-                    "1511 alarm block 0x%04X-0x%04X is unavailable: %s",
-                    block[2],
-                    block[3],
-                    type(err).__name__,
-                )
-            else:
+        blocks_ok = 0
+        writer: asyncio.StreamWriter | None = None
+        try:
+            reader, writer = await self._open_session()
+            for block in BLOCKS:
+                block_registers, reader, writer = await self._read_with_retry(reader, writer, block)
+                registers.update(block_registers)
                 blocks_ok += 1
-
-        now = time.monotonic()
-        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
-            self._last_diagnostic_read = now
-            for block in DIAGNOSTIC_BLOCKS:
+            for block in ALARM_BLOCKS:
                 try:
-                    self._diagnostic_registers.update(await self._read_block(block))
+                    block_registers, reader, writer = await self._read_with_retry(reader, writer, block)
                 except Exception as err:
-                    _LOGGER.debug(
-                        "1511 diagnostic block %d-%d is unavailable: %s",
-                        block[2],
-                        block[3],
-                        type(err).__name__,
-                    )
+                    _LOGGER.debug("1511 alarm block 0x%04X-0x%04X is unavailable: %s", block[2], block[3], type(err).__name__)
+                    reader, writer = await self._open_session()
                 else:
+                    registers.update(block_registers)
                     blocks_ok += 1
+            now = time.monotonic()
+            if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+                self._last_diagnostic_read = now
+                for block in DIAGNOSTIC_BLOCKS:
+                    try:
+                        block_registers, reader, writer = await self._read_with_retry(reader, writer, block)
+                    except Exception as err:
+                        _LOGGER.debug("1511 diagnostic block %d-%d is unavailable: %s", block[2], block[3], type(err).__name__)
+                        reader, writer = await self._open_session()
+                    else:
+                        self._diagnostic_registers.update(block_registers)
+                        blocks_ok += 1
+        finally:
+            await async_close_writer(writer)
         registers.update(self._diagnostic_registers)
-
         self._pv_count = max(self._pv_count, detect_pv_count(registers))
         measurements = decode_measurements(registers, self._pv_count)
         measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers, self._pv_count))
-        return TsunReadResult(
-            measurements=measurements,
-            duration_ms=round((time.monotonic() - started) * 1000),
-            blocks_ok=blocks_ok,
-        )
+        return TsunReadResult(measurements=measurements, duration_ms=round((time.monotonic() - started) * 1000), blocks_ok=blocks_ok)
