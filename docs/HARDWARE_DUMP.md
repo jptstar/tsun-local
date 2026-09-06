@@ -16,7 +16,7 @@
 
 No installation and no Python environment are required. The executable is built from the same **strictly read-only** `tsun_dump.py` engine and creates the same privacy-safe JSON reports. The Windows diagnostic is distributed independently from Home Assistant integration releases through the rolling **`diagnostic-latest`** release.
 
-Current standalone diagnostic versions: **dump engine 2.7.0** · **Windows GUI 1.4.0**.
+Current standalone diagnostic versions: **dump engine 2.7.1** · **Windows GUI 1.4.0**.
 
 Both distributions use the rolling `diagnostic-latest` update manifest. The Windows EXE replaces itself only after validating the published SHA-256 and restarts automatically; the Mac/Linux standalone `tsun_dump.py` does the same for the Python file. Update failures never block a diagnostic, and `--no-update` provides an offline/troubleshooting path.
 
@@ -43,6 +43,12 @@ Firmware revisions do not always expose logger metadata on the same HTML page or
 - never follows external links, submits forms or calls paths associated with reboot, reset, firmware update, upload, delete or erase actions.
 
 This web-page capture is diagnostic evidence only. It does not turn the Home Assistant integration into a web crawler and does not add any write path.
+
+### Read-only logger DNS capability probe
+
+Dump engine **2.7.1** adds one deliberately narrow full-mode capability test for the logger DNS setting. Over the local UDP 48899 assistant interface it opens the normal diagnostic session and sends only `AT+WSDNS` **without an equals sign or value**. On logger families that implement the command, this is the documented getter form; the tool never sends `AT+WSDNS=<address>` and therefore never changes DNS configuration.
+
+The JSON records whether the query was supported and only privacy-safe properties such as the number/scope of returned IPv4 addresses. The actual DNS server address is **not stored**. This probe is research evidence for a possible future TSUN Local Cloud/Firmware Protection feature; it is not itself a blocker and it does not modify the logger.
 
 ### Python script — macOS, Linux and advanced users
 

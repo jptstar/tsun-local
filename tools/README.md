@@ -4,7 +4,7 @@ Diagnostic and validation utilities for TSUN Local.
 
 ## Windows portable diagnostic
 
-For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.4.0 and uses the 2.7.0 dump engine.
+For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.4.0 and uses the 2.7.1 dump engine.
 
 **⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
 
@@ -54,6 +54,8 @@ python3 tsun_dump.py --full
 ```
 
 Starting with dump engine 2.7.0, the standalone Python file checks the same `diagnostic-latest` manifest on startup, downloads a newer `tsun_dump.py` when available, verifies SHA-256, atomically replaces the current script and restarts. `--no-update` disables the check for one run and `--check-update` only reports availability. If the script location is not writable, the diagnostic continues with the local version and never requests `sudo`.
+
+Dump engine **2.7.1** adds a full-mode, read-only `AT+WSDNS` capability probe over the logger's local UDP 48899 assistant interface. It sends only the getter form (no `=` and no configuration value), records whether the command is supported, and deliberately excludes the actual DNS server address from the shareable JSON. This is intended to verify whether a logger such as a TITAN / MP3000 exposes a configurable DNS setting before any Cloud Protection design is attempted.
 
 The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON. `--monitor-sn` and the legacy `--serial` option are equivalent.
 
