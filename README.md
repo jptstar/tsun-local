@@ -155,7 +155,7 @@ TSUN Local provides a privacy-safe, **strictly read-only** hardware diagnostic f
 
 No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report.
 
-**Current public diagnostic versions:** Windows GUI **1.4.0** · dump engine **2.7.1**.
+**Current public diagnostic versions:** Windows GUI **1.4.1** · dump engine **2.7.2**.
 
 Starting with GUI 1.4.0, the Windows executable **checks the rolling `diagnostic-latest` channel at startup**. When a newer diagnostic is available, it downloads the replacement, verifies its SHA-256 hash, replaces the old executable and relaunches automatically. If the update check fails, the current diagnostic continues to run unchanged.
 

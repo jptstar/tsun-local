@@ -38,7 +38,7 @@ from urllib.parse import urljoin, urlsplit
 import urllib.request
 
 
-TOOL_VERSION = "2.7.1"
+TOOL_VERSION = "2.7.2"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -92,7 +92,18 @@ LOGGER_AT_QUIT = b"AT+Q\n"
 LOGGER_AT_MAX_RESPONSE = 2048
 LOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
 LOGGER_PROFILE_PATHS = ("/hide_set_edit.html",)
-LOGGER_WEB_CAPTURE_PATHS = (*LOGGER_STATUS_PATHS, *LOGGER_PROFILE_PATHS)
+LOGGER_RESEARCH_PATHS = (
+    "/wireless.html",
+    "/wizard.html",
+    "/remote.html",
+    "/update.html",
+    "/invupdate.html",
+)
+LOGGER_WEB_CAPTURE_PATHS = (
+    *LOGGER_STATUS_PATHS,
+    *LOGGER_PROFILE_PATHS,
+    *LOGGER_RESEARCH_PATHS,
+)
 LOGGER_WEB_AUTH = base64.b64encode(b"admin:admin").decode("ascii")
 _ALLOWED_WEB_SUFFIXES = (".htm", ".html", ".shtml", ".xhtml", ".cgi", ".asp")
 _WEB_ACTION_TOKENS = (
@@ -1199,6 +1210,135 @@ def _first_web_match(patterns: tuple[re.Pattern[str], ...], document: str) -> st
     return None
 
 
+class _WebInterfaceParser(HTMLParser):
+    """Summarize forms and event hooks without submitting or executing them."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.forms: list[dict[str, Any]] = []
+        self.script_sources: list[str] = []
+        self.handlers: set[str] = set()
+        self._current_form: dict[str, Any] | None = None
+
+    @staticmethod
+    def _attrs(attrs: list[tuple[str, str | None]]) -> dict[str, str]:
+        return {name.lower(): value or "" for name, value in attrs}
+
+    def _collect_handlers(self, attrs: dict[str, str]) -> None:
+        for key in ("onclick", "onsubmit", "onchange"):
+            value = attrs.get(key, "")
+            for match in re.finditer(r"\b([A-Za-z_$][A-Za-z0-9_$]*)\s*\(", value):
+                self.handlers.add(match.group(1))
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        attributes = self._attrs(attrs)
+        self._collect_handlers(attributes)
+
+        if tag == "script" and attributes.get("src"):
+            self.script_sources.append(attributes["src"])
+            return
+
+        if tag == "form":
+            form = {
+                "method": (attributes.get("method") or "get").lower(),
+                "action_raw": attributes.get("action") or "",
+                "enctype": (attributes.get("enctype") or "").lower() or None,
+                "fields": [],
+            }
+            self.forms.append(form)
+            self._current_form = form
+            return
+
+        if self._current_form is None or tag not in ("input", "select", "textarea", "button"):
+            return
+        field_name = attributes.get("name") or attributes.get("id") or ""
+        if not field_name or len(field_name) > 80:
+            return
+        field_type = attributes.get("type") or tag
+        item = {"name": field_name, "type": field_type.lower()}
+        if item not in self._current_form["fields"]:
+            self._current_form["fields"].append(item)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == "form":
+            self._current_form = None
+
+
+def _safe_same_logger_endpoint(value: str, current_path: str, host: str) -> str | None:
+    """Normalize a same-logger endpoint for passive reporting only."""
+    value = value.strip()
+    if not value or value.startswith(("#", "javascript:")):
+        return None
+    try:
+        target = urlsplit(urljoin(f"http://{host}{current_path}", value))
+        port = target.port
+    except ValueError:
+        return None
+    if target.scheme.lower() != "http" or target.hostname != host or port not in (None, 80):
+        return None
+    path = target.path or "/"
+    if not path.startswith("/") or len(path) > 192:
+        return None
+    return path
+
+
+def summarize_web_interface_read_only(
+    document: str, current_path: str, host: str
+) -> dict[str, Any]:
+    """Extract passive form/endpoint metadata without requests, scripts or uploads."""
+    parser = _WebInterfaceParser()
+    try:
+        parser.feed(document)
+        parser.close()
+    except (ValueError, TypeError):
+        return {
+            "path": current_path,
+            "forms": [],
+            "script_paths": [],
+            "javascript_handlers": [],
+            "candidate_local_endpoints": [],
+        }
+
+    forms: list[dict[str, Any]] = []
+    endpoints: set[str] = set()
+    for form in parser.forms:
+        action = _safe_same_logger_endpoint(
+            str(form.pop("action_raw", "")), current_path, host
+        )
+        if action:
+            endpoints.add(action)
+        forms.append({**form, "action": action})
+
+    script_paths: list[str] = []
+    for source in parser.script_sources:
+        path = _safe_same_logger_endpoint(source, current_path, host)
+        if path and path not in script_paths:
+            script_paths.append(path)
+
+    for match in re.finditer(
+        r"[\"']([^\"']{1,160}(?:\.cgi|\.asp|\.html?|\.shtml))[\"']",
+        document,
+        re.IGNORECASE,
+    ):
+        path = _safe_same_logger_endpoint(match.group(1), current_path, host)
+        if path:
+            endpoints.add(path)
+
+    return {
+        "path": current_path,
+        "forms": forms,
+        "script_paths": script_paths,
+        "javascript_handlers": sorted(parser.handlers),
+        "candidate_local_endpoints": sorted(endpoints),
+        "read_only": True,
+        "form_submission_performed": False,
+        "javascript_executed": False,
+        "upload_performed": False,
+        "reboot_performed": False,
+    }
+
+
 class _LocalLinkParser(HTMLParser):
     """Collect navigation targets from local logger HTML without executing anything."""
 
@@ -1412,6 +1552,7 @@ def anonymize_web_document(document: str) -> str:
 def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
     """Capture bounded anonymized logger pages, including safe local links."""
     pages: list[dict[str, Any]] = []
+    interface_analysis: list[dict[str, Any]] = []
     summary: dict[str, Any] = {
         "logger_firmware_version": None,
         "logger_wifi_signal": None,
@@ -1453,6 +1594,15 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
                 source = metadata["logger_wifi_signal_source"] or "unknown"
                 summary["logger_wifi_signal_source"] = f"{path}:{source}"
 
+            interface = summarize_web_interface_read_only(document, path, host)
+            if (
+                interface["forms"]
+                or interface["script_paths"]
+                or interface["javascript_handlers"]
+                or path in LOGGER_RESEARCH_PATHS
+            ):
+                interface_analysis.append(interface)
+
             sanitized = anonymize_web_document(document)
             digest = hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
             if digest not in seen_hashes:
@@ -1480,6 +1630,7 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
         "paths_attempted": attempted_paths,
         "discovered_paths": [path for path in attempted_paths if path not in known],
         "summary": summary,
+        "interface_analysis": interface_analysis,
         "pages": pages,
         "privacy": {
             "raw_html_stored": False,
@@ -1493,6 +1644,9 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
             "wifi_credentials_stored": False,
             "same_logger_links_only": True,
             "form_submission_performed": False,
+            "javascript_executed": False,
+            "firmware_upload_performed": False,
+            "logger_reboot_performed": False,
             "max_page_paths": MAX_LOGGER_WEB_PATHS,
         },
     }
