@@ -38,7 +38,7 @@ from urllib.parse import urljoin, urlsplit
 import urllib.request
 
 
-TOOL_VERSION = "2.7.2"
+TOOL_VERSION = "2.7.3"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -90,6 +90,16 @@ LOGGER_AT_DISCOVERY_MESSAGES = (
 LOGGER_DNS_QUERY = b"AT+WSDNS\n"
 LOGGER_AT_QUIT = b"AT+Q\n"
 LOGGER_AT_MAX_RESPONSE = 2048
+LOGGER_JS_RESEARCH_FUNCTIONS = (
+    "sta_form_apply",
+    "step_setting_apply",
+    "server_setting_apply",
+    "sw_upload_apply",
+    "yzsw_upload_apply",
+    "internetSet",
+    "wirelessSet",
+)
+MAX_JS_FUNCTION_BODY = 6000
 LOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
 LOGGER_PROFILE_PATHS = ("/hide_set_edit.html",)
 LOGGER_RESEARCH_PATHS = (
@@ -1210,6 +1220,86 @@ def _first_web_match(patterns: tuple[re.Pattern[str], ...], document: str) -> st
     return None
 
 
+def _extract_js_function_body(document: str, name: str) -> str | None:
+    """Return one JavaScript function body by static source inspection only."""
+    escaped = re.escape(name)
+    patterns = (
+        re.compile(rf"\bfunction\s+{escaped}\s*\([^)]*\)\s*\{{", re.IGNORECASE),
+        re.compile(rf"\b{escaped}\s*=\s*function\s*\([^)]*\)\s*\{{", re.IGNORECASE),
+    )
+    match = next((candidate.search(document) for candidate in patterns if candidate.search(document)), None)
+    if match is None:
+        return None
+
+    start = match.end() - 1
+    depth = 0
+    quote: str | None = None
+    escaped_char = False
+    line_comment = False
+    block_comment = False
+
+    for index in range(start, min(len(document), start + 20000)):
+        char = document[index]
+        nxt = document[index + 1] if index + 1 < len(document) else ""
+
+        if line_comment:
+            if char in "\r\n":
+                line_comment = False
+            continue
+        if block_comment:
+            if char == "*" and nxt == "/":
+                block_comment = False
+            continue
+        if quote is not None:
+            if escaped_char:
+                escaped_char = False
+            elif char == "\\":
+                escaped_char = True
+            elif char == quote:
+                quote = None
+            continue
+        if char == "/" and nxt == "/":
+            line_comment = True
+            continue
+        if char == "/" and nxt == "*":
+            block_comment = True
+            continue
+        if char in ('"', "'", "`"):
+            quote = char
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return document[start + 1:index]
+    return None
+
+
+def summarize_js_research_functions(document: str) -> list[dict[str, Any]]:
+    """Capture privacy-scrubbed source bodies of selected logger JS functions."""
+    result: list[dict[str, Any]] = []
+    for name in LOGGER_JS_RESEARCH_FUNCTIONS:
+        body = _extract_js_function_body(document, name)
+        if body is None:
+            continue
+        scrubbed = anonymize_web_document(body).strip()
+        truncated = len(scrubbed) > MAX_JS_FUNCTION_BODY
+        if truncated:
+            scrubbed = scrubbed[:MAX_JS_FUNCTION_BODY]
+        result.append(
+            {
+                "name": name,
+                "body": scrubbed,
+                "body_sha256": hashlib.sha256(scrubbed.encode("utf-8")).hexdigest(),
+                "truncated": truncated,
+                "static_source_only": True,
+                "javascript_executed": False,
+            }
+        )
+    return result
+
+
 class _WebInterfaceParser(HTMLParser):
     """Summarize forms and event hooks without submitting or executing them."""
 
@@ -1330,6 +1420,7 @@ def summarize_web_interface_read_only(
         "forms": forms,
         "script_paths": script_paths,
         "javascript_handlers": sorted(parser.handlers),
+        "javascript_function_sources": summarize_js_research_functions(document),
         "candidate_local_endpoints": sorted(endpoints),
         "read_only": True,
         "form_submission_performed": False,
@@ -1448,7 +1539,7 @@ def _extract_logger_firmware(document: str) -> str | None:
     for pattern in _FIRMWARE_PATTERNS:
         for match in pattern.finditer(document):
             candidate = match.group(1).strip()
-            if candidate.lower() in placeholders:
+            if candidate.lower() in placeholders or candidate.isdigit():
                 continue
             return candidate
     return None

@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.7.2")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.7.3")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -200,6 +200,41 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertIn("checkUpgrade", summary["javascript_handlers"])
         self.assertIn("startUpgrade", summary["javascript_handlers"])
         self.assertNotIn("SecretWifi", repr(summary))
+
+    def test_logger_firmware_fallback_rejects_plain_numeric_ui_value(self) -> None:
+        self.assertIsNone(TOOL._extract_logger_firmware("Firmware version: 13"))
+        self.assertEqual(
+            TOOL._extract_logger_firmware('var cover_ver="LSW5_SSL_02B0_1.05"; Firmware version: 13'),
+            "LSW5_SSL_02B0_1.05",
+        )
+
+    def test_js_research_extracts_target_body_without_execution_or_secrets(self) -> None:
+        document = (
+            'function sta_form_apply(){'
+            'var dns=document.forms[0].wan_setting_dns.value;'
+            'var password="TopSecret";'
+            'document.forms[0].action="do_step_neth.html";'
+            'document.forms[0].submit();'
+            '}'
+            'function unrelated(){return 1;}'
+        )
+        summaries = TOOL.summarize_js_research_functions(document)
+        self.assertEqual(len(summaries), 1)
+        summary = summaries[0]
+        self.assertEqual(summary["name"], "sta_form_apply")
+        self.assertTrue(summary["static_source_only"])
+        self.assertFalse(summary["javascript_executed"])
+        self.assertIn("wan_setting_dns", summary["body"])
+        self.assertIn("do_step_neth.html", summary["body"])
+        self.assertNotIn("TopSecret", summary["body"])
+        self.assertNotIn("unrelated", repr(summaries))
+
+    def test_js_function_parser_handles_nested_blocks(self) -> None:
+        document = 'function sw_upload_apply(){if(true){while(false){x();}}return 1;}'
+        body = TOOL._extract_js_function_body(document, "sw_upload_apply")
+        self.assertIsNotNone(body)
+        self.assertIn("while(false){x();}", body)
+        self.assertIn("return 1", body)
 
     def test_dns_probe_command_is_get_only(self) -> None:
         self.assertEqual(TOOL.LOGGER_DNS_QUERY, b"AT+WSDNS\n")
