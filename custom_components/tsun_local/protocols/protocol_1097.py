@@ -29,21 +29,27 @@ MODEL = "GEN3 / GEN3 PLUS (1097)"
 SENSOR_LIST = 0x1097
 MAX_PV_COUNT = 6
 DIAGNOSTIC_INTERVAL = 300.0
+MAX_BLOCK_RETRIES = 1
 
+# Match the proven TSUN Proxy 1097 polling layout: three contiguous fast blocks.
+# Keeping them contiguous reduces protocol chatter and lets one healthy TCP
+# session carry a complete telemetry cycle.
 BLOCKS = (
-    (0x03, 0x1000, 0x100F),
     (0x03, 0x1100, 0x110F),
-    (0x03, 0x1200, 0x120F),
-    (0x03, 0x1210, 0x121F),
-    (0x03, 0x1300, 0x130F),
-    (0x03, 0x1310, 0x131F),
-    (0x03, 0x1320, 0x132F),
+    (0x03, 0x1200, 0x122F),
+    (0x03, 0x1300, 0x133F),
 )
 
+# Slow/static data does not need to be polled every normal telemetry cycle.
+SLOW_BLOCKS = (
+    (0x03, 0x1000, 0x100F),
+    (0x03, 0x1400, 0x144F),
+)
+
+# Preserve the public compatibility constant used by tests/tools while the
+# runtime uses the larger slow blocks above.
 DIAGNOSTIC_BLOCKS = (
-    # Public 1097 mapping: country/profile code and maximum designed power.
     (0x03, 0x1400, 0x1400),
-    # Experimental 1097 power-level field observed in the configuration block.
     (0x03, 0x1423, 0x1423),
     (0x03, 0x1437, 0x1437),
 )
@@ -84,7 +90,6 @@ ADVANCED_DIAGNOSTIC_KEYS = frozenset(
         "output_coefficient",
     }
 )
-
 
 PV_MEASUREMENT_NAMES = (
     "voltage",
@@ -275,6 +280,8 @@ class Tsun1097Client:
         self._trace = ProtocolTrace(PROTOCOL_NAME)
         self._diagnostic_registers: dict[int, int] = {}
         self._last_diagnostic_read = 0.0
+        self._last_measurements: dict[str, float | int | str] = {}
+        self._daily_reset_candidates: dict[str, float | int] = {}
 
     @property
     def pv_count(self) -> int:
@@ -291,7 +298,13 @@ class Tsun1097Client:
         """Return recent protocol transactions without connection identifiers."""
         return self._trace.events
 
-    async def _read_block(self, block: tuple[int, int, int]) -> dict[int, int]:
+    async def _exchange_block(
+        self,
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter,
+        block: tuple[int, int, int],
+    ) -> dict[int, int]:
+        """Read one 1097 block over an already-open TCP session."""
         function, start, end = block
         payload = build_modbus_request(function, start, end)
         request = build_ap_frame(
@@ -299,26 +312,14 @@ class Tsun1097Client:
             payload,
             sensor_list=SENSOR_LIST,
         )
-
-        writer: asyncio.StreamWriter | None = None
-        stage = "connection"
+        stage = "send"
         response: bytes | None = None
         protocol_response: bytes | None = None
 
         try:
             async with asyncio.timeout(self.timeout):
                 _LOGGER.debug(
-                    "1097 diagnostic: opening connection for registers "
-                    "0x%04X-0x%04X",
-                    start,
-                    end,
-                )
-                reader, writer = await asyncio.open_connection(
-                    self.host, self.port
-                )
-                stage = "send"
-                _LOGGER.debug(
-                    "1097 diagnostic request for registers 0x%04X-0x%04X: %s",
+                    "1097 request for registers 0x%04X-0x%04X: %s",
                     start,
                     end,
                     payload.hex(" ").upper(),
@@ -330,12 +331,6 @@ class Tsun1097Client:
 
             stage = "validation"
             protocol_response = parse_ap_frame(response)
-            _LOGGER.debug(
-                "1097 diagnostic response for registers 0x%04X-0x%04X: %s",
-                start,
-                end,
-                protocol_response.hex(" ").upper(),
-            )
             registers = parse_modbus_response(
                 protocol_response, function, start, end
             )
@@ -349,7 +344,6 @@ class Tsun1097Client:
                 response_bytes=len(response),
             )
             return registers
-
         except Exception as err:
             self._trace.record(
                 function=function,
@@ -367,8 +361,7 @@ class Tsun1097Client:
                 else type(err).__name__
             )
             _LOGGER.debug(
-                "1097 diagnostic failure during %s for registers "
-                "0x%04X-0x%04X: %s",
+                "1097 failure during %s for registers 0x%04X-0x%04X: %s",
                 stage,
                 start,
                 end,
@@ -376,33 +369,126 @@ class Tsun1097Client:
             )
             raise
 
+    async def _read_block(self, block: tuple[int, int, int]) -> dict[int, int]:
+        """Read one block in its own session for compatibility and diagnostics."""
+        writer: asyncio.StreamWriter | None = None
+        try:
+            async with asyncio.timeout(self.timeout):
+                reader, writer = await asyncio.open_connection(
+                    self.host, self.port
+                )
+            return await self._exchange_block(reader, writer, block)
         finally:
             await async_close_writer(writer)
+
+    async def _open_session(
+        self,
+    ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        """Open one logger TCP session."""
+        async with asyncio.timeout(self.timeout):
+            return await asyncio.open_connection(self.host, self.port)
+
+    async def _read_with_retry(
+        self,
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter,
+        block: tuple[int, int, int],
+    ) -> tuple[dict[int, int], asyncio.StreamReader, asyncio.StreamWriter]:
+        """Read a block and reconnect once before giving up."""
+        current_reader = reader
+        current_writer = writer
+        for attempt in range(MAX_BLOCK_RETRIES + 1):
+            try:
+                registers = await self._exchange_block(
+                    current_reader, current_writer, block
+                )
+                return registers, current_reader, current_writer
+            except Exception:
+                if attempt >= MAX_BLOCK_RETRIES:
+                    raise
+                _LOGGER.debug(
+                    "1097 retrying registers 0x%04X-0x%04X on a fresh session",
+                    block[1],
+                    block[2],
+                )
+                await async_close_writer(current_writer)
+                current_reader, current_writer = await self._open_session()
+        raise AssertionError("unreachable")
+
+    def _stabilize_daily_energy(
+        self, measurements: dict[str, float | int | str]
+    ) -> dict[str, float | int | str]:
+        """Suppress one-sample daily counter regressions.
+
+        A real daily reset is accepted on the second consecutive lower sample.
+        This avoids publishing transient zeroes after a logger reconnect while
+        still allowing the legitimate midnight reset without wall-clock logic.
+        """
+        stabilized = dict(measurements)
+        for key, value in list(stabilized.items()):
+            if not key.endswith("_energy_today"):
+                continue
+            previous = self._last_measurements.get(key)
+            if not isinstance(value, (int, float)) or not isinstance(
+                previous, (int, float)
+            ):
+                self._daily_reset_candidates.pop(key, None)
+                continue
+
+            if value < previous:
+                if key not in self._daily_reset_candidates:
+                    self._daily_reset_candidates[key] = value
+                    stabilized[key] = previous
+                    _LOGGER.debug(
+                        "1097 retained previous %s after one lower sample",
+                        key,
+                    )
+                else:
+                    self._daily_reset_candidates.pop(key, None)
+            else:
+                self._daily_reset_candidates.pop(key, None)
+
+        self._last_measurements.update(stabilized)
+        return stabilized
 
     async def async_read_all(self) -> TsunReadResult:
         """Read one complete 1097 telemetry update."""
         started = time.monotonic()
         registers: dict[int, int] = {}
+        blocks_ok = 0
+        writer: asyncio.StreamWriter | None = None
 
-        for block in BLOCKS:
-            registers.update(await self._read_block(block))
-        blocks_ok = len(BLOCKS)
+        try:
+            reader, writer = await self._open_session()
 
-        now = time.monotonic()
-        if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
-            self._last_diagnostic_read = now
-            for block in DIAGNOSTIC_BLOCKS:
-                try:
-                    self._diagnostic_registers.update(await self._read_block(block))
-                except Exception as err:
-                    _LOGGER.debug(
-                        "1097 diagnostic block 0x%04X-0x%04X is unavailable: %s",
-                        block[1],
-                        block[2],
-                        type(err).__name__,
-                    )
-                else:
-                    blocks_ok += 1
+            for block in BLOCKS:
+                block_registers, reader, writer = await self._read_with_retry(
+                    reader, writer, block
+                )
+                registers.update(block_registers)
+                blocks_ok += 1
+
+            now = time.monotonic()
+            if now - self._last_diagnostic_read >= DIAGNOSTIC_INTERVAL:
+                self._last_diagnostic_read = now
+                for block in SLOW_BLOCKS:
+                    try:
+                        block_registers, reader, writer = (
+                            await self._read_with_retry(reader, writer, block)
+                        )
+                    except Exception as err:
+                        _LOGGER.debug(
+                            "1097 slow block 0x%04X-0x%04X is unavailable: %s",
+                            block[1],
+                            block[2],
+                            type(err).__name__,
+                        )
+                    else:
+                        self._diagnostic_registers.update(block_registers)
+                        blocks_ok += 1
+        finally:
+            await async_close_writer(writer)
+
         registers.update(self._diagnostic_registers)
 
         # Keep the highest input ever observed so entities never disappear.
@@ -410,9 +496,12 @@ class Tsun1097Client:
         if detected_pv_count:
             self._pv_count = max(self._pv_count, detected_pv_count)
 
-        measurements = decode_measurements(registers, self._pv_count)
+        measurements: dict[str, float | int | str] = decode_measurements(
+            registers, self._pv_count
+        )
         measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers))
+        measurements = self._stabilize_daily_energy(measurements)
 
         return TsunReadResult(
             measurements=measurements,
