@@ -31,7 +31,7 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.4.0"
+APP_VERSION = "1.4.1"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _BG = "#f4f7fb"
@@ -192,10 +192,26 @@ def _maybe_auto_update_windows() -> bool:
     ):
         return False
     try:
-        update = tsun_dump.check_for_update(
+        manifest = tsun_dump.fetch_update_manifest()
+        update = tsun_dump.select_update_component(
+            manifest,
             tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
             APP_VERSION,
         )
+        embedded_dump_update = tsun_dump.select_update_component(
+            manifest,
+            tsun_dump.UPDATE_COMPONENT_DUMP,
+            tsun_dump.TOOL_VERSION,
+        )
+        if update is None and embedded_dump_update is not None:
+            # The EXE bundles tsun_dump.py. Re-download the current Windows asset
+            # whenever the embedded engine is older, even if the GUI version did
+            # not otherwise change.
+            update = tsun_dump.select_update_component(
+                manifest,
+                tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
+                "0.0.0",
+            )
         if update is None:
             return False
         destination = Path(tempfile.gettempdir()) / (

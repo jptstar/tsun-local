@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.7.1")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.7.2")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -162,6 +162,44 @@ class TsunDumpToolTests(unittest.TestCase):
         )
         self.assertEqual(paths, ["/wifi_status.html", "/device.html", "/info.cgi"])
         self.assertEqual(TOOL.MAX_LOGGER_WEB_PATHS, 10)
+
+    def test_research_capture_paths_include_network_and_upgrade_pages(self) -> None:
+        self.assertEqual(len(TOOL.LOGGER_WEB_CAPTURE_PATHS), 10)
+        for path in (
+            "/wireless.html",
+            "/wizard.html",
+            "/remote.html",
+            "/update.html",
+            "/invupdate.html",
+        ):
+            self.assertIn(path, TOOL.LOGGER_WEB_CAPTURE_PATHS)
+
+    def test_web_interface_summary_is_passive_and_privacy_safe(self) -> None:
+        document = (
+            '<form method="post" enctype="multipart/form-data" action="upgrade.cgi" '
+            'onsubmit="return checkUpgrade()">'
+            '<input type="file" name="firmware_file">'
+            '<input type="hidden" name="ssid" value="SecretWifi">'
+            '<button type="submit" onclick="startUpgrade()">Upload</button>'
+            '</form>'
+            '<script src="helper.js"></script>'
+        )
+        summary = TOOL.summarize_web_interface_read_only(
+            document, "/update.html", "192.168.1.25"
+        )
+        self.assertTrue(summary["read_only"])
+        self.assertFalse(summary["form_submission_performed"])
+        self.assertFalse(summary["javascript_executed"])
+        self.assertFalse(summary["upload_performed"])
+        self.assertEqual(summary["forms"][0]["method"], "post")
+        self.assertEqual(summary["forms"][0]["action"], "/upgrade.cgi")
+        self.assertIn(
+            {"name": "firmware_file", "type": "file"},
+            summary["forms"][0]["fields"],
+        )
+        self.assertIn("checkUpgrade", summary["javascript_handlers"])
+        self.assertIn("startUpgrade", summary["javascript_handlers"])
+        self.assertNotIn("SecretWifi", repr(summary))
 
     def test_dns_probe_command_is_get_only(self) -> None:
         self.assertEqual(TOOL.LOGGER_DNS_QUERY, b"AT+WSDNS\n")
