@@ -9,14 +9,6 @@ from dataclasses import dataclass
 import re
 from typing import Any
 
-from aiohttp import BasicAuth
-
-from .logger_web import (
-    LOGGER_WEB_PASSWORD,
-    LOGGER_WEB_USERNAME,
-    _async_read_logger_document,
-)
-
 _REMOTE_PATH = "/remote.html"
 _WIRELESS_PATH = "/wireless.html"
 _LOGGER_UPDATE_PATH = "/update.html"
@@ -114,7 +106,14 @@ async def async_read_cloud_guard_capabilities(
     host: str,
 ) -> CloudGuardCapabilities:
     """Read Cloud Guard capabilities using GET requests only."""
+    from aiohttp import BasicAuth
     from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+    from .logger_web import (
+        LOGGER_WEB_PASSWORD,
+        LOGGER_WEB_USERNAME,
+        _async_read_logger_document,
+    )
 
     session = async_get_clientsession(hass)
     credentials = (
