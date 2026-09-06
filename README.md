@@ -26,7 +26,6 @@
 
 <p align="center"><a href="https://jptstar.github.io/tsun-local/"><strong>Project website</strong></a></p>
 
-
 ---
 
 ## Compatibility
@@ -67,7 +66,6 @@
 
 ---
 
-
 ## At a glance
 
 | | What TSUN Local exposes |
@@ -80,9 +78,7 @@
 
 📚 **[Full entity reference by protocol](docs/ENTITIES.md)**
 
-
 ---
-
 
 ## 🚨 Alarm catalogues
 
@@ -92,9 +88,7 @@ Every active alarm is presented as `Description (PROTOCOL-Axxx)`, including alar
 
 Home Assistant exposes one **Inverter alarm** state, an **Active alarms** count and an **Active alarm names** sensor for 1511, 02B0 and 1097. **Active alarm names are localized clear-text descriptions with stable protocol-position codes** (for example `Grid undervoltage (02B0-A014)`). On Sunology PLAY2, the four raw 02B0 ERR words remain available as disabled-by-default diagnostics.
 
-
 ---
-
 
 ## 🛡️ Advanced diagnostics
 
@@ -111,9 +105,7 @@ Communication logs and exported diagnostics can include only the first three alp
 📚 **[MP3000 field-validation evidence](docs/MP3000_FIELD_VALIDATION.md)**
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
-
 ---
-
 
 ## Installation
 
@@ -131,9 +123,7 @@ Or add `https://github.com/jptstar/tsun-local` as **HACS → Custom repositories
 
 Copy `custom_components/tsun_local` to `/config/custom_components/`, restart Home Assistant, then add **TSUN Local** from **Settings → Devices & services**.
 
-
 ---
-
 
 ## How it works
 
@@ -152,9 +142,7 @@ Home Assistant
 
 Direct local polling only.
 
-
 ---
-
 
 ## 🔬 Validate another TSUN model
 
@@ -162,11 +150,19 @@ TSUN Local provides a privacy-safe, **strictly read-only** hardware diagnostic f
 
 ### Windows — easiest option
 
-**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
+**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**  
+**🔐 [SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256)**
 
-No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report. The diagnostic tool is distributed independently from TSUN Local integration releases through the rolling **`diagnostic-latest`** release.
+No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report.
 
-The current Windows interface uses a simple **1 → 2 → 3** flow: disable the affected TSUN Local entry, run the diagnostic, then send the generated JSON to **dev@jptstar.com**. Advanced IP / Monitor SN options and technical logs stay collapsed by default.
+**Current public diagnostic versions:** Windows GUI **1.4.0** · dump engine **2.7.0**.
+
+Starting with GUI 1.4.0, the Windows executable **checks the rolling `diagnostic-latest` channel at startup**. When a newer diagnostic is available, it downloads the replacement, verifies its SHA-256 hash, replaces the old executable and relaunches automatically. If the update check fails, the current diagnostic continues to run unchanged.
+
+> [!IMPORTANT]
+> Users upgrading from an older diagnostic must download the new EXE **once manually**. From GUI 1.4.0 onward, future diagnostic updates are automatic.
+
+The Windows interface uses a simple **1 → 2 → 3** flow: disable the affected TSUN Local entry, run the diagnostic, then send the generated JSON to **dev@jptstar.com**. Advanced IP / Monitor SN options and technical logs stay collapsed by default.
 
 The dump engine is firmware-resilient: it recognizes several Wi-Fi signal layouts (`%` and `dBm`) and can capture a bounded set of passive, same-logger web pages as **anonymized HTML evidence**. It never submits forms, follows external links or calls reboot/reset/update pages.
 
@@ -174,15 +170,27 @@ If you are investigating a communication problem or unavailable entities, **disa
 
 ### macOS / Linux / advanced users
 
-**⬇️ [Download `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — Python 3.10+.
+**⬇️ [Download `tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py)** — Python 3.10+.  
+**🔐 [SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256)**
 
 ```bash
 python3 tsun_dump.py --full
 ```
 
+`tsun_dump.py` **2.7.0** uses the same `diagnostic-latest` update channel. At startup it checks for a newer dumper, verifies the downloaded file against the SHA-256 published in `update.json`, replaces itself atomically and restarts with the same command-line arguments.
+
+Useful update controls:
+
+```bash
+python3 tsun_dump.py --check-update
+python3 tsun_dump.py --no-update --full
+```
+
+`--check-update` only reports whether a newer dumper is available. `--no-update` skips the automatic update check for that run. If the current script is not writable, it never requests `sudo`; it simply continues with the installed version and reports that automatic replacement is unavailable.
+
 On Windows, the script remains available with `py tsun_dump.py --full` if preferred.
 
-📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)**
+**📦 [Open the rolling diagnostic release](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · 📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)** · 🌐 **[Public test page](https://jptstar.github.io/tsun-local/test-your-inverter.html)**
 
 ### Sunology PLAY2
 
@@ -196,7 +204,6 @@ On Windows, the script remains available with `py tsun_dump.py --full` if prefer
 
 ---
 
-
 ## Test an unlisted inverter
 
 If TSUN Local detects `1511`, `02B0` or `1097`, let it run and check the discovered entities.
@@ -206,16 +213,13 @@ Useful compatibility feedback includes the exact inverter model, detected protoc
 > [!TIP]
 > **Your inverter could become the next validated model.**
 
-
 ---
-
 
 ## Validation policy
 
 TSUN Local separates confirmed hardware support from experimental protocol research.
 
 Functional names and model support are labelled as validated only after repeatable checks on real hardware. A value that merely matches an expected profile is treated as evidence, not proof; experimental mappings remain labelled until an independent observation can distinguish them.
-
 
 ---
 
@@ -234,7 +238,6 @@ TSUN Local benefits from public protocol research and independent hardware testi
 
 ---
 
-
 ## Project
 
 > [!IMPORTANT]
@@ -243,9 +246,7 @@ TSUN Local benefits from public protocol research and independent hardware testi
 Created and maintained by **Jean-Philippe TESTART · `jptstar`**
 *Developed and shared for fun, technical curiosity and the Home Assistant community.*
 
-
 ---
-
 
 ## License
 
