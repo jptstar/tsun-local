@@ -12,6 +12,7 @@ from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant
 
 from . import TsunConfigEntry
+from .cloud_guard import async_read_cloud_guard_capabilities
 from .const import (
     CONF_INVERTER_SERIAL_NUMBER,
     CONF_LOGGER_MAC_ADDRESS,
@@ -42,6 +43,11 @@ async def async_get_config_entry_diagnostics(
         if not key.startswith("communication_")
         and key not in {"inverter_serial_number", "logger_mac_address"}
     }
+
+    cloud_guard = await async_read_cloud_guard_capabilities(
+        hass, str(entry.data[CONF_HOST])
+    )
+
     return {
         "config_entry": {
             "data": async_redact_data(dict(entry.data), TO_REDACT),
@@ -65,6 +71,23 @@ async def async_get_config_entry_diagnostics(
         "communication": coordinator.diagnostic_summary,
         "measurements": measurements,
         "protocol_trace": list(coordinator.client.diagnostic_trace),
+        "cloud_guard_research": {
+            "remote_server_configurable": cloud_guard.remote_server_configurable,
+            "dns_configurable": cloud_guard.dns_configurable,
+            "logger_firmware_upload_available": (
+                cloud_guard.logger_firmware_upload_available
+            ),
+            "inverter_firmware_upload_available": (
+                cloud_guard.inverter_firmware_upload_available
+            ),
+            "configured_server_ports": list(
+                cloud_guard.configured_server_ports
+            ),
+            "ssl_cloud_configured": cloud_guard.ssl_cloud_configured,
+            "write_operations_performed": (
+                cloud_guard.write_operations_performed
+            ),
+        },
         "privacy": {
             "network_address_included": False,
             "logger_number_included": False,
@@ -74,5 +97,7 @@ async def async_get_config_entry_diagnostics(
                 coordinator.inverter_serial_prefix is not None
             ),
             "ap_envelope_included": False,
+            "cloud_server_hostname_included": False,
+            "dns_server_address_included": False,
         },
     }
