@@ -155,7 +155,7 @@ TSUN Local provides a privacy-safe, **strictly read-only** hardware diagnostic f
 
 No installation and no Python environment are required. The portable app uses the same read-only dump engine, discovers TSUN loggers, tests the supported **1511 / 02B0 / 1097** protocol families and creates an anonymized JSON report.
 
-**Current public diagnostic versions:** Windows GUI **1.4.0** · dump engine **2.7.0**.
+**Current public diagnostic versions:** Windows GUI **1.4.0** · dump engine **2.7.1**.
 
 Starting with GUI 1.4.0, the Windows executable **checks the rolling `diagnostic-latest` channel at startup**. When a newer diagnostic is available, it downloads the replacement, verifies its SHA-256 hash, replaces the old executable and relaunches automatically. If the update check fails, the current diagnostic continues to run unchanged.
 
@@ -164,7 +164,7 @@ Starting with GUI 1.4.0, the Windows executable **checks the rolling `diagnostic
 
 The Windows interface uses a simple **1 → 2 → 3** flow: disable the affected TSUN Local entry, run the diagnostic, then send the generated JSON to **dev@jptstar.com**. Advanced IP / Monitor SN options and technical logs stay collapsed by default.
 
-The dump engine is firmware-resilient: it recognizes several Wi-Fi signal layouts (`%` and `dBm`) and can capture a bounded set of passive, same-logger web pages as **anonymized HTML evidence**. It never submits forms, follows external links or calls reboot/reset/update pages.
+The dump engine is firmware-resilient: it recognizes several Wi-Fi signal layouts (`%` and `dBm`) and can capture a bounded set of passive, same-logger web pages as **anonymized HTML evidence**. In full mode, 2.7.1 also performs a read-only `AT+WSDNS` capability query so we can verify whether a logger exposes its DNS setting without changing it; the returned DNS address is not stored. It never submits forms, follows external links or calls reboot/reset/update pages.
 
 If you are investigating a communication problem or unavailable entities, **disable the affected TSUN Local config entry before starting the capture**, then re-enable it afterwards.
 
@@ -177,7 +177,7 @@ If you are investigating a communication problem or unavailable entities, **disa
 python3 tsun_dump.py --full
 ```
 
-`tsun_dump.py` **2.7.0** uses the same `diagnostic-latest` update channel. At startup it checks for a newer dumper, verifies the downloaded file against the SHA-256 published in `update.json`, replaces itself atomically and restarts with the same command-line arguments.
+`tsun_dump.py` **2.7.1** uses the same `diagnostic-latest` update channel. At startup it checks for a newer dumper, verifies the downloaded file against the SHA-256 published in `update.json`, replaces itself atomically and restarts with the same command-line arguments.
 
 Useful update controls:
 

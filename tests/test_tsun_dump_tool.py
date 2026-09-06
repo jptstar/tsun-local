@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.7.0")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.7.1")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -162,6 +162,27 @@ class TsunDumpToolTests(unittest.TestCase):
         )
         self.assertEqual(paths, ["/wifi_status.html", "/device.html", "/info.cgi"])
         self.assertEqual(TOOL.MAX_LOGGER_WEB_PATHS, 10)
+
+    def test_dns_probe_command_is_get_only(self) -> None:
+        self.assertEqual(TOOL.LOGGER_DNS_QUERY, b"AT+WSDNS\n")
+        self.assertNotIn(b"=", TOOL.LOGGER_DNS_QUERY)
+
+    def test_dns_probe_response_is_privacy_safe(self) -> None:
+        summary = TOOL.summarize_logger_dns_response(
+            b"+ok=192.168.1.1,8.8.8.8\r\n"
+        )
+        self.assertTrue(summary["supported"])
+        self.assertTrue(summary["dns_server_present"])
+        self.assertEqual(summary["address_count"], 2)
+        self.assertEqual(summary["address_scopes"], ["private", "public"])
+        rendered = repr(summary)
+        self.assertNotIn("192.168.1.1", rendered)
+        self.assertNotIn("8.8.8.8", rendered)
+
+    def test_dns_probe_rejects_non_ok_response(self) -> None:
+        summary = TOOL.summarize_logger_dns_response(b"+ERR=-1\r\n")
+        self.assertFalse(summary["supported"])
+        self.assertFalse(summary["dns_server_present"])
 
     def test_capture_plans_stay_read_only(self) -> None:
         for protocol in ("02b0", "1097", "1511"):

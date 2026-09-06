@@ -38,7 +38,7 @@ from urllib.parse import urljoin, urlsplit
 import urllib.request
 
 
-TOOL_VERSION = "2.7.0"
+TOOL_VERSION = "2.7.1"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -83,6 +83,13 @@ DISCOVERY_MESSAGES = (
     b"HF-A11ASSISTHREAD",
     b"devicelinkfind",
 )
+LOGGER_AT_DISCOVERY_MESSAGES = (
+    b"WIFIKIT-214028-READ",
+    b"HF-A11ASSISTHREAD",
+)
+LOGGER_DNS_QUERY = b"AT+WSDNS\n"
+LOGGER_AT_QUIT = b"AT+Q\n"
+LOGGER_AT_MAX_RESPONSE = 2048
 LOGGER_STATUS_PATHS = ("/index_cn.html", "/index.html", "/status.html", "/")
 LOGGER_PROFILE_PATHS = ("/hide_set_edit.html",)
 LOGGER_WEB_CAPTURE_PATHS = (*LOGGER_STATUS_PATHS, *LOGGER_PROFILE_PATHS)
@@ -911,6 +918,118 @@ def _merge_device(target: DiscoveryDevice, incoming: DiscoveryDevice) -> None:
     target.http_open = target.http_open or incoming.http_open
     target.firmware_version = target.firmware_version or incoming.firmware_version
     target.protocol_hint = target.protocol_hint or incoming.protocol_hint
+
+
+def _dns_address_scope(address: IPv4Address) -> str:
+    """Return a privacy-safe classification for one DNS server address."""
+    if address.is_unspecified:
+        return "unset"
+    if address.is_loopback:
+        return "loopback"
+    if address.is_link_local:
+        return "link_local"
+    if address.is_multicast:
+        return "multicast"
+    if address.is_private:
+        return "private"
+    if address.is_reserved:
+        return "reserved"
+    return "public"
+
+
+def summarize_logger_dns_response(response: bytes) -> dict[str, Any]:
+    """Summarize AT+WSDNS without retaining the DNS server address."""
+    text = response.decode("utf-8", errors="replace").strip("\x00\r\n ")
+    if not text.lower().startswith("+ok"):
+        return {
+            "supported": False,
+            "response_status": "not_ok",
+            "response_has_value": bool(text),
+            "dns_server_present": False,
+            "address_count": 0,
+            "address_scopes": [],
+        }
+
+    value = text.split("=", 1)[1].strip() if "=" in text else ""
+    addresses: list[IPv4Address] = []
+    for match in _IPV4_TOKEN.finditer(value):
+        try:
+            addresses.append(IPv4Address(match.group(0)))
+        except ValueError:
+            continue
+    scopes = sorted({_dns_address_scope(address) for address in addresses})
+    return {
+        "supported": True,
+        "response_status": "ok",
+        "response_has_value": bool(value),
+        "dns_server_present": any(not address.is_unspecified for address in addresses),
+        "address_count": len(addresses),
+        "address_scopes": scopes,
+    }
+
+
+def probe_logger_dns_read_only(host: str, timeout: float) -> dict[str, Any]:
+    """Query AT+WSDNS over UDP 48899 without changing logger configuration."""
+    base: dict[str, Any] = {
+        "attempted": True,
+        "read_only": True,
+        "transport": "udp48899",
+        "command": "AT+WSDNS",
+        "configuration_write_performed": False,
+        "dns_server_address_stored": False,
+    }
+    last_error: dict[str, str] | None = None
+    last_summary: dict[str, Any] | None = None
+
+    for handshake in LOGGER_AT_DISCOVERY_MESSAGES:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        session_open = False
+        try:
+            sock.settimeout(timeout)
+            sock.connect((host, DEFAULT_DISCOVERY_PORT))
+            sock.send(handshake)
+            handshake_response = sock.recv(LOGGER_AT_MAX_RESPONSE)
+            if not handshake_response:
+                continue
+
+            # This acknowledgement enters the logger's existing AT assistant
+            # session. The only actual query below is AT+WSDNS without '='.
+            sock.send(b"+ok")
+            session_open = True
+            time.sleep(0.05)
+            sock.send(LOGGER_DNS_QUERY)
+            response = sock.recv(LOGGER_AT_MAX_RESPONSE)
+            summary = summarize_logger_dns_response(response)
+            last_summary = summary
+            if summary["supported"]:
+                return {
+                    **base,
+                    **summary,
+                    "result": "supported",
+                    "assistant_handshake": handshake.decode("ascii"),
+                }
+        except socket.timeout:
+            last_error = {"type": "TimeoutError", "detail": "timeout waiting for AT response"}
+        except OSError as err:
+            last_error = safe_error_details(err)
+        finally:
+            if session_open:
+                try:
+                    sock.send(LOGGER_AT_QUIT)
+                except OSError:
+                    pass
+            sock.close()
+
+    result = {
+        **base,
+        "supported": False,
+        "result": "no_supported_response",
+    }
+    if last_summary is not None:
+        result.update(last_summary)
+    if last_error is not None:
+        result["error"] = last_error
+    return result
 
 
 def discover_udp_targets(
@@ -2319,6 +2438,16 @@ def capture(
         "1097": "GEN3 / GEN3 PLUS (1097)",
     }[protocol]
     logger_web = capture_logger_web_pages(host, args.http_page_timeout)
+    logger_dns_probe = (
+        probe_logger_dns_read_only(host, min(args.timeout, 2.5))
+        if args.full
+        else {
+            "attempted": False,
+            "read_only": True,
+            "reason": "requires a full capture",
+            "dns_server_address_stored": False,
+        }
+    )
     protocol_characterization = (
         characterize_02b0(host, args.port, sn, args.timeout)
         if protocol == "02b0" and args.full
@@ -2354,10 +2483,12 @@ def capture(
                 "udp_discovery_payload_in_output": False,
                 "logger_web_raw_html_in_output": False,
                 "logger_web_anonymized_html_in_output": True,
+                "logger_dns_address_in_output": False,
                 "inverter_serial_prefix_characters": 3,
             },
         },
         "logger_web": logger_web,
+        "logger_dns_probe": logger_dns_probe,
         "protocol_characterization": protocol_characterization,
         "discovery": discovery,
         "protocol_detection": {
@@ -2576,6 +2707,12 @@ def _print_dump_summary(document: dict[str, Any], output: Path) -> None:
     )
     print(f"Registers: {summary['unique_raw_registers']} unique raw registers")
     print(f"Snapshots: {summary['snapshots']}")
+    dns_probe = document.get("logger_dns_probe", {})
+    if dns_probe.get("attempted"):
+        if dns_probe.get("supported"):
+            print("DNS read : AT+WSDNS supported (address kept private)")
+        else:
+            print("DNS read : AT+WSDNS not confirmed")
     print("Writes   : 0")
     print(
         "Privacy  : host={}, Monitor SN={}, inverter SN={}".format(

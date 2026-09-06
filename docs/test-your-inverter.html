@@ -108,7 +108,7 @@
 
   <section>
     <h2>Standalone diagnostic — now self-updating</h2>
-    <p class="intro">The diagnostic channel is independent from Home Assistant integration releases. The current tools are <strong>Windows GUI 1.4.0</strong> and <strong>tsun_dump.py 2.7.0</strong>. Starting with these versions, the same downloaded file checks the rolling <code>diagnostic-latest</code> release at startup and installs a newer verified diagnostic automatically.</p>
+    <p class="intro">The diagnostic channel is independent from Home Assistant integration releases. The current tools are <strong>Windows GUI 1.4.0</strong> and <strong>tsun_dump.py 2.7.1</strong>. Starting with these versions, the same downloaded file checks the rolling <code>diagnostic-latest</code> release at startup and installs a newer verified diagnostic automatically.</p>
     <div class="callout"><strong>One manual download, then automatic updates.</strong>Every replacement is checked with SHA-256 before it is installed. If GitHub or the Internet is unavailable, the current diagnostic continues to work and no replacement is performed.</div>
     <div class="actions">
       <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Windows · TSUN-Local-Diagnostic.exe</a>
@@ -129,7 +129,7 @@
 
   <section>
     <h2>What the diagnostic investigates</h2>
-    <p class="intro">The read-only engine discovers local TSUN loggers, identifies 1511 / 02B0 / 1097 protocol families, captures known-safe register ranges and gathers bounded passive logger metadata. It can recognize multiple Wi-Fi RSSI layouts in percent or dBm.</p>
+    <p class="intro">The read-only engine discovers local TSUN loggers, identifies 1511 / 02B0 / 1097 protocol families, captures known-safe register ranges and gathers bounded passive logger metadata. It can recognize multiple Wi-Fi RSSI layouts in percent or dBm and, in full mode, test whether the logger answers the read-only `AT+WSDNS` DNS query without storing the returned DNS address.</p>
     <div class="outcomes">
       <div class="outcome good"><strong>✅ It works</strong>Report the exact model and result so the hardware can be added to the validated compatibility list.</div>
       <div class="outcome warn"><strong>❌ It fails or becomes unavailable</strong>The report preserves protocol evidence that can distinguish a register-range issue, logger response marker, firmware variant or communication behaviour.</div>
