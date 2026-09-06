@@ -143,8 +143,6 @@ def summarize_web_interface_read_only(
         if path and path not in script_paths:
             script_paths.append(path)
 
-    # Extract only quoted same-device path literals from JavaScript/HTML. Values,
-    # credentials and payloads are deliberately ignored.
     for match in re.finditer(
         r"[\"']([^\"']{1,160}(?:\.cgi|\.asp|\.html?|\.shtml))[\"']",
         document,
@@ -239,30 +237,6 @@ def summarize_web_interface_read_only(
         text = text.replace("Diagnostic 2.7.1", "Diagnostic 2.7.2")
         path.write_text(text, encoding="utf-8")
 
-    release = ROOT / "docs" / "releases" / "diagnostic-2.7.2.md"
-    release.write_text(
-        """# TSUN Local Diagnostic 2.7.2\n\n"
-        "Diagnostic 2.7.2 extends the full read-only capture with passive inspection of "
-        "the logger network and firmware-update web interfaces.\n\n"
-        "## Read-only web-interface research\n\n"
-        "Full diagnostic mode now GETs a bounded set of local pages including "
-        "`wireless.html`, `wizard.html`, `remote.html`, `update.html` and "
-        "`invupdate.html`. It records only passive interface metadata: form methods, "
-        "same-device action paths, field names/types, local script paths and JavaScript "
-        "handler names. It never submits a form, executes JavaScript, uploads firmware "
-        "or reboots a logger.\n\n"
-        "## Windows updater\n\n"
-        "The Windows GUI is 1.4.1. The updater now also compares the embedded dump-engine "
-        "version. A newer dump engine therefore refreshes the portable EXE even when the "
-        "GUI version itself did not otherwise change.\n\n"
-        "## Safety\n\n"
-        "The diagnostic remains strictly local, privacy-safe and read-only. DNS addresses, "
-        "full serial numbers, full MAC addresses and credentials are not stored.\n"
-        """,
-        encoding="utf-8",
-    )
-
-    # One-shot bootstrap files remove themselves from the resulting patch.
     for relative in (
         "tools/_apply_diag_272_patch.py",
         ".github/workflows/_apply-diag-272.yml",
