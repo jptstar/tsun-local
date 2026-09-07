@@ -22,7 +22,9 @@ import tsun_diagnostic_app as upload_app
 import tsun_diagnostic_gui as base
 
 APP_NAME = base.APP_NAME
-APP_VERSION = "1.5.4"
+APP_VERSION = "1.5.6"
+PROJECT_URL = "https://github.com/jptstar/tsun-local"
+COPYRIGHT_TEXT = "© 2026 @jptstar · GitHub"
 
 MAGIC_TEST_HOST = "89:89:89:89"
 MAGIC_TEST_SN = "89898989"
@@ -117,6 +119,21 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
 
         self._build_direct_step(right)
         self._build_manual_step(content, bottom_toolbar)
+        self._build_project_footer(bottom_toolbar)
+
+    def _build_project_footer(self, bottom_toolbar: tk.Frame) -> None:
+        """Show visible project ownership and a clickable GitHub project link."""
+        link = tk.Label(
+            bottom_toolbar,
+            text=COPYRIGHT_TEXT,
+            bg=base._BG,
+            fg=base._ACCENT,
+            font=("Segoe UI", 8, "underline"),
+            cursor="hand2",
+            anchor="e",
+        )
+        link.pack(side="right", padx=(12, 0), pady=6)
+        link.bind("<Button-1>", lambda _event: webbrowser.open(PROJECT_URL))
 
     def _build_direct_step(self, right: tk.Frame) -> None:
         direct_card = self._card(right)
@@ -381,7 +398,8 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
         if win is None:
             return
         try:
-            win.geometry("690x650")
+            # Keep room for the selectable model catalogue plus the published-report link.
+            win.geometry("780x780")
             card = win.winfo_children()[0]
             inner = card.winfo_children()[0]
         except (IndexError, tk.TclError):
@@ -428,7 +446,7 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
                     font=("Segoe UI", 8, "underline"),
                     cursor="hand2",
                     justify="left",
-                    wraplength=610,
+                    wraplength=690,
                     anchor="w",
                     padx=10,
                     pady=2,
