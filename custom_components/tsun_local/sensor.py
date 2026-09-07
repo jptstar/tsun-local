@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any, override
 
 from homeassistant.components.sensor import (
@@ -18,6 +19,8 @@ from homeassistant.const import (
     CONF_UNIT_OF_MEASUREMENT,
     EntityCategory,
     PERCENTAGE,
+    STATE_UNAVAILABLE,
+    STATE_UNKNOWN,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
@@ -30,7 +33,10 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.event import async_track_time_change
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from . import TsunConfigEntry
 from .alarm_catalog import active_alarm_state, alarm_state_attributes
@@ -977,6 +983,7 @@ async def async_setup_entry(
     @callback
     def async_add_discovered_entities() -> None:
         """Add sensors when protocol or PV-input discovery exposes new keys."""
+        protocol_name = str(getattr(coordinator.client, "protocol_name", ""))
         descriptions = [
             description
             for description in SENSORS + PV_SENSORS
@@ -985,10 +992,12 @@ async def async_setup_entry(
                 description.key in DIAGNOSTIC_SENSOR_KEYS
                 or description.key in coordinator.client.measurement_keys
                 or (
+                    protocol_name == "1511"
+                    and description.key.startswith("pv")
+                )
+                or (
                     description.key == "active_alarm_names"
-                    and str(
-                        getattr(coordinator.client, "protocol_name", "")
-                    ) == "1511"
+                    and protocol_name == "1511"
                     and "alarm_active" in coordinator.client.measurement_keys
                 )
             )
@@ -1007,7 +1016,7 @@ async def async_setup_entry(
     )
 
 
-class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
+class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity):
     """A sensor belonging to one locally connected TSUN device."""
 
     _attr_has_entity_name = True
@@ -1020,6 +1029,9 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
     ) -> None:
         super().__init__(coordinator)
         self.entity_description = description
+        self._restored_energy_value: float | None = None
+        self._daily_reset_override = False
+        self._daily_reset_successes = 0
         logger_sn = str(entry.data[CONF_LOGGER_SN])
         self._label_serial_number = logger_sn
         self._attr_unique_id = f"{logger_sn}_{description.key}"
@@ -1045,6 +1057,75 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
         )
 
     @property
+    def _is_energy(self) -> bool:
+        return self.entity_description.device_class == SensorDeviceClass.ENERGY
+
+    @property
+    def _is_daily_energy(self) -> bool:
+        return self._is_energy and self.entity_description.key.endswith("_energy_today")
+
+    @override
+    async def async_added_to_hass(self) -> None:
+        """Restore energy counters and register the local midnight rollover."""
+        await super().async_added_to_hass()
+        if not self._is_energy:
+            return
+
+        if self._is_daily_energy:
+            self.async_on_remove(
+                async_track_time_change(
+                    self.hass,
+                    self._async_midnight_rollover,
+                    hour=0,
+                    minute=0,
+                    second=0,
+                )
+            )
+
+        key = self.entity_description.key
+        if key in self.coordinator.data:
+            return
+        last_state = await self.async_get_last_state()
+        if last_state is None or last_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            return
+        try:
+            value = float(last_state.state)
+        except (TypeError, ValueError):
+            return
+
+        if self._is_daily_energy:
+            last_local_date = dt_util.as_local(last_state.last_updated).date()
+            if last_local_date != dt_util.now().date():
+                value = 0.0
+                self._daily_reset_override = True
+                self._daily_reset_successes = 0
+        self._restored_energy_value = value
+
+    @callback
+    def _async_midnight_rollover(self, _now: datetime) -> None:
+        """Reset daily energy locally at midnight, even while the inverter sleeps."""
+        self._daily_reset_override = True
+        self._daily_reset_successes = 0
+        self._restored_energy_value = 0.0
+        self.async_write_ha_state()
+
+    @callback
+    @override
+    def _handle_coordinator_update(self) -> None:
+        """Release a daily reset only after two fresh successful protocol polls."""
+        key = self.entity_description.key
+        if (
+            self._is_daily_energy
+            and self._daily_reset_override
+            and bool(self.coordinator.data.get("communication_online", False))
+            and key in self.coordinator.data
+        ):
+            self._daily_reset_successes += 1
+            if self._daily_reset_successes >= 2:
+                self._daily_reset_override = False
+        super()._handle_coordinator_update()
+
+    @property
     @override
     def suggested_object_id(self) -> str | None:
         """Return a stable English identifier independent of the UI language."""
@@ -1052,7 +1133,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> Any:
-        """Return the latest decoded value."""
+        """Return the latest decoded value or a safely restored energy value."""
         if self.entity_description.key == "label_serial_number":
             return self._label_serial_number
         if self.entity_description.key == "active_alarm_names":
@@ -1060,7 +1141,14 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
                 self.coordinator.data,
                 self.coordinator.hass.config.language,
             )
-        return self.coordinator.data.get(self.entity_description.key)
+        key = self.entity_description.key
+        if self._is_daily_energy and self._daily_reset_override:
+            return 0.0
+        if key in self.coordinator.data:
+            return self.coordinator.data[key]
+        if self._is_energy:
+            return self._restored_energy_value
+        return None
 
     def _source_register_address(self) -> str | None:
         """Return the register address used by the active protocol."""
@@ -1100,7 +1188,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Keep diagnostics and energy counters available while offline."""
+        """Keep valid diagnostics and energy counters available while offline."""
         key = self.entity_description.key
         if self._source_register_address() is not None:
             return (
@@ -1108,10 +1196,13 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], SensorEntity):
                 and bool(self.coordinator.data.get("communication_online", False))
                 and key in self.coordinator.data
             )
-        if (
-            key in DIAGNOSTIC_SENSOR_KEYS
-            or self.entity_description.device_class == SensorDeviceClass.ENERGY
-        ):
+        if self._is_energy:
+            return super().available and (
+                key in self.coordinator.data
+                or self._restored_energy_value is not None
+                or self._daily_reset_override
+            )
+        if key in DIAGNOSTIC_SENSOR_KEYS:
             return super().available
         return super().available and bool(
             self.coordinator.data.get("communication_online", False)
