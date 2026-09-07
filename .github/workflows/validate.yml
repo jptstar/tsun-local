@@ -47,3 +47,29 @@ jobs:
 
       - name: Validate Home Assistant integration
         uses: home-assistant/actions/hassfest@master
+
+  fix-1511-test-fixture:
+    name: Update 1511 session test fixture
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out work branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/energy-first-fresh-poll-work
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Apply fixture update
+        run: python tools/_patch_1511_fixture.py
+
+      - name: Run complete tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Commit fixture correction
+        run: git config user.name "github-actions[bot]" && git config user.email "41898282+github-actions[bot]@users.noreply.github.com" && git add tests/test_protocols.py && git commit -m "Align legacy 1511 test fixture with persistent session transport" && git push origin HEAD:fix/energy-first-fresh-poll-work
