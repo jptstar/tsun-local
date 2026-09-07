@@ -1,0 +1,263 @@
+name: Publish macOS diagnostic community builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-diagnostic-macos-community.yml"
+  workflow_run:
+    workflows:
+      - "Build desktop diagnostic packages"
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-diagnostic-macos-community
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.id }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: macos-arm64
+            os: macos-latest
+            arch: arm64
+            asset: TSUN-Local-Diagnostic-macOS-arm64.zip
+          - id: macos-x86_64
+            os: macos-15-intel
+            arch: x86_64
+            asset: TSUN-Local-Diagnostic-macOS-x86_64.zip
+    runs-on: ${{ matrix.os }}
+    env:
+      CERT_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+      CERT_P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
+      NOTARY_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
+      NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+      NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+
+    steps:
+      - name: Decide whether community Mac builds are needed
+        shell: bash
+        run: |
+          if [[ -n "$CERT_P12_BASE64" && -n "$CERT_P12_PASSWORD" && -n "$NOTARY_KEY_P8_BASE64" && -n "$NOTARY_KEY_ID" && -n "$NOTARY_ISSUER_ID" ]]; then
+            echo "COMMUNITY_MAC_ENABLED=false" >> "$GITHUB_ENV"
+            echo "Official Developer ID notarization is configured; community Mac publishing is disabled."
+          else
+            echo "COMMUNITY_MAC_ENABLED=true" >> "$GITHUB_ENV"
+            echo "Publishing ad-hoc signed Mac build with per-application Gatekeeper instructions."
+          fi
+
+      - name: Check out repository
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyInstaller
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        run: python -m pip install --disable-pip-version-check pyinstaller
+
+      - name: Validate shared sources
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        run: |
+          python -m py_compile tools/tsun_dump.py tools/tsun_report_upload.py tools/tsun_diagnostic.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic as gui; print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'asset', gui.platform_release_asset())"
+
+      - name: Build macOS application
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        run: |
+          python -m PyInstaller --noconfirm --clean --windowed \
+            --name "TSUN Local Diagnostic" \
+            --paths tools \
+            tools/tsun_diagnostic.py
+
+      - name: Ad-hoc sign macOS application
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        run: |
+          codesign --force --deep --sign - "dist/TSUN Local Diagnostic.app"
+          codesign --verify --deep --strict --verbose=2 "dist/TSUN Local Diagnostic.app"
+
+      - name: Smoke-test macOS application
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -e
+          app_bin="dist/TSUN Local Diagnostic.app/Contents/MacOS/TSUN Local Diagnostic"
+          "$app_bin" --no-update &
+          pid=$!
+          sleep 8
+          if ! kill -0 "$pid" 2>/dev/null; then
+            wait "$pid"
+            exit 1
+          fi
+          kill "$pid" || true
+          wait "$pid" || true
+          echo "macOS GUI launched successfully."
+
+      - name: Package application with first-launch instructions
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir="$RUNNER_TEMP/TSUN Local Diagnostic"
+          rm -rf "$package_dir"
+          mkdir -p "$package_dir"
+          ditto "dist/TSUN Local Diagnostic.app" "$package_dir/TSUN Local Diagnostic.app"
+          cat > "$package_dir/LISEZ-MOI-MACOS.txt" <<'EOF'
+          TSUN Local Diagnostic - PREMIER LANCEMENT SUR macOS
+          ===================================================
+
+          Cette application n'est pas encore notarisee par Apple. macOS peut donc
+          bloquer son premier lancement. Il n'est PAS necessaire de desactiver la
+          securite de votre Mac ou Gatekeeper.
+
+          1. Essayez d'ouvrir "TSUN Local Diagnostic.app" une premiere fois.
+          2. Si macOS bloque l'application, cliquez sur "Termine".
+          3. Ouvrez le menu Apple > Reglages Systeme > Confidentialite et securite.
+          4. Descendez jusqu'a la section Securite.
+          5. Cliquez sur "Ouvrir quand meme" pour TSUN Local Diagnostic.
+          6. Authentifiez-vous avec votre mot de passe ou Touch ID, puis confirmez
+             "Ouvrir".
+
+          Une fois l'application ouverte, cette autorisation est enregistree pour
+          TSUN Local Diagnostic. Les protections generales de macOS restent actives.
+
+          Ne desactivez pas Gatekeeper globalement.
+          EOF
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$package_dir" \
+            "dist/${{ matrix.asset }}"
+
+      - name: Upload macOS artifact
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-community-${{ matrix.id }}
+          path: dist/${{ matrix.asset }}
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish community Mac packages
+    needs: build
+    if: ${{ always() && !cancelled() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') }}
+    runs-on: ubuntu-latest
+    env:
+      CERT_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+      CERT_P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
+      NOTARY_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
+      NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+      NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+
+    steps:
+      - name: Decide whether community Mac publishing is needed
+        shell: bash
+        run: |
+          if [[ -n "$CERT_P12_BASE64" && -n "$CERT_P12_PASSWORD" && -n "$NOTARY_KEY_P8_BASE64" && -n "$NOTARY_KEY_ID" && -n "$NOTARY_ISSUER_ID" ]]; then
+            echo "COMMUNITY_MAC_ENABLED=false" >> "$GITHUB_ENV"
+            echo "Official Developer ID notarization is configured; nothing to publish here."
+          else
+            echo "COMMUNITY_MAC_ENABLED=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Check out repository
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download Mac packages
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: diagnostic-community-macos-*
+          path: release
+          merge-multiple: true
+
+      - name: Update checksums and rolling manifest
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="diagnostic-latest"
+          mkdir -p release
+          gh release download "$tag" --repo "${{ github.repository }}" -p update.json -D release --clobber || true
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          import sys
+
+          sys.path.insert(0, "tools")
+          import tsun_diagnostic as gui
+
+          release = Path("release")
+          manifest_path = release / "update.json"
+          if manifest_path.exists():
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          else:
+              manifest = {"schema_version": 1, "channel": "diagnostic-latest", "components": {}}
+          components = manifest.setdefault("components", {})
+          for component, asset in {
+              "macos_arm64_gui": gui.ASSET_MACOS_ARM64,
+              "macos_x86_64_gui": gui.ASSET_MACOS_X86_64,
+          }.items():
+              path = release / asset
+              if not path.is_file():
+                  raise SystemExit(f"Missing Mac package: {asset}")
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              (release / f"{asset}.sha256").write_text(f"{digest}  {asset}\n", encoding="ascii")
+              components[component] = {
+                  "version": gui.APP_VERSION,
+                  "asset": asset,
+                  "sha256": digest,
+              }
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Publish Mac packages
+        if: env.COMMUNITY_MAC_ENABLED == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="diagnostic-latest"
+          notes='Rolling prerelease for TSUN Local Diagnostic. Windows, macOS (Apple Silicon and Intel) and Linux packages use the same read-only diagnostic interface. The current Mac packages are not yet Apple-notarized: macOS can block the first launch. Use the per-application Open Anyway procedure included in each ZIP; do not disable Gatekeeper globally.'
+          gh release edit "$tag" \
+            --title "TSUN Local Diagnostic — latest" \
+            --notes "$notes" \
+            --prerelease \
+            --repo "${{ github.repository }}"
+          gh release upload "$tag" \
+            release/TSUN-Local-Diagnostic-macOS-arm64.zip \
+            release/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256 \
+            release/TSUN-Local-Diagnostic-macOS-x86_64.zip \
+            release/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256 \
+            release/update.json \
+            --clobber \
+            --repo "${{ github.repository }}"
+          echo "Published Mac packages with first-launch instructions to $tag."
