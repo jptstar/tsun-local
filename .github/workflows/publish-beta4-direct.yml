@@ -1,0 +1,106 @@
+name: Publish beta4 one-shot
+
+on:
+  push:
+    branches:
+      - beta-1097
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: contains(github.event.head_commit.message, '[beta4-release]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Prepare changelog and verify metadata
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path('custom_components/tsun_local/manifest.json').read_text(encoding='utf-8'))
+          version = manifest['version']
+          if version != '1.6.1-beta.4':
+              raise SystemExit(f'Unexpected manifest version: {version}')
+          notes = Path('docs/releases/1.6.1-beta.4.md')
+          if not notes.is_file():
+              raise SystemExit('Missing beta.4 release notes')
+
+          path = Path('CHANGELOG.md')
+          text = path.read_text(encoding='utf-8')
+          heading = '## [1.6.1-beta.4] - 2026-09-07\n'
+          if heading not in text:
+              marker = '## [1.6.0] - 2026-09-04\n'
+              if marker not in text:
+                  raise SystemExit('1.6.0 changelog marker not found')
+              lines = [
+                  '## [1.6.1-beta.4] - 2026-09-07',
+                  '',
+                  '### Fixed',
+                  '',
+                  '- Preserve the last valid logger Wi-Fi signal when a periodic local HTTP read temporarily fails instead of publishing a false 0%.',
+                  '- Retry logger RSSI once after the first successful protocol refresh when startup metadata did not expose a signal.',
+                  '- Accept logger RSSI firmware variants in strict priority order: cover_sta_rssi, sta_rssi, wifi_rssi, then wifi_signal.',
+                  '',
+                  '### Retained',
+                  '',
+                  '- Keep 1511, 02B0 and 1097 persistent-session communication resilience, bounded reconnect/retry, per-logger FIFO and adaptive polling unchanged.',
+                  '- Keep beta.3 daily-energy restoration and local midnight rollover behavior unchanged.',
+                  '- Keep all validated register coverage unchanged and remain local/read-only.',
+                  '',
+                  '### Validation',
+                  '',
+                  '- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest before publication.',
+                  '',
+                  '',
+              ]
+              section = '\n'.join(lines)
+              path.write_text(text.replace(marker, section + marker, 1), encoding='utf-8')
+          PY
+
+      - name: Run complete unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate HACS repository
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Validate Home Assistant integration
+        uses: home-assistant/actions/hassfest@master
+
+      - name: Commit release source, tag and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add CHANGELOG.md
+            git commit -m "Prepare 1.6.1-beta.4 release source"
+            git push origin HEAD:beta-1097
+          fi
+          TAG="v1.6.1-beta.4"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Tag ${TAG} already exists; refusing to move it."
+          else
+            git tag -a "${TAG}" -m "Version 1.6.1-beta.4"
+            git push origin "${TAG}"
+          fi
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists."
+          else
+            gh release create "${TAG}" --verify-tag --prerelease --title "Version 1.6.1-beta.4" --notes-file docs/releases/1.6.1-beta.4.md
+          fi
