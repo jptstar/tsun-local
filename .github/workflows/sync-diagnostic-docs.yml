@@ -61,7 +61,7 @@ jobs:
           )
           text, count = re.subn(
               r"def sync_localized_readmes\(\) -> None:\n.*?(?=\ndef sync_hardware_dump\(\) -> None:)",
-              localized,
+              lambda _match: localized,
               text,
               count=1,
               flags=re.DOTALL,
