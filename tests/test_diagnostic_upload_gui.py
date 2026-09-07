@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
@@ -13,7 +15,7 @@ import tsun_diagnostic_desktop as desktop  # noqa: E402
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.6")
+        self.assertEqual(desktop.APP_VERSION, "1.5.7")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -76,6 +78,27 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
                 {"model": "TSOL-MP3000", "quantity": 3},
             ],
         )
+
+    def test_compact_selector_uses_ten_dropdown_rows(self) -> None:
+        self.assertEqual(desktop.MAX_DEVICE_ROWS, 10)
+        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        self.assertIn("ttk.Combobox", source)
+        self.assertIn("MAX_DEVICE_ROWS", source)
+        self.assertNotIn("tk.Canvas", source)
+
+    def test_upload_profile_is_persisted_without_consent(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "profile.json"
+            devices = [
+                {"model": "TSOL-MX500", "quantity": 2},
+                {"model": "TSOL-MP3000", "quantity": 1},
+            ]
+            desktop.save_upload_profile("JP-test", devices, path)
+            loaded = desktop.load_upload_profile(path)
+            self.assertEqual(loaded["tester_name"], "JP-test")
+            self.assertEqual(loaded["declared_devices"], devices)
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            self.assertNotIn("consent", raw)
 
     def test_completed_upload_exposes_close_button_copy(self) -> None:
         self.assertIn("fermer", app._TEXT["fr"]["complete_close"].lower())
