@@ -45,7 +45,7 @@ jobs:
           grep -Fq 'Open Anyway' README.md
           grep -Fq '> **Which Mac should I download?**' README.md
           grep -Fq 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
-          grep -Fq 'Mac M1 / M2 / M3 / M4' docs/test-your-inverter.html
+          grep -Fq 'M1, M2, M3, M4' docs/test-your-inverter.html
           grep -Fq 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip' docs/test-your-inverter.html
           grep -Fq 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip' docs/test-your-inverter.html
           grep -Fq 'Open Anyway' docs/test-your-inverter.html
@@ -61,6 +61,9 @@ jobs:
             exit 1
           fi
           test "$(grep -Fc 'Mac &amp; Linux diagnostic →' docs/index.html)" -eq 1
+          grep -Fq 'Python diagnostic →' docs/index.html
+          grep -Fq 'Windows diagnostic →' docs/index.html
+          grep -Fq 'class="tested-link"' docs/index.html
 
       - name: Publish synchronized docs branch
         shell: bash
