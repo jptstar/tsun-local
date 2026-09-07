@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Microinverter Home Assistant Compatibility Test | TSUN Local</title>
-  <meta name="description" content="Test whether your TSUN microinverter works locally with Home Assistant using the same TSUN Local Diagnostic interface on Windows, macOS and Linux.">
-  <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local, HACS, TSUN diagnostic, TSOL-MP3000, TSOL-MX500, 1511, 02B0, 1097, microinverter compatibility">
+  <meta name="description" content="Test whether your TSUN microinverter works locally with Home Assistant using the same TSUN Local Diagnostic interface on Windows, macOS, Linux or directly with Python.">
+  <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local, HACS, TSUN diagnostic, tsun_dump.py, Python, TSOL-MP3000, TSOL-MX500, 1511, 02B0, 1097, microinverter compatibility">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/test-your-inverter.html">
@@ -13,12 +13,12 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta property="og:description" content="Use the same read-only TSUN Local Diagnostic desktop interface on Windows, macOS or Linux and optionally upload an anonymized hardware report after explicit consent.">
+  <meta property="og:description" content="Use the read-only TSUN Local Diagnostic on Windows, macOS, Linux or directly with Python and optionally upload an anonymized hardware report after explicit consent.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/test-your-inverter.html">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta name="twitter:description" content="One harmonized read-only TSUN Local Diagnostic interface for Windows, macOS and Linux.">
+  <meta name="twitter:description" content="Read-only TSUN Local Diagnostic for Windows, macOS, Linux and Python.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <script type="application/ld+json">
   {
@@ -27,10 +27,10 @@
     "name":"Test a TSUN microinverter with TSUN Local in Home Assistant",
     "description":"Test whether an unlisted TSUN microinverter is compatible with TSUN Local through automatic local discovery and a strictly read-only standalone diagnostic.",
     "url":"https://jptstar.github.io/tsun-local/test-your-inverter.html",
-    "dateModified":"2026-09-07",
+    "dateModified":"2026-09-08",
     "step":[
       {"@type":"HowToStep","name":"Disable the affected TSUN Local entry","text":"Temporarily disable the affected TSUN Local config entry so Home Assistant and the standalone diagnostic do not poll the logger at the same time."},
-      {"@type":"HowToStep","name":"Run the diagnostic","text":"Launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report."},
+      {"@type":"HowToStep","name":"Run the diagnostic","text":"Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report."},
       {"@type":"HowToStep","name":"Direct upload","text":"Recommended: review the explicit consent, optionally enter a tester pseudonym and micro-inverter models, then upload the anonymized report. The application returns a TSL receipt and a private-token link to view exactly what was sent."},
       {"@type":"HowToStep","name":"Manual fallback","text":"If direct upload is unavailable, use the optional manual e-mail route and attach the generated JSON. Re-enable TSUN Local after the capture."}
     ]
@@ -46,6 +46,8 @@
     body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.58 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     a{color:var(--blue)}
     code{padding:.1em .35em;border-radius:6px;background:#edf3fa}
+    pre{margin:10px 0 0;padding:14px 16px;overflow:auto;border-radius:12px;background:#0b1930;color:#f4f8ff}
+    pre code{padding:0;background:transparent;color:inherit}
     .wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}
     .topline{height:5px;background:linear-gradient(90deg,#148660,#1167d8,#6554d9)}
     header{padding:22px 0 58px;color:#fff;background:linear-gradient(145deg,#061c39 0%,#0a315e 70%,#105a9a 100%)}
@@ -64,6 +66,11 @@
     .intro{margin:0;color:var(--muted);font-size:18px}
     .callout{margin-top:20px;padding:18px 20px;border:1px solid #bfe7d6;border-radius:16px;background:var(--green-soft);color:#0d684d}
     .callout strong{display:block;font-size:18px}
+    .python-highlight{margin-top:22px;padding:22px;border:2px solid var(--blue);border-radius:18px;background:#eef5ff}
+    .python-highlight strong{display:block;font-size:20px}.python-highlight p{margin:12px 0 0;color:#38506d}
+    .command-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    .command-card{padding:16px;border:1px solid #cbdcf0;border-radius:14px;background:#fff}
+    .command-card strong{font-size:16px}.command-card p{margin:5px 0 0;color:var(--muted)}
     .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}
     .step{padding:21px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}
     .n{display:grid;place-items:center;width:34px;height:34px;margin-bottom:13px;border-radius:50%;color:#fff;background:var(--blue);font-weight:900}
@@ -82,8 +89,8 @@
     .primary{color:#fff;background:var(--blue)}
     .secondary{color:var(--ink);border:1px solid var(--line);background:#fff}
     footer{padding:8px 0 40px;color:var(--muted);text-align:center;font-size:14px}
-    @media(max-width:980px){.steps{grid-template-columns:1fr 1fr}}
-    @media(max-width:680px){.steps,.outcomes{grid-template-columns:1fr}section{padding:24px}}
+    @media(max-width:980px){.steps,.command-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:680px){.steps,.outcomes,.command-grid{grid-template-columns:1fr}section{padding:24px}}
   </style>
 </head>
 <body>
@@ -97,8 +104,8 @@
     <div class="hero">
       <p class="eyebrow">TSUN Local · Read-only community hardware validation</p>
       <h1>Test your TSUN microinverter with TSUN Local</h1>
-      <p class="lead"><strong>Not listed yet, or communication unstable?</strong> Use the same privacy-safe desktop diagnostic on Windows, macOS or Linux and optionally send an anonymized report directly.</p>
-      <p class="hero-note">One interface · Five desktop packages · Strictly read-only hardware communication</p>
+      <p class="lead"><strong>Not listed yet, or communication unstable?</strong> Run the diagnostic directly with Python or use the packaged Windows, macOS or Linux application, then optionally send an anonymized report.</p>
+      <p class="hero-note">Python 3.10+ · Five desktop packages · Strictly read-only hardware communication</p>
     </div>
   </div>
 </header>
@@ -111,8 +118,31 @@
   </section>
 
   <section>
-    <h2>One desktop diagnostic for Windows, macOS and Linux</h2>
-    <p class="intro">The desktop GUI is <strong>1.5.11</strong> with dump engine <strong>2.7.4</strong>. Every package is built from the same shared interface and published through the stable rolling <code>diagnostic-latest</code> release. The historical Windows download URL is unchanged, so older links remain valid.</p>
+    <h2>Python / command line — all platforms</h2>
+    <p class="intro"><strong>Python remains the most direct way to run the diagnostic.</strong> The standalone <code>tsun_dump.py</code> uses the same strictly read-only dump engine and works with Python 3.10+ on Windows, macOS and Linux.</p>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py">Download tsun_dump.py</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256">SHA-256 checksum</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/main/docs/HARDWARE_DUMP.md">Full Python guide</a>
+    </div>
+    <div class="python-highlight">
+      <strong>Recommended full diagnostic</strong>
+      <div class="command-grid">
+        <div class="command-card"><strong>macOS / Linux</strong><pre><code>python3 tsun_dump.py --full</code></pre></div>
+        <div class="command-card"><strong>Windows</strong><pre><code>py tsun_dump.py --full</code></pre></div>
+      </div>
+      <p>Automatic discovery captures all detected TSUN loggers. To target one known logger or a routed subnet, use:</p>
+      <div class="command-grid">
+        <div class="command-card"><strong>Known logger</strong><pre><code>python3 tsun_dump.py --host 192.168.1.50 --full</code></pre></div>
+        <div class="command-card"><strong>Routed subnet / VLAN</strong><pre><code>python3 tsun_dump.py --network 192.168.1.0/24 --full</code></pre></div>
+      </div>
+      <p>On Windows, replace <code>python3</code> with <code>py</code> in the commands above.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Desktop diagnostic for Windows, macOS and Linux</h2>
+    <p class="intro">Prefer a packaged application? The desktop GUI is <strong>1.5.11</strong> with dump engine <strong>2.7.4</strong>. Every package is built from the same shared interface and published through the stable rolling <code>diagnostic-latest</code> release. The historical Windows download URL is unchanged, so older links remain valid.</p>
     <div class="privacy"><strong>Which Mac will I need?</strong> Mac with an Apple chip <strong>M1, M2, M3, M4 or newer</strong> → <strong>Apple Silicon</strong>. If <strong>Apple menu → About This Mac</strong> says <strong>Intel</strong> → <strong>Mac Intel</strong>.</div>
     <div class="mac-warning"><strong>🟠 macOS — read this before the first launch</strong><p><strong>TSUN Local Diagnostic is not yet notarized by Apple.</strong> macOS may block the first launch. <strong>You do not need to disable Mac security or Gatekeeper.</strong></p><ol><li>Download and unzip the package for your Mac.</li><li>Try to open <strong>TSUN Local Diagnostic.app</strong> once.</li><li>If macOS blocks it, click <strong>Done</strong>.</li><li>Open <strong>Apple menu → System Settings → Privacy &amp; Security</strong>.</li><li>In <strong>Security</strong>, click <strong>Open Anyway</strong> for TSUN Local Diagnostic.</li><li>Authenticate, then confirm <strong>Open</strong>.</li></ol><p><strong>🟢 Once the application opens, you are done.</strong> The exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.</p></div>
     <div class="actions">
@@ -123,7 +153,7 @@
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux ARM64 (Raspberry Pi / ARM)</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
     </div>
-    <div class="callout"><strong>Same app, same steps, same privacy rules.</strong>Windows keeps verified automatic executable replacement. macOS/Linux check the same architecture-specific rolling channel and indicate when a new package is available; package replacement is currently manual.</div>
+    <div class="callout"><strong>Same engine, same steps, same privacy rules.</strong>Windows keeps verified automatic executable replacement. macOS/Linux check the same architecture-specific rolling channel and indicate when a new package is available; package replacement is currently manual.</div>
     <div class="privacy"><strong>Linux first launch:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
   </section>
 
@@ -131,16 +161,10 @@
     <h2>Four clear steps</h2>
     <div class="steps">
       <div class="step"><span class="n">1</span><strong>Disable TSUN Local</strong><p>Temporarily disable the affected config entry in Home Assistant to avoid two simultaneous polling sessions on the logger.</p></div>
-      <div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Launch the desktop application for your operating system. Discovery, protocol detection and evidence capture are read-only.</p></div>
-      <div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Recommended. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>
+      <div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use the Python command above or launch the desktop application. Discovery, protocol detection and evidence capture are read-only.</p></div>
+      <div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Recommended in the desktop app. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>
       <div class="step"><span class="n">4</span><strong>Manual fallback</strong><p>If direct upload is unavailable, send the generated JSON manually by e-mail. Re-enable TSUN Local when the capture is complete.</p></div>
     </div>
-  </section>
-
-  <section>
-    <h2>Test the upload even when you are away</h2>
-    <p class="intro">The desktop application includes a dedicated synthetic upload test. Enter logger IP <code>89:89:89:89</code> and Monitor SN <code>89898989</code>. It creates an explicitly marked test report without contacting any logger or micro-inverter, while exercising the real consent and upload flow.</p>
-    <div class="callout"><strong>No fake hardware result.</strong>The generated diagnostic records <code>test_mode: true</code> and <code>communication_attempted: false</code>.</div>
   </section>
 
   <section>
