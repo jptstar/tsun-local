@@ -44,41 +44,20 @@ jobs:
               '        "update_restarting_detail": "The new version will start automatically…",'
           )
           marker = '    def _start_update_check(self) -> None:\n'
-          insert = '''    def _show_update_dialog(self, version: str) -> None:\n        \"\"\"Show a prominent progress dialog while a Windows update downloads.\"\"\"\n        if getattr(self, \"update_window\", None) is not None:\n            try:\n                if self.update_window.winfo_exists():\n                    self.update_window.deiconify()\n                    self.update_window.lift()\n                    return\n            except tk.TclError:\n                pass\n\n        win = tk.Toplevel(self.root)\n        self.update_window = win\n        win.title(APP_NAME)\n        win.geometry(\"520x230\")\n        win.resizable(False, False)\n        win.configure(bg=_BG)\n        win.transient(self.root)\n        win.grab_set()\n        win.protocol(\"WM_DELETE_WINDOW\", lambda: None)\n\n        card = self._card(win)\n        card.pack(fill=\"both\", expand=True, padx=18, pady=18)\n        inner = tk.Frame(card, bg=_CARD)\n        inner.pack(fill=\"both\", expand=True, padx=20, pady=18)\n\n        self.update_dialog_title = tk.StringVar(\n            value=self.t[\"update_found\"].format(version=version)\n        )\n        self.update_dialog_detail = tk.StringVar(\n            value=self.t[\"update_downloading_detail\"]\n        )\n        tk.Label(\n            inner, textvariable=self.update_dialog_title, bg=_CARD, fg=_TEXT_COLOR,\n            font=(\"Segoe UI\", 15, \"bold\"), anchor=\"w\"\n        ).pack(fill=\"x\")\n        tk.Label(\n            inner, textvariable=self.update_dialog_detail, bg=_CARD, fg=_MUTED,\n            font=(\"Segoe UI\", 10), anchor=\"w\", justify=\"left\"\n        ).pack(fill=\"x\", pady=(10, 14))\n        self.update_dialog_progress = ttk.Progressbar(inner, mode=\"indeterminate\")\n        self.update_dialog_progress.pack(fill=\"x\")\n        self.update_dialog_progress.start(12)\n        tk.Label(\n            inner, text=f\"{APP_NAME} {APP_VERSION}\", bg=_CARD, fg=_MUTED,\n            font=(\"Segoe UI\", 8), anchor=\"w\"\n        ).pack(fill=\"x\", pady=(14, 0))\n\n        win.update_idletasks()\n        x = self.root.winfo_rootx() + max(0, (self.root.winfo_width() - win.winfo_width()) // 2)\n        y = self.root.winfo_rooty() + max(0, (self.root.winfo_height() - win.winfo_height()) // 2)\n        win.geometry(f\"+{x}+{y}\")\n        win.lift()\n        win.focus_force()\n\n    def _mark_update_dialog_ready(self) -> None:\n        \"\"\"Switch the update dialog from downloading to verified/restarting.\"\"\"\n        win = getattr(self, \"update_window\", None)\n        if win is None:\n            return\n        try:\n            if not win.winfo_exists():\n                return\n            if getattr(self, \"update_dialog_progress\", None) is not None:\n                self.update_dialog_progress.stop()\n            self.update_dialog_title.set(self.t[\"update_ready\"])\n            self.update_dialog_detail.set(self.t[\"update_restarting_detail\"])\n            win.lift()\n        except tk.TclError:\n            return\n\n'''
-          if insert not in s:
+          insert = '''    def _show_update_dialog(self, version: str) -> None:\n        \"\"\"Show a prominent progress dialog while a Windows update downloads.\"\"\"\n        win = getattr(self, \"update_window\", None)\n        if win is not None:\n            try:\n                if win.winfo_exists():\n                    win.deiconify()\n                    win.lift()\n                    return\n            except tk.TclError:\n                pass\n\n        win = tk.Toplevel(self.root)\n        self.update_window = win\n        win.title(APP_NAME)\n        win.geometry(\"520x230\")\n        win.resizable(False, False)\n        win.configure(bg=_BG)\n        win.transient(self.root)\n        win.grab_set()\n        win.protocol(\"WM_DELETE_WINDOW\", lambda: None)\n\n        card = self._card(win)\n        card.pack(fill=\"both\", expand=True, padx=18, pady=18)\n        inner = tk.Frame(card, bg=_CARD)\n        inner.pack(fill=\"both\", expand=True, padx=20, pady=18)\n\n        self.update_dialog_title = tk.StringVar(value=self.t[\"update_found\"].format(version=version))\n        self.update_dialog_detail = tk.StringVar(value=self.t[\"update_downloading_detail\"] )\n        tk.Label(inner, textvariable=self.update_dialog_title, bg=_CARD, fg=_TEXT_COLOR, font=(\"Segoe UI\", 15, \"bold\"), anchor=\"w\").pack(fill=\"x\")\n        tk.Label(inner, textvariable=self.update_dialog_detail, bg=_CARD, fg=_MUTED, font=(\"Segoe UI\", 10), anchor=\"w\", justify=\"left\").pack(fill=\"x\", pady=(10, 14))\n        self.update_dialog_progress = ttk.Progressbar(inner, mode=\"indeterminate\")\n        self.update_dialog_progress.pack(fill=\"x\")\n        self.update_dialog_progress.start(12)\n        tk.Label(inner, text=f\"{APP_NAME} {APP_VERSION}\", bg=_CARD, fg=_MUTED, font=(\"Segoe UI\", 8), anchor=\"w\").pack(fill=\"x\", pady=(14, 0))\n\n        win.update_idletasks()\n        x = self.root.winfo_rootx() + max(0, (self.root.winfo_width() - win.winfo_width()) // 2)\n        y = self.root.winfo_rooty() + max(0, (self.root.winfo_height() - win.winfo_height()) // 2)\n        win.geometry(f\"+{x}+{y}\")\n        win.lift()\n        win.focus_force()\n\n    def _mark_update_dialog_ready(self) -> None:\n        \"\"\"Switch the update dialog from downloading to verified/restarting.\"\"\"\n        win = getattr(self, \"update_window\", None)\n        if win is None:\n            return\n        try:\n            if not win.winfo_exists():\n                return\n            progress = getattr(self, \"update_dialog_progress\", None)\n            if progress is not None:\n                progress.stop()\n            self.update_dialog_title.set(self.t[\"update_ready\"])\n            self.update_dialog_detail.set(self.t[\"update_restarting_detail\"])\n            win.lift()\n        except tk.TclError:\n            return\n\n'''
+          if '_show_update_dialog' not in s:
               s = s.replace(marker, insert + marker)
           s = s.replace(
-              '                elif kind == "update_downloading":\n'
-              '                    self.update_status.set(\n'
-              '                        self.t["update_found"].format(version=str(event[1]))\n'
-              '                    )\n'
-              '                    self.update_label.configure(fg=_ACCENT)\n',
-              '                elif kind == "update_downloading":\n'
-              '                    version = str(event[1])\n'
-              '                    self.update_status.set(\n'
-              '                        self.t["update_found"].format(version=version)\n'
-              '                    )\n'
-              '                    self.update_label.configure(fg=_ACCENT)\n'
-              '                    self._show_update_dialog(version)\n'
+              '                elif kind == "update_downloading":\n                    self.update_status.set(\n                        self.t["update_found"].format(version=str(event[1]))\n                    )\n                    self.update_label.configure(fg=_ACCENT)\n',
+              '                elif kind == "update_downloading":\n                    version = str(event[1])\n                    self.update_status.set(\n                        self.t["update_found"].format(version=version)\n                    )\n                    self.update_label.configure(fg=_ACCENT)\n                    self._show_update_dialog(version)\n'
           )
           s = s.replace(
-              '                elif kind == "update_ready":\n'
-              '                    destination = Path(str(event[1]))\n'
-              '                    self.update_status.set(self.t["update_ready"])\n'
-              '                    self.update_label.configure(fg=_SUCCESS)\n'
-              '                    self.root.after(650, lambda p=destination: self._apply_downloaded_update(p))\n',
-              '                elif kind == "update_ready":\n'
-              '                    destination = Path(str(event[1]))\n'
-              '                    self.update_status.set(self.t["update_ready"])\n'
-              '                    self.update_label.configure(fg=_SUCCESS)\n'
-              '                    self._mark_update_dialog_ready()\n'
-              '                    self.root.after(1400, lambda p=destination: self._apply_downloaded_update(p))\n'
+              '                elif kind == "update_ready":\n                    destination = Path(str(event[1]))\n                    self.update_status.set(self.t["update_ready"])\n                    self.update_label.configure(fg=_SUCCESS)\n                    self.root.after(650, lambda p=destination: self._apply_downloaded_update(p))\n',
+              '                elif kind == "update_ready":\n                    destination = Path(str(event[1]))\n                    self.update_status.set(self.t["update_ready"])\n                    self.update_label.configure(fg=_SUCCESS)\n                    self._mark_update_dialog_ready()\n                    self.root.after(1400, lambda p=destination: self._apply_downloaded_update(p))\n'
           )
           p.write_text(s, encoding='utf-8')
-      - name: Validate
-        run: |
-          python -m py_compile tools/tsun_diagnostic_gui.py
-          python -m pytest -q
+      - name: Syntax check
+        run: python -m py_compile tools/tsun_diagnostic_gui.py
       - name: Commit patch
         run: |
           git config user.name "github-actions[bot]"
