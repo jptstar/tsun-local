@@ -1,4 +1,4 @@
-name: Build Windows diagnostic executable
+name: Build desktop diagnostic packages
 
 on:
   workflow_dispatch:
@@ -10,7 +10,9 @@ on:
       - "tools/tsun_diagnostic_desktop.py"
       - "tools/tsun_diagnostic_desktop_v158.py"
       - "tools/tsun_diagnostic_desktop_v159.py"
+      - "tools/tsun_diagnostic.py"
       - "tools/tsun_report_upload.py"
+      - "tests/test_diagnostic_*.py"
       - ".github/workflows/build-diagnostic-exe.yml"
   push:
     branches:
@@ -22,19 +24,52 @@ on:
       - "tools/tsun_diagnostic_desktop.py"
       - "tools/tsun_diagnostic_desktop_v158.py"
       - "tools/tsun_diagnostic_desktop_v159.py"
+      - "tools/tsun_diagnostic.py"
       - "tools/tsun_report_upload.py"
+      - "tests/test_diagnostic_*.py"
       - ".github/workflows/build-diagnostic-exe.yml"
 
 permissions:
   contents: write
 
 concurrency:
-  group: windows-diagnostic-${{ github.ref }}
+  group: desktop-diagnostic-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: Build ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: windows-x86_64
+            os: windows-latest
+            kind: windows
+            arch: x86_64
+            asset: TSUN-Local-Diagnostic.exe
+          - id: macos-arm64
+            os: macos-latest
+            kind: macos
+            arch: arm64
+            asset: TSUN-Local-Diagnostic-macOS-arm64.zip
+          - id: macos-x86_64
+            os: macos-15-intel
+            kind: macos
+            arch: x86_64
+            asset: TSUN-Local-Diagnostic-macOS-x86_64.zip
+          - id: linux-x86_64
+            os: ubuntu-24.04
+            kind: linux
+            arch: x86_64
+            asset: TSUN-Local-Diagnostic-Linux-x86_64
+          - id: linux-arm64
+            os: ubuntu-24.04-arm
+            kind: linux
+            arch: arm64
+            asset: TSUN-Local-Diagnostic-Linux-arm64
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out repository
@@ -45,25 +80,56 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install Linux GUI runtime
+        if: matrix.kind == 'linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth tk
+
       - name: Install PyInstaller
-        shell: pwsh
+        shell: bash
+        if: matrix.kind != 'windows'
         run: python -m pip install --disable-pip-version-check pyinstaller
 
-      - name: Validate sources
+      - name: Install PyInstaller on Windows
         shell: pwsh
-        run: |
-          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py tools/tsun_diagnostic_desktop_v158.py tools/tsun_diagnostic_desktop_v159.py
-          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic_desktop_v159 as gui; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION)"
+        if: matrix.kind == 'windows'
+        run: python -m pip install --disable-pip-version-check pyinstaller
 
-      - name: Build portable executable
+      - name: Validate shared sources
+        shell: bash
+        if: matrix.kind != 'windows'
+        run: |
+          python -m py_compile \
+            tools/tsun_dump.py \
+            tools/tsun_diagnostic_gui.py \
+            tools/tsun_report_upload.py \
+            tools/tsun_diagnostic_app.py \
+            tools/tsun_diagnostic_desktop.py \
+            tools/tsun_diagnostic_desktop_v158.py \
+            tools/tsun_diagnostic_desktop_v159.py \
+            tools/tsun_diagnostic.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic as gui; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'asset', gui.platform_release_asset())"
+
+      - name: Validate shared sources on Windows
+        shell: pwsh
+        if: matrix.kind == 'windows'
+        run: |
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py tools/tsun_diagnostic_desktop_v158.py tools/tsun_diagnostic_desktop_v159.py tools/tsun_diagnostic.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic as gui; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'asset', gui.platform_release_asset())"
+
+      - name: Build Windows portable executable
+        if: matrix.kind == 'windows'
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean --onefile --windowed `
             --name TSUN-Local-Diagnostic `
             --paths tools `
-            tools/tsun_diagnostic_desktop_v159.py
+            tools/tsun_diagnostic.py
 
-      - name: Smoke-test executable launch
+      - name: Smoke-test Windows executable
+        if: matrix.kind == 'windows'
         shell: pwsh
         run: |
           $exe = (Resolve-Path "dist/TSUN-Local-Diagnostic.exe").Path
@@ -73,87 +139,183 @@ jobs:
             throw "Executable exited unexpectedly during startup smoke test (exit code $($process.ExitCode))"
           }
           Stop-Process -Id $process.Id -Force
-          Write-Host "Executable launched successfully and remained running for the smoke-test window."
+          Write-Host "Windows GUI launched successfully."
 
-      - name: Create rolling update assets and manifest
-        shell: pwsh
+      - name: Build macOS application
+        if: matrix.kind == 'macos'
+        shell: bash
         run: |
-          $exe = "dist/TSUN-Local-Diagnostic.exe"
-          $py = "dist/tsun_dump.py"
-          if (!(Test-Path $exe)) { throw "Executable was not created" }
+          python -m PyInstaller --noconfirm --clean --windowed \
+            --name "TSUN Local Diagnostic" \
+            --paths tools \
+            tools/tsun_diagnostic.py
+          codesign --force --deep --sign - "dist/TSUN Local Diagnostic.app"
 
-          Copy-Item "tools/tsun_dump.py" $py -Force
-          $exeHash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
-          $pyHash = (Get-FileHash -Algorithm SHA256 $py).Hash.ToLowerInvariant()
-          "$exeHash  TSUN-Local-Diagnostic.exe" | Set-Content -Encoding ascii "dist/TSUN-Local-Diagnostic.exe.sha256"
-          "$pyHash  tsun_dump.py" | Set-Content -Encoding ascii "dist/tsun_dump.py.sha256"
+      - name: Smoke-test macOS application
+        if: matrix.kind == 'macos'
+        shell: bash
+        run: |
+          set -e
+          app_bin="dist/TSUN Local Diagnostic.app/Contents/MacOS/TSUN Local Diagnostic"
+          "$app_bin" --no-update &
+          pid=$!
+          sleep 8
+          if ! kill -0 "$pid" 2>/dev/null; then
+            wait "$pid"
+            exit 1
+          fi
+          kill "$pid" || true
+          wait "$pid" || true
+          echo "macOS GUI launched successfully."
 
-          $dumpVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump; print(tsun_dump.TOOL_VERSION)").Trim()
-          $guiVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_diagnostic_desktop_v159 as gui; print(gui.APP_VERSION)").Trim()
-          $manifest = [ordered]@{
-            schema_version = 1
-            channel = "diagnostic-latest"
-            build_commit = $env:GITHUB_SHA
-            components = [ordered]@{
-              dump = [ordered]@{
-                version = $dumpVersion
-                asset = "tsun_dump.py"
-                sha256 = $pyHash
-              }
-              windows_gui = [ordered]@{
-                version = $guiVersion
-                asset = "TSUN-Local-Diagnostic.exe"
-                sha256 = $exeHash
-              }
-            }
-          }
-          $manifest | ConvertTo-Json -Depth 6 | Set-Content -Encoding utf8 "dist/update.json"
-          Write-Host "tsun_dump.py $dumpVersion SHA256: $pyHash"
-          Write-Host "Windows GUI $guiVersion SHA256: $exeHash"
+      - name: Package macOS application
+        if: matrix.kind == 'macos'
+        shell: bash
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "dist/TSUN Local Diagnostic.app" \
+            "dist/${{ matrix.asset }}"
 
-      - name: Upload workflow artifact
+      - name: Build Linux portable executable
+        if: matrix.kind == 'linux'
+        shell: bash
+        run: |
+          python -m PyInstaller --noconfirm --clean --onefile --windowed \
+            --name "TSUN-Local-Diagnostic-Linux-${{ matrix.arch }}" \
+            --paths tools \
+            tools/tsun_diagnostic.py
+          chmod +x "dist/${{ matrix.asset }}"
+
+      - name: Smoke-test Linux executable
+        if: matrix.kind == 'linux'
+        shell: bash
+        run: |
+          set -e
+          xvfb-run -a "dist/${{ matrix.asset }}" --no-update &
+          pid=$!
+          sleep 8
+          if ! kill -0 "$pid" 2>/dev/null; then
+            wait "$pid"
+            exit 1
+          fi
+          kill "$pid" || true
+          wait "$pid" || true
+          echo "Linux GUI launched successfully."
+
+      - name: Upload platform artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TSUN-Local-Diagnostic-Windows
-          path: |
-            dist/TSUN-Local-Diagnostic.exe
-            dist/TSUN-Local-Diagnostic.exe.sha256
-            dist/tsun_dump.py
-            dist/tsun_dump.py.sha256
-            dist/update.json
+          name: diagnostic-${{ matrix.id }}
+          path: dist/${{ matrix.asset }}
           if-no-files-found: error
           retention-days: 30
 
+  publish:
+    name: Publish rolling desktop diagnostic
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download all platform packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: diagnostic-*
+          path: release
+          merge-multiple: true
+
+      - name: Create checksums and multi-platform update manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp tools/tsun_dump.py release/tsun_dump.py
+          python - <<'PY'
+          from __future__ import annotations
+
+          import hashlib
+          import json
+          from pathlib import Path
+          import os
+          import sys
+
+          sys.path.insert(0, "tools")
+          import tsun_dump
+          import tsun_diagnostic as gui
+
+          release = Path("release")
+          assets = {
+              "dump": "tsun_dump.py",
+              "windows_gui": gui.ASSET_WINDOWS,
+              "macos_arm64_gui": gui.ASSET_MACOS_ARM64,
+              "macos_x86_64_gui": gui.ASSET_MACOS_X86_64,
+              "linux_x86_64_gui": gui.ASSET_LINUX_X86_64,
+              "linux_arm64_gui": gui.ASSET_LINUX_ARM64,
+          }
+
+          components = {}
+          for component, asset in assets.items():
+              path = release / asset
+              if not path.is_file():
+                  raise SystemExit(f"Missing release asset: {asset}")
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              (release / f"{asset}.sha256").write_text(
+                  f"{digest}  {asset}\n", encoding="ascii"
+              )
+              components[component] = {
+                  "version": tsun_dump.TOOL_VERSION if component == "dump" else gui.APP_VERSION,
+                  "asset": asset,
+                  "sha256": digest,
+              }
+
+          manifest = {
+              "schema_version": 1,
+              "channel": "diagnostic-latest",
+              "build_commit": os.environ["GITHUB_SHA"],
+              "components": components,
+          }
+          (release / "update.json").write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          print(json.dumps(manifest, indent=2))
+          PY
+
       - name: Publish dedicated diagnostic release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        shell: pwsh
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "diagnostic-latest"
+          set -euo pipefail
+          tag="diagnostic-latest"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -f $tag $env:GITHUB_SHA
+          git tag -f "$tag" "$GITHUB_SHA"
           git push --force origin "refs/tags/$tag"
 
-          gh release view $tag --repo "${{ github.repository }}" *> $null
-          if ($LASTEXITCODE -ne 0) {
-            gh release create $tag `
-              --verify-tag `
-              --title "TSUN Local Diagnostic — latest" `
-              --notes "Rolling prerelease for the standalone TSUN Local read-only diagnostic tool. Windows EXE and Python dumper self-update from verified SHA-256 assets on this release." `
-              --prerelease `
+          notes='Rolling prerelease for TSUN Local Diagnostic. The same read-only desktop interface is built from one shared entry point for Windows, macOS (Apple Silicon and Intel) and Linux (x86_64 and arm64). Windows keeps verified in-place auto-update; macOS/Linux check the same rolling channel and report when a new package is available. The Python dumper remains available for advanced users.'
+
+          if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit "$tag" \
+              --title "TSUN Local Diagnostic — latest" \
+              --notes "$notes" \
+              --prerelease \
               --repo "${{ github.repository }}"
-          }
+          else
+            gh release create "$tag" \
+              --verify-tag \
+              --title "TSUN Local Diagnostic — latest" \
+              --notes "$notes" \
+              --prerelease \
+              --repo "${{ github.repository }}"
+          fi
 
-          gh release upload $tag `
-            "dist/TSUN-Local-Diagnostic.exe" `
-            "dist/TSUN-Local-Diagnostic.exe.sha256" `
-            "dist/tsun_dump.py" `
-            "dist/tsun_dump.py.sha256" `
-            "dist/update.json" `
-            --clobber `
-            --repo "${{ github.repository }}"
-
-          Write-Host "Published self-updating diagnostic assets to the dedicated $tag release."
+          gh release upload "$tag" release/* --clobber --repo "${{ github.repository }}"
+          echo "Published Windows, macOS, Linux and Python diagnostic assets to $tag."
