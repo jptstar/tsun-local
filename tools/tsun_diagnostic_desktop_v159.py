@@ -15,8 +15,16 @@ import tsun_diagnostic_desktop_v158 as previous
 APP_NAME = previous.APP_NAME
 APP_VERSION = "1.5.9"
 MAX_DEVICE_ROWS = previous.MAX_DEVICE_ROWS
+PROJECT_URL = previous.legacy.PROJECT_URL
+COPYRIGHT_TEXT = previous.legacy.COPYRIGHT_TEXT
 REPORTS_REPOSITORY_URL = "https://github.com/jptstar/tsun-local-reports"
 SUNOLOGY_PLAY2_MODEL = "Sunology PLAY 2"
+
+# Preserve the public helpers introduced in 1.5.8 so tests and callers can keep
+# using the current desktop module directly.
+load_upload_profile = previous.load_upload_profile
+save_upload_profile = previous.save_upload_profile
+filter_microinverter_models = previous.filter_microinverter_models
 
 # Keep the portable self-updater/version checks aligned with this wrapper.
 previous.APP_VERSION = APP_VERSION
