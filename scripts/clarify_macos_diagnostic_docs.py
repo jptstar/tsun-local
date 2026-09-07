@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Make desktop-download choices and macOS Gatekeeper guidance unambiguous.
 
-This runs after sync_diagnostic_docs.py. It deliberately keeps every existing
-release URL and documentation path unchanged so old forum/HACF links continue
-to work.
+This deliberately keeps every existing release URL and documentation path
+unchanged so old forum/HACF links continue to work.
 """
 
 from __future__ import annotations
@@ -50,6 +49,7 @@ def clarify_markdown_platform_labels() -> None:
 def clarify_french_readme() -> None:
     path = DOCS / "README_FR.md"
     text = path.read_text(encoding="utf-8")
+    text = text.replace("macOS — Mac Intel (older Macs)", "macOS — Mac Intel (anciens Mac)")
 
     chooser = (
         "> **Quel Mac choisir ?**  \n"
@@ -65,7 +65,7 @@ def clarify_french_readme() -> None:
         )
 
     text = re.sub(
-        r"Sous macOS, l’application est signée de manière ad hoc mais pas encore notarifiée Apple :.*?Sous Linux,",
+        r"Sous macOS, l’application (?:est signée de manière ad hoc mais pas encore notarifiée Apple :|n’est \*\*pas encore notarifiée par Apple\*\*\.).*?(?=Sous Linux,)",
         (
             "Sous macOS, l’application n’est **pas encore notarifiée par Apple**. "
             "Si l’alerte **« Apple n’a pas pu confirmer que TSUN Local Diagnostic ne contenait pas de logiciel malveillant »** apparaît, "
@@ -74,7 +74,7 @@ def clarify_french_readme() -> None:
             "Apple indique que cette option reste disponible environ une heure après la tentative d’ouverture. "
             "Si macOS indique au contraire que l’app **« endommagera votre Mac »** ou détecte explicitement un logiciel malveillant, "
             "**ne contournez pas l’alerte**. "
-            "[Procédure Apple officielle](https://support.apple.com/fr-fr/guide/mac-help/mh40616/mac). Sous Linux,"
+            "[Procédure Apple officielle](https://support.apple.com/fr-fr/guide/mac-help/mh40616/mac). "
         ),
         text,
         count=1,
@@ -104,7 +104,7 @@ def clarify_english_markdown() -> None:
                     break
 
         text = re.sub(
-            r"The macOS application(?:s| packages)? (?:is|are) currently ad-hoc signed but (?:is|are) not (?:currently )?Apple-notarized\..*?(?=\n\n|On Linux|Linux downloads)",
+            r"The macOS (?:application|applications|packages) (?:is|are) (?:currently )?ad-hoc signed but (?:(?:is|are) )?not (?:currently )?Apple-notarized\..*?(?=\n\n|On Linux|Linux downloads)",
             (
                 "The macOS packages are ad-hoc signed but **not yet notarized by Apple**. "
                 "If macOS says **“Apple cannot verify that this app is free of malware”**, click **Done**, then open "
@@ -130,12 +130,6 @@ def clarify_test_page() -> None:
     ).replace(
         ">macOS Intel<",
         ">Mac Intel (older Macs)<",
-    )
-
-    # Keep the user-facing labels explicit even if an earlier edit already changed them.
-    text = text.replace(
-        ">Mac M1 / M2 / M3 / M4… (Apple Silicon)<",
-        ">Mac M1 / M2 / M3 / M4… (Apple Silicon)<",
     )
 
     old_block = re.compile(
