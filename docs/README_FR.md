@@ -159,25 +159,46 @@ Interrogation locale directe uniquement.
 
 TSUN Local propose un diagnostic matériel respectueux de la confidentialité et **strictement en lecture seule** pour les modèles non listés et les problèmes de communication.
 
-### Windows — solution la plus simple
+### Application de bureau — Windows, macOS et Linux
 
-**⬇️ [Télécharger `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
+La **même interface TSUN Local Diagnostic** est maintenant disponible sur Windows, macOS et Linux. Tous les paquets utilisent le même moteur matériel **strictement en lecture seule**.
 
-Aucune installation et aucun environnement Python ne sont nécessaires. L’application portable utilise le même moteur de diagnostic en lecture seule, découvre les loggers TSUN, teste les protocoles **1511 / 02B0 / 1097** et génère un rapport JSON anonymisé.
+| Plateforme | Téléchargement | Contrôle |
+|---|---|---|
+| Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
+| macOS Apple Silicon | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS Intel | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
+| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
+| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Pour diagnostiquer une perte de communication ou des entités indisponibles, **désactivez l’entrée de configuration TSUN Local concernée avant de lancer la capture**, puis réactivez-la ensuite.
+Versions actuelles : interface **1.5.11** · moteur de dump **2.7.4**.
 
-### macOS / Linux / utilisateurs avancés
+Le lien Windows historique reste volontairement inchangé afin que les anciens messages et tutoriels continuent de fonctionner.
 
-**⬇️ [Télécharger `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — Python 3.10+.
+Le parcours est identique sur les trois systèmes : **1 → 2 → 3 → 4**.
+
+1. **Désactiver TSUN Local** pour le logger concerné.
+2. **Lancer le diagnostic**.
+3. **Envoi direct du rapport** — recommandé, avec consentement explicite obligatoire.
+4. **Envoi manuel par e-mail** — optionnel, uniquement en secours.
+
+Le nom/pseudonyme et jusqu’à 10 modèles de micro-onduleurs avec leurs quantités peuvent être mémorisés localement et restent modifiables. Le consentement n’est jamais mémorisé. Après un envoi réussi, l’application affiche l’identifiant `TSL-...` et un lien sécurisé permettant au testeur de voir exactement le rapport anonymisé envoyé, sans accès au dépôt privé.
+
+Test hors domicile : utilisez exactement `89:89:89:89` comme IP logger et `89898989` comme Monitor SN. Ce mode est explicitement synthétique et ne contacte aucun appareil.
+
+Sous macOS, l’application est signée de manière ad hoc mais pas encore notarifiée Apple : au premier lancement, Finder → clic droit → **Ouvrir** peut être nécessaire. Sous Linux, le fichier téléchargé peut nécessiter `chmod +x` une fois.
+
+**[Release diagnostic stable](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · 📋 **[Protocole de validation](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)**
+
+### Alternative Python / ligne de commande
+
+[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) reste disponible pour Python 3.10+ et les utilisateurs avancés :
 
 ```bash
 python3 tsun_dump.py --full
 ```
 
-Sous Windows, le script reste utilisable avec `py tsun_dump.py --full` si vous le préférez.
-
-📚 **[Guide de l’outil Hardware Validation Dump](HARDWARE_DUMP.md)**
+Sous Windows, `py tsun_dump.py --full` reste également pris en charge.
 
 ### Sunology PLAY2
 
