@@ -93,7 +93,7 @@ class Release141FieldUpdateTests(unittest.TestCase):
         self.assertRegex(version, r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$")
         if "-beta." in version:
             self.assertNotIn(f"<strong>{version}</strong>", readme)
-            self.assertIn("<strong>1.5.4</strong>", readme)
+            self.assertIn("<strong>1.6.0</strong>", readme)
         else:
             self.assertIn(f"<strong>{version}</strong>", readme)
 
