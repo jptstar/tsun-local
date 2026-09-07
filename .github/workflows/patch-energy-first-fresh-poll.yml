@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[energy-first-fresh-poll-patched]') }}
+    if: "${{ !contains(github.event.head_commit.message, '[energy-first-fresh-poll-patched]') }}"
     runs-on: ubuntu-latest
     steps:
       - name: Check out branch
