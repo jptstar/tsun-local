@@ -13,7 +13,7 @@ import tsun_diagnostic_desktop as desktop  # noqa: E402
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.4")
+        self.assertEqual(desktop.APP_VERSION, "1.5.5")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -39,6 +39,47 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
         self.assertIn("optional", app.base._TEXT["en"]["report_hint"].lower())
         self.assertTrue(app._TEXT["fr"]["title"].startswith("3 ·"))
         self.assertTrue(app._TEXT["en"]["title"].startswith("3 ·"))
+
+    def test_tsun_catalogue_contains_current_and_titan_models_without_duplicates(self) -> None:
+        models = app.TSUN_MICROINVERTER_MODELS
+        self.assertEqual(len(models), len(set(models)))
+        for expected in (
+            "TSOL-MS300",
+            "TSOL-MX500",
+            "TSOL-MS800",
+            "TSOL-MS2000",
+            "TSOL-MX3300D",
+            "TSOL-MX3300D-T",
+            "TSOL-MS3000",
+            "TSOL-MP2250",
+            "TSOL-MP3000",
+            "TSOL-MP6000",
+            "TSOL-MG800",
+            "TSOL-MG3200",
+            "TSOL-ML500",
+        ):
+            self.assertIn(expected, models)
+        self.assertLessEqual(len(models), 50)
+
+    def test_multiple_catalogue_models_keep_independent_quantities(self) -> None:
+        devices = app.build_selected_devices(
+            [
+                ("TSOL-MX500", True, "2"),
+                ("TSOL-MS800", False, "9"),
+                ("TSOL-MP3000", True, 3),
+            ]
+        )
+        self.assertEqual(
+            devices,
+            [
+                {"model": "TSOL-MX500", "quantity": 2},
+                {"model": "TSOL-MP3000", "quantity": 3},
+            ],
+        )
+
+    def test_completed_upload_exposes_close_button_copy(self) -> None:
+        self.assertIn("fermer", app._TEXT["fr"]["complete_close"].lower())
+        self.assertIn("close", app._TEXT["en"]["complete_close"].lower())
 
 
 if __name__ == "__main__":
