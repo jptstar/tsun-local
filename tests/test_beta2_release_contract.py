@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Release-contract tests for TSUN Local 1.6.0."""
+"""Release-contract tests for the TSUN Local 1.6 release family."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ class Release160ContractTests(unittest.TestCase):
 
     def test_manifest_version(self) -> None:
         manifest = json.loads((ROOT / "custom_components/tsun_local/manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "1.6.0")
+        self.assertRegex(manifest["version"], r"^1\.6\.\d+(?:-beta\.\d+)?$")
 
     def test_failed_http_signal_is_not_kept_stale(self) -> None:
         init_source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8")
