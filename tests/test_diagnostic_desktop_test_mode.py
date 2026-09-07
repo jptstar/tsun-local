@@ -7,7 +7,7 @@ import unittest
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
-import tsun_diagnostic_desktop_v159 as desktop  # noqa: E402
+import tsun_diagnostic as desktop  # noqa: E402
 
 
 class DiagnosticDesktopTestModeTests(unittest.TestCase):
@@ -22,7 +22,7 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         self.assertIn("No logger or microinverter was contacted", source)
 
     def test_published_report_links_are_public_worker_links_only(self) -> None:
-        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        source = Path(desktop.ui.__file__).read_text(encoding="utf-8")
         self.assertIn('get("view_url")', source)
         self.assertIn("webbrowser.open", source)
         self.assertIn("open_published", source)
@@ -39,9 +39,31 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         )
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.10")
-        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.10")
-        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.10")
+        self.assertEqual(desktop.APP_VERSION, "1.5.11")
+        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.11")
+        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.11")
+
+    def test_cross_platform_update_components_are_explicit(self) -> None:
+        self.assertEqual(
+            desktop.platform_update_component(system="Windows", machine="AMD64"),
+            "windows_gui",
+        )
+        self.assertEqual(
+            desktop.platform_update_component(system="Darwin", machine="arm64"),
+            "macos_arm64_gui",
+        )
+        self.assertEqual(
+            desktop.platform_update_component(system="Darwin", machine="x86_64"),
+            "macos_x86_64_gui",
+        )
+        self.assertEqual(
+            desktop.platform_update_component(system="Linux", machine="x86_64"),
+            "linux_x86_64_gui",
+        )
+        self.assertEqual(
+            desktop.platform_update_component(system="Linux", machine="aarch64"),
+            "linux_arm64_gui",
+        )
 
 
 if __name__ == "__main__":
