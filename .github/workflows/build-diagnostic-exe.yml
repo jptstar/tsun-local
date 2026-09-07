@@ -149,7 +149,71 @@ jobs:
             --name "TSUN Local Diagnostic" \
             --paths tools \
             tools/tsun_diagnostic.py
-          codesign --force --deep --sign - "dist/TSUN Local Diagnostic.app"
+
+      - name: Detect Apple signing and notarization credentials
+        if: matrix.kind == 'macos'
+        shell: bash
+        env:
+          CERT_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          CERT_P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
+          NOTARY_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          if [[ -n "$CERT_P12_BASE64" && -n "$CERT_P12_PASSWORD" && -n "$NOTARY_KEY_P8_BASE64" && -n "$NOTARY_KEY_ID" && -n "$NOTARY_ISSUER_ID" ]]; then
+            echo "MACOS_NOTARIZATION_READY=true" >> "$GITHUB_ENV"
+            echo "Apple Developer ID signing and notarization are enabled for this job."
+          else
+            echo "MACOS_NOTARIZATION_READY=false" >> "$GITHUB_ENV"
+            echo "Apple signing secrets are not available. This macOS build is CI-only and will not be published from main."
+          fi
+
+      - name: Import Apple Developer ID certificate
+        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY == 'true'
+        shell: bash
+        env:
+          CERT_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
+          CERT_P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          CERT_PATH="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/tsun-local-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          export CERT_PATH CERT_P12_BASE64
+          python - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+          Path(os.environ["CERT_PATH"]).write_bytes(base64.b64decode(os.environ["CERT_P12_BASE64"]))
+          PY
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F '"' '/Developer ID Application/{print $2; exit}')"
+          if [[ -z "$SIGNING_IDENTITY" ]]; then
+            echo "No Developer ID Application identity found in imported certificate." >&2
+            exit 1
+          fi
+          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+          echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "Imported signing identity: $SIGNING_IDENTITY"
+
+      - name: Sign macOS application with Developer ID
+        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="dist/TSUN Local Diagnostic.app"
+          codesign --force --deep --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+
+      - name: Ad-hoc sign macOS CI build
+        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY != 'true'
+        shell: bash
+        run: codesign --force --deep --sign - "dist/TSUN Local Diagnostic.app"
 
       - name: Smoke-test macOS application
         if: matrix.kind == 'macos'
@@ -167,6 +231,38 @@ jobs:
           kill "$pid" || true
           wait "$pid" || true
           echo "macOS GUI launched successfully."
+
+      - name: Notarize and staple macOS application
+        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY == 'true'
+        shell: bash
+        env:
+          NOTARY_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
+          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          app="dist/TSUN Local Diagnostic.app"
+          key_path="$RUNNER_TEMP/AuthKey_${NOTARY_KEY_ID}.p8"
+          submit_zip="$RUNNER_TEMP/TSUN-Local-Diagnostic-notary.zip"
+          export NOTARY_KEY_P8_BASE64 key_path
+          python - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+          Path(os.environ["key_path"]).write_bytes(base64.b64decode(os.environ["NOTARY_KEY_P8_BASE64"]))
+          PY
+          chmod 600 "$key_path"
+          ditto -c -k --sequesterRsrc --keepParent "$app" "$submit_zip"
+          xcrun notarytool submit "$submit_zip" \
+            --key "$key_path" \
+            --key-id "$NOTARY_KEY_ID" \
+            --issuer "$NOTARY_ISSUER_ID" \
+            --wait
+          xcrun stapler staple "$app"
+          xcrun stapler validate "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl --assess --type execute --verbose=4 "$app"
+          echo "MACOS_NOTARIZED=true" >> "$GITHUB_ENV"
 
       - name: Package macOS application
         if: matrix.kind == 'macos'
@@ -203,6 +299,7 @@ jobs:
           echo "Linux GUI launched successfully."
 
       - name: Upload platform artifact
+        if: ${{ matrix.kind != 'macos' || env.MACOS_NOTARIZATION_READY == 'true' || github.event_name != 'push' || github.ref != 'refs/heads/main' }}
         uses: actions/upload-artifact@v4
         with:
           name: diagnostic-${{ matrix.id }}
@@ -225,7 +322,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Download all platform packages
+      - name: Download publishable platform packages
         uses: actions/download-artifact@v4
         with:
           pattern: diagnostic-*
@@ -259,12 +356,16 @@ jobs:
               "linux_x86_64_gui": gui.ASSET_LINUX_X86_64,
               "linux_arm64_gui": gui.ASSET_LINUX_ARM64,
           }
+          required = {"dump", "windows_gui", "linux_x86_64_gui", "linux_arm64_gui"}
 
           components = {}
           for component, asset in assets.items():
               path = release / asset
               if not path.is_file():
-                  raise SystemExit(f"Missing release asset: {asset}")
+                  if component in required:
+                      raise SystemExit(f"Missing required release asset: {asset}")
+                  print(f"Skipping unpublished optional component: {component}")
+                  continue
               digest = hashlib.sha256(path.read_bytes()).hexdigest()
               (release / f"{asset}.sha256").write_text(
                   f"{digest}  {asset}\n", encoding="ascii"
@@ -300,7 +401,11 @@ jobs:
           git tag -f "$tag" "$GITHUB_SHA"
           git push --force origin "refs/tags/$tag"
 
-          notes='Rolling prerelease for TSUN Local Diagnostic. The same read-only desktop interface is built from one shared entry point for Windows, macOS (Apple Silicon and Intel) and Linux (x86_64 and arm64). Windows keeps verified in-place auto-update; macOS/Linux check the same rolling channel and report when a new package is available. The Python dumper remains available for advanced users.'
+          if [[ -f "release/TSUN-Local-Diagnostic-macOS-arm64.zip" && -f "release/TSUN-Local-Diagnostic-macOS-x86_64.zip" ]]; then
+            notes='Rolling prerelease for TSUN Local Diagnostic. The same read-only desktop interface is published for Windows, notarized macOS (Apple Silicon and Intel) and Linux (x86_64 and arm64). Windows keeps verified in-place auto-update; macOS/Linux check the same rolling channel and report when a new package is available. The Python dumper remains available for advanced users.'
+          else
+            notes='Rolling prerelease for TSUN Local Diagnostic. Windows and Linux packages are published normally. macOS public packages are temporarily withheld until Apple Developer ID signing and notarization are configured, so users are not asked to bypass Gatekeeper security warnings. The stable macOS filenames are reserved and will return at the same URLs once notarization is enabled.'
+          fi
 
           if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             gh release edit "$tag" \
@@ -317,5 +422,14 @@ jobs:
               --repo "${{ github.repository }}"
           fi
 
+          if [[ ! -f "release/TSUN-Local-Diagnostic-macOS-arm64.zip" ]]; then
+            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-arm64.zip" -y --repo "${{ github.repository }}" 2>/dev/null || true
+            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-arm64.zip.sha256" -y --repo "${{ github.repository }}" 2>/dev/null || true
+          fi
+          if [[ ! -f "release/TSUN-Local-Diagnostic-macOS-x86_64.zip" ]]; then
+            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-x86_64.zip" -y --repo "${{ github.repository }}" 2>/dev/null || true
+            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256" -y --repo "${{ github.repository }}" 2>/dev/null || true
+          fi
+
           gh release upload "$tag" release/* --clobber --repo "${{ github.repository }}"
-          echo "Published Windows, macOS, Linux and Python diagnostic assets to $tag."
+          echo "Published safe desktop diagnostic assets to $tag."

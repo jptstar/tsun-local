@@ -30,18 +30,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Clarify Mac and Linux diagnostic documentation
+      - name: Apply safe public macOS documentation policy
         run: python scripts/clarify_macos_diagnostic_docs.py
 
       - name: Verify stable links and generated documentation
         run: |
           python -m py_compile scripts/clarify_macos_diagnostic_docs.py
           grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
-          grep -q 'TSUN-Local-Diagnostic-macOS-arm64.zip' docs/HARDWARE_DUMP.md
+          grep -q 'Public download paused' README.md
           grep -q 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
           grep -q 'Mac M1 / M2 / M3 / M4' docs/test-your-inverter.html
-          grep -q 'Mac M1 / M2 / M3 / M4' docs/README_FR.md
-          grep -q 'Ouvrir quand même' docs/README_FR.md
+          grep -q 'Apple validation in progress' docs/test-your-inverter.html
+          grep -q 'Téléchargement public suspendu' docs/README_FR.md
+          grep -q 'notarisation Apple' docs/README_FR.md
+          if grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip' docs/test-your-inverter.html; then
+            echo 'Public test page must not expose an unnotarized Mac download.' >&2
+            exit 1
+          fi
           test "$(grep -c 'Mac &amp; Linux diagnostic →' docs/index.html)" -eq 1
 
       - name: Publish synchronized docs branch
@@ -63,6 +68,6 @@ jobs:
             docs/README_*.md \
             docs/index.html \
             docs/test-your-inverter.html
-          git commit -m "Clarify Mac diagnostic downloads and Gatekeeper steps"
+          git commit -m "Pause public Mac downloads pending Apple notarization"
           git push --force origin "$branch"
           echo "Synchronized documentation published to $branch for pull-request validation."
