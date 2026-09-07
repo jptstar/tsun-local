@@ -60,7 +60,6 @@ jobs:
                   "M1, M2, M3, M4",
                   "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip",
                   "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip",
-                  "Open Anyway",
               ],
               "docs/README_FR.md": [
                   "Quel Mac choisir ?",
