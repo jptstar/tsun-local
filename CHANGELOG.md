@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.1-beta.4] - 2026-09-07
+
+### Fixed
+
+- Preserve the last valid logger Wi-Fi signal when a periodic local HTTP read temporarily fails instead of publishing a false 0%.
+- Retry logger RSSI once after the first successful protocol refresh when startup metadata did not expose a signal.
+- Accept logger RSSI firmware variants in strict priority order: cover_sta_rssi, sta_rssi, wifi_rssi, then wifi_signal.
+
+### Retained
+
+- Keep 1511, 02B0 and 1097 persistent-session communication resilience, bounded reconnect/retry, per-logger FIFO and adaptive polling unchanged.
+- Keep beta.3 daily-energy restoration and local midnight rollover behavior unchanged.
+- Keep all validated register coverage unchanged and remain local/read-only.
+
+### Validation
+
+- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest before publication.
+
 ## [1.6.0] - 2026-09-04
 
 ### Added
