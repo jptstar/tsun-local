@@ -13,7 +13,7 @@ import tsun_diagnostic_desktop as desktop  # noqa: E402
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.5")
+        self.assertEqual(desktop.APP_VERSION, "1.5.6")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -80,6 +80,11 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_completed_upload_exposes_close_button_copy(self) -> None:
         self.assertIn("fermer", app._TEXT["fr"]["complete_close"].lower())
         self.assertIn("close", app._TEXT["en"]["complete_close"].lower())
+
+    def test_footer_exposes_jptstar_and_github_project_link(self) -> None:
+        self.assertIn("@jptstar", desktop.COPYRIGHT_TEXT)
+        self.assertIn("GitHub", desktop.COPYRIGHT_TEXT)
+        self.assertEqual(desktop.PROJECT_URL, "https://github.com/jptstar/tsun-local")
 
 
 if __name__ == "__main__":
