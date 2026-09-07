@@ -166,10 +166,14 @@ La **même interface TSUN Local Diagnostic** est maintenant disponible sur Windo
 | Plateforme | Téléchargement | Contrôle |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS Apple Silicon | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS Intel | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
+| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS — Mac Intel (anciens Mac) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
+
+> **Quel Mac choisir ?**  
+> • **Mac avec une puce Apple M1, M2, M3, M4 ou plus récente** → choisissez **Mac M1 / M2 / M3 / M4… (Apple Silicon)**.  
+> • **Mac dont  → À propos de ce Mac indique Intel** → choisissez **Mac Intel**.
 
 Versions actuelles : interface **1.5.11** · moteur de dump **2.7.4**.
 
@@ -186,7 +190,7 @@ Le nom/pseudonyme et jusqu’à 10 modèles de micro-onduleurs avec leurs quanti
 
 Test hors domicile : utilisez exactement `89:89:89:89` comme IP logger et `89898989` comme Monitor SN. Ce mode est explicitement synthétique et ne contacte aucun appareil.
 
-Sous macOS, l’application est signée de manière ad hoc mais pas encore notarifiée Apple : au premier lancement, Finder → clic droit → **Ouvrir** peut être nécessaire. Sous Linux, le fichier téléchargé peut nécessiter `chmod +x` une fois.
+Sous macOS, l’application n’est **pas encore notarifiée par Apple**. Si l’alerte **« Apple n’a pas pu confirmer que TSUN Local Diagnostic ne contenait pas de logiciel malveillant »** apparaît, cliquez **Terminé**, puis ouvrez ** → Réglages Système → Confidentialité et sécurité**, faites défiler jusqu’à **Sécurité**, cliquez **Ouvrir quand même**, authentifiez-vous puis confirmez **Ouvrir**. Apple indique que cette option reste disponible environ une heure après la tentative d’ouverture. Si macOS indique au contraire que l’app **« endommagera votre Mac »** ou détecte explicitement un logiciel malveillant, **ne contournez pas l’alerte**. [Procédure Apple officielle](https://support.apple.com/fr-fr/guide/mac-help/mh40616/mac). Sous Linux, le fichier téléchargé peut nécessiter `chmod +x` une fois.
 
 **[Release diagnostic stable](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · 📋 **[Protocole de validation](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)**
 

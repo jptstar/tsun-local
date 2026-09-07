@@ -9,8 +9,8 @@ The document path is intentionally kept stable so links published in older forum
 The same shared Tk desktop interface is packaged for:
 
 - Windows x86_64 — `TSUN-Local-Diagnostic.exe`
-- macOS Apple Silicon — `TSUN-Local-Diagnostic-macOS-arm64.zip`
-- macOS Intel — `TSUN-Local-Diagnostic-macOS-x86_64.zip`
+- macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) — `TSUN-Local-Diagnostic-macOS-arm64.zip`
+- macOS — Mac Intel (older Macs) — `TSUN-Local-Diagnostic-macOS-x86_64.zip`
 - Linux x86_64 — `TSUN-Local-Diagnostic-Linux-x86_64`
 - Linux arm64 — `TSUN-Local-Diagnostic-Linux-arm64`
 
@@ -46,10 +46,10 @@ Before a desktop diagnostic update is considered published:
 - [ ] Hassfest validation passes.
 - [ ] Windows PyInstaller build succeeds.
 - [ ] Windows GUI remains running during the startup smoke test.
-- [ ] macOS Apple Silicon application build succeeds.
-- [ ] macOS Apple Silicon GUI remains running during the startup smoke test.
-- [ ] macOS Intel application build succeeds.
-- [ ] macOS Intel GUI remains running during the startup smoke test.
+- [ ] macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) application build succeeds.
+- [ ] macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) GUI remains running during the startup smoke test.
+- [ ] macOS — Mac Intel (older Macs) application build succeeds.
+- [ ] macOS — Mac Intel (older Macs) GUI remains running during the startup smoke test.
 - [ ] Linux x86_64 portable build succeeds.
 - [ ] Linux x86_64 GUI remains running under the virtual-display smoke test.
 - [ ] Linux arm64 portable build succeeds.
