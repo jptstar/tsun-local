@@ -2,6 +2,28 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.1-beta.5] - 2026-09-08
+
+### Fixed
+
+- Make Home Assistant local midnight the only daily-energy day boundary for 1511, 02B0 and 1097.
+- Ignore logger/micro-inverter daily-counter resets at other times, including the PLAY2 / 1097 reset observed around 18:00.
+- Prefer monotonic `*_energy_total` deltas to keep `*_energy_today` continuous; use the raw daily counter only as a fallback.
+- Persist daily tracking references in Home Assistant state attributes so same-day HA restarts can recover production missed during the restart.
+- Preserve the 1511 / 02B0 behavior where yesterday's daily value can remain in hardware overnight and reset only when the inverter wakes.
+- Remove the 1097-specific "second lower sample means a real reset" heuristic.
+
+### Recovery behavior
+
+- A restart a few minutes after midnight can recover from the total-energy reference written by the midnight rollover.
+- A same-day restart can recover missed energy from the monotonic total counter when beta.5 tracking metadata already exists.
+- A long HA outage spanning midnight cannot always be split mathematically between the two days; beta.5 uses the first fresh hardware daily value as a best-effort fallback instead of inventing a split.
+
+### Validation
+
+- Add regression tests for 1511/02B0 sunrise reset, PLAY2/1097 18:00 reset, same-day HA restart, restart just after midnight and total-counter fallback.
+- Keep protocol register maps, read-only access, communication resilience, adaptive polling and logger Wi-Fi corrections unchanged.
+
 ## [1.6.1-beta.4] - 2026-09-07
 
 ### Fixed

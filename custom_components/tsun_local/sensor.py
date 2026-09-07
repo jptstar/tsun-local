@@ -42,6 +42,7 @@ from . import TsunConfigEntry
 from .alarm_catalog import active_alarm_state, alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
+from .daily_energy import DailyEnergyTracker, energy_value
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1030,7 +1031,11 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
         super().__init__(coordinator)
         self.entity_description = description
         self._restored_energy_value: float | None = None
-        self._daily_reset_override = False
+        self._daily_tracker = (
+            DailyEnergyTracker(dt_util.now().date())
+            if self._is_daily_energy
+            else None
+        )
         logger_sn = str(entry.data[CONF_LOGGER_SN])
         self._label_serial_number = logger_sn
         self._attr_unique_id = f"{logger_sn}_{description.key}"
@@ -1063,6 +1068,31 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
     def _is_daily_energy(self) -> bool:
         return self._is_energy and self.entity_description.key.endswith("_energy_today")
 
+    @property
+    def _daily_total_key(self) -> str | None:
+        if not self._is_daily_energy:
+            return None
+        return self.entity_description.key.removesuffix("_today") + "_total"
+
+    def _current_daily_inputs(
+        self, *, require_online: bool
+    ) -> tuple[float | None, float | None]:
+        """Return current raw daily and total values for this channel."""
+        if require_online and not bool(
+            self.coordinator.data.get("communication_online", False)
+        ):
+            return None, None
+        raw_daily = energy_value(
+            self.coordinator.data.get(self.entity_description.key)
+        )
+        total_key = self._daily_total_key
+        total_energy = (
+            energy_value(self.coordinator.data.get(total_key))
+            if total_key is not None
+            else None
+        )
+        return raw_daily, total_energy
+
     @override
     async def async_added_to_hass(self) -> None:
         """Restore energy counters and register the local midnight rollover."""
@@ -1070,7 +1100,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
         if not self._is_energy:
             return
 
-        if self._is_daily_energy:
+        if self._daily_tracker is not None:
             self.async_on_remove(
                 async_track_time_change(
                     self.hass,
@@ -1081,43 +1111,87 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
                 )
             )
 
+            last_state = await self.async_get_last_state()
+            state_value: float | None = None
+            state_date = None
+            restored_raw = None
+            restored_total = None
+            if last_state is not None and last_state.state not in (
+                STATE_UNKNOWN,
+                STATE_UNAVAILABLE,
+            ):
+                state_value = energy_value(last_state.state)
+                state_date = dt_util.as_local(last_state.last_updated).date()
+                restored_raw = energy_value(
+                    last_state.attributes.get("raw_daily_energy")
+                )
+                restored_total = energy_value(
+                    last_state.attributes.get("tracking_total_energy")
+                )
+
+            current_online = bool(
+                self.coordinator.data.get("communication_online", False)
+            )
+            current_raw, current_total = self._current_daily_inputs(
+                require_online=True
+            )
+            self._daily_tracker.restore(
+                current_date=dt_util.now().date(),
+                state_value=state_value,
+                state_date=state_date,
+                restored_raw_daily=restored_raw,
+                restored_total_energy=restored_total,
+                current_raw_daily=current_raw,
+                current_total_energy=current_total,
+                current_online=current_online,
+            )
+            self._restored_energy_value = self._daily_tracker.value
+            return
+
         key = self.entity_description.key
         if key in self.coordinator.data:
             return
         last_state = await self.async_get_last_state()
-        if last_state is None or last_state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+        if last_state is None or last_state.state in (
+            STATE_UNKNOWN,
+            STATE_UNAVAILABLE,
+        ):
             return
-        try:
-            value = float(last_state.state)
-        except (TypeError, ValueError):
-            return
-
-        if self._is_daily_energy:
-            last_local_date = dt_util.as_local(last_state.last_updated).date()
-            if last_local_date != dt_util.now().date():
-                value = 0.0
-                self._daily_reset_override = True
-                self._restored_energy_value = value
+        self._restored_energy_value = energy_value(last_state.state)
 
     @callback
     def _async_midnight_rollover(self, _now: datetime) -> None:
-        """Reset daily energy locally at midnight, even while the inverter sleeps."""
-        self._daily_reset_override = True
+        """Reset daily energy at Home Assistant local midnight only."""
+        if self._daily_tracker is None:
+            return
+        raw_daily, total_energy = self._current_daily_inputs(
+            require_online=False
+        )
+        self._daily_tracker.reset_for_date(
+            dt_util.now().date(),
+            raw_daily=raw_daily,
+            total_energy=total_energy,
+        )
         self._restored_energy_value = 0.0
         self.async_write_ha_state()
 
     @callback
     @override
     def _handle_coordinator_update(self) -> None:
-        """Use the first fresh daily-energy sample after an offline rollover."""
-        key = self.entity_description.key
-        if (
-            self._is_daily_energy
-            and self._daily_reset_override
-            and bool(self.coordinator.data.get("communication_online", False))
-            and key in self.coordinator.data
-        ):
-            self._daily_reset_override = False
+        """Advance one shared daily-energy policy for every protocol."""
+        if self._daily_tracker is not None:
+            raw_daily, total_energy = self._current_daily_inputs(
+                require_online=True
+            )
+            self._daily_tracker.update(
+                current_date=dt_util.now().date(),
+                raw_daily=raw_daily,
+                total_energy=total_energy,
+                online=bool(
+                    self.coordinator.data.get("communication_online", False)
+                ),
+            )
+            self._restored_energy_value = self._daily_tracker.value
         super()._handle_coordinator_update()
 
     @property
@@ -1137,8 +1211,8 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
                 self.coordinator.hass.config.language,
             )
         key = self.entity_description.key
-        if self._is_daily_energy and self._daily_reset_override:
-            return 0.0
+        if self._daily_tracker is not None and self._daily_tracker.value is not None:
+            return self._daily_tracker.value
         if key in self.coordinator.data:
             return self.coordinator.data[key]
         if self._is_energy:
@@ -1155,6 +1229,8 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         """Expose active alarm names or compact raw diagnostics."""
+        if self._daily_tracker is not None:
+            return self._daily_tracker.state_attributes()
         if self.entity_description.key == "active_alarm_names":
             attributes = alarm_state_attributes(
                 self.coordinator.data,
@@ -1195,7 +1271,10 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
             return super().available and (
                 key in self.coordinator.data
                 or self._restored_energy_value is not None
-                or self._daily_reset_override
+                or (
+                    self._daily_tracker is not None
+                    and self._daily_tracker.value is not None
+                )
             )
         if key in DIAGNOSTIC_SENSOR_KEYS:
             return super().available
