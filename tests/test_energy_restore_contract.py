@@ -33,7 +33,8 @@ class EnergyRestoreContractTests(unittest.TestCase):
         self.assertIn("second=0", source)
         self.assertIn("last_local_date != dt_util.now().date()", source)
         self.assertIn("self._daily_reset_override = True", source)
-        self.assertIn("self._daily_reset_successes >= 2", source)
+        self.assertIn("self._daily_reset_override = False", source)
+        self.assertNotIn("_daily_reset_successes", source)
 
     def test_missing_energy_without_history_is_unavailable_not_unknown(self) -> None:
         source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(
