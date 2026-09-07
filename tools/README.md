@@ -2,50 +2,93 @@
 
 Diagnostic and validation utilities for TSUN Local.
 
-## Windows portable diagnostic
+## Desktop diagnostic — Windows, macOS and Linux
 
-For users who are not comfortable with Python or a command prompt, TSUN Local also provides a portable Windows executable built from the same read-only dump engine. It is published independently from integration releases under `diagnostic-latest`; the current GUI is 1.4.0 and uses the 2.7.1 dump engine.
+For users who are not comfortable with Python or a command prompt, TSUN Local provides the same desktop diagnostic interface for Windows, macOS and Linux. Every package is built from the shared [`tsun_diagnostic.py`](tsun_diagnostic.py) entry point and uses the same privacy-safe, **strictly read-only** `tsun_dump.py` engine.
 
-**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
+All packages are published independently from Home Assistant integration releases under the stable rolling **`diagnostic-latest`** release. The historical Windows URL is deliberately unchanged so links in older posts continue to work.
 
-No installation and no Python environment are required. The executable provides a compact French/English **scroll-free main screen** with the three essential steps visible at once. Advanced settings and technical logs open separately, while the same privacy-safe **strictly read-only** `tsun_dump.py` engine writes the anonymized JSON report into the selected folder.
+| Platform | Download | SHA-256 |
+|---|---|---|
+| Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
+| macOS Apple Silicon | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS Intel | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
+| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
+| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Recommended sequence:
+Current desktop GUI: **1.5.11** · dump engine: **2.7.4**.
 
-1. Keep the communication problem present and do **not** reload TSUN Local yet.
-2. Disable the affected TSUN Local config entry in Home Assistant.
-3. Start `TSUN-Local-Diagnostic.exe` and confirm that the entry is disabled.
-4. Leave the logger IP and Monitor SN empty when automatic discovery works; the application asks for missing information only when required.
-5. Click **Run full diagnostic / Lancer le diagnostic complet**.
-6. Send the generated JSON file to `dev@jptstar.com`, together with the Home Assistant diagnostic when available.
-7. Re-enable the TSUN Local config entry.
+The interface is intentionally harmonized across platforms:
 
-The Monitor SN, logger IP, SSID, passwords, tokens, e-mail addresses and full MAC addresses are not stored in the generated report. The workflow also publishes a `.sha256` checksum next to the executable.
+1. **Disable TSUN Local** for the logger being tested.
+2. **Run the diagnostic**.
+3. **Direct report upload** — recommended; explicit consent is mandatory.
+4. **Manual e-mail report** — optional fallback.
 
-The executable is currently unsigned, so Windows SmartScreen may display an unknown-publisher warning. The source of the GUI and the complete build workflow are public in this repository.
+The direct-upload dialog keeps the tester name/pseudonym and selected micro-inverter models/quantities in a durable per-user profile, but **never stores the consent checkbox**. Up to 10 searchable model rows are available, including **Sunology PLAY 2**. After a successful upload, the application displays the `TSL-...` receipt and the private-token Worker link that lets the tester see exactly the anonymized report that was sent; it never exposes the private reports repository.
 
-At startup the portable EXE checks the rolling `diagnostic-latest` manifest. When a newer GUI is available it downloads the replacement EXE, verifies its SHA-256 before replacing anything, restarts automatically, and falls back to the currently installed copy if GitHub is unavailable or validation fails. Launching the EXE with `--no-update` skips that check for troubleshooting.
+Recommended sequence for a communication problem:
+
+1. Keep the communication problem present and do **not** reload TSUN Local first.
+2. Download the Home Assistant diagnostic when possible.
+3. Disable the affected TSUN Local config entry.
+4. Start the desktop diagnostic and confirm that TSUN Local is disabled.
+5. Leave logger IP and Monitor SN empty when automatic discovery works.
+6. Run the diagnostic.
+7. Use **step 3** to upload the anonymized report after reviewing/accepting the explicit consent text, or use **step 4** e-mail fallback if direct upload is unavailable.
+8. Re-enable the TSUN Local config entry.
+
+For an upload-only test away from the installation, the dedicated synthetic mode uses exactly:
+
+```text
+Logger IP : 89:89:89:89
+Monitor SN: 89898989
+```
+
+No logger or micro-inverter is contacted in that mode; the generated report is explicitly marked as synthetic.
+
+### Updates
+
+All packages use the same `diagnostic-latest` manifest and SHA-256 metadata.
+
+- **Windows:** keeps the existing verified in-place self-update flow and the existing download URL.
+- **macOS / Linux:** checks the same architecture-specific rolling package and reports when a newer GUI is available. Package replacement is manual for now.
+- **Python dumper:** keeps its verified self-update behavior.
+
+Tester profile data is stored outside the executable/application bundle, so replacing a package does not remove the saved tester name or micro-inverter list.
+
+### First launch notes
+
+The macOS applications are ad-hoc signed but are not currently Apple-notarized. If Gatekeeper blocks the first launch, use Finder → right-click **TSUN Local Diagnostic** → **Open** and confirm the launch.
+
+Linux downloads are portable executables. If the browser removes the executable bit, restore it once:
+
+```bash
+chmod +x TSUN-Local-Diagnostic-Linux-x86_64
+./TSUN-Local-Diagnostic-Linux-x86_64
+```
+
+Use `TSUN-Local-Diagnostic-Linux-arm64` instead on arm64 Linux.
+
+📋 [Cross-platform desktop/direct-upload validation protocol](../docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 
 ## Hardware validation dump
 
 [`tsun_dump.py`](tsun_dump.py) is the single-file, standalone, privacy-safe and **strictly read-only** hardware dumper for protocols **1511**, **02B0** and **1097**.
 
-### Windows portable diagnostic
+### Desktop diagnostic
 
-For users who are not comfortable with Python or a command prompt:
-
-**⬇️ [Download `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
-**[SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256)**
-
-No installation or Python environment is required. The French/English GUI uses the same read-only dump engine and writes anonymized JSON reports into the folder selected by the user.
-
-If the capture is intended to diagnose a communication problem, take the Home Assistant diagnostic first when possible, then **disable the affected TSUN Local config entry before running the executable**. Re-enable it after the capture.
+The desktop packages above are the recommended route for end users. They use the same read-only dump engine and create the same anonymized JSON evidence, with direct report upload added as a separate HTTPS action only after explicit consent.
 
 ### Python / command-line version
 
-Direct download:
+Direct rolling-release download:
 
-[`https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)
+[`https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py)
+
+Checksum:
+
+[`https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256)
 
 Run with Python 3.10+:
 
@@ -53,9 +96,9 @@ Run with Python 3.10+:
 python3 tsun_dump.py --full
 ```
 
-Starting with dump engine 2.7.0, the standalone Python file checks the same `diagnostic-latest` manifest on startup, downloads a newer `tsun_dump.py` when available, verifies SHA-256, atomically replaces the current script and restarts. `--no-update` disables the check for one run and `--check-update` only reports availability. If the script location is not writable, the diagnostic continues with the local version and never requests `sudo`.
+The standalone Python file checks the same `diagnostic-latest` manifest on startup, downloads a newer `tsun_dump.py` when available, verifies SHA-256, atomically replaces the current script and restarts. `--no-update` disables the check for one run and `--check-update` only reports availability. If the script location is not writable, the diagnostic continues with the local version and never requests `sudo`.
 
-Dump engine **2.7.1** adds a full-mode, read-only `AT+WSDNS` capability probe over the logger's local UDP 48899 assistant interface. It sends only the getter form (no `=` and no configuration value), records whether the command is supported, and deliberately excludes the actual DNS server address from the shareable JSON. This is intended to verify whether a logger such as a TITAN / MP3000 exposes a configurable DNS setting before any Cloud Protection design is attempted.
+Dump engine **2.7.4** preserves the strictly read-only logger/protocol research path, including the bounded passive logger-web capture and the getter-only `AT+WSDNS` capability probe. The actual DNS server address is deliberately excluded from the shareable JSON.
 
 The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON. `--monitor-sn` and the legacy `--serial` option are equivalent.
 
