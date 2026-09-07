@@ -983,6 +983,7 @@ async def async_setup_entry(
     @callback
     def async_add_discovered_entities() -> None:
         """Add sensors when protocol or PV-input discovery exposes new keys."""
+        protocol_name = str(getattr(coordinator.client, "protocol_name", ""))
         descriptions = [
             description
             for description in SENSORS + PV_SENSORS
@@ -991,10 +992,12 @@ async def async_setup_entry(
                 description.key in DIAGNOSTIC_SENSOR_KEYS
                 or description.key in coordinator.client.measurement_keys
                 or (
+                    protocol_name == "1511"
+                    and description.key.startswith("pv")
+                )
+                or (
                     description.key == "active_alarm_names"
-                    and str(
-                        getattr(coordinator.client, "protocol_name", "")
-                    ) == "1511"
+                    and protocol_name == "1511"
                     and "alarm_active" in coordinator.client.measurement_keys
                 )
             )
