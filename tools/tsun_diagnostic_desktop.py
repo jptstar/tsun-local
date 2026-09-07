@@ -10,13 +10,22 @@ manual e-mail fallback spanning the full width at the bottom.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+import threading
 import tkinter as tk
+from tkinter import messagebox
+import webbrowser
 
 import tsun_diagnostic_app as upload_app
 import tsun_diagnostic_gui as base
 
 APP_NAME = base.APP_NAME
-APP_VERSION = "1.5.3"
+APP_VERSION = "1.5.4"
+
+MAGIC_TEST_HOST = "89:89:89:89"
+MAGIC_TEST_SN = "89898989"
 
 base.APP_VERSION = APP_VERSION
 upload_app.APP_VERSION = APP_VERSION
@@ -48,6 +57,10 @@ upload_app._TEXT["fr"].update(
             "Rien n’est transmis sans votre accord."
         ),
         "button": "Envoyer le rapport",
+        "test_running": "Mode test hors site — création d’un rapport de test…",
+        "test_ready": "Mode test hors site — rapport de test prêt à être envoyé.",
+        "published": "Rapport publié — lien de consultation :",
+        "open_published": "Ouvrir le rapport publié",
     }
 )
 upload_app._TEXT["en"].update(
@@ -58,6 +71,10 @@ upload_app._TEXT["en"].update(
             "Nothing is transmitted without your consent."
         ),
         "button": "Send report",
+        "test_running": "Off-site test mode — creating a test report…",
+        "test_ready": "Off-site test mode — test report ready to upload.",
+        "published": "Report published — viewing link:",
+        "open_published": "Open published report",
     }
 )
 
@@ -66,9 +83,15 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
     """Present the diagnostic as four visually ordered steps."""
 
     def __init__(self, root: tk.Tk) -> None:
+        self._view_link_host: tk.Frame | None = None
+        self._view_link_url = ""
+        self._view_link_label: tk.Label | None = None
         super().__init__(root)
         self.root.geometry("980x700")
         self.root.minsize(920, 650)
+        self.host.trace_add("write", self._sync_run_button)
+        self.monitor_sn.trace_add("write", self._sync_run_button)
+        self.root.after(150, self._sync_view_link)
 
     def _build_ui(self) -> None:
         # Build the proven diagnostic UI first, then reorganize only presentation.
@@ -269,6 +292,165 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
         self._flat_button(
             buttons, self.t["change"], self._choose_folder, compact=True
         ).pack(side="left", padx=(8, 0))
+
+    def _is_magic_test_mode(self) -> bool:
+        return (
+            self.host.get().strip() == MAGIC_TEST_HOST
+            and self.monitor_sn.get().strip() == MAGIC_TEST_SN
+        )
+
+    def _sync_run_button(self, *_args: object) -> None:
+        if not hasattr(self, "run_button"):
+            return
+        if self.update_busy or (self.worker and self.worker.is_alive()):
+            self.run_button.configure(state="disabled")
+            return
+        enabled = self.confirm_disabled.get() or self._is_magic_test_mode()
+        self.run_button.configure(state="normal" if enabled else "disabled")
+
+    def _start(self) -> None:
+        if not self._is_magic_test_mode():
+            super()._start()
+            return
+        if self.worker and self.worker.is_alive():
+            return
+
+        folder = Path(self.output_dir.get()).expanduser()
+        try:
+            folder.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            messagebox.showerror(APP_NAME, f"{self.t['folder_error']}\n\n{exc}")
+            return
+
+        self.latest_reports = []
+        self.uploaded_reports.clear()
+        self.run_button.configure(state="disabled")
+        self.confirm_check.configure(state="disabled")
+        self.status.set(self.u["test_running"])
+        self.status_label.configure(fg=base._ACCENT)
+        self.upload_status.set(self.u["capturing"])
+        self.upload_status_label.configure(fg=base._ACCENT)
+        self.progress.start(12)
+        self._append_log("\n=== TSUN Local Diagnostic — OFF-SITE TEST MODE ===\n")
+        self.worker = threading.Thread(
+            target=self._run_dump,
+            args=(folder, MAGIC_TEST_HOST, MAGIC_TEST_SN),
+            daemon=True,
+        )
+        self.worker.start()
+
+    def _run_dump(self, folder: Path, host: str, monitor_sn: str) -> None:
+        if host != MAGIC_TEST_HOST or monitor_sn != MAGIC_TEST_SN:
+            super()._run_dump(folder, host, monitor_sn)
+            return
+
+        now = datetime.now(timezone.utc)
+        diagnostic = {
+            "report_type": "test",
+            "test_mode": True,
+            "test_profile": "offsite_magic_trigger",
+            "generated_at": now.isoformat(),
+            "application": "TSUN Local Diagnostic",
+            "application_version": APP_VERSION,
+            "communication_attempted": False,
+            "note": (
+                "Synthetic off-site test report. No logger or microinverter was contacted; "
+                "tester and declared-device fields can be exercised through the normal upload dialog."
+            ),
+        }
+        path = folder / f"tsun_local_test_report_{now.strftime('%Y%m%d_%H%M%S')}.json"
+        try:
+            path.write_text(
+                json.dumps(diagnostic, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            self.events.put(("log", f"Test report write failed: {exc}\n"))
+            self.events.put(("status", self.t["failed"], False))
+            return
+
+        resolved = path.resolve()
+        self.latest_reports = [resolved]
+        self.uploaded_reports.discard(resolved)
+        self.events.put(("log", f"Test report created: {path.name}\n"))
+        self.events.put(("status", self.u["test_ready"], True))
+
+    def _show_upload_dialog(self) -> None:
+        super()._show_upload_dialog()
+        win = self.upload_window
+        if win is None:
+            return
+        try:
+            win.geometry("690x650")
+            card = win.winfo_children()[0]
+            inner = card.winfo_children()[0]
+        except (IndexError, tk.TclError):
+            return
+
+        if self._view_link_host is not None:
+            try:
+                if self._view_link_host.winfo_exists():
+                    return
+            except tk.TclError:
+                pass
+
+        self._view_link_host = tk.Frame(inner, bg=base._SOFT_GREEN)
+        self._view_link_host.pack(fill="x", pady=(10, 0))
+        self._view_link_host.pack_forget()
+
+    def _sync_view_link(self) -> None:
+        try:
+            url = ""
+            if self._receipts:
+                candidate = self._receipts[-1].get("view_url")
+                if isinstance(candidate, str) and candidate.startswith("https://"):
+                    url = candidate
+
+            if url and url != self._view_link_url and self._view_link_host is not None:
+                self._view_link_url = url
+                for child in self._view_link_host.winfo_children():
+                    child.destroy()
+                tk.Label(
+                    self._view_link_host,
+                    text=self.u["published"],
+                    bg=base._SOFT_GREEN,
+                    fg=base._SUCCESS,
+                    font=("Segoe UI", 8, "bold"),
+                    anchor="w",
+                    padx=10,
+                    pady=6,
+                ).pack(fill="x")
+                self._view_link_label = tk.Label(
+                    self._view_link_host,
+                    text=url,
+                    bg=base._SOFT_GREEN,
+                    fg=base._ACCENT,
+                    font=("Segoe UI", 8, "underline"),
+                    cursor="hand2",
+                    justify="left",
+                    wraplength=610,
+                    anchor="w",
+                    padx=10,
+                    pady=2,
+                )
+                self._view_link_label.pack(fill="x")
+                self._view_link_label.bind(
+                    "<Button-1>", lambda _event, link=url: webbrowser.open(link)
+                )
+                self._flat_button(
+                    self._view_link_host,
+                    self.u["open_published"],
+                    lambda link=url: webbrowser.open(link),
+                    compact=True,
+                ).pack(anchor="w", padx=10, pady=(5, 9))
+                self._view_link_host.pack(fill="x", pady=(10, 0))
+        except tk.TclError:
+            pass
+        finally:
+            try:
+                self.root.after(200, self._sync_view_link)
+            except tk.TclError:
+                pass
 
 
 def main() -> int:
