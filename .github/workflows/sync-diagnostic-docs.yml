@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "scripts/publish_macos_first_launch_docs.py"
+      - "scripts/fix_current_mac_copy.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
@@ -31,22 +32,34 @@ jobs:
           python-version: "3.12"
 
       - name: Publish safe macOS first-launch guidance
-        run: python scripts/publish_macos_first_launch_docs.py
+        run: |
+          python scripts/publish_macos_first_launch_docs.py
+          python scripts/fix_current_mac_copy.py
 
       - name: Verify stable links and generated documentation
         run: |
-          python -m py_compile scripts/publish_macos_first_launch_docs.py
+          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py
           grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
           grep -q 'TSUN-Local-Diagnostic-macOS-arm64.zip' README.md
           grep -q 'TSUN-Local-Diagnostic-macOS-x86_64.zip' README.md
           grep -q 'Open Anyway' README.md
+          grep -q '> **Which Mac should I download?**' README.md
           grep -q 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
           grep -q 'Mac M1 / M2 / M3 / M4' docs/test-your-inverter.html
           grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip' docs/test-your-inverter.html
           grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip' docs/test-your-inverter.html
           grep -q 'Open Anyway' docs/test-your-inverter.html
+          grep -q '> **Quel Mac choisir ?**' docs/README_FR.md
           grep -q 'Ouvrir quand même' docs/README_FR.md
           grep -q 'Gatekeeper' docs/README_FR.md
+          if grep -q 'once the signed builds are published' README.md; then
+            echo 'README still implies Mac builds are unavailable.' >&2
+            exit 1
+          fi
+          if grep -q 'lorsque les builds signés seront publiés' docs/README_FR.md; then
+            echo 'French README still implies Mac builds are unavailable.' >&2
+            exit 1
+          fi
           test "$(grep -c 'Mac &amp; Linux diagnostic →' docs/index.html)" -eq 1
 
       - name: Publish synchronized docs branch
