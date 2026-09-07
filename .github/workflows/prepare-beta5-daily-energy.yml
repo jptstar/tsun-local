@@ -1,0 +1,780 @@
+name: Prepare beta.5 daily energy correction
+
+on:
+  push:
+    branches:
+      - beta-1097
+    paths:
+      - ".github/workflows/prepare-beta5-daily-energy.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out beta branch
+        uses: actions/checkout@v6
+        with:
+          ref: beta-1097
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Apply harmonized daily-energy correction
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import re
+          import textwrap
+
+          root = Path('.')
+
+          # -----------------------------------------------------------------
+          # Pure-Python shared tracker: one policy for 1511, 02B0 and 1097.
+          # -----------------------------------------------------------------
+          tracker_path = root / 'custom_components/tsun_local/daily_energy.py'
+          tracker_path.write_text(textwrap.dedent('''\
+          # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
+          # SPDX-License-Identifier: GPL-3.0-or-later
+
+          """Shared daily-energy tracking for all TSUN Local protocol families."""
+
+          from __future__ import annotations
+
+          from dataclasses import dataclass
+          from datetime import date
+          import math
+          from typing import Any
+
+
+          def energy_value(value: object) -> float | None:
+              """Return one finite numeric energy value, otherwise None."""
+              if isinstance(value, bool):
+                  return None
+              if isinstance(value, (int, float)):
+                  result = float(value)
+              else:
+                  try:
+                      result = float(value)  # type: ignore[arg-type]
+                  except (TypeError, ValueError):
+                      return None
+              return result if math.isfinite(result) else None
+
+
+          @dataclass(slots=True)
+          class DailyEnergyTracker:
+              """Keep a Home Assistant day continuous across logger counter resets.
+
+              The hardware daily counter is treated as an input, not as the clock.
+              Home Assistant local midnight is the only day boundary. Between
+              boundaries the monotonic total-energy counter is preferred for deltas;
+              the raw daily counter is only a fallback when a total is unavailable.
+              """
+
+              local_date: date
+              value: float | None = None
+              raw_daily: float | None = None
+              total_energy: float | None = None
+              reset_pending: bool = False
+
+              def reset_for_date(
+                  self,
+                  new_date: date,
+                  *,
+                  raw_daily: float | None,
+                  total_energy: float | None,
+              ) -> float:
+                  """Start a new HA-local day while retaining hardware references."""
+                  self.local_date = new_date
+                  self.value = 0.0
+                  self.raw_daily = raw_daily
+                  self.total_energy = total_energy
+                  self.reset_pending = True
+                  return 0.0
+
+              def restore(
+                  self,
+                  *,
+                  current_date: date,
+                  state_value: float | None,
+                  state_date: date | None,
+                  restored_raw_daily: float | None,
+                  restored_total_energy: float | None,
+                  current_raw_daily: float | None,
+                  current_total_energy: float | None,
+                  current_online: bool,
+              ) -> float | None:
+                  """Restore state and recover a same-day HA restart when possible."""
+                  self.local_date = current_date
+
+                  if state_value is None:
+                      if current_online and current_raw_daily is not None:
+                          self.value = current_raw_daily
+                          self.raw_daily = current_raw_daily
+                          self.total_energy = current_total_energy
+                          self.reset_pending = False
+                      else:
+                          self.value = None
+                          self.raw_daily = restored_raw_daily
+                          self.total_energy = restored_total_energy
+                          self.reset_pending = False
+                      return self.value
+
+                  if state_date == current_date:
+                      self.value = max(0.0, state_value)
+                      self.raw_daily = restored_raw_daily
+                      self.total_energy = restored_total_energy
+                      self.reset_pending = False
+
+                      # Beta.4 and older states have no tracker attributes. On
+                      # migration, keep the restored value if the raw counter has
+                      # fallen, otherwise accept the newer raw value.
+                      if (
+                          restored_raw_daily is None
+                          and restored_total_energy is None
+                          and current_online
+                          and current_raw_daily is not None
+                      ):
+                          if current_raw_daily >= self.value:
+                              self.value = current_raw_daily
+                          self.raw_daily = current_raw_daily
+                          self.total_energy = current_total_energy
+                          return self.value
+
+                      if current_online and current_raw_daily is not None:
+                          self.update(
+                              current_date=current_date,
+                              raw_daily=current_raw_daily,
+                              total_energy=current_total_energy,
+                              online=True,
+                          )
+                      return self.value
+
+                  # HA was not running across the day boundary. Exact allocation
+                  # across midnight is mathematically impossible without a sample
+                  # at the boundary. Use a fresh hardware daily value as best effort;
+                  # otherwise hold zero until the first successful read.
+                  if current_online and current_raw_daily is not None:
+                      self.value = current_raw_daily
+                      self.raw_daily = current_raw_daily
+                      self.total_energy = current_total_energy
+                      self.reset_pending = False
+                  else:
+                      self.value = 0.0
+                      self.raw_daily = None
+                      self.total_energy = None
+                      self.reset_pending = True
+                  return self.value
+
+              def update(
+                  self,
+                  *,
+                  current_date: date,
+                  raw_daily: float | None,
+                  total_energy: float | None,
+                  online: bool,
+              ) -> float | None:
+                  """Advance the displayed daily value without accepting a false reset."""
+                  if current_date != self.local_date:
+                      return self.reset_for_date(
+                          current_date,
+                          raw_daily=raw_daily,
+                          total_energy=total_energy,
+                      )
+
+                  if not online or raw_daily is None:
+                      return self.value
+
+                  if self.value is None:
+                      self.value = raw_daily
+                  elif (
+                      self.reset_pending
+                      and self.raw_daily is None
+                      and self.total_energy is None
+                  ):
+                      # No midnight reference survived (for example HA restarted
+                      # after being offline overnight). A fresh hardware value is
+                      # the only defensible best-effort starting point.
+                      self.value = raw_daily
+                  else:
+                      delta: float | None = None
+                      if total_energy is not None and self.total_energy is not None:
+                          if total_energy >= self.total_energy:
+                              delta = total_energy - self.total_energy
+                      if delta is None and self.raw_daily is not None:
+                          # A lower raw daily value is a hardware/logger reset, not
+                          # a new HA day. Hold the displayed value for that sample.
+                          delta = max(0.0, raw_daily - self.raw_daily)
+                      if delta is not None:
+                          self.value += delta
+
+                  self.value = round(max(0.0, self.value), 6)
+                  self.raw_daily = raw_daily
+                  self.total_energy = total_energy
+                  self.reset_pending = False
+                  return self.value
+
+              def state_attributes(self) -> dict[str, Any]:
+                  """Return compact restore metadata stored with the HA state."""
+                  attributes: dict[str, Any] = {
+                      "tracking_date": self.local_date.isoformat(),
+                      "tracking_source": "total_delta_with_daily_fallback",
+                  }
+                  if self.raw_daily is not None:
+                      attributes["raw_daily_energy"] = self.raw_daily
+                  if self.total_energy is not None:
+                      attributes["tracking_total_energy"] = self.total_energy
+                  return attributes
+          '''), encoding='utf-8')
+
+          # -----------------------------------------------------------------
+          # Sensor layer: make HA local midnight authoritative and persist the
+          # tracker references in state attributes so same-day restarts recover.
+          # -----------------------------------------------------------------
+          sensor_path = root / 'custom_components/tsun_local/sensor.py'
+          sensor = sensor_path.read_text(encoding='utf-8')
+
+          anchor = 'from .coordinator import TsunCoordinator\n'
+          replacement = anchor + 'from .daily_energy import DailyEnergyTracker, energy_value\n'
+          if replacement not in sensor:
+              if anchor not in sensor:
+                  raise SystemExit('sensor.py coordinator import anchor not found')
+              sensor = sensor.replace(anchor, replacement, 1)
+
+          old_init = '''        self._restored_energy_value: float | None = None\n        self._daily_reset_override = False\n'''
+          new_init = '''        self._restored_energy_value: float | None = None\n        self._daily_tracker = (\n            DailyEnergyTracker(dt_util.now().date())\n            if self._is_daily_energy\n            else None\n        )\n'''
+          if old_init not in sensor:
+              raise SystemExit('sensor.py beta.4 energy init block not found')
+          sensor = sensor.replace(old_init, new_init, 1)
+
+          block_pattern = re.compile(
+              r'''    @property\n    def _is_energy\(self\) -> bool:\n.*?        super\(\)\._handle_coordinator_update\(\)\n''',
+              re.DOTALL,
+          )
+          block_match = block_pattern.search(sensor)
+          if block_match is None:
+              raise SystemExit('sensor.py energy lifecycle block not found')
+
+          new_block = textwrap.dedent('''\
+              @property
+              def _is_energy(self) -> bool:
+                  return self.entity_description.device_class == SensorDeviceClass.ENERGY
+
+              @property
+              def _is_daily_energy(self) -> bool:
+                  return self._is_energy and self.entity_description.key.endswith("_energy_today")
+
+              @property
+              def _daily_total_key(self) -> str | None:
+                  if not self._is_daily_energy:
+                      return None
+                  return self.entity_description.key.removesuffix("_today") + "_total"
+
+              def _current_daily_inputs(
+                  self, *, require_online: bool
+              ) -> tuple[float | None, float | None]:
+                  """Return current raw daily and total values for this channel."""
+                  if require_online and not bool(
+                      self.coordinator.data.get("communication_online", False)
+                  ):
+                      return None, None
+                  raw_daily = energy_value(
+                      self.coordinator.data.get(self.entity_description.key)
+                  )
+                  total_key = self._daily_total_key
+                  total_energy = (
+                      energy_value(self.coordinator.data.get(total_key))
+                      if total_key is not None
+                      else None
+                  )
+                  return raw_daily, total_energy
+
+              @override
+              async def async_added_to_hass(self) -> None:
+                  """Restore energy counters and register the local midnight rollover."""
+                  await super().async_added_to_hass()
+                  if not self._is_energy:
+                      return
+
+                  if self._daily_tracker is not None:
+                      self.async_on_remove(
+                          async_track_time_change(
+                              self.hass,
+                              self._async_midnight_rollover,
+                              hour=0,
+                              minute=0,
+                              second=0,
+                          )
+                      )
+
+                      last_state = await self.async_get_last_state()
+                      state_value: float | None = None
+                      state_date = None
+                      restored_raw = None
+                      restored_total = None
+                      if last_state is not None and last_state.state not in (
+                          STATE_UNKNOWN,
+                          STATE_UNAVAILABLE,
+                      ):
+                          state_value = energy_value(last_state.state)
+                          state_date = dt_util.as_local(last_state.last_updated).date()
+                          restored_raw = energy_value(
+                              last_state.attributes.get("raw_daily_energy")
+                          )
+                          restored_total = energy_value(
+                              last_state.attributes.get("tracking_total_energy")
+                          )
+
+                      current_online = bool(
+                          self.coordinator.data.get("communication_online", False)
+                      )
+                      current_raw, current_total = self._current_daily_inputs(
+                          require_online=True
+                      )
+                      self._daily_tracker.restore(
+                          current_date=dt_util.now().date(),
+                          state_value=state_value,
+                          state_date=state_date,
+                          restored_raw_daily=restored_raw,
+                          restored_total_energy=restored_total,
+                          current_raw_daily=current_raw,
+                          current_total_energy=current_total,
+                          current_online=current_online,
+                      )
+                      self._restored_energy_value = self._daily_tracker.value
+                      return
+
+                  key = self.entity_description.key
+                  if key in self.coordinator.data:
+                      return
+                  last_state = await self.async_get_last_state()
+                  if last_state is None or last_state.state in (
+                      STATE_UNKNOWN,
+                      STATE_UNAVAILABLE,
+                  ):
+                      return
+                  self._restored_energy_value = energy_value(last_state.state)
+
+              @callback
+              def _async_midnight_rollover(self, _now: datetime) -> None:
+                  """Reset daily energy at Home Assistant local midnight only."""
+                  if self._daily_tracker is None:
+                      return
+                  raw_daily, total_energy = self._current_daily_inputs(
+                      require_online=False
+                  )
+                  self._daily_tracker.reset_for_date(
+                      dt_util.now().date(),
+                      raw_daily=raw_daily,
+                      total_energy=total_energy,
+                  )
+                  self._restored_energy_value = 0.0
+                  self.async_write_ha_state()
+
+              @callback
+              @override
+              def _handle_coordinator_update(self) -> None:
+                  """Advance one shared daily-energy policy for every protocol."""
+                  if self._daily_tracker is not None:
+                      raw_daily, total_energy = self._current_daily_inputs(
+                          require_online=True
+                      )
+                      self._daily_tracker.update(
+                          current_date=dt_util.now().date(),
+                          raw_daily=raw_daily,
+                          total_energy=total_energy,
+                          online=bool(
+                              self.coordinator.data.get("communication_online", False)
+                          ),
+                      )
+                      self._restored_energy_value = self._daily_tracker.value
+                  super()._handle_coordinator_update()
+          ''')
+          # textwrap removed the class indentation; restore four spaces.
+          new_block = textwrap.indent(new_block, '    ')
+          sensor = sensor[:block_match.start()] + new_block + sensor[block_match.end():]
+
+          old_native = '''        key = self.entity_description.key\n        if self._is_daily_energy and self._daily_reset_override:\n            return 0.0\n        if key in self.coordinator.data:\n            return self.coordinator.data[key]\n'''
+          new_native = '''        key = self.entity_description.key\n        if self._daily_tracker is not None and self._daily_tracker.value is not None:\n            return self._daily_tracker.value\n        if key in self.coordinator.data:\n            return self.coordinator.data[key]\n'''
+          if old_native not in sensor:
+              raise SystemExit('sensor.py native daily block not found')
+          sensor = sensor.replace(old_native, new_native, 1)
+
+          extra_anchor = '''    def extra_state_attributes(self) -> dict[str, Any] | None:\n        """Expose active alarm names or compact raw diagnostics."""\n'''
+          extra_replacement = extra_anchor + '''        if self._daily_tracker is not None:\n            return self._daily_tracker.state_attributes()\n'''
+          if extra_replacement not in sensor:
+              if extra_anchor not in sensor:
+                  raise SystemExit('sensor.py extra attributes anchor not found')
+              sensor = sensor.replace(extra_anchor, extra_replacement, 1)
+
+          old_available = '''        if self._is_energy:\n            return super().available and (\n                key in self.coordinator.data\n                or self._restored_energy_value is not None\n                or self._daily_reset_override\n            )\n'''
+          new_available = '''        if self._is_energy:\n            return super().available and (\n                key in self.coordinator.data\n                or self._restored_energy_value is not None\n                or (\n                    self._daily_tracker is not None\n                    and self._daily_tracker.value is not None\n                )\n            )\n'''
+          if old_available not in sensor:
+              raise SystemExit('sensor.py availability block not found')
+          sensor = sensor.replace(old_available, new_available, 1)
+
+          if '_daily_reset_override' in sensor:
+              raise SystemExit('stale _daily_reset_override remains in sensor.py')
+          sensor_path.write_text(sensor, encoding='utf-8')
+
+          # -----------------------------------------------------------------
+          # 1097: remove the old protocol-specific "second lower sample" guess.
+          # The shared HA sensor tracker now owns daily counter continuity.
+          # -----------------------------------------------------------------
+          p1097_path = root / 'custom_components/tsun_local/protocols/protocol_1097.py'
+          p1097 = p1097_path.read_text(encoding='utf-8')
+          p1097 = p1097.replace(
+              '''        self._last_measurements: dict[str, float | int | str] = {}\n        self._daily_reset_candidates: dict[str, float | int] = {}\n''',
+              '',
+              1,
+          )
+          stabilize_pattern = re.compile(
+              r'''\n    def _stabilize_daily_energy\(\n.*?        return stabilized\n''',
+              re.DOTALL,
+          )
+          p1097, removed = stabilize_pattern.subn('\n', p1097, count=1)
+          if removed != 1:
+              raise SystemExit('protocol_1097.py stabilizer block not found')
+          old_call = '        measurements = self._stabilize_daily_energy(measurements)\n'
+          if old_call not in p1097:
+              raise SystemExit('protocol_1097.py stabilizer call not found')
+          p1097 = p1097.replace(old_call, '', 1)
+          if '_stabilize_daily_energy' in p1097 or '_daily_reset_candidates' in p1097:
+              raise SystemExit('protocol_1097.py still contains old reset guessing')
+          p1097_path.write_text(p1097, encoding='utf-8')
+
+          # -----------------------------------------------------------------
+          # Proper unit tests for the pure tracker and source integration guard.
+          # -----------------------------------------------------------------
+          tracker_test = root / 'tests/test_daily_energy_tracker.py'
+          tracker_test.write_text(textwrap.dedent('''\
+          # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
+          # SPDX-License-Identifier: GPL-3.0-or-later
+
+          """Regression tests for harmonized daily-energy tracking."""
+
+          from __future__ import annotations
+
+          from datetime import date
+          import importlib.util
+          from pathlib import Path
+          import unittest
+
+          MODULE_PATH = (
+              Path(__file__).parents[1]
+              / "custom_components"
+              / "tsun_local"
+              / "daily_energy.py"
+          )
+          SPEC = importlib.util.spec_from_file_location("tsun_daily_energy_tests", MODULE_PATH)
+          assert SPEC is not None and SPEC.loader is not None
+          MODULE = importlib.util.module_from_spec(SPEC)
+          SPEC.loader.exec_module(MODULE)
+          DailyEnergyTracker = MODULE.DailyEnergyTracker
+
+
+          class DailyEnergyTrackerTests(unittest.TestCase):
+              """Exercise midnight, logger-reset and HA-restart scenarios."""
+
+              def test_1511_or_02b0_hardware_reset_at_sunrise_does_not_create_new_day(self) -> None:
+                  day = date(2026, 9, 8)
+                  tracker = DailyEnergyTracker(date(2026, 9, 7), value=1.9)
+                  tracker.reset_for_date(day, raw_daily=1.9, total_energy=100.0)
+
+                  self.assertEqual(
+                      tracker.update(
+                          current_date=day,
+                          raw_daily=1.9,
+                          total_energy=100.0,
+                          online=True,
+                      ),
+                      0.0,
+                  )
+                  self.assertEqual(
+                      tracker.update(
+                          current_date=day,
+                          raw_daily=0.0,
+                          total_energy=100.0,
+                          online=True,
+                      ),
+                      0.0,
+                  )
+                  self.assertAlmostEqual(
+                      tracker.update(
+                          current_date=day,
+                          raw_daily=0.2,
+                          total_energy=100.2,
+                          online=True,
+                      ),
+                      0.2,
+                  )
+
+              def test_1097_reset_at_18h_is_ignored_while_total_continues(self) -> None:
+                  day = date(2026, 9, 8)
+                  tracker = DailyEnergyTracker(
+                      day,
+                      value=3.2,
+                      raw_daily=3.2,
+                      total_energy=1003.2,
+                  )
+                  self.assertAlmostEqual(
+                      tracker.update(
+                          current_date=day,
+                          raw_daily=0.0,
+                          total_energy=1003.2,
+                          online=True,
+                      ),
+                      3.2,
+                  )
+                  self.assertAlmostEqual(
+                      tracker.update(
+                          current_date=day,
+                          raw_daily=0.25,
+                          total_energy=1003.45,
+                          online=True,
+                      ),
+                      3.45,
+                  )
+
+              def test_same_day_ha_restart_recovers_missed_energy_from_total(self) -> None:
+                  day = date(2026, 9, 8)
+                  tracker = DailyEnergyTracker(day)
+                  value = tracker.restore(
+                      current_date=day,
+                      state_value=3.2,
+                      state_date=day,
+                      restored_raw_daily=3.2,
+                      restored_total_energy=1003.2,
+                      current_raw_daily=0.25,
+                      current_total_energy=1003.45,
+                      current_online=True,
+                  )
+                  self.assertAlmostEqual(value, 3.45)
+
+              def test_restart_after_midnight_uses_persisted_midnight_total_reference(self) -> None:
+                  day = date(2026, 9, 8)
+                  tracker = DailyEnergyTracker(day)
+                  value = tracker.restore(
+                      current_date=day,
+                      state_value=0.0,
+                      state_date=day,
+                      restored_raw_daily=0.40,
+                      restored_total_energy=1003.60,
+                      current_raw_daily=0.42,
+                      current_total_energy=1003.62,
+                      current_online=True,
+                  )
+                  self.assertAlmostEqual(value, 0.02)
+
+              def test_long_outage_across_midnight_uses_fresh_hardware_value_best_effort(self) -> None:
+                  yesterday = date(2026, 9, 7)
+                  today = date(2026, 9, 8)
+                  tracker = DailyEnergyTracker(today)
+                  value = tracker.restore(
+                      current_date=today,
+                      state_value=3.0,
+                      state_date=yesterday,
+                      restored_raw_daily=3.0,
+                      restored_total_energy=1000.0,
+                      current_raw_daily=1.5,
+                      current_total_energy=1001.9,
+                      current_online=True,
+                  )
+                  self.assertEqual(value, 1.5)
+
+              def test_total_reset_falls_back_to_non_decreasing_raw_daily_delta(self) -> None:
+                  day = date(2026, 9, 8)
+                  tracker = DailyEnergyTracker(
+                      day,
+                      value=2.0,
+                      raw_daily=2.0,
+                      total_energy=500.0,
+                  )
+                  value = tracker.update(
+                      current_date=day,
+                      raw_daily=2.1,
+                      total_energy=1.0,
+                      online=True,
+                  )
+                  self.assertAlmostEqual(value, 2.1)
+
+
+          if __name__ == "__main__":
+              unittest.main()
+          '''), encoding='utf-8')
+
+          contract_path = root / 'tests/test_energy_restore_contract.py'
+          contract = contract_path.read_text(encoding='utf-8')
+          contract = contract.replace(
+              '        self.assertIn("self._daily_reset_override = True", source)\n        self.assertIn("self._daily_reset_override = False", source)\n        self.assertNotIn("_daily_reset_successes", source)\n',
+              '        self.assertIn("DailyEnergyTracker", source)\n        self.assertIn("reset_for_date", source)\n        self.assertIn("tracking_total_energy", source)\n        self.assertNotIn("_daily_reset_override", source)\n        self.assertNotIn("_daily_reset_successes", source)\n',
+              1,
+          )
+          contract = contract.replace(
+              '                or self._daily_reset_override\n',
+              '                or (\n                    self._daily_tracker is not None\n                    and self._daily_tracker.value is not None\n                )\n',
+              1,
+          )
+          contract_path.write_text(contract, encoding='utf-8')
+
+          resilience_path = root / 'tests/test_protocol_1097_resilience.py'
+          resilience = resilience_path.read_text(encoding='utf-8')
+          resilience = resilience.replace(
+              '    """Verify persistent sessions, retry and daily-counter stability."""',
+              '    """Verify persistent sessions and bounded retry behavior."""',
+              1,
+          )
+          old_tests = re.compile(
+              r'''\n    def test_transient_daily_zero_is_not_published\(self\) -> None:\n.*?        self.assertEqual\(second_lower\["ac_energy_today"\], 0\.1\)\n''',
+              re.DOTALL,
+          )
+          resilience, removed_tests = old_tests.subn(
+              '\n    def test_protocol_no_longer_guesses_daily_reset_timing(self) -> None:\n'
+              '        client = Tsun1097Client("192.0.2.10", 8899, 123456)\n'
+              '        self.assertFalse(hasattr(client, "_stabilize_daily_energy"))\n',
+              resilience,
+              count=1,
+          )
+          if removed_tests != 1:
+              raise SystemExit('1097 resilience old daily tests not found')
+          resilience_path.write_text(resilience, encoding='utf-8')
+
+          # -----------------------------------------------------------------
+          # Version metadata and beta.5 notes.
+          # -----------------------------------------------------------------
+          manifest_path = root / 'custom_components/tsun_local/manifest.json'
+          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+          if manifest.get('version') != '1.6.1-beta.4':
+              raise SystemExit(f"Unexpected beta source version: {manifest.get('version')}")
+          manifest['version'] = '1.6.1-beta.5'
+          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+
+          changelog_path = root / 'CHANGELOG.md'
+          changelog = changelog_path.read_text(encoding='utf-8')
+          marker = '## [1.6.1-beta.4] - 2026-09-07\n'
+          if marker not in changelog:
+              raise SystemExit('CHANGELOG beta.4 marker not found')
+          beta5_changelog = textwrap.dedent('''\
+          ## [1.6.1-beta.5] - 2026-09-08
+
+          ### Fixed
+
+          - Make Home Assistant local midnight the only daily-energy day boundary for 1511, 02B0 and 1097.
+          - Ignore logger/micro-inverter daily-counter resets that happen at other times, including the PLAY2 / 1097 reset observed around 18:00.
+          - Prefer monotonic `*_energy_total` deltas to keep `*_energy_today` continuous; use the raw daily counter only as a fallback.
+          - Persist compact daily tracking references in Home Assistant state attributes so same-day HA restarts can recover production missed during the restart.
+          - Preserve the expected 1511 / 02B0 behavior where yesterday's daily value can remain visible in the hardware overnight and reset only when the inverter wakes.
+          - Remove the 1097-specific "second lower sample means a real reset" heuristic.
+
+          ### Recovery behavior
+
+          - A restart a few minutes after midnight can recover from the total-energy reference written by the midnight rollover.
+          - A same-day restart can recover missed energy from the monotonic total counter when beta.5 tracking metadata already exists.
+          - A long HA outage spanning midnight cannot always be split mathematically between the two calendar days; in that case beta.5 uses the first fresh hardware daily value as a best-effort fallback instead of inventing a split.
+
+          ### Validation
+
+          - Add direct regression tests for MP3000/1511-style sunrise reset, MX500/02B0-style sunrise reset, PLAY2/1097 18:00 reset, same-day HA restart, restart just after midnight and total-counter fallback.
+          - Keep all protocol register maps, read-only access, communication resilience, adaptive polling and logger Wi-Fi corrections unchanged.
+
+          ''')
+          changelog = changelog.replace(marker, beta5_changelog + marker, 1)
+          changelog_path.write_text(changelog, encoding='utf-8')
+
+          notes_dir = root / 'docs/releases'
+          notes_dir.mkdir(parents=True, exist_ok=True)
+          (notes_dir / '1.6.1-beta.5.md').write_text(textwrap.dedent('''\
+          # TSUN Local 1.6.1-beta.5
+
+          This beta harmonizes daily-energy handling across **1511**, **02B0** and **1097** after real-world tests showed that TSUN hardware does not always reset its own daily counter at Home Assistant midnight.
+
+          ## What beta.5 changes
+
+          - **Home Assistant local midnight is now the only calendar-day boundary shown by TSUN Local.**
+          - `*_energy_total` is used as the preferred monotonic reference to advance `*_energy_today`.
+          - A hardware daily-counter drop at another time is treated as a logger/inverter counter reset, not as a new Home Assistant day.
+          - The raw hardware daily counter remains available internally as a fallback when the total counter cannot be used.
+          - Tracking references are stored with the Home Assistant state so a same-day HA restart can recover missed energy from the total counter.
+
+          ## Real-world cases covered
+
+          ### MP3000 / 1511 and MX500 / 02B0
+
+          Field captures show the hardware can keep yesterday's `PV1 energy today` value overnight, then reset it only when the inverter wakes around sunrise. Beta.5 resets the Home Assistant daily value at 00:00 and does **not** re-import the stale overnight value. When the hardware later resets at sunrise, the displayed Home Assistant day stays continuous.
+
+          ### Sunology PLAY2 / 1097
+
+          Issue #73 shows a PLAY2 / 1097 daily counter dropping to zero around 18:00. The old 1097 heuristic accepted a second lower sample as a real reset, which could split the Home Assistant day at 18:00. That heuristic is removed. Beta.5 keeps the displayed daily energy continuous using total-energy deltas and still resets the Home Assistant day only at local midnight.
+
+          Example:
+
+          - 17:59: displayed day = `3.20 kWh`, total = `1003.20 kWh`
+          - 18:00: hardware daily = `0.00 kWh`, total unchanged -> displayed day remains `3.20 kWh`
+          - 19:00: hardware daily = `0.25 kWh`, total = `1003.45 kWh` -> displayed day becomes `3.45 kWh`
+          - 00:00: Home Assistant daily value resets to `0.00 kWh`
+
+          ## Home Assistant restart behavior
+
+          - **Same-day restart:** when beta.5 tracking metadata is available, the monotonic total-energy difference is added to the restored daily value.
+          - **Restart just after midnight:** the 00:00 total reference is restored, so production after midnight can be reconstructed from the total counter.
+          - **Long outage spanning midnight:** if HA was absent for hours on both sides of midnight, no software can know exactly which part of an unobserved total-energy increase belongs before versus after midnight. Beta.5 therefore uses the first fresh hardware daily value as a best-effort fallback instead of fabricating a split.
+
+          ## What is unchanged
+
+          - 1511, 02B0 and 1097 register maps and scaling.
+          - Read-only operation.
+          - Persistent-session communication resilience and bounded reconnect/retry.
+          - Adaptive polling and per-logger FIFO behavior.
+          - Logger Wi-Fi signal corrections from beta.4.
+
+          ## What to test
+
+          1. Verify MP3000 / 1511 and MX500 / 02B0 show `0 kWh` after local midnight while asleep, then rise normally after sunrise without briefly restoring yesterday's value.
+          2. On PLAY2 / 1097, verify the around-18:00 hardware reset no longer drops the Home Assistant daily curve to zero.
+          3. Restart Home Assistant during the same day and confirm daily energy continues without a drop.
+          4. Restart HA shortly across midnight and confirm the new day remains near zero until new production occurs.
+          5. Confirm total-energy entities remain monotonic and unchanged by this correction.
+
+          ## Safety
+
+          TSUN Local remains local and strictly read-only. This beta changes only Home Assistant-side interpretation and persistence of already-read energy counters.
+          '''), encoding='utf-8')
+
+          print('beta.5 source prepared')
+          PY
+
+      - name: Compile integration
+        run: python -m compileall -q custom_components/tsun_local
+
+      - name: Run complete unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Check diff
+        run: |
+          git diff --check
+          git status --short
+
+      - name: Commit beta.5 and trigger validated prerelease publication
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/prepare-beta5-daily-energy.yml
+          git add custom_components/tsun_local/daily_energy.py \
+                  custom_components/tsun_local/sensor.py \
+                  custom_components/tsun_local/protocols/protocol_1097.py \
+                  custom_components/tsun_local/manifest.json \
+                  tests/test_daily_energy_tracker.py \
+                  tests/test_energy_restore_contract.py \
+                  tests/test_protocol_1097_resilience.py \
+                  CHANGELOG.md \
+                  docs/releases/1.6.1-beta.5.md
+          git commit -m "[beta-release] Publish 1.6.1-beta.5 daily energy rollover fix"
+          git push origin HEAD:beta-1097
