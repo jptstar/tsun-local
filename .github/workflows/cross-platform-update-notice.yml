@@ -1,0 +1,36 @@
+name: Patch cross-platform update notice
+
+on:
+  push:
+    branches:
+      - fix/windows-update-visibility
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: contains(github.event.head_commit.message, '[cross-platform-update-notice]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Apply cross-platform update notice
+        run: python .github/scripts/patch_cross_platform_update_notice.py
+      - name: Syntax check
+        run: python -m py_compile tools/tsun_diagnostic_gui.py
+      - name: Run unit suite
+        run: python -m unittest discover -s tests -v
+      - name: Commit result and remove one-shot patcher
+        run: |
+          rm .github/workflows/cross-platform-update-notice.yml
+          rm .github/scripts/patch_cross_platform_update_notice.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/tsun_diagnostic_gui.py .github/workflows/cross-platform-update-notice.yml .github/scripts/patch_cross_platform_update_notice.py
+          git commit -m "Show update availability on macOS and Linux"
+          git push
