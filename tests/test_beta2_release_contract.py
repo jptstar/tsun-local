@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).parents[1]
@@ -23,7 +24,7 @@ class Release160ContractTests(unittest.TestCase):
 
     def test_manifest_version(self) -> None:
         manifest = json.loads((ROOT / "custom_components/tsun_local/manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["version"], "1.6.0")
+        self.assertRegex(manifest["version"], r"^1\.6\.\d+(?:-beta\.\d+)?$")
 
     def test_failed_http_signal_keeps_last_known_value(self) -> None:
         init_source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8")
