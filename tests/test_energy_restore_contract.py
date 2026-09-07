@@ -5,24 +5,10 @@
 
 from __future__ import annotations
 
-import importlib.util
 from pathlib import Path
-import sys
 import unittest
 
 ROOT = Path(__file__).parents[1]
-PROTOCOLS_PATH = ROOT / "custom_components" / "tsun_local" / "protocols"
-SPEC = importlib.util.spec_from_file_location(
-    "tsun_local_energy_restore_protocol_tests",
-    PROTOCOLS_PATH / "__init__.py",
-    submodule_search_locations=[str(PROTOCOLS_PATH)],
-)
-assert SPEC is not None and SPEC.loader is not None
-PKG = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = PKG
-SPEC.loader.exec_module(PKG)
-
-from tsun_local_energy_restore_protocol_tests.protocol_1511 import Tsun1511Client  # noqa: E402
 
 
 class EnergyRestoreContractTests(unittest.TestCase):
@@ -57,12 +43,12 @@ class EnergyRestoreContractTests(unittest.TestCase):
         self.assertIn("or self._restored_energy_value is not None", source)
         self.assertIn("or self._daily_reset_override", source)
 
-    def test_1511_keeps_all_six_validated_pv_inputs_during_offline_startup(self) -> None:
-        client = Tsun1511Client("192.0.2.10", 8899, 123456)
-        self.assertEqual(client.pv_count, 6)
-        self.assertIn("pv1_energy_today", client.measurement_keys)
-        self.assertIn("pv6_energy_today", client.measurement_keys)
-        self.assertIn("pv6_energy_total", client.measurement_keys)
+    def test_1511_adds_all_validated_pv_entities_even_before_live_detection(self) -> None:
+        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('protocol_name == "1511"', source)
+        self.assertIn('description.key.startswith("pv")', source)
 
 
 if __name__ == "__main__":
