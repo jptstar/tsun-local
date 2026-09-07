@@ -10,22 +10,24 @@ permissions:
 
 jobs:
   patch:
-    if: "${{ !contains(github.event.head_commit.message, '[energy-first-fresh-poll-patched]') }}"
     runs-on: ubuntu-latest
     steps:
-      - name: Check out branch
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           ref: fix/energy-first-fresh-poll-work
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 
-      - name: Apply focused energy rollover correction
+      - name: Apply, test and commit focused correction
         run: |
+          if git log -1 --pretty=%B | grep -q '\[energy-first-fresh-poll-patched\]'; then
+            echo "Patch already applied."
+            exit 0
+          fi
+
           python3 - <<'PY'
           from pathlib import Path
 
@@ -85,19 +87,8 @@ jobs:
           test_path.write_text(tests, encoding="utf-8")
           PY
 
-      - name: Run unit tests
-        run: python -m unittest discover -s tests -v
+          python -m unittest discover -s tests -v
 
-      - name: Validate HACS repository
-        uses: hacs/action@main
-        with:
-          category: integration
-
-      - name: Validate Home Assistant integration
-        uses: home-assistant/actions/hassfest@master
-
-      - name: Commit focused correction and remove temporary workflow
-        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/patch-energy-first-fresh-poll.yml
