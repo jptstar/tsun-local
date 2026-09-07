@@ -104,8 +104,8 @@
     <div class="hero">
       <p class="eyebrow">TSUN Local · Read-only community hardware validation</p>
       <h1>Test your TSUN microinverter with TSUN Local</h1>
-      <p class="lead"><strong>Not listed yet, or communication unstable?</strong> Run the diagnostic directly with Python or use the packaged Windows, macOS or Linux application, then optionally send an anonymized report.</p>
-      <p class="hero-note">Python 3.10+ · Five desktop packages · Strictly read-only hardware communication</p>
+      <p class="lead"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app, use Python on any platform, or choose the packaged Mac/Linux app.</p>
+      <p class="hero-note">Windows · Python 3.10+ · macOS &amp; Linux · Strictly read-only</p>
     </div>
   </div>
 </header>
@@ -117,21 +117,31 @@
     <div class="callout"><strong>✅ An unlisted model does not mean an unsupported model.</strong>If your inverter exposes a supported local protocol, automatic discovery may already be enough.</div>
   </section>
 
-  <section>
-    <h2>Python / command line — all platforms</h2>
-    <p class="intro"><strong>Python remains the most direct way to run the diagnostic.</strong> The standalone <code>tsun_dump.py</code> uses the same strictly read-only dump engine and works with Python 3.10+ on Windows, macOS and Linux.</p>
+  <section id="windows">
+    <h2>Windows diagnostic</h2>
+    <p class="intro"><strong>Recommended on Windows.</strong> Download the app, launch the guided read-only diagnostic, then send the anonymized report directly from the interface after consent.</p>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Download for Windows</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
+    </div>
+    <div class="callout"><strong>Simple guided test.</strong>No Python installation is required.</div>
+  </section>
+
+  <section id="python">
+    <h2>Python diagnostic — all platforms</h2>
+    <p class="intro">Prefer the terminal? Download <code>tsun_dump.py</code> and run it with Python 3.10+ on Windows, macOS or Linux.</p>
     <div class="actions">
       <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py">Download tsun_dump.py</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256">SHA-256 checksum</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256">SHA-256</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/main/docs/HARDWARE_DUMP.md">Full Python guide</a>
     </div>
     <div class="python-highlight">
       <strong>Recommended full diagnostic</strong>
       <div class="command-grid">
-        <div class="command-card"><strong>macOS / Linux</strong><pre><code>python3 tsun_dump.py --full</code></pre></div>
         <div class="command-card"><strong>Windows</strong><pre><code>py tsun_dump.py --full</code></pre></div>
+        <div class="command-card"><strong>macOS / Linux</strong><pre><code>python3 tsun_dump.py --full</code></pre></div>
       </div>
-      <p>Automatic discovery captures all detected TSUN loggers. To target one known logger or a routed subnet, use:</p>
+      <p>To target one known logger or a routed subnet:</p>
       <div class="command-grid">
         <div class="command-card"><strong>Known logger</strong><pre><code>python3 tsun_dump.py --host 192.168.1.50 --full</code></pre></div>
         <div class="command-card"><strong>Routed subnet / VLAN</strong><pre><code>python3 tsun_dump.py --network 192.168.1.0/24 --full</code></pre></div>
@@ -140,28 +150,26 @@
     </div>
   </section>
 
-  <section>
-    <h2>Desktop diagnostic for Windows, macOS and Linux</h2>
-    <p class="intro">Prefer a packaged application? The desktop GUI is <strong>1.5.11</strong> with dump engine <strong>2.7.4</strong>. Every package is built from the same shared interface and published through the stable rolling <code>diagnostic-latest</code> release. The historical Windows download URL is unchanged, so older links remain valid.</p>
-    <div class="privacy"><strong>Which Mac will I need?</strong> Mac with an Apple chip <strong>M1, M2, M3, M4 or newer</strong> → <strong>Apple Silicon</strong>. If <strong>Apple menu → About This Mac</strong> says <strong>Intel</strong> → <strong>Mac Intel</strong>.</div>
-    <div class="mac-warning"><strong>🟠 macOS — read this before the first launch</strong><p><strong>TSUN Local Diagnostic is not yet notarized by Apple.</strong> macOS may block the first launch. <strong>You do not need to disable Mac security or Gatekeeper.</strong></p><ol><li>Download and unzip the package for your Mac.</li><li>Try to open <strong>TSUN Local Diagnostic.app</strong> once.</li><li>If macOS blocks it, click <strong>Done</strong>.</li><li>Open <strong>Apple menu → System Settings → Privacy &amp; Security</strong>.</li><li>In <strong>Security</strong>, click <strong>Open Anyway</strong> for TSUN Local Diagnostic.</li><li>Authenticate, then confirm <strong>Open</strong>.</li></ol><p><strong>🟢 Once the application opens, you are done.</strong> The exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.</p></div>
+  <section id="mac-linux">
+    <h2>Mac &amp; Linux diagnostic</h2>
+    <p class="intro">Use the packaged desktop app if you prefer not to run Python. Choose the package for your architecture.</p>
+    <div class="privacy"><strong>Which Mac?</strong> Apple chip <strong>M1, M2, M3, M4 or newer</strong> → Apple Silicon. If <strong>About This Mac</strong> says Intel → Mac Intel.</div>
+    <div class="mac-warning"><strong>🟠 macOS — first launch</strong><p><strong>The app is not yet notarized by Apple.</strong> macOS may block the first launch. You do not need to disable Gatekeeper.</p><ol><li>Download and unzip the Mac package.</li><li>Try to open <strong>TSUN Local Diagnostic.app</strong> once, then click <strong>Done</strong> if blocked.</li><li>Open <strong>System Settings → Privacy &amp; Security</strong>.</li><li>Click <strong>Open Anyway</strong>, authenticate, then confirm <strong>Open</strong>.</li></ol></div>
     <div class="actions">
-      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Windows 64-bit (Intel / AMD)</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip">Mac M1 / M2 / M3 / M4… (Apple Silicon)</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip">Mac Intel (older Macs)</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64">Linux PC Intel / AMD (x86_64)</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux ARM64 (Raspberry Pi / ARM)</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip">Mac Apple Silicon</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip">Mac Intel</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64">Linux x86_64</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux ARM64</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
     </div>
-    <div class="callout"><strong>Same engine, same steps, same privacy rules.</strong>Windows keeps verified automatic executable replacement. macOS/Linux check the same architecture-specific rolling channel and indicate when a new package is available; package replacement is currently manual.</div>
-    <div class="privacy"><strong>Linux first launch:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
+    <div class="privacy"><strong>Linux:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
   </section>
 
   <section>
     <h2>Four clear steps</h2>
     <div class="steps">
       <div class="step"><span class="n">1</span><strong>Disable TSUN Local</strong><p>Temporarily disable the affected config entry in Home Assistant to avoid two simultaneous polling sessions on the logger.</p></div>
-      <div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use the Python command above or launch the desktop application. Discovery, protocol detection and evidence capture are read-only.</p></div>
+      <div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use Windows, Python, Mac or Linux. Discovery and evidence capture remain read-only.</p></div>
       <div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Recommended in the desktop app. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>
       <div class="step"><span class="n">4</span><strong>Manual fallback</strong><p>If direct upload is unavailable, send the generated JSON manually by e-mail. Re-enable TSUN Local when the capture is complete.</p></div>
     </div>
