@@ -11,45 +11,14 @@ All packages are published independently from Home Assistant integration release
 | Platform | Download | SHA-256 |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
+| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | **Public download paused — Apple notarization in progress** | — |
+| macOS — Mac Intel (older Macs) | **Public download paused — Apple notarization in progress** | — |
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Which Mac should I download?**  
-> • **Apple chip M1, M2, M3, M4 or newer** → choose **Mac M1 / M2 / M3 / M4… (Apple Silicon)**.  
-> • **About This Mac says Intel** → choose **Mac Intel**.
-
-Current desktop GUI: **1.5.11** · dump engine: **2.7.4**.
-
-The interface is intentionally harmonized across platforms:
-
-1. **Disable TSUN Local** for the logger being tested.
-2. **Run the diagnostic**.
-3. **Direct report upload** — recommended; explicit consent is mandatory.
-4. **Manual e-mail report** — optional fallback.
-
-The direct-upload dialog keeps the tester name/pseudonym and selected micro-inverter models/quantities in a durable per-user profile, but **never stores the consent checkbox**. Up to 10 searchable model rows are available, including **Sunology PLAY 2**. After a successful upload, the application displays the `TSL-...` receipt and the private-token Worker link that lets the tester see exactly the anonymized report that was sent; it never exposes the private reports repository.
-
-Recommended sequence for a communication problem:
-
-1. Keep the communication problem present and do **not** reload TSUN Local first.
-2. Download the Home Assistant diagnostic when possible.
-3. Disable the affected TSUN Local config entry.
-4. Start the desktop diagnostic and confirm that TSUN Local is disabled.
-5. Leave logger IP and Monitor SN empty when automatic discovery works.
-6. Run the diagnostic.
-7. Use **step 3** to upload the anonymized report after reviewing/accepting the explicit consent text, or use **step 4** e-mail fallback if direct upload is unavailable.
-8. Re-enable the TSUN Local config entry.
-
-For an upload-only test away from the installation, the dedicated synthetic mode uses exactly:
-
-```text
-Logger IP : 89:89:89:89
-Monitor SN: 89898989
-```
-
-No logger or micro-inverter is contacted in that mode; the generated report is explicitly marked as synthetic.
+> **Which Mac should I download once the signed builds are published?**  
+> • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
+> • **About This Mac says Intel** → **Mac Intel**.
 
 ### Updates
 
@@ -63,9 +32,7 @@ Tester profile data is stored outside the executable/application bundle, so repl
 
 ### First launch notes
 
-The macOS packages are ad-hoc signed but **not yet notarized by Apple**. If macOS says **“Apple cannot verify that this app is free of malware”**, click **Done**, then open **Apple menu → System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway**, authenticate, then confirm **Open**. Apple says this override is available for about one hour after the failed launch attempt. If macOS instead says the app **will damage your Mac** or explicitly reports malware, **do not bypass that warning**. See [Apple’s official instructions](https://support.apple.com/en-gb/102445). 
-
-Linux downloads are portable executables. If the browser removes the executable bit, restore it once:
+macOS public downloads are **temporarily paused while Developer ID signing and Apple notarization are enabled**. We do not want ordinary users to be asked to bypass macOS security protections. The same stable filenames and URLs will be restored as soon as the notarized packages are available. Linux downloads are portable executables. If the browser removes the executable bit, restore it once:
 
 ```bash
 chmod +x TSUN-Local-Diagnostic-Linux-x86_64

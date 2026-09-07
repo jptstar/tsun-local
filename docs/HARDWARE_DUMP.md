@@ -16,14 +16,14 @@ The **same TSUN Local Diagnostic interface** is packaged for all supported deskt
 | Platform | Download | SHA-256 |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
+| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | **Public download paused — Apple notarization in progress** | — |
+| macOS — Mac Intel (older Macs) | **Public download paused — Apple notarization in progress** | — |
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Which Mac should I download?**  
-> • **Apple chip M1, M2, M3, M4 or newer** → choose **Mac M1 / M2 / M3 / M4… (Apple Silicon)**.  
-> • **About This Mac says Intel** → choose **Mac Intel**.
+> **Which Mac should I download once the signed builds are published?**  
+> • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
+> • **About This Mac says Intel** → **Mac Intel**.
 
 Current standalone diagnostic versions: **desktop GUI 1.5.11** · **dump engine 2.7.4**.
 
