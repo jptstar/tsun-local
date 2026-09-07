@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sunology PLAY2 Home Assistant — Local Integration | TSUN Local</title>
-  <meta name="description" content="Use Sunology PLAY2 locally in Home Assistant with stable TSUN Local 1.5.3. Validated automatic discovery, readable alarms, read-only monitoring, no cloud and no proxy over 02B0.">
-  <meta name="keywords" content="Sunology PLAY2, Sunology Play 2, Sunology Home Assistant, PLAY2 Home Assistant, Sunology local API, Sunology local integration, TSUN Local, HACS, 02B0, LSW5BLE">
+  <meta name="description" content="Use Sunology PLAY2 locally in Home Assistant with TSUN Local. Two hardware generations are now observed: a validated GEN3 Plus / 02B0 path and a GEN4 / Tengsheng_G4 / 1097 path under field validation.">
+  <meta name="keywords" content="Sunology PLAY2, Sunology Play 2, Sunology Home Assistant, PLAY2 Home Assistant, TSUN Local, HACS, 02B0, 1097, Tengsheng_G4, GEN3 Plus, GEN4, LSW5BLE">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/sunology-play2.html">
@@ -13,24 +13,24 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="Sunology PLAY2 in Home Assistant with TSUN Local 1.5.3">
-  <meta property="og:description" content="Validated automatic local discovery for Sunology PLAY2 with readable alarms. No proxy and no cloud dependency in the Home Assistant data path.">
+  <meta property="og:description" content="Sunology PLAY2 local support with two observed hardware paths: validated 02B0 / GEN3 Plus and field-tested 1097 / Tengsheng_G4 / GEN4.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/sunology-play2.html">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Sunology PLAY2 in Home Assistant with TSUN Local 1.5.3">
-  <meta name="twitter:description" content="Automatic local Sunology PLAY2 monitoring with readable alarms in Home Assistant.">
+  <meta name="twitter:description" content="Local Sunology PLAY2 monitoring across the observed 02B0 and 1097 hardware variants.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"TechArticle",
     "headline":"Sunology PLAY2 in Home Assistant with TSUN Local",
-    "description":"Validated automatic local discovery, read-only monitoring and readable alarms for Sunology PLAY2 in Home Assistant with TSUN Local 1.5.3.",
+    "description":"Local read-only Sunology PLAY2 support in Home Assistant across two observed hardware generations: GEN3 Plus / 02B0 and GEN4 / Tengsheng_G4 / 1097.",
     "mainEntityOfPage":"https://jptstar.github.io/tsun-local/sunology-play2.html",
-    "dateModified":"2026-09-06",
+    "dateModified":"2026-09-08",
     "author":{"@type":"Person","name":"Jean-Philippe TESTART","url":"https://github.com/jptstar"},
     "isPartOf":{"@type":"WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/"},
-    "about":["Sunology PLAY2","Home Assistant","TSUN Local","02B0","local solar monitoring","microinverter alarms"]
+    "about":["Sunology PLAY2","Home Assistant","TSUN Local","02B0","1097","Tengsheng_G4","GEN3 Plus","GEN4","local solar monitoring"]
   }
   </script>
   <style>
@@ -38,28 +38,33 @@
   </style>
 </head>
 <body>
-<header><div class="wrap"><a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="hero"><span class="tag">TSUN LOCAL 1.5.3 · VALIDATED ON REAL SUNOLOGY PLAY2 HARDWARE</span><h1>Sunology PLAY2 in Home Assistant with TSUN Local</h1><p class="lead">TSUN Local provides a direct, read-only local path from a compatible Sunology PLAY2 to Home Assistant. The validated installation was automatically detected by the normal integration flow.</p><div class="actions"><a class="btn primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a><a class="btn secondary" href="https://github.com/jptstar/tsun-local">GitHub</a></div></div></div></header>
+<header><div class="wrap"><a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="hero"><span class="tag">TWO PLAY2 HARDWARE PATHS OBSERVED · 02B0 + 1097</span><h1>Sunology PLAY2 in Home Assistant with TSUN Local</h1><p class="lead">Sunology has shipped PLAY2 units with more than one local hardware/protocol path. TSUN Local now recognizes the validated <strong>GEN3 Plus / 02B0</strong> variant and the newer field-tested <strong>GEN4 / Tengsheng_G4 / 1097</strong> variant.</p><div class="actions"><a class="btn primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add TSUN Local to HACS</a><a class="btn secondary" href="https://github.com/jptstar/tsun-local">GitHub</a></div></div></div></header>
 <main class="wrap">
-  <section><h2>What is validated?</h2><p class="intro"><a href="https://github.com/dca31"><strong>@dca31</strong></a> independently validated TSUN Local against a real Sunology PLAY2 and confirmed that the PLAY2 was detected automatically and quickly through the normal Home Assistant integration flow. This moves PLAY2 from protocol research to validated Home Assistant compatibility for the tested hardware path.</p><div class="grid"><div class="card"><strong>✅ Automatic discovery</strong>Normal TSUN Local discovery found the PLAY2 without requiring a manually entered IP address in the successful test.</div><div class="card"><strong>✅ Direct Home Assistant integration</strong>The normal TSUN Local config flow completed successfully and created the device.</div><div class="card"><strong>✅ Local read-only telemetry path</strong>No cloud service or proxy is required in the Home Assistant data path.</div><div class="card"><strong>✅ 02B0 transport</strong>The tested logger uses Solarman V5 on TCP 8899 carrying a 02B0 Modbus RTU response.</div></div></section>
+  <section><h2>Two PLAY2 generations are now observed</h2><p class="intro">Real-world reports show that <strong>Sunology PLAY2 is not a single local protocol variant</strong>. Two hardware generations have been observed under the same PLAY2 commercial name. TSUN Local detects the local protocol automatically, so the user does not need to choose a generation or protocol manually.</p><div class="grid"><div class="card"><strong>✅ GEN3 Plus · protocol 02B0</strong>Validated on real PLAY2 hardware through the normal Home Assistant integration flow. The tested path uses an LSW5BLE logger and the 02B0 sensor list.</div><div class="card"><strong>🧪 GEN4 · protocol 1097</strong>A second real PLAY2 is detected as <code>Tengsheng_G4</code> with sensor list <code>4247</code> (<code>0x1097</code>). Communication and daily-energy stability are currently being field-tested.</div><div class="card"><strong>✅ Automatic protocol detection</strong>TSUN Local identifies the local protocol at runtime. The same PLAY2 page therefore covers both observed generations.</div><div class="card"><strong>✅ Local read-only telemetry</strong>Both paths remain read-only and do not require a cloud service or proxy in the Home Assistant data path.</div></div><div class="note"><strong>Status:</strong> 02B0 is the validated PLAY2 path. 1097 / Tengsheng_G4 is supported in the current beta and has real-hardware evidence, but remains under field validation until the ongoing stability test is complete.</div></section>
 
-  <section><h2>Validated local protocol path</h2><div class="code">Sunology PLAY2
+  <section><h2>Two local protocol paths</h2><p class="intro"><strong>Observed PLAY2 generation 1 — GEN3 Plus / 02B0</strong></p><div class="code">Sunology PLAY2
+  → GEN3 Plus hardware variant
   → LSW5BLE logger
-  → TCP 8899
-  → Solarman V5
+  → TCP 8899 / Solarman V5
   → sensor list 0x02B0
   → Modbus RTU FC03
   → TSUN Local
-  → Home Assistant</div><div class="note"><strong>Field-tested logger firmware:</strong> <code>LSW5BLE_17_02B0_1.08-D1</code>. Sunology may ship different revisions under the PLAY2 commercial name, so TSUN Local still validates the detected local protocol at runtime.</div></section>
+  → Home Assistant</div><p class="intro" style="margin-top:20px"><strong>Observed PLAY2 generation 2 — GEN4 / 1097</strong></p><div class="code">Sunology PLAY2
+  → GEN4 hardware variant
+  → profile Tengsheng_G4
+  → sensor list 4247 / 0x1097
+  → TSUN Local 1097 adapter
+  → Home Assistant</div><div class="note"><strong>Known 02B0 field firmware:</strong> <code>LSW5BLE_17_02B0_1.08-D1</code>. The 1097 PLAY2 is independently identified as <code>Tengsheng_G4</code>. TSUN Local uses what the device exposes locally rather than assuming a protocol from the PLAY2 product name.</div></section>
 
   <section><h2>Easy installation</h2><ol><li>Install <strong>TSUN Local</strong> from HACS.</li><li>Restart Home Assistant.</li><li>Open <strong>Settings → Devices & services</strong> and add <strong>TSUN Local</strong>.</li><li>Let automatic discovery find and identify the PLAY2 logger.</li></ol><p class="intro"><strong>No proxy deployment. No cloud account required for the data path. No protocol selector. No manual IP in the validated automatic flow.</strong></p></section>
 
   <section><h2>What data can appear?</h2><div class="grid"><div class="card"><strong>PV</strong>Voltage, current, power, daily energy and total energy for detected inputs.</div><div class="card"><strong>AC</strong>Voltage, current, frequency, power, daily energy and total energy.</div><div class="card"><strong>Communication</strong>Online state, last successful communication, duration and consecutive failures.</div><div class="card"><strong>Diagnostics</strong>Logger/device information and read-only advanced diagnostics where supported.</div></div><p><a href="entities.html">Explore the visual entity reference →</a></p></section>
 
-  <section><h2>Readable alarms in 1.5.3 stable</h2><p class="intro">TSUN Local 1.5.3 extends human-readable localized alarm presentation to the 02B0 family used by the validated PLAY2 path. Known alarms are shown with a clear functional description while keeping a stable diagnostic code, for example <code>Grid undervoltage (02B0-A014)</code>. Unknown positions remain visible with neutral wording instead of guessed meanings.</p></section>
+  <section><h2>Readable alarms on both protocol families</h2><p class="intro">The validated PLAY2 uses the 02B0 alarm catalogue, while the GEN4 field variant uses the 1097 catalogue. TSUN Local keeps stable protocol-specific diagnostic codes, for example <code>02B0-A014</code> or <code>1097-A041</code>, and uses neutral wording where a manufacturer meaning has not been confirmed.</p></section>
 
-  <section><h2>Why was a special PLAY2 probe needed before?</h2><p class="intro">The dedicated read-only probe was used during protocol research to identify the logger transport and the explicit 02B0 sensor-list selector. Support for that selector was introduced in TSUN Local 1.5.2 and is included in the current 1.5.3 stable release. For ordinary users, the recommended path is now the normal integration and automatic discovery.</p><p><a href="https://github.com/jptstar/tsun-local/blob/main/docs/PLAY2_LOCAL_RESEARCH.md">Read the protocol research history →</a></p></section>
+  <section><h2>Why are there two PLAY2 protocol paths?</h2><p class="intro">The first independently validated PLAY2 exposed the 02B0 path and was narrowed to the TSUN GEN3 Plus family. A later real-world PLAY2 report exposed a different local identity: <code>1097 / Tengsheng_G4</code>. This indicates that Sunology has shipped at least two local hardware generations under the PLAY2 commercial name. TSUN Local therefore detects the protocol at runtime instead of hard-coding PLAY2 to 02B0.</p><p><a href="https://github.com/jptstar/tsun-local/issues/73">Follow the PLAY2 1097 field-validation issue →</a></p><p><a href="https://github.com/jptstar/tsun-local/blob/main/docs/PLAY2_LOCAL_RESEARCH.md">Read the original PLAY2 protocol research history →</a></p></section>
 
-  <section><h2>Community validation credit</h2><p class="intro">Thanks to <a href="https://github.com/dca31"><strong>@dca31</strong></a> for independently validating Sunology PLAY2 on real hardware through the normal TSUN Local Home Assistant flow. This field validation is the basis for the validated 02B0 PLAY2 path documented on this page.</p></section>
+  <section><h2>Community validation credit</h2><p class="intro">Thanks to <a href="https://github.com/dca31"><strong>@dca31</strong></a> for independently validating the PLAY2 GEN3 Plus / 02B0 path through the normal TSUN Local Home Assistant flow, and to <a href="https://github.com/phildeg31"><strong>@phildeg31</strong></a> for the real-hardware PLAY2 1097 / Tengsheng_G4 diagnostics and ongoing stability testing.</p></section>
 
   <section><h2>Independent community project</h2><p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by Sunology or TSUN. Product names belong to their respective owners.</p></section>
 </main>

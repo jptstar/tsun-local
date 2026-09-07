@@ -157,8 +157,10 @@ class MetadataTests(unittest.TestCase):
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
-        self.assertIn('entities.html', index)
         self.assertIn('sunology-play2.html', index)
+        self.assertIn('Windows diagnostic →', index)
+        self.assertIn('Python diagnostic →', index)
+        self.assertIn('Mac &amp; Linux diagnostic →', index)
         self.assertIn("Your inverter. Your network. Your data.", index)
         self.assertIn("Sunology PLAY2", index)
         self.assertIn("Automatic discovery", index)
@@ -177,9 +179,13 @@ class MetadataTests(unittest.TestCase):
         self.assertIn('name="twitter:card"', entities)
 
         self.assertIn("Sunology PLAY2 in Home Assistant", play2)
-        self.assertIn("VALIDATED ON REAL SUNOLOGY PLAY2 HARDWARE", play2)
+        self.assertIn("TWO PLAY2 HARDWARE PATHS OBSERVED · 02B0 + 1097", play2)
+        self.assertIn("GEN3 Plus · protocol 02B0", play2)
+        self.assertIn("GEN4 · protocol 1097", play2)
+        self.assertIn("Tengsheng_G4", play2)
+        self.assertIn("4247", play2)
         self.assertIn("LSW5BLE_17_02B0_1.08-D1", play2)
-        self.assertIn("No proxy", play2)
+        self.assertIn("read-only", play2)
 
         self.assertIn("TSOL-MS2000 in Home Assistant", ms2000)
         self.assertIn("COMMUNITY VALIDATED ON REAL TSOL-MS2000 HARDWARE", ms2000)
