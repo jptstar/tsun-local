@@ -15,7 +15,7 @@ import tsun_diagnostic_desktop_v159 as desktop  # noqa: E402
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.9")
+        self.assertEqual(desktop.APP_VERSION, "1.5.10")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -131,23 +131,39 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
         self.assertIn("GitHub", desktop.COPYRIGHT_TEXT)
         self.assertEqual(desktop.PROJECT_URL, "https://github.com/jptstar/tsun-local")
 
-    def test_success_receipt_always_builds_exact_github_file_link(self) -> None:
-        receipt = {
-            "ok": True,
-            "report_id": "TSL-20260907-89ABCDEF",
-            "path": "reports/2026/09/TSL-20260907-89ABCDEF.json",
-        }
+    def test_success_receipts_expose_only_worker_view_links(self) -> None:
+        receipts = [
+            {
+                "report_id": "TSL-20260907-89ABCDEF",
+                "path": "reports/2026/09/TSL-20260907-89ABCDEF.json",
+                "view_url": "https://example.workers.dev/view/TSL-20260907-89ABCDEF?key=abc",
+            },
+            {
+                "report_id": "TSL-20260907-01234567",
+                "view_url": "https://example.workers.dev/view/TSL-20260907-01234567?key=def",
+            },
+        ]
         self.assertEqual(
-            desktop.github_report_url(receipt),
-            "https://github.com/jptstar/tsun-local-reports/blob/main/reports/2026/09/TSL-20260907-89ABCDEF.json",
+            desktop.CleanDiagnosticApp._public_receipts(receipts),
+            [
+                (
+                    "TSL-20260907-89ABCDEF",
+                    "https://example.workers.dev/view/TSL-20260907-89ABCDEF?key=abc",
+                ),
+                (
+                    "TSL-20260907-01234567",
+                    "https://example.workers.dev/view/TSL-20260907-01234567?key=def",
+                ),
+            ],
         )
 
-    def test_github_file_link_can_be_derived_from_report_id(self) -> None:
-        receipt = {"report_id": "TSL-20260907-89ABCDEF"}
-        self.assertEqual(
-            desktop.github_report_url(receipt),
-            "https://github.com/jptstar/tsun-local-reports/blob/main/reports/2026/09/TSL-20260907-89ABCDEF.json",
-        )
+    def test_private_reports_repository_is_not_exposed_in_desktop_ui(self) -> None:
+        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        self.assertNotIn("jptstar/tsun-local-reports", source)
+        self.assertNotIn("github_report_url", source)
+        self.assertNotIn("open_github", source)
+        self.assertIn("_main_report_links_host", source)
+        self.assertIn('get("view_url")', source)
 
 
 if __name__ == "__main__":
