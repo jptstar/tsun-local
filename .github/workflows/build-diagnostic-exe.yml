@@ -7,6 +7,7 @@ on:
       - "tools/tsun_dump.py"
       - "tools/tsun_diagnostic_gui.py"
       - "tools/tsun_diagnostic_app.py"
+      - "tools/tsun_diagnostic_desktop.py"
       - "tools/tsun_report_upload.py"
       - ".github/workflows/build-diagnostic-exe.yml"
   push:
@@ -16,6 +17,7 @@ on:
       - "tools/tsun_dump.py"
       - "tools/tsun_diagnostic_gui.py"
       - "tools/tsun_diagnostic_app.py"
+      - "tools/tsun_diagnostic_desktop.py"
       - "tools/tsun_report_upload.py"
       - ".github/workflows/build-diagnostic-exe.yml"
 
@@ -46,8 +48,8 @@ jobs:
       - name: Validate sources
         shell: pwsh
         run: |
-          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_diagnostic_app.py
-          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic_app; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', tsun_diagnostic_app.APP_VERSION)"
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic_desktop; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', tsun_diagnostic_desktop.APP_VERSION)"
 
       - name: Build portable executable
         shell: pwsh
@@ -55,7 +57,7 @@ jobs:
           python -m PyInstaller --noconfirm --clean --onefile --windowed `
             --name TSUN-Local-Diagnostic `
             --paths tools `
-            tools/tsun_diagnostic_app.py
+            tools/tsun_diagnostic_desktop.py
 
       - name: Smoke-test executable launch
         shell: pwsh
@@ -83,7 +85,7 @@ jobs:
           "$pyHash  tsun_dump.py" | Set-Content -Encoding ascii "dist/tsun_dump.py.sha256"
 
           $dumpVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump; print(tsun_dump.TOOL_VERSION)").Trim()
-          $guiVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_diagnostic_app; print(tsun_diagnostic_app.APP_VERSION)").Trim()
+          $guiVersion = (python -c "import sys; sys.path.insert(0, 'tools'); import tsun_diagnostic_desktop; print(tsun_diagnostic_desktop.APP_VERSION)").Trim()
           $manifest = [ordered]@{
             schema_version = 1
             channel = "diagnostic-latest"
