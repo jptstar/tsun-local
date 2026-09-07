@@ -10,12 +10,12 @@ TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
 import tsun_diagnostic_app as app  # noqa: E402
-import tsun_diagnostic_desktop as desktop  # noqa: E402
+import tsun_diagnostic_desktop_v158 as desktop  # noqa: E402
 
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.7")
+        self.assertEqual(desktop.APP_VERSION, "1.5.8")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -79,12 +79,23 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
             ],
         )
 
-    def test_compact_selector_uses_ten_dropdown_rows(self) -> None:
+    def test_compact_selector_uses_ten_searchable_rows_and_blocks_wheel(self) -> None:
         self.assertEqual(desktop.MAX_DEVICE_ROWS, 10)
         source = Path(desktop.__file__).read_text(encoding="utf-8")
         self.assertIn("ttk.Combobox", source)
-        self.assertIn("MAX_DEVICE_ROWS", source)
-        self.assertNotIn("tk.Canvas", source)
+        self.assertIn('state="normal"', source)
+        self.assertIn('"<KeyRelease>"', source)
+        self.assertIn('"<MouseWheel>"', source)
+        self.assertIn('return "break"', source)
+
+    def test_model_filter_accepts_partial_names(self) -> None:
+        ms = desktop.filter_microinverter_models("ms")
+        self.assertTrue(ms)
+        self.assertTrue(all("MS" in model for model in ms))
+        self.assertIn("TSOL-MS300", ms)
+        self.assertIn("TSOL-MS3000", ms)
+        self.assertEqual(desktop.filter_microinverter_models("mp3000"), ("TSOL-MP3000",))
+        self.assertIn("TSOL-MX800", desktop.filter_microinverter_models("800"))
 
     def test_upload_profile_is_persisted_without_consent(self) -> None:
         with tempfile.TemporaryDirectory() as folder:
@@ -99,15 +110,22 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
             self.assertEqual(loaded["declared_devices"], devices)
             raw = json.loads(path.read_text(encoding="utf-8"))
             self.assertNotIn("consent", raw)
+            self.assertEqual(raw["schema_version"], 1)
+
+    def test_profile_storage_is_independent_of_executable_path(self) -> None:
+        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        self.assertIn('("LOCALAPPDATA", "APPDATA")', source)
+        self.assertNotIn("sys.executable", source)
+        self.assertIn("_queue_profile_save", source)
 
     def test_completed_upload_exposes_close_button_copy(self) -> None:
         self.assertIn("fermer", app._TEXT["fr"]["complete_close"].lower())
         self.assertIn("close", app._TEXT["en"]["complete_close"].lower())
 
     def test_footer_exposes_jptstar_and_github_project_link(self) -> None:
-        self.assertIn("@jptstar", desktop.COPYRIGHT_TEXT)
-        self.assertIn("GitHub", desktop.COPYRIGHT_TEXT)
-        self.assertEqual(desktop.PROJECT_URL, "https://github.com/jptstar/tsun-local")
+        self.assertIn("@jptstar", desktop.legacy.COPYRIGHT_TEXT)
+        self.assertIn("GitHub", desktop.legacy.COPYRIGHT_TEXT)
+        self.assertEqual(desktop.legacy.PROJECT_URL, "https://github.com/jptstar/tsun-local")
 
 
 if __name__ == "__main__":
