@@ -31,7 +31,7 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.4.3"
+APP_VERSION = "1.4.4"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _BG = "#f4f7fb"
@@ -91,8 +91,10 @@ _TEXT = {
         "folder_error": "Impossible d'utiliser le dossier de sortie sélectionné.",
         "update_checking": "Vérification des mises à jour…",
         "update_current": "Application à jour.",
-        "update_found": "Mise à jour v{version} disponible — téléchargement…",
-        "update_ready": "Mise à jour téléchargée et vérifiée — redémarrage…",
+        "update_found": "Mise à jour v{version} disponible",
+        "update_downloading_detail": "Téléchargement et vérification de la mise à jour…",
+        "update_ready": "Mise à jour téléchargée et vérifiée",
+        "update_restarting_detail": "La nouvelle version va démarrer automatiquement…",
         "update_failed": "Vérification de mise à jour impossible — cette version reste utilisable.",
         "update_disabled": "Vérification automatique des mises à jour désactivée.",
         "update_available_manual": "Mise à jour v{version} disponible — téléchargez la dernière version.",
@@ -142,8 +144,10 @@ _TEXT = {
         "folder_error": "The selected output folder cannot be used.",
         "update_checking": "Checking for updates…",
         "update_current": "Application is up to date.",
-        "update_found": "Update v{version} available — downloading…",
-        "update_ready": "Update downloaded and verified — restarting…",
+        "update_found": "Update v{version} available",
+        "update_downloading_detail": "Downloading and verifying the update…",
+        "update_ready": "Update downloaded and verified",
+        "update_restarting_detail": "The new version will start automatically…",
         "update_failed": "Update check failed — this version remains usable.",
         "update_disabled": "Automatic update check disabled.",
         "update_available_manual": "Update v{version} available — download the latest version.",
@@ -716,6 +720,66 @@ class DiagnosticApp:
         state = "normal" if self.confirm_disabled.get() else "disabled"
         self.run_button.configure(state=state)
 
+    def _show_update_dialog(self, version: str) -> None:
+        """Show a prominent progress dialog while a Windows update downloads."""
+        win = getattr(self, "update_window", None)
+        if win is not None:
+            try:
+                if win.winfo_exists():
+                    win.deiconify()
+                    win.lift()
+                    return
+            except tk.TclError:
+                pass
+
+        win = tk.Toplevel(self.root)
+        self.update_window = win
+        win.title(APP_NAME)
+        win.geometry("520x230")
+        win.resizable(False, False)
+        win.configure(bg=_BG)
+        win.transient(self.root)
+        win.grab_set()
+        win.protocol("WM_DELETE_WINDOW", lambda: None)
+
+        card = self._card(win)
+        card.pack(fill="both", expand=True, padx=18, pady=18)
+        inner = tk.Frame(card, bg=_CARD)
+        inner.pack(fill="both", expand=True, padx=20, pady=18)
+
+        self.update_dialog_title = tk.StringVar(value=self.t["update_found"].format(version=version))
+        self.update_dialog_detail = tk.StringVar(value=self.t["update_downloading_detail"] )
+        tk.Label(inner, textvariable=self.update_dialog_title, bg=_CARD, fg=_TEXT_COLOR, font=("Segoe UI", 15, "bold"), anchor="w").pack(fill="x")
+        tk.Label(inner, textvariable=self.update_dialog_detail, bg=_CARD, fg=_MUTED, font=("Segoe UI", 10), anchor="w", justify="left").pack(fill="x", pady=(10, 14))
+        self.update_dialog_progress = ttk.Progressbar(inner, mode="indeterminate")
+        self.update_dialog_progress.pack(fill="x")
+        self.update_dialog_progress.start(12)
+        tk.Label(inner, text=f"{APP_NAME} {APP_VERSION}", bg=_CARD, fg=_MUTED, font=("Segoe UI", 8), anchor="w").pack(fill="x", pady=(14, 0))
+
+        win.update_idletasks()
+        x = self.root.winfo_rootx() + max(0, (self.root.winfo_width() - win.winfo_width()) // 2)
+        y = self.root.winfo_rooty() + max(0, (self.root.winfo_height() - win.winfo_height()) // 2)
+        win.geometry(f"+{x}+{y}")
+        win.lift()
+        win.focus_force()
+
+    def _mark_update_dialog_ready(self) -> None:
+        """Switch the update dialog from downloading to verified/restarting."""
+        win = getattr(self, "update_window", None)
+        if win is None:
+            return
+        try:
+            if not win.winfo_exists():
+                return
+            progress = getattr(self, "update_dialog_progress", None)
+            if progress is not None:
+                progress.stop()
+            self.update_dialog_title.set(self.t["update_ready"])
+            self.update_dialog_detail.set(self.t["update_restarting_detail"])
+            win.lift()
+        except tk.TclError:
+            return
+
     def _start_update_check(self) -> None:
         """Start a visible, non-blocking update check after the window is shown."""
         if "--no-update" in sys.argv:
@@ -923,10 +987,12 @@ class DiagnosticApp:
                     self.update_label.configure(fg=_SUCCESS)
                     self._sync_run_button()
                 elif kind == "update_downloading":
+                    version = str(event[1])
                     self.update_status.set(
-                        self.t["update_found"].format(version=str(event[1]))
+                        self.t["update_found"].format(version=version)
                     )
                     self.update_label.configure(fg=_ACCENT)
+                    self._show_update_dialog(version)
                 elif kind == "update_available_manual":
                     self.update_busy = False
                     self.update_status.set(
@@ -938,7 +1004,8 @@ class DiagnosticApp:
                     destination = Path(str(event[1]))
                     self.update_status.set(self.t["update_ready"])
                     self.update_label.configure(fg=_SUCCESS)
-                    self.root.after(650, lambda p=destination: self._apply_downloaded_update(p))
+                    self._mark_update_dialog_ready()
+                    self.root.after(1400, lambda p=destination: self._apply_downloaded_update(p))
                 elif kind == "update_failed":
                     self.update_busy = False
                     self.update_status.set(self.t["update_failed"])
