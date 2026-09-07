@@ -153,14 +153,25 @@ TSUN Local provides a privacy-safe, **strictly read-only** desktop diagnostic fo
 | Platform | Download | SHA-256 |
 |---|---|---|
 | **Windows x86_64** | **[TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)** | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | **Public download paused — Apple notarization in progress** | — |
-| macOS — Mac Intel (older Macs) | **Public download paused — Apple notarization in progress** | — |
+| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
 | **Linux x86_64** | **[TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64)** | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | **Linux arm64** | **[TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64)** | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Which Mac should I download once the signed builds are published?**  
+> **Which Mac should I download?**  
 > • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
 > • **About This Mac says Intel** → **Mac Intel**.
+
+> ### 🟠 macOS — read this before the first launch
+> **TSUN Local Diagnostic is not yet notarized by Apple.** macOS may block the first launch.  
+> **Do not disable Gatekeeper or Mac security globally.**  
+> 1. Download and unzip the package for your Mac.  
+> 2. Try to open **TSUN Local Diagnostic.app** once.  
+> 3. If macOS blocks it, click **Done**.  
+> 4. Open **Apple menu → System Settings → Privacy & Security**.  
+> 5. In **Security**, click **Open Anyway** for TSUN Local Diagnostic.  
+> 6. Authenticate, then confirm **Open**.  
+> 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
 
 **Current public diagnostic versions:** desktop GUI **1.5.11** · dump engine **2.7.4**.
 
@@ -182,7 +193,7 @@ For an upload-only test away from the installation, the dedicated synthetic mode
 
 All packages use the same rolling `diagnostic-latest` channel and published SHA-256 metadata. **Windows keeps verified in-place automatic replacement.** macOS and Linux check their architecture-specific package and report when a newer desktop version is available; package replacement is manual for now. The saved tester profile lives outside the executable/app bundle and therefore survives package replacement.
 
-macOS public downloads are **temporarily paused while Developer ID signing and Apple notarization are enabled**. We do not want ordinary users to be asked to bypass macOS security protections. The same stable filenames and URLs will be restored as soon as the notarized packages are available. On Linux, if the browser removes executable permission, run `chmod +x TSUN-Local-Diagnostic-Linux-x86_64` (or the arm64 filename) once before launching.
+macOS public packages are available for Apple Silicon and Intel. The first launch can require the per-application **Open Anyway** procedure above; never disable Gatekeeper globally. On Linux, if the browser removes executable permission, run `chmod +x TSUN-Local-Diagnostic-Linux-x86_64` (or the arm64 filename) once before launching.
 
 The dump engine is firmware-resilient: it recognizes several Wi-Fi signal layouts (`%` and `dBm`) and can capture a bounded set of passive, same-logger web pages as **anonymized HTML evidence**. Full mode also performs the read-only getter-only `AT+WSDNS` capability query without changing DNS configuration or storing the returned DNS address. It never submits forms, follows external links or calls reboot/reset/update pages.
 

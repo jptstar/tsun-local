@@ -166,14 +166,25 @@ La **même interface TSUN Local Diagnostic** est maintenant disponible sur Windo
 | Plateforme | Téléchargement | Contrôle |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | **Téléchargement public suspendu — validation Apple en cours** | — |
-| macOS — Mac Intel (anciens Mac) | **Téléchargement public suspendu — validation Apple en cours** | — |
+| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Quel Mac choisir lorsque les builds signés seront publiés ?**  
+> **Quel Mac choisir ?**  
 > • **Mac avec une puce Apple M1, M2, M3, M4 ou plus récente** → **Apple Silicon**.  
 > • **Mac dont  → À propos de ce Mac indique Intel** → **Mac Intel**.
+
+> ### 🟠 Mac — à lire avant le premier lancement
+> **TSUN Local Diagnostic n’est pas encore notarifié par Apple.** macOS peut donc bloquer le premier lancement.  
+> **Il n’est pas nécessaire de désactiver la sécurité du Mac ni Gatekeeper.**  
+> 1. Téléchargez et décompressez le ZIP correspondant à votre Mac.  
+> 2. Essayez d’ouvrir **TSUN Local Diagnostic.app** une première fois.  
+> 3. Si macOS bloque l’application, cliquez sur **Terminé**.  
+> 4. Ouvrez ** → Réglages Système → Confidentialité et sécurité**.  
+> 5. Dans **Sécurité**, cliquez sur **Ouvrir quand même** pour TSUN Local Diagnostic.  
+> 6. Authentifiez-vous puis confirmez **Ouvrir**.  
+> 🟢 Une fois l’application ouverte, c’est terminé : l’exception concerne uniquement TSUN Local Diagnostic et les protections générales de macOS restent actives.
 
 Versions actuelles : interface **1.5.11** · moteur de dump **2.7.4**.
 
@@ -190,7 +201,7 @@ Le nom/pseudonyme et jusqu’à 10 modèles de micro-onduleurs avec leurs quanti
 
 Test hors domicile : utilisez exactement `89:89:89:89` comme IP logger et `89898989` comme Monitor SN. Ce mode est explicitement synthétique et ne contacte aucun appareil.
 
-Sous macOS, les téléchargements publics sont **temporairement suspendus pendant la mise en place de la signature Developer ID et de la notarisation Apple**. Nous préférons ne pas demander aux utilisateurs de contourner les protections de macOS. Les mêmes noms de fichiers et les mêmes URL stables seront réutilisés dès que les paquets notarifiés seront disponibles. Sous Linux, le fichier téléchargé peut nécessiter `chmod +x` une fois.
+Sous macOS, les paquets publics sont disponibles pour Apple Silicon et Intel. Le premier lancement peut nécessiter l’autorisation **Ouvrir quand même** décrite ci-dessus. Ne désactivez jamais Gatekeeper globalement. Sous Linux, le fichier téléchargé peut nécessiter `chmod +x` une fois.
 
 **[Release diagnostic stable](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · 📋 **[Protocole de validation](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)**
 

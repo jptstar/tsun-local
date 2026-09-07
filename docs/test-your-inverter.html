@@ -75,6 +75,8 @@
     .outcome.warn{background:var(--amber-soft);color:#754500}
     .outcome strong{display:block;margin-bottom:6px;font-size:20px}
     .privacy{margin-top:20px;padding:18px;border-radius:16px;background:#f8fafd;border:1px solid var(--line)}
+    .mac-warning{margin-top:20px;padding:20px;border:2px solid #e6a31a;border-radius:16px;background:var(--amber-soft);color:#6e4300}
+    .mac-warning strong{display:block;font-size:20px;margin-bottom:8px}.mac-warning p{margin:7px 0}.mac-warning ol{margin:10px 0 0;padding-left:24px}
     .actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:22px}
     .button{display:inline-block;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:850}
     .primary{color:#fff;background:var(--blue)}
@@ -112,16 +114,16 @@
     <h2>One desktop diagnostic for Windows, macOS and Linux</h2>
     <p class="intro">The desktop GUI is <strong>1.5.11</strong> with dump engine <strong>2.7.4</strong>. Every package is built from the same shared interface and published through the stable rolling <code>diagnostic-latest</code> release. The historical Windows download URL is unchanged, so older links remain valid.</p>
     <div class="privacy"><strong>Which Mac will I need?</strong> Mac with an Apple chip <strong>M1, M2, M3, M4 or newer</strong> → <strong>Apple Silicon</strong>. If <strong>Apple menu → About This Mac</strong> says <strong>Intel</strong> → <strong>Mac Intel</strong>.</div>
+    <div class="mac-warning"><strong>🟠 macOS — read this before the first launch</strong><p><strong>TSUN Local Diagnostic is not yet notarized by Apple.</strong> macOS may block the first launch. <strong>You do not need to disable Mac security or Gatekeeper.</strong></p><ol><li>Download and unzip the package for your Mac.</li><li>Try to open <strong>TSUN Local Diagnostic.app</strong> once.</li><li>If macOS blocks it, click <strong>Done</strong>.</li><li>Open <strong>Apple menu → System Settings → Privacy &amp; Security</strong>.</li><li>In <strong>Security</strong>, click <strong>Open Anyway</strong> for TSUN Local Diagnostic.</li><li>Authenticate, then confirm <strong>Open</strong>.</li></ol><p><strong>🟢 Once the application opens, you are done.</strong> The exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.</p></div>
     <div class="actions">
       <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Windows 64-bit (Intel / AMD)</a>
-      <span class="button secondary" aria-disabled="true">Mac M1 / M2 / M3 / M4… (Apple Silicon) — Apple validation in progress</span>
-      <span class="button secondary" aria-disabled="true">Mac Intel (older Macs) — Apple validation in progress</span>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip">Mac M1 / M2 / M3 / M4… (Apple Silicon)</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip">Mac Intel (older Macs)</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64">Linux PC Intel / AMD (x86_64)</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux ARM64 (Raspberry Pi / ARM)</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
     </div>
     <div class="callout"><strong>Same app, same steps, same privacy rules.</strong>Windows keeps verified automatic executable replacement. macOS/Linux check the same architecture-specific rolling channel and indicate when a new package is available; package replacement is currently manual.</div>
-    <div class="privacy"><strong>macOS availability:</strong> public Mac downloads are temporarily paused while <strong>Developer ID signing and Apple notarization</strong> are enabled. We prefer not to ask ordinary users to bypass macOS security protections. The same stable package names and URLs will return once notarized builds are ready.</div>
     <div class="privacy"><strong>Linux first launch:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
   </section>
 
