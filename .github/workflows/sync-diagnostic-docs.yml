@@ -5,9 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "scripts/sync_diagnostic_docs.py"
       - "scripts/clarify_macos_diagnostic_docs.py"
-      - "tools/tsun_diagnostic.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
@@ -32,65 +30,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Make the documentation synchronizer idempotent
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-
-          path = Path("scripts/sync_diagnostic_docs.py")
-          text = path.read_text(encoding="utf-8")
-
-          text = text.replace(
-              "| macOS Apple Silicon | [TSUN-Local-Diagnostic-macOS-arm64.zip]({MAC_ARM}) |",
-              "| Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip]({MAC_ARM}) |",
-          )
-          text = text.replace(
-              "| macOS Intel | [TSUN-Local-Diagnostic-macOS-x86_64.zip]({MAC_INTEL}) |",
-              "| Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip]({MAC_INTEL}) |",
-          )
-
-          localized = (
-              "def sync_localized_readmes() -> None:\n"
-              "    # Match both the historical Windows-only heading and the current\n"
-              "    # cross-platform localized heading. Repeated sync runs stay safe.\n"
-              "    pattern = r\"^### [^\\n]*(?:Windows|macOS|Linux)[^\\n]*\\n.*?(?=^### Sunology PLAY2\\s*$)\"\n"
-              "    for filename, replacement in LOCALIZED.items():\n"
-              "        replace_once(DOCS / filename, pattern, replacement, flags=re.MULTILINE | re.DOTALL)\n"
-          )
-          text, count = re.subn(
-              r"def sync_localized_readmes\(\) -> None:\n.*?(?=\ndef sync_hardware_dump\(\) -> None:)",
-              lambda _match: localized,
-              text,
-              count=1,
-              flags=re.DOTALL,
-          )
-          if count != 1:
-              raise SystemExit("Could not patch sync_localized_readmes")
-
-          # The historical homepage replacement was not idempotent and could add
-          # duplicate Mac/Linux cards. The dedicated clarity pass owns that card.
-          text = text.replace("    sync_homepage()\n", "")
-
-          path.write_text(text, encoding="utf-8")
-          PY
-
-      - name: Synchronize cross-platform diagnostic documentation
-        run: |
-          python scripts/sync_diagnostic_docs.py
-          python scripts/clarify_macos_diagnostic_docs.py
+      - name: Clarify Mac and Linux diagnostic documentation
+        run: python scripts/clarify_macos_diagnostic_docs.py
 
       - name: Verify stable links and generated documentation
         run: |
-          python -m py_compile scripts/sync_diagnostic_docs.py scripts/clarify_macos_diagnostic_docs.py
+          python -m py_compile scripts/clarify_macos_diagnostic_docs.py
           grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
           grep -q 'TSUN-Local-Diagnostic-macOS-arm64.zip' docs/HARDWARE_DUMP.md
           grep -q 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
-          grep -q '1 → 2 → 3 → 4' docs/HARDWARE_DUMP.md
           grep -q 'Mac M1 / M2 / M3 / M4' docs/test-your-inverter.html
           grep -q 'Mac M1 / M2 / M3 / M4' docs/README_FR.md
           grep -q 'Ouvrir quand même' docs/README_FR.md
+          test "$(grep -c 'Mac &amp; Linux diagnostic →' docs/index.html)" -eq 1
 
       - name: Publish synchronized docs branch
         shell: bash
@@ -104,7 +56,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$branch"
           git add \
-            scripts/sync_diagnostic_docs.py \
             README.md \
             tools/README.md \
             docs/HARDWARE_DUMP.md \
