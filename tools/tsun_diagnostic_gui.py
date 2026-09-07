@@ -31,7 +31,7 @@ from typing import Any
 import tsun_dump
 
 APP_NAME = "TSUN Local Diagnostic"
-APP_VERSION = "1.4.1"
+APP_VERSION = "1.4.2"
 REPORT_EMAIL = getattr(tsun_dump, "REPORT_EMAIL", "dev@jptstar.com")
 
 _BG = "#f4f7fb"
@@ -89,6 +89,13 @@ _TEXT = {
         "close": "Fermer",
         "input_title": "Information nécessaire",
         "folder_error": "Impossible d'utiliser le dossier de sortie sélectionné.",
+        "update_checking": "Vérification des mises à jour…",
+        "update_current": "Application à jour.",
+        "update_found": "Mise à jour v{version} disponible — téléchargement…",
+        "update_ready": "Mise à jour téléchargée et vérifiée — redémarrage…",
+        "update_failed": "Vérification de mise à jour impossible — cette version reste utilisable.",
+        "update_disabled": "Vérification automatique des mises à jour désactivée.",
+        "update_available_manual": "Mise à jour v{version} disponible — téléchargez la dernière version.",
         "footer": "Moteur tsun_dump.py v{dump} · Interface v{gui} · Lecture seule",
     },
     "en": {
@@ -133,6 +140,13 @@ _TEXT = {
         "close": "Close",
         "input_title": "Information required",
         "folder_error": "The selected output folder cannot be used.",
+        "update_checking": "Checking for updates…",
+        "update_current": "Application is up to date.",
+        "update_found": "Update v{version} available — downloading…",
+        "update_ready": "Update downloaded and verified — restarting…",
+        "update_failed": "Update check failed — this version remains usable.",
+        "update_disabled": "Automatic update check disabled.",
+        "update_available_manual": "Update v{version} available — download the latest version.",
         "footer": "tsun_dump.py engine v{dump} · GUI v{gui} · Read-only",
     },
 }
@@ -269,11 +283,14 @@ class DiagnosticApp:
         self.monitor_sn = tk.StringVar()
         self.output_dir = tk.StringVar(value=str(self._default_output_dir()))
         self.status = tk.StringVar(value=self.t["ready"])
+        self.update_status = tk.StringVar(value=self.t["update_checking"])
+        self.update_busy = False
 
         self._configure_ttk()
         self._build_ui()
         self.confirm_disabled.trace_add("write", self._sync_run_button)
         self.root.after(100, self._poll_events)
+        self.root.after(250, self._start_update_check)
 
     @staticmethod
     def _default_output_dir() -> Path:
@@ -372,6 +389,15 @@ class DiagnosticApp:
             font=("Segoe UI", 9),
             anchor="w",
         ).pack(fill="x", pady=(4, 0))
+        self.update_label = tk.Label(
+            header,
+            textvariable=self.update_status,
+            bg=_BG,
+            fg=_ACCENT,
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        )
+        self.update_label.pack(fill="x", pady=(5, 0))
 
         main = tk.Frame(content, bg=_BG)
         main.pack(fill="both", expand=True)
@@ -684,11 +710,92 @@ class DiagnosticApp:
         self.log = log
 
     def _sync_run_button(self, *_args: Any) -> None:
-        if self.worker and self.worker.is_alive():
+        if self.update_busy or (self.worker and self.worker.is_alive()):
             self.run_button.configure(state="disabled")
             return
         state = "normal" if self.confirm_disabled.get() else "disabled"
         self.run_button.configure(state=state)
+
+    def _start_update_check(self) -> None:
+        """Start a visible, non-blocking update check after the window is shown."""
+        if "--no-update" in sys.argv:
+            self.update_busy = False
+            self.update_status.set(self.t["update_disabled"])
+            self.update_label.configure(fg=_MUTED)
+            self._sync_run_button()
+            return
+
+        self.update_busy = True
+        self.update_status.set(self.t["update_checking"])
+        self.update_label.configure(fg=_ACCENT)
+        self._sync_run_button()
+        threading.Thread(target=self._run_update_check, daemon=True).start()
+
+    def _run_update_check(self) -> None:
+        """Check updates visibly on every platform; self-update only on Windows EXE."""
+        try:
+            manifest = tsun_dump.fetch_update_manifest()
+            dump_update = tsun_dump.select_update_component(
+                manifest,
+                tsun_dump.UPDATE_COMPONENT_DUMP,
+                tsun_dump.TOOL_VERSION,
+            )
+
+            is_windows_exe = os.name == "nt" and getattr(sys, "frozen", False)
+            if not is_windows_exe:
+                if dump_update is None:
+                    self.events.put(("update_current",))
+                else:
+                    self.events.put(("update_available_manual", dump_update["version"]))
+                return
+
+            update = tsun_dump.select_update_component(
+                manifest,
+                tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
+                APP_VERSION,
+            )
+            if update is None and dump_update is not None:
+                # The Windows EXE embeds tsun_dump.py: refresh the EXE whenever
+                # the embedded engine is older, even if the GUI version is unchanged.
+                update = tsun_dump.select_update_component(
+                    manifest,
+                    tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
+                    "0.0.0",
+                )
+            if update is None:
+                self.events.put(("update_current",))
+                return
+
+            version = update["version"]
+            self.events.put(("update_downloading", version))
+            destination = Path(tempfile.gettempdir()) / (
+                f"TSUN-Local-Diagnostic-update-{version}-{os.getpid()}.exe"
+            )
+            tsun_dump.download_verified_update(update, destination)
+            self.events.put(("update_ready", destination, version))
+        except Exception as exc:
+            self.events.put(("update_failed", type(exc).__name__))
+
+    def _apply_downloaded_update(self, destination: Path) -> None:
+        """Hand off replacement to the verified updater, then close this process."""
+        try:
+            creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+            subprocess.Popen(
+                [
+                    str(destination),
+                    _INTERNAL_UPDATE_SWITCH,
+                    str(Path(sys.executable).resolve()),
+                ],
+                close_fds=True,
+                creationflags=creationflags,
+            )
+        except OSError:
+            self.update_busy = False
+            self.update_status.set(self.t["update_failed"])
+            self.update_label.configure(fg=_DANGER)
+            self._sync_run_button()
+            return
+        self.root.destroy()
 
     def _copy_email(self) -> None:
         self.root.clipboard_clear()
@@ -810,6 +917,34 @@ class DiagnosticApp:
                 kind = event[0]
                 if kind == "log":
                     self._append_log(str(event[1]))
+                elif kind == "update_current":
+                    self.update_busy = False
+                    self.update_status.set(self.t["update_current"])
+                    self.update_label.configure(fg=_SUCCESS)
+                    self._sync_run_button()
+                elif kind == "update_downloading":
+                    self.update_status.set(
+                        self.t["update_found"].format(version=str(event[1]))
+                    )
+                    self.update_label.configure(fg=_ACCENT)
+                elif kind == "update_available_manual":
+                    self.update_busy = False
+                    self.update_status.set(
+                        self.t["update_available_manual"].format(version=str(event[1]))
+                    )
+                    self.update_label.configure(fg=_ACCENT)
+                    self._sync_run_button()
+                elif kind == "update_ready":
+                    destination = Path(str(event[1]))
+                    self.update_status.set(self.t["update_ready"])
+                    self.update_label.configure(fg=_SUCCESS)
+                    self.root.after(650, lambda p=destination: self._apply_downloaded_update(p))
+                elif kind == "update_failed":
+                    self.update_busy = False
+                    self.update_status.set(self.t["update_failed"])
+                    self.update_label.configure(fg=_DANGER)
+                    self._sync_run_button()
+                    self._append_log(f"Update check failed: {event[1]}\n")
                 elif kind == "status":
                     success = bool(event[2])
                     self.status.set(str(event[1]))
@@ -836,9 +971,9 @@ def main() -> int:
     internal_result = _internal_update_mode()
     if internal_result is not None:
         return internal_result
-    if _maybe_auto_update_windows():
-        return 0
 
+    # Show the application immediately. Update checks are performed visibly
+    # from the GUI so a double-click never appears to do nothing.
     root = tk.Tk()
     DiagnosticApp(root)
     root.mainloop()
