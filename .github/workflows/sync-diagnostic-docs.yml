@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "scripts/sync_diagnostic_docs.py"
+      - "scripts/clarify_macos_diagnostic_docs.py"
       - "tools/tsun_diagnostic.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
@@ -32,15 +33,20 @@ jobs:
           python-version: "3.12"
 
       - name: Synchronize cross-platform diagnostic documentation
-        run: python scripts/sync_diagnostic_docs.py
+        run: |
+          python scripts/sync_diagnostic_docs.py
+          python scripts/clarify_macos_diagnostic_docs.py
 
       - name: Verify stable links and generated documentation
         run: |
-          python -m py_compile scripts/sync_diagnostic_docs.py
+          python -m py_compile scripts/sync_diagnostic_docs.py scripts/clarify_macos_diagnostic_docs.py
           grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
           grep -q 'TSUN-Local-Diagnostic-macOS-arm64.zip' docs/HARDWARE_DUMP.md
           grep -q 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
           grep -q '1 → 2 → 3 → 4' docs/HARDWARE_DUMP.md
+          grep -q 'Mac M1 / M2 / M3 / M4' docs/test-your-inverter.html
+          grep -q 'Mac M1 / M2 / M3 / M4' docs/README_FR.md
+          grep -q 'Ouvrir quand même' docs/README_FR.md
 
       - name: Publish synchronized docs branch
         shell: bash
@@ -53,7 +59,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$branch"
-          git add docs/HARDWARE_DUMP.md docs/README_*.md docs/index.html
-          git commit -m "Sync cross-platform diagnostic documentation"
+          git add \
+            README.md \
+            tools/README.md \
+            docs/HARDWARE_DUMP.md \
+            docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md \
+            docs/README_*.md \
+            docs/index.html \
+            docs/test-your-inverter.html
+          git commit -m "Clarify Mac diagnostic downloads and Gatekeeper steps"
           git push --force origin "$branch"
           echo "Synchronized documentation published to $branch for pull-request validation."
