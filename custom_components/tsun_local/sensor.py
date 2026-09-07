@@ -1031,7 +1031,6 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
         self.entity_description = description
         self._restored_energy_value: float | None = None
         self._daily_reset_override = False
-        self._daily_reset_successes = 0
         logger_sn = str(entry.data[CONF_LOGGER_SN])
         self._label_serial_number = logger_sn
         self._attr_unique_id = f"{logger_sn}_{description.key}"
@@ -1098,21 +1097,19 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
             if last_local_date != dt_util.now().date():
                 value = 0.0
                 self._daily_reset_override = True
-                self._daily_reset_successes = 0
-        self._restored_energy_value = value
+                self._restored_energy_value = value
 
     @callback
     def _async_midnight_rollover(self, _now: datetime) -> None:
         """Reset daily energy locally at midnight, even while the inverter sleeps."""
         self._daily_reset_override = True
-        self._daily_reset_successes = 0
         self._restored_energy_value = 0.0
         self.async_write_ha_state()
 
     @callback
     @override
     def _handle_coordinator_update(self) -> None:
-        """Release a daily reset only after two fresh successful protocol polls."""
+        """Use the first fresh daily-energy sample after an offline rollover."""
         key = self.entity_description.key
         if (
             self._is_daily_energy
@@ -1120,9 +1117,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
             and bool(self.coordinator.data.get("communication_online", False))
             and key in self.coordinator.data
         ):
-            self._daily_reset_successes += 1
-            if self._daily_reset_successes >= 2:
-                self._daily_reset_override = False
+            self._daily_reset_override = False
         super()._handle_coordinator_update()
 
     @property

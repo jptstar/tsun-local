@@ -328,7 +328,7 @@ class Protocol1511ClientTests(unittest.IsolatedAsyncioTestCase):
             )
             return _build_ap_reply(b"\x7E" + body + crc16_1511(body))
 
-        responses = iter(
+        response = b"".join(
             build_reply(block) for block in (*BLOCKS_1511, *BLOCKS_1511_ALARM)
         )
 
@@ -356,13 +356,14 @@ class Protocol1511ClientTests(unittest.IsolatedAsyncioTestCase):
                 pass
 
         async def open_connection(_host: str, _port: int):
-            return FakeReader(next(responses)), FakeWriter()
+            return FakeReader(response), FakeWriter()
 
         protocol_module = sys.modules["tsun_local_protocol_tests.protocol_1511"]
         with patch.object(
             protocol_module.asyncio, "open_connection", new=open_connection
         ):
             client = Tsun1511Client("192.0.2.10", 8899, 123456)
+            client._last_diagnostic_read = float("inf")
             result = await client.async_read_all()
 
         self.assertEqual(result.blocks_ok, 4)
