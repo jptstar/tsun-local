@@ -65,8 +65,12 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Patch, test, clean and commit
+      - name: Patch, test and commit
         run: |
+          if ! grep -q '_daily_reset_successes' custom_components/tsun_local/sensor.py; then
+            echo "Focused energy patch already applied."
+            exit 0
+          fi
           python3 - <<'PY'
           from pathlib import Path
           sensor_path = Path("custom_components/tsun_local/sensor.py")
@@ -102,10 +106,8 @@ jobs:
           test_path.write_text(tests.replace(old_assert, new_assert, 1), encoding="utf-8")
           PY
           python -m unittest discover -s tests -v
-          git show HEAD^:.github/workflows/validate.yml > .github/workflows/validate.yml
-          git rm -f .github/workflows/patch-energy-first-fresh-poll.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add custom_components/tsun_local/sensor.py tests/test_energy_restore_contract.py .github/workflows/validate.yml
+          git add custom_components/tsun_local/sensor.py tests/test_energy_restore_contract.py
           git commit -m "Use first fresh daily energy after offline rollover"
           git push origin HEAD:fix/energy-first-fresh-poll-work
