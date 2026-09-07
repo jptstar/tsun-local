@@ -28,7 +28,7 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         self.assertIn("Open published report", source)
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.4")
+        self.assertEqual(desktop.APP_VERSION, "1.5.6")
 
 
 if __name__ == "__main__":
