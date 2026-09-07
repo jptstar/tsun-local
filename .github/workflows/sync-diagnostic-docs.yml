@@ -1,0 +1,55 @@
+name: Sync diagnostic documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/sync_diagnostic_docs.py"
+      - "tools/tsun_diagnostic.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-diagnostic-docs
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Synchronize cross-platform diagnostic documentation
+        run: python scripts/sync_diagnostic_docs.py
+
+      - name: Verify stable links and generated documentation
+        run: |
+          python -m py_compile scripts/sync_diagnostic_docs.py
+          grep -q 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
+          grep -q 'TSUN-Local-Diagnostic-macOS-arm64.zip' docs/HARDWARE_DUMP.md
+          grep -q 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
+          grep -q '1 → 2 → 3 → 4' docs/HARDWARE_DUMP.md
+
+      - name: Commit synchronized docs
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Documentation already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/HARDWARE_DUMP.md docs/README_*.md docs/index.html
+          git commit -m "Sync cross-platform diagnostic documentation"
+          git push
