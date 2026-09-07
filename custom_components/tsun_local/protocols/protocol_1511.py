@@ -333,7 +333,10 @@ class Tsun1511Client:
         self.port = port
         self.logger_sn = logger_sn
         self.timeout = timeout
-        self._pv_count = 1
+        # TITAN/1511 has a validated fixed six-input register map. Keep all six
+        # entities present even when Home Assistant starts while the logger is
+        # asleep/offline and no live topology probe is possible yet.
+        self._pv_count = MAX_PV_COUNT
         self._trace = ProtocolTrace(PROTOCOL_NAME)
         self._diagnostic_registers: dict[int, int] = {}
         self._last_diagnostic_read = 0.0
