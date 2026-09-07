@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.7.3")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.7.4")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -161,7 +161,7 @@ class TsunDumpToolTests(unittest.TestCase):
             document, "/index.html", "192.168.1.25"
         )
         self.assertEqual(paths, ["/wifi_status.html", "/device.html", "/info.cgi"])
-        self.assertEqual(TOOL.MAX_LOGGER_WEB_PATHS, 10)
+        self.assertEqual(TOOL.MAX_LOGGER_WEB_PATHS, 24)
 
     def test_research_capture_paths_include_network_and_upgrade_pages(self) -> None:
         self.assertEqual(len(TOOL.LOGGER_WEB_CAPTURE_PATHS), 10)

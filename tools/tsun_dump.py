@@ -38,7 +38,7 @@ from urllib.parse import urljoin, urlsplit
 import urllib.request
 
 
-TOOL_VERSION = "2.7.3"
+TOOL_VERSION = "2.7.4"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -66,7 +66,7 @@ DEFAULT_SNAPSHOTS = 3
 DEFAULT_SNAPSHOT_INTERVAL = 3.0
 MAX_MODBUS_REGISTERS_PER_READ = 16
 MAX_HTTP_PAGE_SIZE = 512 * 1024
-MAX_LOGGER_WEB_PATHS = 10
+MAX_LOGGER_WEB_PATHS = 24
 MIN_SCAN_PREFIX = 24
 PROTOCOL_PROBE_RETRIES = 3
 PROTOCOL_RETRY_DELAY = 0.4
@@ -181,6 +181,26 @@ _RAW_PROFILE_PATTERNS = (
         re.IGNORECASE,
     ),
 )
+
+_LOGGER_PROFILE_PAIR_PATTERN = re.compile(
+    r"(?P<id>\d{1,6})\s*:\s*(?P<name>Tengsheng_[A-Za-z0-9._-]{1,96})",
+    re.IGNORECASE,
+)
+_LOGGER_PROFILE_OPTION_PATTERN = re.compile(
+    r"<option[^>]+value\s*=\s*[\"'](?P<id>\d{1,6})[\"'][^>]*>"
+    r"[\s\S]{0,160}?(?P<name>Tengsheng_[A-Za-z0-9._-]{1,96})",
+    re.IGNORECASE,
+)
+_LOGGER_PROFILE_SELECTED_ID_PATTERNS = (
+    re.compile(
+        r"\binv_tp_seld\b\s*[:=]\s*[\"']?\s*(\d{1,6})",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\binv_set\b\s*[:=]\s*[\"']?\s*(\d{1,6})(?:\s*[,;])",
+        re.IGNORECASE,
+    ),
+)
 _WIFI_SIGNAL_PATTERNS = (
     (
         "cover_sta_rssi",
@@ -224,6 +244,10 @@ _WIFI_SIGNAL_PATTERNS = (
         ),
     ),
 )
+
+_WIFI_SIGNAL_PRIORITY = {
+    source: index for index, (source, _pattern) in enumerate(_WIFI_SIGNAL_PATTERNS)
+}
 
 _SENSITIVE_FIELD_NAME = (
     r"[A-Za-z0-9_-]*(?:ssid|password|passwd|pwd|psk|token|secret|"
@@ -1581,6 +1605,98 @@ def _extract_logger_mac_oui(document: str) -> str | None:
     return None
 
 
+def extract_logger_profile_candidates(document: str) -> dict[str, Any]:
+    """Extract logger-internal Tengsheng profile IDs by static source inspection."""
+    profiles: dict[tuple[str, str], dict[str, str]] = {}
+    for pattern in (_LOGGER_PROFILE_PAIR_PATTERN, _LOGGER_PROFILE_OPTION_PATTERN):
+        for match in pattern.finditer(document):
+            profile_id = match.group("id").strip()
+            name = match.group("name").strip()
+            key = (profile_id, name.lower())
+            profiles[key] = {
+                "id": profile_id,
+                "name": name,
+                "raw": f"{profile_id}:{name}",
+            }
+
+    selected_id = _first_web_match(_LOGGER_PROFILE_SELECTED_ID_PATTERNS, document)
+    raw_profile = _first_web_match(_RAW_PROFILE_PATTERNS, document)
+    selected_profile: dict[str, str] | None = None
+    if raw_profile:
+        if match := _LOGGER_PROFILE_PAIR_PATTERN.search(raw_profile):
+            selected_profile = {
+                "id": match.group("id").strip(),
+                "name": match.group("name").strip(),
+                "raw": f"{match.group('id').strip()}:{match.group('name').strip()}",
+            }
+            selected_id = selected_id or selected_profile["id"]
+            profiles[(selected_profile["id"], selected_profile["name"].lower())] = selected_profile
+
+    return {
+        "selected_id": selected_id,
+        "selected_profile": selected_profile,
+        "profiles": sorted(
+            profiles.values(),
+            key=lambda item: (int(item["id"]), item["name"].lower()),
+        ),
+        "evidence": {
+            "inv_tp_seen": bool(re.search(r"\binv_tp\b", document, re.IGNORECASE)),
+            "inv_tp_seld_seen": bool(re.search(r"\binv_tp_seld\b", document, re.IGNORECASE)),
+            "inv_set_seen": bool(re.search(r"\binv_set\b", document, re.IGNORECASE)),
+            "tengsheng_profile_seen": bool(_LOGGER_PROFILE_PAIR_PATTERN.search(document)),
+        },
+        "static_source_only": True,
+        "javascript_executed": False,
+    }
+
+
+def _merge_logger_profile_catalog(
+    catalog: dict[str, Any], document: str, source_path: str
+) -> None:
+    """Merge one HTML/JS source into the privacy-safe logger profile catalogue."""
+    scan = extract_logger_profile_candidates(document)
+    if catalog["selected_id"] is None and scan["selected_id"] is not None:
+        catalog["selected_id"] = scan["selected_id"]
+    if catalog["selected_profile"] is None and scan["selected_profile"] is not None:
+        catalog["selected_profile"] = scan["selected_profile"]
+
+    for key, value in scan["evidence"].items():
+        catalog["evidence"][key] = bool(catalog["evidence"].get(key) or value)
+
+    records = catalog["_records"]
+    for profile in scan["profiles"]:
+        record_key = f"{profile['id']}:{profile['name'].lower()}"
+        if record_key not in records:
+            records[record_key] = {**profile, "sources": []}
+        if source_path not in records[record_key]["sources"]:
+            records[record_key]["sources"].append(source_path)
+
+
+def _finalize_logger_profile_catalog(catalog: dict[str, Any]) -> dict[str, Any]:
+    """Return a stable JSON-ready catalogue with no internal aggregation fields."""
+    profiles = sorted(
+        catalog["_records"].values(),
+        key=lambda item: (int(item["id"]), item["name"].lower()),
+    )
+    selected = catalog["selected_profile"]
+    if selected is None and catalog["selected_id"] is not None:
+        selected = next(
+            (item for item in profiles if item["id"] == catalog["selected_id"]),
+            None,
+        )
+    return {
+        "selected_id": catalog["selected_id"],
+        "selected_profile": selected,
+        "discovered_profiles": profiles,
+        "profile_count": len(profiles),
+        "evidence": catalog["evidence"],
+        "static_source_only": True,
+        "javascript_executed": False,
+        "form_submission_performed": False,
+        "configuration_write_performed": False,
+    }
+
+
 def _logger_web_metadata(document: str) -> dict[str, Any]:
     """Extract non-identifying logger metadata plus a 3-character inverter prefix."""
     firmware = _extract_logger_firmware(document)
@@ -1653,6 +1769,17 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
         "logger_mac_oui": None,
         "inverter_serial_prefix": None,
     }
+    profile_catalog: dict[str, Any] = {
+        "selected_id": None,
+        "selected_profile": None,
+        "_records": {},
+        "evidence": {
+            "inv_tp_seen": False,
+            "inv_tp_seld_seen": False,
+            "inv_set_seen": False,
+            "tengsheng_profile_seen": False,
+        },
+    }
 
     pending = list(dict.fromkeys(LOGGER_WEB_CAPTURE_PATHS))
     queued = set(pending)
@@ -1679,11 +1806,20 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
                 if summary[key] is None and value is not None:
                     summary[key] = value
 
-            if summary["logger_wifi_signal"] is None and metadata["logger_wifi_signal"] is not None:
-                summary["logger_wifi_signal"] = metadata["logger_wifi_signal"]
-                summary["logger_wifi_signal_unit"] = metadata["logger_wifi_signal_unit"]
+            if metadata["logger_wifi_signal"] is not None:
                 source = metadata["logger_wifi_signal_source"] or "unknown"
-                summary["logger_wifi_signal_source"] = f"{path}:{source}"
+                current = summary["logger_wifi_signal_source"]
+                current_source = (
+                    str(current).rsplit(":", 1)[-1] if current is not None else None
+                )
+                new_priority = _WIFI_SIGNAL_PRIORITY.get(source, 999)
+                current_priority = _WIFI_SIGNAL_PRIORITY.get(current_source, 999)
+                if summary["logger_wifi_signal"] is None or new_priority < current_priority:
+                    summary["logger_wifi_signal"] = metadata["logger_wifi_signal"]
+                    summary["logger_wifi_signal_unit"] = metadata["logger_wifi_signal_unit"]
+                    summary["logger_wifi_signal_source"] = f"{path}:{source}"
+
+            _merge_logger_profile_catalog(profile_catalog, document, path)
 
             interface = summarize_web_interface_read_only(document, path, host)
             if (
@@ -1693,6 +1829,14 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
                 or path in LOGGER_RESEARCH_PATHS
             ):
                 interface_analysis.append(interface)
+
+            # Static external scripts can carry the complete inverter profile table.
+            # Fetch only same-logger HTTP script paths discovered in already-read pages.
+            for script_path in interface["script_paths"]:
+                if script_path in queued or len(queued) >= MAX_LOGGER_WEB_PATHS:
+                    continue
+                queued.add(script_path)
+                pending.append(script_path)
 
             sanitized = anonymize_web_document(document)
             digest = hashlib.sha256(sanitized.encode("utf-8")).hexdigest()
@@ -1721,6 +1865,7 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
         "paths_attempted": attempted_paths,
         "discovered_paths": [path for path in attempted_paths if path not in known],
         "summary": summary,
+        "logger_profile_catalog": _finalize_logger_profile_catalog(profile_catalog),
         "interface_analysis": interface_analysis,
         "pages": pages,
         "privacy": {
@@ -1734,6 +1879,8 @@ def capture_logger_web_pages(host: str, timeout: float) -> dict[str, Any]:
             "mac_oui_stored": True,
             "wifi_credentials_stored": False,
             "same_logger_links_only": True,
+            "profile_catalog_names_and_ids_only": True,
+            "external_scripts_get_only": True,
             "form_submission_performed": False,
             "javascript_executed": False,
             "firmware_upload_performed": False,
