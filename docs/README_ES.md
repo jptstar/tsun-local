@@ -159,25 +159,44 @@ Solo sondeo local directo.
 
 TSUN Local ofrece un diagnóstico de hardware respetuoso con la privacidad y **estrictamente de solo lectura** para modelos no listados y problemas de comunicación.
 
-### Windows — opción más sencilla
+### Aplicación de escritorio — Windows, macOS y Linux
 
-**⬇️ [Descargar `TSUN-Local-Diagnostic.exe`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)**
+La **misma interfaz TSUN Local Diagnostic** está ahora disponible para Windows, macOS y Linux. Todos los paquetes utilizan el mismo motor de hardware **estrictamente de solo lectura**.
 
-No requiere instalación ni entorno Python. La aplicación portátil utiliza el mismo motor de diagnóstico de solo lectura, descubre loggers TSUN, prueba los protocolos **1511 / 02B0 / 1097** y genera un informe JSON anonimizado.
+| Plataforma | Descarga | Checksum |
+|---|---|---|
+| Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
+| macOS Apple Silicon | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS Intel | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
+| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
+| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Para investigar problemas de comunicación o entidades no disponibles, **desactiva la entrada de configuración TSUN Local afectada antes de iniciar la captura** y vuelve a activarla después.
+Versiones actuales: GUI **1.5.11** · motor de dump **2.7.4**.
 
-### macOS / Linux / usuarios avanzados
+El enlace histórico de Windows se mantiene intencionadamente sin cambios para que los mensajes y tutoriales antiguos sigan funcionando.
 
-**⬇️ [Descargar `tsun_dump.py`](https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py)** — Python 3.10+.
+El flujo es idéntico en todas las plataformas: **1 → 2 → 3 → 4**.
+
+1. **Desactivar TSUN Local** para el logger afectado.
+2. **Ejecutar el diagnóstico**.
+3. **Envío directo del informe** — recomendado, solo con consentimiento explícito.
+4. **Envío manual por correo** — alternativa opcional.
+
+El nombre/seudónimo y hasta 10 modelos de microinversor con cantidades pueden guardarse localmente y modificarse después. El consentimiento nunca se guarda. Tras el envío, la aplicación muestra el ID `TSL-...` y un enlace seguro para ver exactamente el informe anonimizado enviado, sin acceso al repositorio privado.
+
+Prueba fuera de la instalación: IP del logger `89:89:89:89` y Monitor SN `89898989`. Este modo es explícitamente sintético y no contacta ningún dispositivo real.
+
+En macOS la app está firmada ad hoc pero todavía no está notarizada por Apple; en el primer inicio puede ser necesario Finder → clic derecho → **Abrir**. En Linux puede ser necesario ejecutar `chmod +x` una vez.
+
+**[Release de diagnóstico estable](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[Protocolo de validación](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[Guía de hardware](HARDWARE_DUMP.md)**
+
+### Alternativa Python / línea de comandos
+
+[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) sigue disponible para Python 3.10+ y usuarios avanzados:
 
 ```bash
 python3 tsun_dump.py --full
 ```
-
-En Windows el script sigue disponible con `py tsun_dump.py --full`.
-
-📚 **[Guía Hardware Validation Dump Tool](HARDWARE_DUMP.md)**
 
 ### Sunology PLAY2
 
