@@ -111,7 +111,7 @@ def clarify_english_markdown() -> None:
                 "**Apple menu → System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway**, authenticate, "
                 "then confirm **Open**. Apple says this override is available for about one hour after the failed launch attempt. "
                 "If macOS instead says the app **will damage your Mac** or explicitly reports malware, **do not bypass that warning**. "
-                "See [Apple’s official instructions](https://support.apple.com/en-gb/102445)."
+                "See [Apple’s official instructions](https://support.apple.com/en-gb/102445). "
             ),
             text,
             count=1,
