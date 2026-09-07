@@ -10,12 +10,12 @@ TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
 import tsun_diagnostic_app as app  # noqa: E402
-import tsun_diagnostic_desktop_v159 as desktop  # noqa: E402
+import tsun_diagnostic as desktop  # noqa: E402
 
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.10")
+        self.assertEqual(desktop.APP_VERSION, "1.5.11")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -158,12 +158,34 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
         )
 
     def test_private_reports_repository_is_not_exposed_in_desktop_ui(self) -> None:
-        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        source = Path(desktop.ui.__file__).read_text(encoding="utf-8")
         self.assertNotIn("jptstar/tsun-local-reports", source)
         self.assertNotIn("github_report_url", source)
         self.assertNotIn("open_github", source)
         self.assertIn("_main_report_links_host", source)
         self.assertIn('get("view_url")', source)
+
+    def test_platform_assets_keep_windows_link_and_add_mac_linux(self) -> None:
+        self.assertEqual(
+            desktop.platform_release_asset(system="Windows", machine="AMD64"),
+            "TSUN-Local-Diagnostic.exe",
+        )
+        self.assertEqual(
+            desktop.platform_release_asset(system="Darwin", machine="arm64"),
+            "TSUN-Local-Diagnostic-macOS-arm64.zip",
+        )
+        self.assertEqual(
+            desktop.platform_release_asset(system="Darwin", machine="x86_64"),
+            "TSUN-Local-Diagnostic-macOS-x86_64.zip",
+        )
+        self.assertEqual(
+            desktop.platform_release_asset(system="Linux", machine="x86_64"),
+            "TSUN-Local-Diagnostic-Linux-x86_64",
+        )
+        self.assertEqual(
+            desktop.platform_release_asset(system="Linux", machine="aarch64"),
+            "TSUN-Local-Diagnostic-Linux-arm64",
+        )
 
 
 if __name__ == "__main__":
