@@ -45,25 +45,28 @@ jobs:
               marker = '## [1.6.0] - 2026-09-04\n'
               if marker not in text:
                   raise SystemExit('1.6.0 changelog marker not found')
-              section = '''## [1.6.1-beta.3] - 2026-09-07
-
-### Fixed
-
-- Publish the first fresh `*_energy_today` value immediately after an offline midnight rollover instead of holding the locally generated `0 kWh` for an extra successful polling interval.
-- Keep the local midnight reset to `0 kWh` while the inverter remains asleep/offline and keep total-energy restoration unchanged.
-- Align one legacy 1511 unit-test fixture with the persistent-session transport already introduced in 1.6.1-beta.1; production 1511 transport code is unchanged by this correction.
-
-### Retained
-
-- Keep the 1097, 02B0 and 1511 communication-resilience changes from the previous 1.6.1 betas: healthy-cycle TCP session reuse, one bounded reconnect/retry, per-logger FIFO and adaptive polling.
-- Keep all validated 02B0 and 1511 register coverage unchanged.
-- Keep TSUN Local local and read-only with no inverter configuration or control writes.
-
-### Validation
-
-- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest before publication.
-
-'''
+              lines = [
+                  '## [1.6.1-beta.3] - 2026-09-07',
+                  '',
+                  '### Fixed',
+                  '',
+                  '- Publish the first fresh `*_energy_today` value immediately after an offline midnight rollover instead of holding the locally generated `0 kWh` for an extra successful polling interval.',
+                  '- Keep the local midnight reset to `0 kWh` while the inverter remains asleep/offline and keep total-energy restoration unchanged.',
+                  '- Align one legacy 1511 unit-test fixture with the persistent-session transport already introduced in 1.6.1-beta.1; production 1511 transport code is unchanged by this correction.',
+                  '',
+                  '### Retained',
+                  '',
+                  '- Keep the 1097, 02B0 and 1511 communication-resilience changes from the previous 1.6.1 betas: healthy-cycle TCP session reuse, one bounded reconnect/retry, per-logger FIFO and adaptive polling.',
+                  '- Keep all validated 02B0 and 1511 register coverage unchanged.',
+                  '- Keep TSUN Local local and read-only with no inverter configuration or control writes.',
+                  '',
+                  '### Validation',
+                  '',
+                  '- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest before publication.',
+                  '',
+                  '',
+              ]
+              section = '\n'.join(lines)
               path.write_text(text.replace(marker, section + marker, 1), encoding='utf-8')
           PY
 
