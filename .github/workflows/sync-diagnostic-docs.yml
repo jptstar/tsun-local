@@ -7,6 +7,7 @@ on:
     paths:
       - "scripts/publish_macos_first_launch_docs.py"
       - "scripts/fix_current_mac_copy.py"
+      - "scripts/sync_play2_dual_generation_docs.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
@@ -31,14 +32,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Publish safe macOS first-launch guidance
+      - name: Synchronize public diagnostic documentation
         run: |
           python scripts/publish_macos_first_launch_docs.py
           python scripts/fix_current_mac_copy.py
+          python scripts/sync_play2_dual_generation_docs.py
 
       - name: Verify stable links and generated documentation
         run: |
-          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py
+          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py scripts/sync_play2_dual_generation_docs.py
           grep -Fq 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
           grep -Fq 'TSUN-Local-Diagnostic-macOS-arm64.zip' README.md
           grep -Fq 'TSUN-Local-Diagnostic-macOS-x86_64.zip' README.md
@@ -64,6 +66,12 @@ jobs:
           grep -Fq 'Python diagnostic →' docs/index.html
           grep -Fq 'Windows diagnostic →' docs/index.html
           grep -Fq 'class="tested-link"' docs/index.html
+          grep -Fq 'GEN4 / Tengsheng G4' docs/index.html
+          grep -Fq 'Sunology · G4 variant' docs/index.html
+          grep -Fq 'Two PLAY2 generations are now observed' docs/sunology-play2.html
+          grep -Fq 'GEN3 Plus · protocol 02B0' docs/sunology-play2.html
+          grep -Fq 'GEN4 · protocol 1097' docs/sunology-play2.html
+          grep -Fq 'Tengsheng_G4' docs/sunology-play2.html
 
       - name: Publish synchronized docs branch
         shell: bash
@@ -83,7 +91,8 @@ jobs:
             docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md \
             docs/README_*.md \
             docs/index.html \
-            docs/test-your-inverter.html
-          git commit -m "Publish Mac downloads with first-launch guide"
+            docs/test-your-inverter.html \
+            docs/sunology-play2.html
+          git commit -m "Synchronize public diagnostic documentation"
           git push --force origin "$branch"
           echo "Synchronized documentation published to $branch for pull-request validation."
