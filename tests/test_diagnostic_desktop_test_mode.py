@@ -25,10 +25,11 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         source = Path(desktop.__file__).read_text(encoding="utf-8")
         self.assertIn('get("view_url")', source)
         self.assertIn("webbrowser.open", source)
-        self.assertIn("Open published report", source)
+        self.assertIn("View published report", source)
+        self.assertIn("link_missing", source)
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.6")
+        self.assertEqual(desktop.APP_VERSION, "1.5.7")
 
 
 if __name__ == "__main__":
