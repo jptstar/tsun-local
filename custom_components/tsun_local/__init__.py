@@ -217,6 +217,19 @@ async def async_setup_entry(
         logger_data.wifi_signal,
     )
     await coordinator.async_config_entry_first_refresh()
+
+    # Some TITAN/1511 logger firmwares can be briefly busy serving the local
+    # inverter protocol during Home Assistant startup. If the initial HTTP
+    # metadata read did not expose RSSI, retry once after the first successful
+    # protocol refresh so the Wi-Fi entity does not remain unknown until the
+    # periodic five-minute metadata refresh.
+    if logger_data.wifi_signal is None:
+        signal = await async_read_logger_wifi_signal(hass, host)
+        if signal is not None:
+            coordinator.async_update_logger_metadata(
+                {"logger_wifi_signal": signal}
+            )
+
     _async_sync_device_info(hass, entry, coordinator)
 
     async def _async_refresh_logger_metadata(_now: datetime) -> None:
@@ -233,16 +246,12 @@ async def async_setup_entry(
                 ):
                     if value is not None:
                         updates[key] = value
-                updates["logger_wifi_signal"] = (
-                    refreshed.wifi_signal
-                    if refreshed.wifi_signal is not None
-                    else 0
-                )
+                if refreshed.wifi_signal is not None:
+                    updates["logger_wifi_signal"] = refreshed.wifi_signal
             else:
                 signal = await async_read_logger_wifi_signal(hass, host)
-                updates["logger_wifi_signal"] = (
-                    signal if signal is not None else 0
-                )
+                if signal is not None:
+                    updates["logger_wifi_signal"] = signal
 
         if not updates or not coordinator.async_update_logger_metadata(
             updates

@@ -25,10 +25,18 @@ class Release160ContractTests(unittest.TestCase):
         manifest = json.loads((ROOT / "custom_components/tsun_local/manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["version"], "1.6.0")
 
-    def test_failed_http_signal_is_not_kept_stale(self) -> None:
+    def test_failed_http_signal_keeps_last_known_value(self) -> None:
         init_source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8")
-        self.assertIn("signal if signal is not None else 0", init_source)
-        self.assertIn("if refreshed.wifi_signal is not None\n                    else 0", init_source)
+        self.assertNotIn('signal if signal is not None else 0', init_source)
+        self.assertIn('if signal is not None:\n                    updates["logger_wifi_signal"] = signal', init_source)
+        self.assertIn('if refreshed.wifi_signal is not None:\n                    updates["logger_wifi_signal"] = refreshed.wifi_signal', init_source)
+
+    def test_logger_wifi_signal_uses_firmware_resilient_priority(self) -> None:
+        source = (ROOT / "custom_components/tsun_local/logger_web.py").read_text(encoding="utf-8")
+        positions = [source.index(name) for name in ("cover_sta_rssi", "sta_rssi", "wifi_rssi", "wifi_signal")]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("if logger_data.wifi_signal is None:", init_source := (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8"))
+        self.assertIn("signal = await async_read_logger_wifi_signal(hass, host)", init_source)
 
     def test_communication_sensor_visibility(self) -> None:
         source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(encoding="utf-8").splitlines()

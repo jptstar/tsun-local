@@ -92,9 +92,25 @@ _RAW_PROFILE_KEYS = (
         re.IGNORECASE,
     ),
 )
+# Logger firmwares expose RSSI under several names. Keep this order from the
+# most authoritative status field to progressively weaker compatibility
+# fallbacks. In particular TITAN/1511 firmwares commonly expose
+# ``cover_sta_rssi`` while some GEN3 pages use one of the shorter aliases.
 _WIFI_SIGNAL_KEYS = (
     re.compile(
         r"\bcover_sta_rssi\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\bsta_rssi\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\bwifi_rssi\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\bwifi_signal\b\s*[:=]\s*[\"']?\s*(-?\d{1,3})",
         re.IGNORECASE,
     ),
 )
