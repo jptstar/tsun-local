@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Make desktop-download choices and macOS Gatekeeper guidance unambiguous.
+"""Keep desktop diagnostic documentation safe and unambiguous.
 
-This deliberately keeps every existing release URL and documentation path
-unchanged so old forum/HACF links continue to work.
+Windows/Linux downloads remain public. macOS public downloads are intentionally
+paused until Developer ID signing and Apple notarization are active. The stable
+macOS filenames are preserved so the same URLs can be restored once notarized.
 """
 
 from __future__ import annotations
@@ -15,6 +16,8 @@ DOCS = ROOT / "docs"
 
 MAC_APPLE_LABEL = "Mac M1 / M2 / M3 / M4… (Apple Silicon)"
 MAC_INTEL_LABEL = "Mac Intel (older Macs)"
+MAC_ARM_ASSET = "TSUN-Local-Diagnostic-macOS-arm64.zip"
+MAC_INTEL_ASSET = "TSUN-Local-Diagnostic-macOS-x86_64.zip"
 
 
 def write_if_changed(path: Path, text: str) -> None:
@@ -30,20 +33,50 @@ def replace_all(path: Path, replacements: tuple[tuple[str, str], ...]) -> None:
     write_if_changed(path, text)
 
 
-def clarify_markdown_platform_labels() -> None:
-    paths = [
+def markdown_paths() -> list[Path]:
+    return [
         ROOT / "README.md",
         ROOT / "tools" / "README.md",
         DOCS / "HARDWARE_DUMP.md",
         DOCS / "DIRECT_DIAGNOSTIC_UPLOAD_TEST.md",
         *sorted(DOCS.glob("README_*.md")),
     ]
+
+
+def clarify_platform_labels() -> None:
     replacements = (
         ("macOS Apple Silicon", f"macOS — {MAC_APPLE_LABEL}"),
         ("macOS Intel", f"macOS — {MAC_INTEL_LABEL}"),
     )
-    for path in paths:
+    for path in markdown_paths():
         replace_all(path, replacements)
+
+
+def pause_public_macos_markdown_downloads() -> None:
+    for path in markdown_paths():
+        text = path.read_text(encoding="utf-8")
+        french = path.name == "README_FR.md"
+        status = (
+            "**Téléchargement public suspendu — validation Apple en cours**"
+            if french
+            else "**Public download paused — Apple notarization in progress**"
+        )
+        intel_label = "Mac Intel (anciens Mac)" if french else MAC_INTEL_LABEL
+        apple_row = f"| macOS — {MAC_APPLE_LABEL} | {status} | — |"
+        intel_row = f"| macOS — {intel_label} | {status} | — |"
+        text = re.sub(
+            rf"^\|.*{re.escape(MAC_ARM_ASSET)}.*\|$",
+            apple_row,
+            text,
+            flags=re.MULTILINE,
+        )
+        text = re.sub(
+            rf"^\|.*{re.escape(MAC_INTEL_ASSET)}.*\|$",
+            intel_row,
+            text,
+            flags=re.MULTILINE,
+        )
+        write_if_changed(path, text)
 
 
 def clarify_french_readme() -> None:
@@ -52,30 +85,26 @@ def clarify_french_readme() -> None:
     text = text.replace("macOS — Mac Intel (older Macs)", "macOS — Mac Intel (anciens Mac)")
 
     chooser = (
-        "> **Quel Mac choisir ?**  \n"
-        "> • **Mac avec une puce Apple M1, M2, M3, M4 ou plus récente** → choisissez **Mac M1 / M2 / M3 / M4… (Apple Silicon)**.  \n"
-        "> • **Mac dont  → À propos de ce Mac indique Intel** → choisissez **Mac Intel**.\n\n"
+        "> **Quel Mac choisir lorsque les builds signés seront publiés ?**  \n"
+        "> • **Mac avec une puce Apple M1, M2, M3, M4 ou plus récente** → **Apple Silicon**.  \n"
+        "> • **Mac dont  → À propos de ce Mac indique Intel** → **Mac Intel**.\n\n"
     )
-    if "> **Quel Mac choisir ?**" not in text:
-        text = re.sub(
-            r"(\| Linux arm64 .*?\|\n\n)(Versions actuelles :)",
-            rf"\1{chooser}\2",
-            text,
-            count=1,
-        )
-
     text = re.sub(
-        r"Sous macOS, l’application (?:est signée de manière ad hoc mais pas encore notarifiée Apple :|n’est \*\*pas encore notarifiée par Apple\*\*\.).*?(?=Sous Linux,)",
-        (
-            "Sous macOS, l’application n’est **pas encore notarifiée par Apple**. "
-            "Si l’alerte **« Apple n’a pas pu confirmer que TSUN Local Diagnostic ne contenait pas de logiciel malveillant »** apparaît, "
-            "cliquez **Terminé**, puis ouvrez ** → Réglages Système → Confidentialité et sécurité**, faites défiler jusqu’à **Sécurité**, "
-            "cliquez **Ouvrir quand même**, authentifiez-vous puis confirmez **Ouvrir**. "
-            "Apple indique que cette option reste disponible environ une heure après la tentative d’ouverture. "
-            "Si macOS indique au contraire que l’app **« endommagera votre Mac »** ou détecte explicitement un logiciel malveillant, "
-            "**ne contournez pas l’alerte**. "
-            "[Procédure Apple officielle](https://support.apple.com/fr-fr/guide/mac-help/mh40616/mac). "
-        ),
+        r"> \*\*Quel Mac choisir.*?(?=Versions actuelles :)",
+        chooser,
+        text,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+    paused = (
+        "Sous macOS, les téléchargements publics sont **temporairement suspendus pendant la mise en place de la signature Developer ID et de la notarisation Apple**. "
+        "Nous préférons ne pas demander aux utilisateurs de contourner les protections de macOS. "
+        "Les mêmes noms de fichiers et les mêmes URL stables seront réutilisés dès que les paquets notarifiés seront disponibles. "
+    )
+    text = re.sub(
+        r"Sous macOS,.*?(?=Sous Linux,)",
+        paused,
         text,
         count=1,
         flags=re.DOTALL,
@@ -85,34 +114,28 @@ def clarify_french_readme() -> None:
 
 def clarify_english_markdown() -> None:
     chooser = (
-        "> **Which Mac should I download?**  \n"
-        "> • **Apple chip M1, M2, M3, M4 or newer** → choose **Mac M1 / M2 / M3 / M4… (Apple Silicon)**.  \n"
-        "> • **About This Mac says Intel** → choose **Mac Intel**.\n\n"
+        "> **Which Mac should I download once the signed builds are published?**  \n"
+        "> • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  \n"
+        "> • **About This Mac says Intel** → **Mac Intel**.\n\n"
     )
 
     for path in (ROOT / "README.md", ROOT / "tools" / "README.md", DOCS / "HARDWARE_DUMP.md"):
         text = path.read_text(encoding="utf-8")
-        if "> **Which Mac should I download?**" not in text:
-            anchor_patterns = (
-                r"(\| \*\*Linux arm64\*\* .*?\|\n\n)",
-                r"(\| Linux arm64 .*?\|\n\n)",
-            )
-            for pattern in anchor_patterns:
-                updated, count = re.subn(pattern, rf"\1{chooser}", text, count=1)
-                if count:
-                    text = updated
-                    break
-
         text = re.sub(
-            r"The macOS (?:application|applications|packages) (?:is|are) (?:currently )?ad-hoc signed but (?:(?:is|are) )?not (?:currently )?Apple-notarized\..*?(?=\n\n|On Linux|Linux downloads)",
-            (
-                "The macOS packages are ad-hoc signed but **not yet notarized by Apple**. "
-                "If macOS says **“Apple cannot verify that this app is free of malware”**, click **Done**, then open "
-                "**Apple menu → System Settings → Privacy & Security**, scroll to **Security**, click **Open Anyway**, authenticate, "
-                "then confirm **Open**. Apple says this override is available for about one hour after the failed launch attempt. "
-                "If macOS instead says the app **will damage your Mac** or explicitly reports malware, **do not bypass that warning**. "
-                "See [Apple’s official instructions](https://support.apple.com/en-gb/102445). "
-            ),
+            r"> \*\*Which Mac should I download.*?(?=(?:\*\*Current|Current standalone|All packages|### Updates))",
+            chooser,
+            text,
+            count=1,
+            flags=re.DOTALL,
+        )
+        paused = (
+            "macOS public downloads are **temporarily paused while Developer ID signing and Apple notarization are enabled**. "
+            "We do not want ordinary users to be asked to bypass macOS security protections. "
+            "The same stable filenames and URLs will be restored as soon as the notarized packages are available. "
+        )
+        text = re.sub(
+            r"The macOS (?:application|applications|packages).*?(?=On Linux|Linux downloads|\n\nThe dump engine)",
+            paused,
             text,
             count=1,
             flags=re.DOTALL,
@@ -126,34 +149,53 @@ def clarify_test_page() -> None:
 
     text = text.replace(
         ">macOS Apple Silicon<",
-        ">Mac M1 / M2 / M3 / M4… (Apple Silicon)<",
+        f">{MAC_APPLE_LABEL}<",
     ).replace(
         ">macOS Intel<",
-        ">Mac Intel (older Macs)<",
+        f">{MAC_INTEL_LABEL}<",
     )
 
-    old_block = re.compile(
+    text = re.sub(
+        rf'<a class="button secondary" href="https://github\.com/jptstar/tsun-local/releases/download/diagnostic-latest/{re.escape(MAC_ARM_ASSET)}">.*?</a>',
+        f'<span class="button secondary" aria-disabled="true">{MAC_APPLE_LABEL} — Apple validation in progress</span>',
+        text,
+        count=1,
+    )
+    text = re.sub(
+        rf'<a class="button secondary" href="https://github\.com/jptstar/tsun-local/releases/download/diagnostic-latest/{re.escape(MAC_INTEL_ASSET)}">.*?</a>',
+        f'<span class="button secondary" aria-disabled="true">{MAC_INTEL_LABEL} — Apple validation in progress</span>',
+        text,
+        count=1,
+    )
+
+    chooser = (
+        '<div class="privacy"><strong>Which Mac will I need?</strong> '
+        'Mac with an Apple chip <strong>M1, M2, M3, M4 or newer</strong> → <strong>Apple Silicon</strong>. '
+        'If <strong>Apple menu → About This Mac</strong> says <strong>Intel</strong> → <strong>Mac Intel</strong>.</div>'
+    )
+    text = re.sub(
+        r'<div class="privacy"><strong>Which Mac should I download\?</strong>.*?</div>',
+        chooser,
+        text,
+        count=1,
+        flags=re.DOTALL,
+    )
+
+    paused = (
+        '<div class="privacy"><strong>macOS availability:</strong> public Mac downloads are temporarily paused while '
+        '<strong>Developer ID signing and Apple notarization</strong> are enabled. We prefer not to ask ordinary users to bypass '
+        'macOS security protections. The same stable package names and URLs will return once notarized builds are ready.</div>'
+    )
+    text = re.sub(
         r'<div class="privacy"><strong>macOS first launch:</strong>.*?</div>',
-        re.DOTALL,
+        paused,
+        text,
+        count=1,
+        flags=re.DOTALL,
     )
-    new_block = (
-        '<div class="privacy"><strong>macOS first launch:</strong> these packages are ad-hoc signed but <strong>not yet notarized by Apple</strong>. '
-        'If you see <strong>“Apple cannot verify that TSUN Local Diagnostic is free of malware”</strong>, click <strong>Done</strong>. '
-        'Then open <strong>Apple menu → System Settings → Privacy &amp; Security</strong>, scroll to <strong>Security</strong>, '
-        'click <strong>Open Anyway</strong>, authenticate, then confirm <strong>Open</strong>. Apple says this option is available for about one hour after the failed launch attempt. '
-        'If macOS instead says the app <strong>will damage your Mac</strong> or explicitly reports malware, <strong>do not bypass the warning</strong>. '
-        '<a href="https://support.apple.com/en-gb/102445">Apple official instructions</a>.</div>'
-    )
-    text = old_block.sub(new_block, text, count=1)
-
-    if "Which Mac should I download?" not in text:
-        marker = '<div class="actions">'
-        chooser = (
-            '<div class="privacy"><strong>Which Mac should I download?</strong> '
-            'Mac with an Apple chip <strong>M1, M2, M3, M4 or newer</strong> → choose <strong>Apple Silicon</strong>. '
-            'If <strong>Apple menu → About This Mac</strong> says <strong>Intel</strong> → choose <strong>Mac Intel</strong>.</div>\n    '
-        )
-        text = text.replace(marker, chooser + marker, 1)
+    if "macOS availability:" not in text:
+        marker = '<div class="privacy"><strong>Linux first launch:'
+        text = text.replace(marker, paused + "\n    " + marker, 1)
 
     write_if_changed(path, text)
 
@@ -161,20 +203,24 @@ def clarify_test_page() -> None:
 def clarify_homepage_card() -> None:
     path = DOCS / "index.html"
     text = path.read_text(encoding="utf-8")
-    text = text.replace(
-        "<strong>macOS &amp; Linux diagnostic →</strong><span class=\"muted\">The same TSUN Local Diagnostic interface is now packaged for Apple Silicon, Intel, Linux x86_64 and Linux arm64.</span>",
-        "<strong>Mac &amp; Linux diagnostic →</strong><span class=\"muted\">Mac M1/M2/M3/M4… uses Apple Silicon; older Intel Macs use the Intel package. Linux packages are available for Intel/AMD and ARM64.</span>",
+    text = re.sub(
+        r'<a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter\.html"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">.*?</span></a>',
+        '<a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">Linux packages are available now. Mac packages keep the same interface but public download is paused until Apple-notarized builds are ready.</span></a>',
+        text,
+        count=1,
+        flags=re.DOTALL,
     )
     write_if_changed(path, text)
 
 
 def main() -> None:
-    clarify_markdown_platform_labels()
+    clarify_platform_labels()
+    pause_public_macos_markdown_downloads()
     clarify_french_readme()
     clarify_english_markdown()
     clarify_test_page()
     clarify_homepage_card()
-    print("Clarified Mac model selection and current Gatekeeper instructions.")
+    print("Paused public macOS downloads pending Developer ID signing and notarization.")
 
 
 if __name__ == "__main__":
