@@ -16,14 +16,25 @@ The **same TSUN Local Diagnostic interface** is packaged for all supported deskt
 | Platform | Download | SHA-256 |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | **Public download paused — Apple notarization in progress** | — |
-| macOS — Mac Intel (older Macs) | **Public download paused — Apple notarization in progress** | — |
+| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
+| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Which Mac should I download once the signed builds are published?**  
+> **Which Mac should I download?**  
 > • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
 > • **About This Mac says Intel** → **Mac Intel**.
+
+> ### 🟠 macOS — read this before the first launch
+> **TSUN Local Diagnostic is not yet notarized by Apple.** macOS may block the first launch.  
+> **Do not disable Gatekeeper or Mac security globally.**  
+> 1. Download and unzip the package for your Mac.  
+> 2. Try to open **TSUN Local Diagnostic.app** once.  
+> 3. If macOS blocks it, click **Done**.  
+> 4. Open **Apple menu → System Settings → Privacy & Security**.  
+> 5. In **Security**, click **Open Anyway** for TSUN Local Diagnostic.  
+> 6. Authenticate, then confirm **Open**.  
+> 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
 
 Current standalone diagnostic versions: **desktop GUI 1.5.11** · **dump engine 2.7.4**.
 
