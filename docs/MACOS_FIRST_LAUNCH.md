@@ -16,5 +16,7 @@
 8. Authentifiez-vous avec votre mot de passe ou Touch ID, puis confirmez **Ouvrir**.
 
 > 🟢 **Une fois l’application ouverte, c’est terminé.** Cette autorisation concerne uniquement TSUN Local Diagnostic ; les protections générales de macOS restent actives.
+>
+> Cette autorisation n’est normalement nécessaire qu’au premier lancement de cette version de l’application.
 
 Ne lancez pas de commande visant à désactiver Gatekeeper globalement.
