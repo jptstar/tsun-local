@@ -1,0 +1,162 @@
+name: Patch idle and manual update checks
+
+on:
+  push:
+    branches:
+      - fix/update-check-idle-manual
+    paths:
+      - ".github/workflows/update-idle-manual-patch.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/update-check-idle-manual
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Patch GUI
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path("tools/tsun_diagnostic_gui.py")
+          s = p.read_text(encoding="utf-8")
+
+          s = s.replace('APP_VERSION = "1.4.4"', 'APP_VERSION = "1.4.5"')
+          s = s.replace(
+              'subprocess.Popen([str(target), "--no-update"], close_fds=True)',
+              'subprocess.Popen([str(target)], close_fds=True)',
+          )
+
+          s = s.replace(
+              '        "update_disabled": "Vérification automatique des mises à jour désactivée.",\n',
+              '        "update_disabled": "Vérification automatique des mises à jour désactivée.",\n'
+              '        "update_manual": "Vérifier maintenant",\n'
+          )
+          s = s.replace(
+              '        "update_disabled": "Automatic update check disabled.",\n',
+              '        "update_disabled": "Automatic update check disabled.",\n'
+              '        "update_manual": "Check now",\n'
+          )
+
+          old = '''        self.update_label = tk.Label(
+            header,
+            textvariable=self.update_status,
+            bg=_BG,
+            fg=_ACCENT,
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        )
+        self.update_label.pack(fill="x", pady=(5, 0))
+'''
+          new = '''        update_row = tk.Frame(header, bg=_BG)
+        update_row.pack(fill="x", pady=(5, 0))
+        self.update_label = tk.Label(
+            update_row,
+            textvariable=self.update_status,
+            bg=_BG,
+            fg=_ACCENT,
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        )
+        self.update_label.pack(side="left", fill="x", expand=True)
+        self.update_check_button = self._flat_button(
+            update_row,
+            self.t["update_manual"],
+            self._manual_update_check,
+            compact=True,
+        )
+        self.update_check_button.pack(side="right", padx=(10, 0))
+'''
+          if old not in s:
+              raise SystemExit("update label block not found")
+          s = s.replace(old, new)
+
+          s = s.replace(
+              '        self.root.after(250, self._start_update_check)\n',
+              '        self.root.after(250, self._start_update_check)\n'
+              '        self.root.after(30 * 60 * 1000, self._periodic_update_check)\n',
+          )
+
+          old_sync = '''    def _sync_run_button(self, *_args: Any) -> None:
+        if self.update_busy or (self.worker and self.worker.is_alive()):
+            self.run_button.configure(state="disabled")
+            return
+        state = "normal" if self.confirm_disabled.get() else "disabled"
+        self.run_button.configure(state=state)
+
+    def _start_update_check(self) -> None:
+        """Start a visible, non-blocking update check after the window is shown."""
+        if "--no-update" in sys.argv:
+            self.update_busy = False
+            self.update_status.set(self.t["update_disabled"])
+            self.update_label.configure(fg=_MUTED)
+            self._sync_run_button()
+            return
+
+        self.update_busy = True
+'''
+          new_sync = '''    def _sync_run_button(self, *_args: Any) -> None:
+        busy = self.update_busy or bool(self.worker and self.worker.is_alive())
+        if hasattr(self, "update_check_button"):
+            self.update_check_button.configure(state="disabled" if busy else "normal")
+        if busy:
+            self.run_button.configure(state="disabled")
+            return
+        state = "normal" if self.confirm_disabled.get() else "disabled"
+        self.run_button.configure(state=state)
+
+    def _manual_update_check(self) -> None:
+        """Let the user explicitly request an update check while the diagnostic is idle."""
+        if self.update_busy or (self.worker and self.worker.is_alive()):
+            return
+        self._start_update_check(manual=True)
+
+    def _periodic_update_check(self) -> None:
+        """Re-check updates periodically, but never while a hardware scan is running."""
+        try:
+            if (
+                "--no-update" not in sys.argv
+                and not self.update_busy
+                and not (self.worker and self.worker.is_alive())
+            ):
+                self._start_update_check()
+        finally:
+            self.root.after(30 * 60 * 1000, self._periodic_update_check)
+
+    def _start_update_check(self, *, manual: bool = False) -> None:
+        """Start a visible, non-blocking update check after the window is shown."""
+        if self.update_busy or (self.worker and self.worker.is_alive()):
+            return
+        if "--no-update" in sys.argv and not manual:
+            self.update_busy = False
+            self.update_status.set(self.t["update_disabled"])
+            self.update_label.configure(fg=_MUTED)
+            self._sync_run_button()
+            return
+
+        self.update_busy = True
+'''
+          if old_sync not in s:
+              raise SystemExit("sync/update block not found")
+          s = s.replace(old_sync, new_sync)
+
+          p.write_text(s, encoding="utf-8")
+
+      - name: Syntax check
+        run: python -m py_compile tools/tsun_diagnostic_gui.py
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/tsun_diagnostic_gui.py
+          git commit -m "Add manual and idle update checks"
+          git rm .github/workflows/update-idle-manual-patch.yml
+          git commit -m "Remove one-shot idle update patcher"
+          git push origin HEAD:fix/update-check-idle-manual
