@@ -111,16 +111,18 @@
   <section>
     <h2>One desktop diagnostic for Windows, macOS and Linux</h2>
     <p class="intro">The desktop GUI is <strong>1.5.11</strong> with dump engine <strong>2.7.4</strong>. Every package is built from the same shared interface and published through the stable rolling <code>diagnostic-latest</code> release. The historical Windows download URL is unchanged, so older links remain valid.</p>
+    <div class="privacy"><strong>Which Mac should I download?</strong> If your Mac has an Apple chip — <strong>M1, M2, M3, M4 or newer</strong> — choose <strong>Mac M1/M2/M3/M4… (Apple Silicon)</strong>. If About This Mac says <strong>Intel</strong>, choose <strong>Mac Intel</strong>. Check with Apple menu  → About This Mac.</div>
     <div class="actions">
-      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Windows x86_64</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip">macOS Apple Silicon</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip">macOS Intel</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64">Linux x86_64</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux arm64</a>
+      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Windows 64-bit (Intel / AMD)</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip">Mac M1 / M2 / M3 / M4… (Apple Silicon)</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip">Mac Intel (older Macs)</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64">Linux PC Intel / AMD (x86_64)</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux ARM64 (Raspberry Pi / ARM)</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
     </div>
     <div class="callout"><strong>Same app, same steps, same privacy rules.</strong>Windows keeps verified automatic executable replacement. macOS/Linux check the same architecture-specific rolling channel and indicate when a new package is available; package replacement is currently manual.</div>
-    <div class="privacy"><strong>First launch:</strong> macOS packages are ad-hoc signed but not yet Apple-notarized, so Gatekeeper may require Finder → right-click → Open. On Linux, the downloaded file may require <code>chmod +x</code> once.</div>
+    <div class="privacy"><strong>macOS first launch:</strong> current packages are ad-hoc signed but not yet Apple-notarized. A message such as “Apple cannot verify that this app is free of malware” can therefore appear. If the file came from the official <code>diagnostic-latest</code> link above, use Finder → right-click <strong>TSUN Local Diagnostic</strong> → <strong>Open</strong>. If macOS instead says the app <strong>will damage your Mac</strong> or explicitly reports malware, do not bypass the warning; report the exact message.</div>
+    <div class="privacy"><strong>Linux first launch:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
   </section>
 
   <section>
