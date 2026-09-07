@@ -32,6 +32,61 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Make the documentation synchronizer idempotent
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path("scripts/sync_diagnostic_docs.py")
+          text = path.read_text(encoding="utf-8")
+
+          text = text.replace(
+              "| macOS Apple Silicon | [TSUN-Local-Diagnostic-macOS-arm64.zip]({MAC_ARM}) |",
+              "| Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip]({MAC_ARM}) |",
+          )
+          text = text.replace(
+              "| macOS Intel | [TSUN-Local-Diagnostic-macOS-x86_64.zip]({MAC_INTEL}) |",
+              "| Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip]({MAC_INTEL}) |",
+          )
+
+          localized = '''def sync_localized_readmes() -> None:
+              # Match both the historical Windows-only heading and the current
+              # cross-platform localized heading. This makes repeated sync runs safe.
+              pattern = r"^### [^\\n]*(?:Windows|macOS|Linux)[^\\n]*\\n.*?(?=^### Sunology PLAY2\\s*$)"
+              for filename, replacement in LOCALIZED.items():
+                  replace_once(DOCS / filename, pattern, replacement, flags=re.MULTILINE | re.DOTALL)
+          '''
+          text, count = re.subn(
+              r"def sync_localized_readmes\(\) -> None:\n.*?(?=\ndef sync_hardware_dump\(\) -> None:)",
+              localized.rstrip() + "\n",
+              text,
+              count=1,
+              flags=re.DOTALL,
+          )
+          if count != 1:
+              raise SystemExit("Could not patch sync_localized_readmes")
+
+          homepage = '''def sync_homepage() -> None:
+              path = DOCS / "index.html"
+              old = r'''\\s*<a class="card" style="display:block;color:inherit;text-decoration:none" href="https://github\\.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic\\.exe"><strong>Windows diagnostic →</strong><span class="muted">.*?</span></a>(?:\\s*<a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter\\.html"><strong>(?:macOS &amp; Linux|Mac &amp; Linux) diagnostic →</strong><span class="muted">.*?</span></a>)?'''
+              new = f'''\n              <a class="card" style="display:block;color:inherit;text-decoration:none" href="{WINDOWS}"><strong>Windows diagnostic →</strong><span class="muted">Stable historical download link. Same 1 → 2 → 3 → 4 read-only desktop interface, direct report upload and anonymized JSON flow.</span></a>\n              <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">Mac M1/M2/M3/M4… uses Apple Silicon; older Intel Macs use the Intel package. Linux packages are available for Intel/AMD and ARM64.</span></a>'''
+              replace_once(path, old, new, flags=re.DOTALL)
+          '''
+          text, count = re.subn(
+              r"def sync_homepage\(\) -> None:\n.*?(?=\ndef main\(\) -> None:)",
+              homepage.rstrip() + "\n",
+              text,
+              count=1,
+              flags=re.DOTALL,
+          )
+          if count != 1:
+              raise SystemExit("Could not patch sync_homepage")
+
+          path.write_text(text, encoding="utf-8")
+          PY
+
       - name: Synchronize cross-platform diagnostic documentation
         run: |
           python scripts/sync_diagnostic_docs.py
@@ -60,6 +115,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$branch"
           git add \
+            scripts/sync_diagnostic_docs.py \
             README.md \
             tools/README.md \
             docs/HARDWARE_DUMP.md \
