@@ -95,6 +95,7 @@ _TEXT = {
         "update_ready": "Mise à jour téléchargée et vérifiée — redémarrage…",
         "update_failed": "Vérification de mise à jour impossible — cette version reste utilisable.",
         "update_disabled": "Vérification automatique des mises à jour désactivée.",
+        "update_available_manual": "Mise à jour v{version} disponible — téléchargez la dernière version.",
         "footer": "Moteur tsun_dump.py v{dump} · Interface v{gui} · Lecture seule",
     },
     "en": {
@@ -145,6 +146,7 @@ _TEXT = {
         "update_ready": "Update downloaded and verified — restarting…",
         "update_failed": "Update check failed — this version remains usable.",
         "update_disabled": "Automatic update check disabled.",
+        "update_available_manual": "Update v{version} available — download the latest version.",
         "footer": "tsun_dump.py engine v{dump} · GUI v{gui} · Read-only",
     },
 }
@@ -716,11 +718,7 @@ class DiagnosticApp:
 
     def _start_update_check(self) -> None:
         """Start a visible, non-blocking update check after the window is shown."""
-        if (
-            os.name != "nt"
-            or not getattr(sys, "frozen", False)
-            or "--no-update" in sys.argv
-        ):
+        if "--no-update" in sys.argv:
             self.update_busy = False
             self.update_status.set(self.t["update_disabled"])
             self.update_label.configure(fg=_MUTED)
@@ -734,20 +732,31 @@ class DiagnosticApp:
         threading.Thread(target=self._run_update_check, daemon=True).start()
 
     def _run_update_check(self) -> None:
-        """Check, download and verify a Windows update while reporting progress."""
+        """Check updates visibly on every platform; self-update only on Windows EXE."""
         try:
             manifest = tsun_dump.fetch_update_manifest()
+            dump_update = tsun_dump.select_update_component(
+                manifest,
+                tsun_dump.UPDATE_COMPONENT_DUMP,
+                tsun_dump.TOOL_VERSION,
+            )
+
+            is_windows_exe = os.name == "nt" and getattr(sys, "frozen", False)
+            if not is_windows_exe:
+                if dump_update is None:
+                    self.events.put(("update_current",))
+                else:
+                    self.events.put(("update_available_manual", dump_update["version"]))
+                return
+
             update = tsun_dump.select_update_component(
                 manifest,
                 tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
                 APP_VERSION,
             )
-            embedded_dump_update = tsun_dump.select_update_component(
-                manifest,
-                tsun_dump.UPDATE_COMPONENT_DUMP,
-                tsun_dump.TOOL_VERSION,
-            )
-            if update is None and embedded_dump_update is not None:
+            if update is None and dump_update is not None:
+                # The Windows EXE embeds tsun_dump.py: refresh the EXE whenever
+                # the embedded engine is older, even if the GUI version is unchanged.
                 update = tsun_dump.select_update_component(
                     manifest,
                     tsun_dump.UPDATE_COMPONENT_WINDOWS_GUI,
@@ -918,6 +927,13 @@ class DiagnosticApp:
                         self.t["update_found"].format(version=str(event[1]))
                     )
                     self.update_label.configure(fg=_ACCENT)
+                elif kind == "update_available_manual":
+                    self.update_busy = False
+                    self.update_status.set(
+                        self.t["update_available_manual"].format(version=str(event[1]))
+                    )
+                    self.update_label.configure(fg=_ACCENT)
+                    self._sync_run_button()
                 elif kind == "update_ready":
                     destination = Path(str(event[1]))
                     self.update_status.set(self.t["update_ready"])
