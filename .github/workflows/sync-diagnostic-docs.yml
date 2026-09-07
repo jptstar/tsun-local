@@ -7,6 +7,7 @@ on:
     paths:
       - "scripts/sync_diagnostic_docs.py"
       - "tools/tsun_diagnostic.py"
+      - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
 permissions:
@@ -41,15 +42,18 @@ jobs:
           grep -q 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
           grep -q '1 → 2 → 3 → 4' docs/HARDWARE_DUMP.md
 
-      - name: Commit synchronized docs
+      - name: Publish synchronized docs branch
         shell: bash
         run: |
           if git diff --quiet; then
             echo "Documentation already synchronized."
             exit 0
           fi
+          branch="automation/diagnostic-docs"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
           git add docs/HARDWARE_DUMP.md docs/README_*.md docs/index.html
           git commit -m "Sync cross-platform diagnostic documentation"
-          git push
+          git push --force origin "$branch"
+          echo "Synchronized documentation published to $branch for pull-request validation."
