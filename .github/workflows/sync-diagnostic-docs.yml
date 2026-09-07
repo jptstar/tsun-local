@@ -39,39 +39,70 @@ jobs:
           python scripts/sync_play2_dual_generation_docs.py
 
       - name: Verify stable links and generated documentation
+        shell: bash
         run: |
           python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py scripts/sync_play2_dual_generation_docs.py
-          grep -Fq 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe' README.md
-          grep -Fq 'TSUN-Local-Diagnostic-macOS-arm64.zip' README.md
-          grep -Fq 'TSUN-Local-Diagnostic-macOS-x86_64.zip' README.md
-          grep -Fq 'Open Anyway' README.md
-          grep -Fq '> **Which Mac should I download?**' README.md
-          grep -Fq 'TSUN-Local-Diagnostic-Linux-x86_64' docs/HARDWARE_DUMP.md
-          grep -Fq 'M1, M2, M3, M4' docs/test-your-inverter.html
-          grep -Fq 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip' docs/test-your-inverter.html
-          grep -Fq 'releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip' docs/test-your-inverter.html
-          grep -Fq 'Open Anyway' docs/test-your-inverter.html
-          grep -Fq '> **Quel Mac choisir ?**' docs/README_FR.md
-          grep -Fq 'Ouvrir quand même' docs/README_FR.md
-          grep -Fq 'Gatekeeper' docs/README_FR.md
-          if grep -Fq 'once the signed builds are published' README.md; then
-            echo 'README still implies Mac builds are unavailable.' >&2
-            exit 1
-          fi
-          if grep -Fq 'lorsque les builds signés seront publiés' docs/README_FR.md; then
-            echo 'French README still implies Mac builds are unavailable.' >&2
-            exit 1
-          fi
-          test "$(grep -Fc 'Mac &amp; Linux diagnostic →' docs/index.html)" -eq 1
-          grep -Fq 'Python diagnostic →' docs/index.html
-          grep -Fq 'Windows diagnostic →' docs/index.html
-          grep -Fq 'class="tested-link"' docs/index.html
-          grep -Fq 'GEN4 / Tengsheng G4' docs/index.html
-          grep -Fq 'Sunology · G4 variant' docs/index.html
-          grep -Fq 'Two PLAY2 generations are now observed' docs/sunology-play2.html
-          grep -Fq 'GEN3 Plus · protocol 02B0' docs/sunology-play2.html
-          grep -Fq 'GEN4 · protocol 1097' docs/sunology-play2.html
-          grep -Fq 'Tengsheng_G4' docs/sunology-play2.html
+          python - <<'PY'
+          from pathlib import Path
+
+          checks = {
+              "README.md": [
+                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe",
+                  "TSUN-Local-Diagnostic-macOS-arm64.zip",
+                  "TSUN-Local-Diagnostic-macOS-x86_64.zip",
+                  "Open Anyway",
+                  "Which Mac should I download?",
+              ],
+              "docs/HARDWARE_DUMP.md": [
+                  "TSUN-Local-Diagnostic-Linux-x86_64",
+              ],
+              "docs/test-your-inverter.html": [
+                  "M1, M2, M3, M4",
+                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip",
+                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip",
+                  "Open Anyway",
+              ],
+              "docs/README_FR.md": [
+                  "Quel Mac choisir ?",
+                  "Ouvrir quand même",
+                  "Gatekeeper",
+              ],
+              "docs/index.html": [
+                  "Windows diagnostic →",
+                  "Python diagnostic →",
+                  "Mac &amp; Linux diagnostic →",
+                  'class="tested-link"',
+                  "GEN4 / Tengsheng G4",
+                  "Sunology · G4 variant",
+              ],
+              "docs/sunology-play2.html": [
+                  "Two PLAY2 generations are now observed",
+                  "GEN3 Plus · protocol 02B0",
+                  "GEN4 · protocol 1097",
+                  "Tengsheng_G4",
+                  "4247",
+              ],
+          }
+
+          failed = []
+          for filename, markers in checks.items():
+              text = Path(filename).read_text(encoding="utf-8")
+              for marker in markers:
+                  if marker not in text:
+                      failed.append(f"{filename}: missing {marker!r}")
+
+          stale = {
+              "README.md": "once the signed builds are published",
+              "docs/README_FR.md": "lorsque les builds signés seront publiés",
+          }
+          for filename, marker in stale.items():
+              if marker in Path(filename).read_text(encoding="utf-8"):
+                  failed.append(f"{filename}: stale wording still present: {marker!r}")
+
+          if failed:
+              raise SystemExit("Documentation verification failed:\n- " + "\n- ".join(failed))
+          print("Documentation verification passed.")
+          PY
 
       - name: Publish synchronized docs branch
         shell: bash
