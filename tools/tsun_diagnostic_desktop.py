@@ -16,7 +16,7 @@ import tsun_diagnostic_app as upload_app
 import tsun_diagnostic_gui as base
 
 APP_NAME = base.APP_NAME
-APP_VERSION = "1.5.2"
+APP_VERSION = "1.5.3"
 
 base.APP_VERSION = APP_VERSION
 upload_app.APP_VERSION = APP_VERSION
@@ -26,7 +26,8 @@ base._TEXT["fr"].update(
         "done": "Diagnostic terminé — vous pouvez maintenant envoyer le rapport.",
         "output_title": "4 · Envoi manuel par e-mail",
         "send": "Adresse e-mail",
-        "report_hint": "Solution optionnelle si l’envoi direct n’est pas disponible.",
+        "report_hint": "Optionnel — à utiliser uniquement en cas de problème avec l’envoi direct.",
+        "update_current": "✓ Application à jour",
     }
 )
 base._TEXT["en"].update(
@@ -34,7 +35,8 @@ base._TEXT["en"].update(
         "done": "Diagnostic complete — you can now send the report.",
         "output_title": "4 · Manual report by e-mail",
         "send": "E-mail address",
-        "report_hint": "Optional fallback if direct upload is not available.",
+        "report_hint": "Optional — use only if there is a problem with direct upload.",
+        "update_current": "✓ Application is up to date",
     }
 )
 
@@ -192,7 +194,11 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
         ).pack(side="left")
         tk.Label(
             title_row,
-            text="OPTIONNEL" if self.lang == "fr" else "OPTIONAL",
+            text=(
+                "OPTIONNEL · EN CAS DE PROBLÈME"
+                if self.lang == "fr"
+                else "OPTIONAL · IF NEEDED"
+            ),
             bg=base._SOFT_BLUE,
             fg=base._MUTED,
             font=("Segoe UI", 8, "bold"),
@@ -206,7 +212,7 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
             fg=base._MUTED,
             font=("Segoe UI", 8),
             justify="left",
-            wraplength=250,
+            wraplength=275,
             anchor="w",
         ).pack(fill="x", pady=(6, 0))
 
