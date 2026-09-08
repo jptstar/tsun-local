@@ -108,6 +108,7 @@
       .compat-status{font-size:11px}
       .tested-device{align-items:center;flex-direction:row;gap:12px}
     }
+  .hacs-badge{display:inline-flex;align-items:center}.hacs-badge img{display:block;height:44px;width:auto;max-width:100%}
   </style>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
@@ -145,7 +146,7 @@
         <p class="lead">Plug-and-play local monitoring for compatible TSUN microinverters and the <strong>Sunology PLAY2</strong>, directly inside Home Assistant.</p>
         <p class="strap">Automatic discovery · Local · Read-only · No cloud · No proxy</p>
         <div class="actions">
-          <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
+          <a class="hacs-badge" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration"><img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg"></a>
           <a class="button secondary" href="https://github.com/jptstar/tsun-local">Documentation</a>
           <a class="button secondary" href="#compatibility">Compatibility</a>
         </div>
@@ -168,17 +169,6 @@
 </header>
 
 <main class="wrap">
-  <section id="adaptive-polling">
-    <span class="section-badge good">NEW IN 1.6.0</span>
-    <h2>Adaptive polling for unstable and offline communication</h2>
-    <p class="intro">TSUN Local 1.6.0 enables adaptive polling by default. TSUN Local starts at 20 s, retries after an error at 30 s, and uses 300 s when the configured failure threshold marks the micro-inverter offline. Successful reads progressively return polling toward the normal interval.</p>
-    <div class="grid">
-      <div class="card"><strong>20 s</strong><span class="muted">Normal interval</span></div>
-      <div class="card"><strong>30 s</strong><span class="muted">Interval after an error</span></div>
-      <div class="card"><strong>300 s</strong><span class="muted">Offline / night interval</span></div>
-    </div>
-    <div class="install-note">Install or update TSUN Local 1.6.0 directly from HACS.</div>
-  </section>
   <section id="features">
     <h2>Everything you need from your TSUN inverter</h2>
     <p class="intro">TSUN Local focuses on useful Home Assistant entities first, while keeping protocol details and advanced diagnostics out of the way until you need them.</p>
@@ -234,7 +224,7 @@
       <div class="compat-item">
         <div class="compat-head">
           <div>
-            <span class="compat-family">GEN4 / Tengsheng G4</span>
+            <span class="compat-family">GEN4</span>
             <span class="compat-protocol">Protocol <strong>1097</strong></span>
           </div>
           <span class="compat-status experimental">🧪 Field testing</span>
@@ -243,15 +233,13 @@
         <div class="tested-list">
           <a class="tested-device" href="sunology-play2.html"><span><strong>PLAY2</strong><span class="tested-brand">Sunology · G4 variant</span></span><span class="tested-link" aria-hidden="true">→</span></a>
         </div>
-        <div class="compat-note">A second PLAY2 hardware generation has been observed on real hardware as <strong>1097 / Tengsheng_G4</strong> (sensor list <strong>4247 / 0x1097</strong>). Stability validation is still in progress.</div>
       </div>
     </div>
   </section>
 
   <section id="alarms">
-    <span class="section-badge beta">NEW IN 1.5.3</span>
     <h2>Alarms you can actually read</h2>
-    <p class="intro">The 1.5.3 extends readable alarm presentation across 1511, 02B0 and 1097. Known alarms get clear localized descriptions while stable protocol-position codes remain available for diagnosis.</p>
+    <p class="intro">TSUN Local presents readable alarms across 1511, 02B0 and 1097. Known alarms get clear localized descriptions while stable protocol-position codes remain available for diagnosis.</p>
     <div class="two">
       <div class="code">Grid undervoltage (02B0-A014)
 PV1 input voltage too low (1511-A137)</div>
@@ -280,7 +268,8 @@ Stable code preserved for diagnosis</div>
     <h2>Diagnostic tools</h2>
     <p class="intro">Choose the simplest way to capture a read-only TSUN diagnostic.</p>
     <div class="grid">
-      <a class="card" style="display:block;color:inherit;text-decoration:none" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe"><strong>Windows diagnostic →</strong><span class="muted">Download the Windows app and run the guided diagnostic. No Python required.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="entities.html"><strong>Entity reference →</strong><span class="muted">Visual guide to the main Home Assistant entities, protocol-specific diagnostics and alarm fields.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#windows"><strong>Windows diagnostic →</strong><span class="muted">Download the Windows app and run the guided diagnostic. No Python required.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#python"><strong>Python diagnostic →</strong><span class="muted">One script for Windows, macOS and Linux, with clear terminal commands.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#mac-linux"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">Download the packaged app for your Mac or Linux architecture.</span></a>
     </div>
@@ -304,6 +293,7 @@ Stable code preserved for diagnosis</div>
       <span><a href="https://github.com/s-allius/tsun-gen3-proxy"><strong>Stefan Allius · tsun-gen3-proxy</strong></a> — public GEN3 / 1097 protocol research and country/profile references used during experimental protocol validation.</span>
       <span><a href="https://github.com/TheSmartGerman"><strong>@TheSmartGerman</strong></a> — real-device testing that revealed the additional 1097 protocol family.</span>
       <span><a href="https://github.com/dca31"><strong>@dca31</strong></a> — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.</span>
+      <span><a href="https://github.com/phildeg31"><strong>@phildeg31</strong></a> — real-hardware Sunology PLAY2 GEN4 / 1097 diagnostics and ongoing stability validation.</span>
       <span><a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a> — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.</span>
       <span><a href="https://github.com/paloindici"><strong>@paloindici</strong></a> — independent TSOL-MS2000 validation with four PV inputs, plus anonymized TSOL-MS2000 / MP3000 diagnostics and a hardware dump that improved the standalone diagnostic tool.</span>
       <a href="contributors.html">Full contributors &amp; credits →</a>

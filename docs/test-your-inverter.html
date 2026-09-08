@@ -46,7 +46,7 @@
     body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.58 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     a{color:var(--blue)}
     code{padding:.1em .35em;border-radius:6px;background:#edf3fa}
-    pre{margin:10px 0 0;padding:14px 16px;overflow:auto;border-radius:12px;background:#0b1930;color:#f4f8ff}
+    pre{margin:7px 0 0;padding:10px 12px;overflow:auto;border-radius:10px;background:#0b1930;color:#f4f8ff;font-size:12.5px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
     pre code{padding:0;background:transparent;color:inherit}
     .wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}
     .topline{height:5px;background:linear-gradient(90deg,#148660,#1167d8,#6554d9)}
@@ -62,15 +62,16 @@
     .hero-note{margin-top:20px;font-weight:850}
     main{margin-top:-28px;padding-bottom:64px}
     section{margin-top:28px;padding:32px;border:1px solid var(--line);border-radius:24px;background:var(--card);box-shadow:var(--shadow)}
+    section[id]{scroll-margin-top:18px}
     h2{margin:0 0 10px;font-size:clamp(28px,4vw,39px);letter-spacing:-.04em}
     .intro{margin:0;color:var(--muted);font-size:18px}
     .callout{margin-top:20px;padding:18px 20px;border:1px solid #bfe7d6;border-radius:16px;background:var(--green-soft);color:#0d684d}
     .callout strong{display:block;font-size:18px}
-    .python-highlight{margin-top:22px;padding:22px;border:2px solid var(--blue);border-radius:18px;background:#eef5ff}
-    .python-highlight strong{display:block;font-size:20px}.python-highlight p{margin:12px 0 0;color:#38506d}
-    .command-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-    .command-card{padding:16px;border:1px solid #cbdcf0;border-radius:14px;background:#fff}
-    .command-card strong{font-size:16px}.command-card p{margin:5px 0 0;color:var(--muted)}
+    .python-highlight{margin-top:18px;padding:16px;border:1px solid #bdd3ee;border-radius:16px;background:#eef5ff}
+    .python-highlight>strong{display:block;font-size:18px}.python-highlight p{margin:9px 0 0;color:#38506d;font-size:14px}
+    .command-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+    .command-card{min-width:0;padding:11px;border:1px solid #cbdcf0;border-radius:12px;background:#fff}
+    .command-card strong{font-size:14px}.command-card p{margin:4px 0 0;color:var(--muted);font-size:13px}
     .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:24px}
     .step{padding:21px;border:1px solid var(--line);border-radius:18px;background:#f8fafd}
     .n{display:grid;place-items:center;width:34px;height:34px;margin-bottom:13px;border-radius:50%;color:#fff;background:var(--blue);font-weight:900}

@@ -7,7 +7,6 @@ on:
     paths:
       - "scripts/publish_macos_first_launch_docs.py"
       - "scripts/fix_current_mac_copy.py"
-      - "scripts/sync_play2_dual_generation_docs.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
@@ -36,12 +35,11 @@ jobs:
         run: |
           python scripts/publish_macos_first_launch_docs.py
           python scripts/fix_current_mac_copy.py
-          python scripts/sync_play2_dual_generation_docs.py
 
       - name: Verify stable links and generated documentation
         shell: bash
         run: |
-          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py scripts/sync_play2_dual_generation_docs.py
+          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py
           python - <<'PY'
           from pathlib import Path
 
@@ -71,8 +69,9 @@ jobs:
                   "Python diagnostic →",
                   "Mac &amp; Linux diagnostic →",
                   'class="tested-link"',
-                  "GEN4 / Tengsheng G4",
+                  '<span class="compat-family">GEN4</span>',
                   "Sunology · G4 variant",
+                  "entities.html",
               ],
               "docs/sunology-play2.html": [
                   "Two PLAY2 generations are now observed",
@@ -80,6 +79,7 @@ jobs:
                   "GEN4 · protocol 1097",
                   "Tengsheng_G4",
                   "4247",
+                  "phildeg31",
               ],
           }
 

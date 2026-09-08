@@ -72,8 +72,25 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("tsol-ms2000-home-assistant.html", text)
         self.assertIn("paloindici", text)
         self.assertIn("NEW IN 1.6.0", text)
-        self.assertIn("TSUN-Local-Diagnostic.exe", text)
+        self.assertIn("test-your-inverter.html#windows", text)
+        self.assertIn("test-your-inverter.html#python", text)
+        self.assertIn("test-your-inverter.html#mac-linux", text)
+        self.assertIn("entities.html", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
+
+
+    def test_public_hacs_actions_use_official_badge(self) -> None:
+        for filename in (
+            "index.html",
+            "sunology-play2.html",
+            "tsol-mp3000-home-assistant.html",
+            "tsol-mx500-home-assistant.html",
+            "tsol-ms800-home-assistant.html",
+            "tsol-ms2000-home-assistant.html",
+        ):
+            text = (DOCS / filename).read_text(encoding="utf-8")
+            self.assertIn("https://my.home-assistant.io/badges/hacs_repository.svg", text, filename)
+            self.assertNotRegex(text, r">(?:Add TSUN Local to HACS|Add to HACS)</a>", filename)
 
     def test_hardware_test_page_promotes_current_diagnostic(self) -> None:
         text = (DOCS / "test-your-inverter.html").read_text(encoding="utf-8")
