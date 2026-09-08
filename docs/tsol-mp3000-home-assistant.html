@@ -29,6 +29,7 @@
         "headline":"TSOL-MP3000 in Home Assistant with TSUN Local",
         "description":"Local and read-only Home Assistant integration for the TSUN TSOL-MP3000 microinverter using the validated TITAN / 1511 path.",
         "mainEntityOfPage":"https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html",
+        "dateModified":"2026-09-08",
         "author":{"@type":"Person","name":"Jean-Philippe TESTART","url":"https://github.com/jptstar"},
         "about":["TSUN TSOL-MP3000","Home Assistant","TSUN Local","TITAN","1511","solar monitoring"]
       },
@@ -111,6 +112,7 @@
       .navlinks{display:none}
       section{padding:24px}
     }
+  .hacs-badge{display:inline-flex;align-items:center}.hacs-badge img{display:block;height:44px;width:auto;max-width:100%}
   </style>
 </head>
 <body>
@@ -129,7 +131,7 @@
         <p class="lead">Monitor the <strong>TSUN TSOL-MP3000</strong> directly inside Home Assistant using its validated local TITAN / 1511 path.</p>
         <p class="strap">Automatic discovery · Local · Read-only · No cloud · No proxy</p>
         <div class="actions">
-          <a class="button primary" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration">Add to HACS</a>
+          <a class="hacs-badge" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration"><img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg"></a>
           <a class="button secondary" href="https://github.com/jptstar/tsun-local">GitHub</a>
           <a class="button secondary" href="entities.html">Entity reference</a>
         </div>
@@ -187,6 +189,16 @@
     <div class="two">
       <div class="card"><strong>Normal Home Assistant use</strong><span class="muted">Production, energy, communication, alarms and device information remain the everyday interface.</span></div>
       <div class="card"><strong>Expert diagnostics</strong><span class="muted">Additional field-validation and grid-related values stay read-only and are disabled by default where appropriate.</span></div>
+    </div>
+  </section>
+
+  <section id="community-validation">
+    <h2>Community validation</h2>
+    <p class="intro">Independent MP3000 diagnostics complement the maintainer's reference hardware and help confirm that the TITAN / 1511 mapping is consistent across installations.</p>
+    <div class="grid">
+      <div class="card"><strong><a href="https://github.com/paloindici">@paloindici</a></strong><span class="muted">Shared anonymized Home Assistant diagnostics and hardware dumps from a real TSOL-MP3000. These captures helped verify the six-PV path and investigate firmware-dependent diagnostic values.</span></div>
+      <div class="card"><strong>Open field validation</strong><span class="muted">Additional MP3000 hardware revisions remain welcome so firmware and logger differences can be compared without changing the read-only protocol contract.</span></div>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="contributors.html"><strong>All contributors →</strong><span class="muted">See the project-wide credits and the exact contribution attributed to each tester or research source.</span></a>
     </div>
   </section>
 
