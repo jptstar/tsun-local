@@ -1,0 +1,43 @@
+name: Push public site polish docs
+
+on:
+  push:
+    branches:
+      - docs/site-polish-2026-09-08
+    paths:
+      - .github/workflows/site-polish-push-docs.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply and push documentation-only changes
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/site-polish-one-shot.yml')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace(
+              '          python -m unittest discover -s tests -v\n',
+              '          sudo apt-get update && sudo apt-get install -y python3-tk\n          python -m unittest discover -s tests -v\n',
+              1,
+          )
+          text = text.replace(
+              '          git rm .github/workflows/site-polish-one-shot.yml\n',
+              '          git restore .github/workflows/site-polish-one-shot.yml\n',
+              1,
+          )
+          text = text.replace(
+              '          git add docs .github/workflows/sync-diagnostic-docs.yml scripts tests\n',
+              '          git restore .github/workflows/sync-diagnostic-docs.yml\n          git add docs scripts tests\n',
+              1,
+          )
+          path.write_text(text, encoding='utf-8')
+          PY
+          awk 'found { sub(/^          /, ""); print } /        run: \|/ { found=1; next }' .github/workflows/site-polish-one-shot.yml > /tmp/site-polish.sh
+          bash /tmp/site-polish.sh
