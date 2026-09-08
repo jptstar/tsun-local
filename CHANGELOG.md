@@ -2,6 +2,19 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.1-beta.6] - 2026-09-09
+
+### Fixed
+
+- Preserve one transient logger RSSI HTTP miss, then mark `logger_wifi_signal` unavailable after two consecutive five-minute misses instead of retaining a stale value indefinitely.
+- Restore the real logger Wi-Fi signal immediately on the next successful metadata read and never synthesize `0%` for a failed read.
+- Apply the RSSI freshness policy in the shared logger metadata layer for 1511, 02B0 and 1097.
+
+### Retained
+
+- Keep beta.5 daily-energy rollover and total-delta tracking unchanged.
+- Keep protocol register maps, adaptive polling, communication resilience and strictly read-only device access unchanged.
+
 ## [1.6.1-beta.5] - 2026-09-08
 
 ### Fixed
@@ -577,3 +590,4 @@ All notable changes to this project are documented here. The project follows [Se
 [1.2.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.0
 [1.1.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.1.4
 [1.0.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.0.0
+[1.6.1-beta.6]: https://github.com/jptstar/tsun-local/releases/tag/v1.6.1-beta.6

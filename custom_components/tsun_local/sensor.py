@@ -1276,6 +1276,8 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
                     and self._daily_tracker.value is not None
                 )
             )
+        if key == "logger_wifi_signal":
+            return super().available and key in self.coordinator.data
         if key in DIAGNOSTIC_SENSOR_KEYS:
             return super().available
         return super().available and bool(

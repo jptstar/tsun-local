@@ -43,6 +43,7 @@ from .logger_web import (
     async_read_logger_web_data,
     async_read_logger_wifi_signal,
 )
+from .logger_wifi_freshness import LoggerWifiSignalFreshness
 from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 
 type TsunConfigEntry = ConfigEntry[TsunCoordinator]
@@ -231,10 +232,12 @@ async def async_setup_entry(
             )
 
     _async_sync_device_info(hass, entry, coordinator)
+    wifi_signal_freshness = LoggerWifiSignalFreshness()
 
     async def _async_refresh_logger_metadata(_now: datetime) -> None:
         """Refresh logger web data through the same per-logger FIFO queue."""
         updates: dict[str, Any] = {}
+        signal: int | None = None
         async with coordinator.poll_lock:
             if coordinator.data.get("logger_raw_profile") is None:
                 refreshed = await async_read_logger_web_data(hass, host)
@@ -246,16 +249,26 @@ async def async_setup_entry(
                 ):
                     if value is not None:
                         updates[key] = value
-                if refreshed.wifi_signal is not None:
-                    updates["logger_wifi_signal"] = refreshed.wifi_signal
+                signal = refreshed.wifi_signal
             else:
                 signal = await async_read_logger_wifi_signal(hass, host)
-                if signal is not None:
-                    updates["logger_wifi_signal"] = signal
 
-        if not updates or not coordinator.async_update_logger_metadata(
-            updates
-        ):
+        wifi_stale_changed = False
+        if signal is None:
+            if wifi_signal_freshness.observe(None):
+                wifi_stale_changed = coordinator.async_remove_logger_metadata(
+                    "logger_wifi_signal"
+                )
+        else:
+            wifi_signal_freshness.observe(signal)
+            updates["logger_wifi_signal"] = signal
+
+        metadata_changed = (
+            coordinator.async_update_logger_metadata(updates)
+            if updates
+            else False
+        )
+        if not metadata_changed and not wifi_stale_changed:
             return
 
         config_updates = dict(entry.data)

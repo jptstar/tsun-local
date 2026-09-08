@@ -26,11 +26,13 @@ class Release160ContractTests(unittest.TestCase):
         manifest = json.loads((ROOT / "custom_components/tsun_local/manifest.json").read_text(encoding="utf-8"))
         self.assertRegex(manifest["version"], r"^1\.6\.\d+(?:-beta\.\d+)?$")
 
-    def test_failed_http_signal_keeps_last_known_value(self) -> None:
+    def test_failed_http_signal_has_bounded_stale_window(self) -> None:
         init_source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8")
         self.assertNotIn('signal if signal is not None else 0', init_source)
-        self.assertIn('if signal is not None:\n                    updates["logger_wifi_signal"] = signal', init_source)
-        self.assertIn('if refreshed.wifi_signal is not None:\n                    updates["logger_wifi_signal"] = refreshed.wifi_signal', init_source)
+        self.assertNotIn('updates["logger_wifi_signal"] = 0', init_source)
+        self.assertIn('wifi_signal_freshness.observe(None)', init_source)
+        self.assertIn('async_remove_logger_metadata', init_source)
+        self.assertIn('updates["logger_wifi_signal"] = signal', init_source)
 
     def test_logger_wifi_signal_uses_firmware_resilient_priority(self) -> None:
         source = (ROOT / "custom_components/tsun_local/logger_web.py").read_text(encoding="utf-8")
