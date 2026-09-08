@@ -1,0 +1,33 @@
+name: Retry public site polish
+
+on:
+  push:
+    branches:
+      - docs/site-polish-2026-09-08
+    paths:
+      - .github/workflows/site-polish-retry.yml
+
+permissions:
+  contents: write
+
+jobs:
+  retry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the prepared site patch with tkinter available
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/site-polish-one-shot.yml')
+          text = path.read_text(encoding='utf-8')
+          old = '          python -m unittest discover -s tests -v\n'
+          new = '          sudo apt-get update && sudo apt-get install -y python3-tk\n          python -m unittest discover -s tests -v\n'
+          if old not in text:
+              raise SystemExit('Expected unittest command not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          git rm .github/workflows/site-polish-retry.yml
+          awk 'found { sub(/^          /, ""); print } /        run: \|/ { found=1; next }' .github/workflows/site-polish-one-shot.yml > /tmp/site-polish.sh
+          bash /tmp/site-polish.sh
