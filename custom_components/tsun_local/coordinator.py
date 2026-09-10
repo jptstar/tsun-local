@@ -301,6 +301,17 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.async_update_listeners()
         return True
 
+    def async_remove_logger_metadata(self, key: str) -> bool:
+        """Remove one stale logger metadata value and notify listeners."""
+        current_data = dict(self.data or {})
+        if key not in self._logger_metadata and key not in current_data:
+            return False
+        self._logger_metadata.pop(key, None)
+        current_data.pop(key, None)
+        self.data = current_data
+        self.async_update_listeners()
+        return True
+
     def _handle_failed_poll(self, err: Exception) -> None:
         """Update availability and polling cadence after one failed poll."""
         self._consecutive_failures += 1
