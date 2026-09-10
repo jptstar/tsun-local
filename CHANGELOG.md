@@ -2,6 +2,82 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.1] - 2026-09-10
+
+### Fixed
+
+- Reuse one TCP session across a healthy polling cycle on 1511, 02B0 and 1097 and retry one failed protocol block once on a fresh connection before declaring the cycle failed.
+- Keep requests sequential through the existing per-logger FIFO and keep alarm/advanced diagnostic reads best effort so non-critical failures do not unnecessarily invalidate otherwise valid telemetry.
+- Restore the latest valid AC/PV energy states across temporary communication loss and Home Assistant restarts, including startup while a logger is already offline or sleeping.
+- Make Home Assistant local midnight the only displayed daily-energy boundary for 1511, 02B0 and 1097.
+- Advance daily AC/PV energy primarily from monotonic total-energy deltas and ignore hardware daily-counter resets at sunrise or other times, including the PLAY2 / 1097 reset observed around 18:00.
+- Persist daily tracking references so a same-day Home Assistant restart can recover missed production when the total-energy reference is available.
+- Preserve one transient logger RSSI HTTP miss, then mark `logger_wifi_signal` unavailable after two consecutive five-minute misses instead of retaining a stale value indefinitely.
+- Restore the real logger Wi-Fi signal immediately on the next successful metadata read and never synthesize `0%` for a failed RSSI read.
+
+### Retained
+
+- Keep validated 1511, 02B0 and 1097 protocol register maps, decoders, entity keys, adaptive polling and offline/failure thresholds unchanged.
+- Keep all inverter access local and strictly read-only; no configuration, protection-setting or control write is added.
+
+### Validation
+
+- Promote the validated 1.6.1-beta.6 source to stable without functional code changes.
+- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest on the stable release source before publication.
+
+## [1.6.1-beta.6] - 2026-09-09
+
+### Fixed
+
+- Preserve one transient logger RSSI HTTP miss, then mark `logger_wifi_signal` unavailable after two consecutive five-minute misses instead of retaining a stale value indefinitely.
+- Restore the real logger Wi-Fi signal immediately on the next successful metadata read and never synthesize `0%` for a failed read.
+- Apply the RSSI freshness policy in the shared logger metadata layer for 1511, 02B0 and 1097.
+
+### Retained
+
+- Keep beta.5 daily-energy rollover and total-delta tracking unchanged.
+- Keep protocol register maps, adaptive polling, communication resilience and strictly read-only device access unchanged.
+
+## [1.6.1-beta.5] - 2026-09-08
+
+### Fixed
+
+- Make Home Assistant local midnight the only daily-energy day boundary for 1511, 02B0 and 1097.
+- Ignore logger/micro-inverter daily-counter resets at other times, including the PLAY2 / 1097 reset observed around 18:00.
+- Prefer monotonic `*_energy_total` deltas to keep `*_energy_today` continuous; use the raw daily counter only as a fallback.
+- Persist daily tracking references in Home Assistant state attributes so same-day HA restarts can recover production missed during the restart.
+- Preserve the 1511 / 02B0 behavior where yesterday's daily value can remain in hardware overnight and reset only when the inverter wakes.
+- Remove the 1097-specific "second lower sample means a real reset" heuristic.
+
+### Recovery behavior
+
+- A restart a few minutes after midnight can recover from the total-energy reference written by the midnight rollover.
+- A same-day restart can recover missed energy from the monotonic total counter when beta.5 tracking metadata already exists.
+- A long HA outage spanning midnight cannot always be split mathematically between the two days; beta.5 uses the first fresh hardware daily value as a best-effort fallback instead of inventing a split.
+
+### Validation
+
+- Add regression tests for 1511/02B0 sunrise reset, PLAY2/1097 18:00 reset, same-day HA restart, restart just after midnight and total-counter fallback.
+- Keep protocol register maps, read-only access, communication resilience, adaptive polling and logger Wi-Fi corrections unchanged.
+
+## [1.6.1-beta.4] - 2026-09-07
+
+### Fixed
+
+- Preserve the last valid logger Wi-Fi signal when a periodic local HTTP read temporarily fails instead of publishing a false 0%.
+- Retry logger RSSI once after the first successful protocol refresh when startup metadata did not expose a signal.
+- Accept logger RSSI firmware variants in strict priority order: cover_sta_rssi, sta_rssi, wifi_rssi, then wifi_signal.
+
+### Retained
+
+- Keep 1511, 02B0 and 1097 persistent-session communication resilience, bounded reconnect/retry, per-logger FIFO and adaptive polling unchanged.
+- Keep beta.3 daily-energy restoration and local midnight rollover behavior unchanged.
+- Keep all validated register coverage unchanged and remain local/read-only.
+
+### Validation
+
+- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest before publication.
+
 ## [1.6.0] - 2026-09-04
 
 ### Added
@@ -537,3 +613,5 @@ All notable changes to this project are documented here. The project follows [Se
 [1.2.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.2.0
 [1.1.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.1.4
 [1.0.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.0.0
+[1.6.1-beta.6]: https://github.com/jptstar/tsun-local/releases/tag/v1.6.1-beta.6
+[1.6.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.6.1

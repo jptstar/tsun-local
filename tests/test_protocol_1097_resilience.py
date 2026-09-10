@@ -113,7 +113,7 @@ class FakeWriter:
 
 
 class Protocol1097ResilienceTests(unittest.IsolatedAsyncioTestCase):
-    """Verify persistent sessions, retry and daily-counter stability."""
+    """Verify persistent sessions and bounded retry behavior."""
 
     def test_uses_proxy_aligned_fast_blocks(self) -> None:
         self.assertEqual(
@@ -179,28 +179,6 @@ class Protocol1097ResilienceTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(writers[0].closed)
         self.assertEqual(result.blocks_ok, 3)
 
-    def test_transient_daily_zero_is_not_published(self) -> None:
+    def test_protocol_no_longer_guesses_daily_reset_timing(self) -> None:
         client = Tsun1097Client("192.0.2.10", 8899, 123456)
-        first = client._stabilize_daily_energy(
-            {"ac_energy_today": 4.2, "pv1_energy_today": 4.0}
-        )
-        transient = client._stabilize_daily_energy(
-            {"ac_energy_today": 0.0, "pv1_energy_today": 0.0}
-        )
-        recovered = client._stabilize_daily_energy(
-            {"ac_energy_today": 4.3, "pv1_energy_today": 4.1}
-        )
-
-        self.assertEqual(first["ac_energy_today"], 4.2)
-        self.assertEqual(transient["ac_energy_today"], 4.2)
-        self.assertEqual(transient["pv1_energy_today"], 4.0)
-        self.assertEqual(recovered["ac_energy_today"], 4.3)
-
-    def test_real_daily_reset_is_accepted_on_second_lower_sample(self) -> None:
-        client = Tsun1097Client("192.0.2.10", 8899, 123456)
-        client._stabilize_daily_energy({"ac_energy_today": 5.0})
-        first_lower = client._stabilize_daily_energy({"ac_energy_today": 0.0})
-        second_lower = client._stabilize_daily_energy({"ac_energy_today": 0.1})
-
-        self.assertEqual(first_lower["ac_energy_today"], 5.0)
-        self.assertEqual(second_lower["ac_energy_today"], 0.1)
+        self.assertFalse(hasattr(client, "_stabilize_daily_energy"))

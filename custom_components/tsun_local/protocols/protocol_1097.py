@@ -281,8 +281,6 @@ class Tsun1097Client:
         self._trace = ProtocolTrace(PROTOCOL_NAME)
         self._diagnostic_registers: dict[int, int] = {}
         self._last_diagnostic_read = 0.0
-        self._last_measurements: dict[str, float | int | str] = {}
-        self._daily_reset_candidates: dict[str, float | int] = {}
 
     @property
     def pv_count(self) -> int:
@@ -416,41 +414,6 @@ class Tsun1097Client:
                 current_reader, current_writer = await self._open_session()
         raise AssertionError("unreachable")
 
-    def _stabilize_daily_energy(
-        self, measurements: dict[str, float | int | str]
-    ) -> dict[str, float | int | str]:
-        """Suppress one-sample daily counter regressions.
-
-        A real daily reset is accepted on the second consecutive lower sample.
-        This avoids publishing transient zeroes after a logger reconnect while
-        still allowing the legitimate midnight reset without wall-clock logic.
-        """
-        stabilized = dict(measurements)
-        for key, value in list(stabilized.items()):
-            if not key.endswith("_energy_today"):
-                continue
-            previous = self._last_measurements.get(key)
-            if not isinstance(value, (int, float)) or not isinstance(
-                previous, (int, float)
-            ):
-                self._daily_reset_candidates.pop(key, None)
-                continue
-
-            if value < previous:
-                if key not in self._daily_reset_candidates:
-                    self._daily_reset_candidates[key] = value
-                    stabilized[key] = previous
-                    _LOGGER.debug(
-                        "1097 retained previous %s after one lower sample",
-                        key,
-                    )
-                else:
-                    self._daily_reset_candidates.pop(key, None)
-            else:
-                self._daily_reset_candidates.pop(key, None)
-
-        self._last_measurements.update(stabilized)
-        return stabilized
 
     async def async_read_all(self) -> TsunReadResult:
         """Read one complete 1097 telemetry update."""
@@ -502,7 +465,6 @@ class Tsun1097Client:
         )
         measurements.update(decode_advanced_diagnostics(registers))
         measurements.update(decode_alarms(registers))
-        measurements = self._stabilize_daily_energy(measurements)
 
         return TsunReadResult(
             measurements=measurements,
