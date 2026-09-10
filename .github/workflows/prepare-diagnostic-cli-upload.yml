@@ -1,0 +1,68 @@
+name: Prepare Python diagnostic submission
+
+on:
+  push:
+    branches:
+      - fix/python-cli-report-submit
+    paths:
+      - ".github/workflows/prepare-diagnostic-cli-upload.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out work branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/python-cli-report-submit
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Apply standalone CLI upload patch
+        run: python scripts/prepare_diagnostic_cli_upload.py
+
+      - name: Compile diagnostic sources
+        run: |
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_diagnostic.py
+
+      - name: Run complete unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Validate generated source
+        shell: bash
+        run: |
+          git diff --check
+          python - <<'PY'
+          from pathlib import Path
+          source = Path('tools/tsun_dump.py').read_text(encoding='utf-8')
+          assert 'TOOL_VERSION = "2.7.5"' in source
+          assert 'REPORT_UPLOAD_URL = "https://tsun-local-reports-uploader.jp-810.workers.dev/report"' in source
+          assert 'validate_diagnostic_for_upload' in source
+          assert 'delivery.add_argument(' in source
+          assert '"--submit",' in source
+          assert '"--no-submit",' in source
+          assert '_handle_report_delivery(completed, args)' in source
+          gui = Path('tools/tsun_diagnostic_gui.py').read_text(encoding='utf-8')
+          assert '["tsun_dump.py", "--full", "--no-submit"]' in gui
+          PY
+
+      - name: Commit validated changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm scripts/prepare_diagnostic_cli_upload.py
+          git rm .github/workflows/prepare-diagnostic-cli-upload.yml
+          git add tools/tsun_dump.py
+          git add tools/tsun_diagnostic_gui.py
+          git add tests/test_tsun_dump_tool.py
+          git add docs/HARDWARE_DUMP.md
+          git commit -m "Add secure report choice to standalone Python diagnostic"
+          git push origin HEAD:fix/python-cli-report-submit
