@@ -230,7 +230,7 @@ TSUN Local benefits from public protocol research and independent hardware testi
 - **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — independent public cross-reference used during selected Solarman / 02B0 register research.
 - **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — public GEN3 / 1097 protocol and country/profile research used during experimental validation.
 - **TheSmartGerman** — real-device testing that revealed the additional 1097 protocol family.
-- **dca31** — independent Sunology PLAY2 validation through the normal Home Assistant Home Assistant flow.
+- **dca31** — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.
 - **Kmotr** — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.
 - **paloindici** — independent TSOL-MS2000 validation with TSUN Local, including anonymized Home Assistant diagnostics for both TSOL-MS2000 and TSOL-MP3000 plus the hardware dump that confirmed the 02B0 / four-PV path.
 
