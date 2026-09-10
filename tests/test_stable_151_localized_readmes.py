@@ -16,7 +16,14 @@ FILES = (
     "README_ZH.md",
 )
 
-VERSION_PATTERN = re.compile(r"<strong>1\.6\.0</strong>")
+ROOT_README = (ROOT / "README.md").read_text(encoding="utf-8")
+ROOT_VERSION_MATCH = re.search(r"<strong>(\d+\.\d+\.\d+)</strong>", ROOT_README)
+if ROOT_VERSION_MATCH is None:
+    raise RuntimeError("Public stable version not found in README.md")
+PUBLIC_STABLE_VERSION = ROOT_VERSION_MATCH.group(1)
+VERSION_PATTERN = re.compile(
+    rf"<strong>{re.escape(PUBLIC_STABLE_VERSION)}</strong>"
+)
 
 
 class Stable160LocalizedReadmeTests(unittest.TestCase):
