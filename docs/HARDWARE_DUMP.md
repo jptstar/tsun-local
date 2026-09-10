@@ -97,6 +97,14 @@ macOS / Linux:
 python3 tsun_dump.py --full
 ```
 
+At the end of an interactive run, the Python tool now asks whether to:
+
+1. securely submit the anonymized JSON to TSUN Local,
+2. keep it for manual email to `dev@jptstar.com`, or
+3. keep it locally without transmitting anything.
+
+Nothing is uploaded without an explicit choice. For scripted use, `--submit` (alias `--upload`) is explicit consent to upload, while `--no-submit` disables the prompt and keeps the report local.
+
 Windows terminal alternative:
 
 ```powershell

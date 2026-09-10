@@ -35,14 +35,37 @@ import sys
 import time
 from typing import Any, Callable, Iterable
 from urllib.parse import urljoin, urlsplit
+import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.7.4"
+TOOL_VERSION = "2.7.5"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
 REPORT_EMAIL = "dev@jptstar.com"
+REPORT_UPLOAD_URL = "https://tsun-local-reports-uploader.jp-810.workers.dev/report"
+REPORT_UPLOAD_MAX_BYTES = 524288
+REPORT_UPLOAD_TIMEOUT = 20.0
+REPORT_UPLOAD_FORBIDDEN_KEYS = frozenset(
+    {
+        "monitor_sn",
+        "monitor_serial",
+        "serial_number",
+        "logger_ip",
+        "ip_address",
+        "mac",
+        "mac_address",
+        "ssid",
+        "password",
+        "wifi_password",
+        "token",
+        "access_token",
+        "refresh_token",
+        "email",
+        "e_mail",
+    }
+)
 
 UPDATE_RELEASE_BASE = (
     "https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest"
@@ -2946,6 +2969,198 @@ def compare_documents(before: dict[str, Any], after: dict[str, Any]) -> dict[str
     }
 
 
+class ReportUploadError(RuntimeError):
+    """Raised when a generated diagnostic cannot be safely submitted."""
+
+
+def _find_forbidden_upload_key(
+    value: Any, path: str = "$", depth: int = 0
+) -> str | None:
+    """Return the first forbidden privacy field in a diagnostic tree."""
+    if depth > 40:
+        raise ReportUploadError("diagnostic nesting is too deep")
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            found = _find_forbidden_upload_key(
+                child, f"{path}[{index}]", depth + 1
+            )
+            if found is not None:
+                return found
+        return None
+    if not isinstance(value, dict):
+        return None
+    for key, child in value.items():
+        key_text = str(key)
+        if key_text.lower() in REPORT_UPLOAD_FORBIDDEN_KEYS:
+            return f"{path}.{key_text}"
+        found = _find_forbidden_upload_key(child, f"{path}.{key_text}", depth + 1)
+        if found is not None:
+            return found
+    return None
+
+
+def validate_diagnostic_for_upload(diagnostic: Any) -> dict[str, Any]:
+    """Apply the local privacy gate before any report transmission."""
+    if not isinstance(diagnostic, dict):
+        raise ReportUploadError("diagnostic JSON must contain an object")
+    forbidden = _find_forbidden_upload_key(diagnostic)
+    if forbidden is not None:
+        raise ReportUploadError(
+            f"diagnostic contains a forbidden privacy field: {forbidden}"
+        )
+    return diagnostic
+
+
+def load_diagnostic_for_upload(path: Path) -> dict[str, Any]:
+    """Load and privacy-check one generated diagnostic from disk."""
+    try:
+        size = path.stat().st_size
+    except OSError as exc:
+        raise ReportUploadError(f"cannot read diagnostic file: {path.name}") from exc
+    if size <= 0:
+        raise ReportUploadError(f"diagnostic file is empty: {path.name}")
+    if size > REPORT_UPLOAD_MAX_BYTES:
+        raise ReportUploadError(f"diagnostic file is too large: {path.name}")
+    try:
+        diagnostic = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ReportUploadError(
+            f"diagnostic file is not valid JSON: {path.name}"
+        ) from exc
+    return validate_diagnostic_for_upload(diagnostic)
+
+
+def _upload_server_error_message(exc: urllib.error.HTTPError) -> str:
+    """Return a bounded server error without exposing response internals."""
+    try:
+        raw = exc.read(4096)
+        body = json.loads(raw.decode("utf-8", errors="replace"))
+        message = body.get("error") if isinstance(body, dict) else None
+    except (OSError, ValueError, UnicodeError):
+        message = None
+    if isinstance(message, str) and message.strip():
+        return message.strip()
+    return f"HTTP {exc.code}"
+
+
+def upload_diagnostic_report(
+    diagnostic: dict[str, Any],
+    *,
+    consent: bool,
+    endpoint: str = REPORT_UPLOAD_URL,
+    timeout: float = REPORT_UPLOAD_TIMEOUT,
+) -> dict[str, Any]:
+    """Submit one anonymized diagnostic after explicit user consent."""
+    if consent is not True:
+        raise ReportUploadError("explicit consent is required")
+    diagnostic = validate_diagnostic_for_upload(diagnostic)
+    payload = {
+        "schema_version": 1,
+        "consent": True,
+        "tester_profile": {"name": "", "declared_devices": []},
+        "diagnostic": diagnostic,
+    }
+    body = json.dumps(
+        payload, ensure_ascii=False, separators=(",", ":")
+    ).encode("utf-8")
+    if len(body) > REPORT_UPLOAD_MAX_BYTES:
+        raise ReportUploadError("report is too large after adding upload metadata")
+
+    request = urllib.request.Request(
+        endpoint,
+        data=body,
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": f"TSUN-Local-Diagnostic-Python/{TOOL_VERSION}",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            response_body = response.read(REPORT_UPLOAD_MAX_BYTES + 1)
+    except urllib.error.HTTPError as exc:
+        raise ReportUploadError(
+            f"upload rejected: {_upload_server_error_message(exc)}"
+        ) from exc
+    except (urllib.error.URLError, TimeoutError, socket.timeout, OSError) as exc:
+        raise ReportUploadError("upload service is unreachable") from exc
+
+    if len(response_body) > REPORT_UPLOAD_MAX_BYTES:
+        raise ReportUploadError("upload service returned an invalid response")
+    try:
+        result = json.loads(response_body.decode("utf-8"))
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise ReportUploadError("upload service returned invalid JSON") from exc
+    if not isinstance(result, dict) or result.get("ok") is not True:
+        message = result.get("error") if isinstance(result, dict) else None
+        raise ReportUploadError(str(message or "upload failed"))
+    if not isinstance(result.get("report_id"), str):
+        raise ReportUploadError("upload service did not return a report ID")
+    return result
+
+
+def _submit_completed_reports(paths: list[Path]) -> None:
+    """Validate every report first, then transmit them one by one."""
+    validated = [(path, load_diagnostic_for_upload(path)) for path in paths]
+    print("\nSending anonymized report(s) securely to TSUN Local...")
+    for path, diagnostic in validated:
+        result = upload_diagnostic_report(diagnostic, consent=True)
+        report_id = result["report_id"]
+        print(f"  {path.name}: sent successfully · report ID {report_id}")
+        view_url = result.get("view_url")
+        if isinstance(view_url, str) and view_url.strip():
+            print(f"    Secure report link: {view_url.strip()}")
+
+
+def _print_email_report_instructions(paths: list[Path]) -> None:
+    """Show the same manual email fallback offered by the desktop app."""
+    print("\nManual email fallback")
+    print(f"Email: {REPORT_EMAIL}")
+    print("Attach the generated JSON file(s):")
+    for path in paths:
+        print(f"  {path}")
+    print("No report was transmitted automatically.")
+
+
+def _handle_report_delivery(paths: list[Path], args: argparse.Namespace) -> int:
+    """Offer secure upload, email fallback or local-only retention."""
+    if args.submit:
+        choice = "1"
+    elif args.no_submit:
+        print("No report was transmitted. Generated JSON remains local.")
+        return 0
+    elif sys.stdin is None or not sys.stdin.isatty():
+        print("No report was transmitted because this is a non-interactive session.")
+        print("Use --submit for explicit secure upload, or send the JSON manually to " + REPORT_EMAIL + ".")
+        return 0
+    else:
+        print("\n=== Share diagnostic report ===")
+        print("1) Send securely to TSUN Local (I consent to transmit the anonymized JSON)")
+        print("2) Send manually by email")
+        print("3) Keep the report locally / do not send")
+        try:
+            choice = input("Choice [1/2/3]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nNo report was transmitted.")
+            return 0
+
+    if choice == "1":
+        try:
+            _submit_completed_reports(paths)
+        except ReportUploadError as exc:
+            print(f"Secure upload failed: {exc}", file=sys.stderr)
+            _print_email_report_instructions(paths)
+            return 1 if args.submit else 0
+        return 0
+    if choice == "2":
+        _print_email_report_instructions(paths)
+        return 0
+
+    print("No report was transmitted. Generated JSON remains local.")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -3085,6 +3300,22 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="check diagnostic-latest for a newer tsun_dump.py and exit",
     )
+    delivery = parser.add_mutually_exclusive_group()
+    delivery.add_argument(
+        "--submit",
+        "--upload",
+        dest="submit",
+        action="store_true",
+        help=(
+            "explicitly consent to upload generated anonymized JSON report(s) "
+            "through the TSUN Local secure report service"
+        ),
+    )
+    delivery.add_argument(
+        "--no-submit",
+        action="store_true",
+        help="keep generated report(s) local and skip the end-of-run sharing prompt",
+    )
     return parser
 
 
@@ -3182,7 +3413,7 @@ def main() -> int:
 
     print("TSUN Local Hardware Validation Dump Tool")
     print(f"Standalone v{TOOL_VERSION} · READ-ONLY · Python standard library only")
-    print(f"Send generated JSON reports to: {REPORT_EMAIL}")
+    print("At the end, choose secure upload, email fallback, or keep the report local.")
     print("No inverter configuration write operation is implemented.\n")
 
     try:
@@ -3251,8 +3482,10 @@ def main() -> int:
         print("Generated files:")
         for output in completed:
             print(f"  {output}")
-        print(f"Send the generated JSON file(s) to: {REPORT_EMAIL}")
-        return 0
+        delivery_result = _handle_report_delivery(completed, args)
+        if failed:
+            return 1
+        return delivery_result
     return 1
 
 

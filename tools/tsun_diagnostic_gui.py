@@ -939,7 +939,7 @@ class DiagnosticApp:
         previous_input = builtins.input
         writer = _QueueWriter(self.events)
 
-        args = ["tsun_dump.py", "--full"]
+        args = ["tsun_dump.py", "--full", "--no-submit"]
         if host:
             args.extend(["--host", host])
         if monitor_sn:
