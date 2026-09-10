@@ -2,66 +2,35 @@ name: Update public site hero for 1.6.1
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - ".github/workflows/update-site-161.yml"
+      - .github/workflows/update-site-161.yml
 
 permissions:
   contents: write
 
 jobs:
-  update:
+  update-site:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - name: Update visible 1.6.1 highlights
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: Patch visible homepage highlights
         run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("docs/index.html")
-          text = path.read_text(encoding="utf-8")
-          old = '''      <aside class="preview-card" aria-label="TSUN Local 1.6.0 highlights">
-        <span class="preview-kicker">NEW IN 1.6.0</span>
-        <h3>Adaptive polling</h3>
-        <div class="preview-primary">
-          <strong>Automatic communication pacing for unstable and offline micro-inverters</strong>
-          <span>Enabled by default. TSUN Local reacts to protocol failures, slows polling when communication becomes unavailable and progressively returns toward the normal interval after successful reads.</span>
-        </div>
-        <div class="preview-stats">
-          <div class="preview-stat"><strong>20 s</strong><span>normal interval</span></div>
-          <div class="preview-stat"><strong>300 s</strong><span>offline / night interval</span></div>
-        </div>
-        <div class="preview-note">Default retry interval: 30 s · Offline after 3 consecutive protocol failures · Logger Wi-Fi remains diagnostic only.</div>
-      </aside>'''
-          new = '''      <aside class="preview-card" aria-label="TSUN Local 1.6.1 highlights">
-        <span class="preview-kicker">NEW IN 1.6.1</span>
-        <h3>More resilient local monitoring</h3>
-        <div class="preview-primary">
-          <strong>Reliable communication, daily energy and logger Wi-Fi freshness</strong>
-          <span>TSUN Local now retries one failed protocol block on a fresh connection, keeps daily energy aligned with Home Assistant local midnight, and avoids false 0% Wi-Fi readings during transient logger refresh failures.</span>
-        </div>
-        <div class="preview-stats">
-          <div class="preview-stat"><strong>1 retry</strong><span>failed protocol block</span></div>
-          <div class="preview-stat"><strong>2 misses</strong><span>RSSI becomes unavailable</span></div>
-        </div>
-        <div class="preview-note">No validated register-map or write-behavior changes · Fully local and strictly read-only.</div>
-      </aside>'''
-          if old not in text:
-              raise SystemExit("Expected 1.6.0 hero block not found; refusing blind edit")
-          text = text.replace(old, new, 1)
-          if 'aria-label="TSUN Local 1.6.0 highlights"' in text or '>NEW IN 1.6.0<' in text:
-              raise SystemExit("Stale visible 1.6.0 hero text remains")
-          path.write_text(text, encoding="utf-8")
-          PY
-      - name: Commit update and remove temporary workflow
-        shell: bash
+          grep -q 'NEW IN 1.6.0' docs/index.html
+          sed -i 's/TSUN Local 1.6.0 highlights/TSUN Local 1.6.1 highlights/' docs/index.html
+          sed -i 's/NEW IN 1.6.0/NEW IN 1.6.1/' docs/index.html
+          sed -i 's|<h3>Adaptive polling</h3>|<h3>More resilient local monitoring</h3>|' docs/index.html
+          sed -i 's|<strong>Automatic communication pacing for unstable and offline micro-inverters</strong>|<strong>Reliable communication, daily energy and logger Wi-Fi freshness</strong>|' docs/index.html
+          sed -i 's|<span>Enabled by default. TSUN Local reacts to protocol failures, slows polling when communication becomes unavailable and progressively returns toward the normal interval after successful reads.</span>|<span>TSUN Local now retries one failed protocol block on a fresh connection, keeps daily energy aligned with Home Assistant local midnight, and avoids false 0% Wi-Fi readings during transient logger refresh failures.</span>|' docs/index.html
+          sed -i 's|<div class="preview-stat"><strong>20 s</strong><span>normal interval</span></div>|<div class="preview-stat"><strong>1 retry</strong><span>failed protocol block</span></div>|' docs/index.html
+          sed -i 's|<div class="preview-stat"><strong>300 s</strong><span>offline / night interval</span></div>|<div class="preview-stat"><strong>2 misses</strong><span>RSSI becomes unavailable</span></div>|' docs/index.html
+          sed -i 's|<div class="preview-note">Default retry interval: 30 s · Offline after 3 consecutive protocol failures · Logger Wi-Fi remains diagnostic only.</div>|<div class="preview-note">No validated register-map or write-behavior changes · Fully local and strictly read-only.</div>|' docs/index.html
+          ! grep -q 'NEW IN 1.6.0' docs/index.html
+      - name: Commit homepage and remove updater
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/update-site-161.yml
           git add docs/index.html
-          git commit -m "Update public site highlights for 1.6.1"
+          git commit -m 'Update public site highlights for 1.6.1'
           git push
