@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.1] - 2026-09-10
+
+### Fixed
+
+- Reuse one TCP session across a healthy polling cycle on 1511, 02B0 and 1097 and retry one failed protocol block once on a fresh connection before declaring the cycle failed.
+- Keep requests sequential through the existing per-logger FIFO and keep alarm/advanced diagnostic reads best effort so non-critical failures do not unnecessarily invalidate otherwise valid telemetry.
+- Restore the latest valid AC/PV energy states across temporary communication loss and Home Assistant restarts, including startup while a logger is already offline or sleeping.
+- Make Home Assistant local midnight the only displayed daily-energy boundary for 1511, 02B0 and 1097.
+- Advance daily AC/PV energy primarily from monotonic total-energy deltas and ignore hardware daily-counter resets at sunrise or other times, including the PLAY2 / 1097 reset observed around 18:00.
+- Persist daily tracking references so a same-day Home Assistant restart can recover missed production when the total-energy reference is available.
+- Preserve one transient logger RSSI HTTP miss, then mark `logger_wifi_signal` unavailable after two consecutive five-minute misses instead of retaining a stale value indefinitely.
+- Restore the real logger Wi-Fi signal immediately on the next successful metadata read and never synthesize `0%` for a failed RSSI read.
+
+### Retained
+
+- Keep validated 1511, 02B0 and 1097 protocol register maps, decoders, entity keys, adaptive polling and offline/failure thresholds unchanged.
+- Keep all inverter access local and strictly read-only; no configuration, protection-setting or control write is added.
+
+### Validation
+
+- Promote the validated 1.6.1-beta.6 source to stable without functional code changes.
+- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest on the stable release source before publication.
+
 ## [1.6.1-beta.6] - 2026-09-09
 
 ### Fixed
@@ -591,3 +614,4 @@ All notable changes to this project are documented here. The project follows [Se
 [1.1.4]: https://github.com/jptstar/tsun-local/releases/tag/v1.1.4
 [1.0.0]: https://github.com/jptstar/tsun-local/releases/tag/v1.0.0
 [1.6.1-beta.6]: https://github.com/jptstar/tsun-local/releases/tag/v1.6.1-beta.6
+[1.6.1]: https://github.com/jptstar/tsun-local/releases/tag/v1.6.1
