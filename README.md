@@ -16,7 +16,7 @@
 <h1 align="center">TSUN Local — Home Assistant integration for TSUN micro-inverters</h1>
 <h3 align="center">Your inverter. Your network. Your data.</h3>
 <p align="center"><strong>Local. Read-only. No cloud. No proxy.</strong></p>
-<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.6.0</strong></p>
+<p align="center">Open-source HACS integration providing direct local access to compatible TSUN solar micro-inverters in Home Assistant.<br><strong>1.6.1</strong></p>
 
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
@@ -230,7 +230,7 @@ TSUN Local benefits from public protocol research and independent hardware testi
 - **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — independent public cross-reference used during selected Solarman / 02B0 register research.
 - **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — public GEN3 / 1097 protocol and country/profile research used during experimental validation.
 - **TheSmartGerman** — real-device testing that revealed the additional 1097 protocol family.
-- **dca31** — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.
+- **dca31** — independent Sunology PLAY2 validation through the normal Home Assistant Home Assistant flow.
 - **Kmotr** — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.
 - **paloindici** — independent TSOL-MS2000 validation with TSUN Local, including anonymized Home Assistant diagnostics for both TSOL-MS2000 and TSOL-MP3000 plus the hardware dump that confirmed the 02B0 / four-PV path.
 
