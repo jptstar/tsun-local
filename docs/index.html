@@ -151,18 +151,18 @@
           <a class="button secondary" href="#compatibility">Compatibility</a>
         </div>
       </div>
-      <aside class="preview-card" aria-label="TSUN Local 1.6.0 highlights">
-        <span class="preview-kicker">NEW IN 1.6.0</span>
-        <h3>Adaptive polling</h3>
+      <aside class="preview-card" aria-label="TSUN Local 1.6.1 highlights">
+        <span class="preview-kicker">NEW IN 1.6.1</span>
+        <h3>More resilient local monitoring</h3>
         <div class="preview-primary">
-          <strong>Automatic communication pacing for unstable and offline micro-inverters</strong>
-          <span>Enabled by default. TSUN Local reacts to protocol failures, slows polling when communication becomes unavailable and progressively returns toward the normal interval after successful reads.</span>
+          <strong>Reliable communication, daily energy and logger Wi-Fi freshness</strong>
+          <span>TSUN Local now retries one failed protocol block on a fresh connection, keeps daily energy aligned with Home Assistant local midnight, and avoids false 0% Wi-Fi readings during transient logger refresh failures.</span>
         </div>
         <div class="preview-stats">
-          <div class="preview-stat"><strong>20 s</strong><span>normal interval</span></div>
-          <div class="preview-stat"><strong>300 s</strong><span>offline / night interval</span></div>
+          <div class="preview-stat"><strong>1 retry</strong><span>failed protocol block</span></div>
+          <div class="preview-stat"><strong>2 misses</strong><span>RSSI becomes unavailable</span></div>
         </div>
-        <div class="preview-note">Default retry interval: 30 s · Offline after 3 consecutive protocol failures · Logger Wi-Fi remains diagnostic only.</div>
+        <div class="preview-note">No validated register-map or write-behavior changes · Fully local and strictly read-only.</div>
       </aside>
     </div>
   </div>
