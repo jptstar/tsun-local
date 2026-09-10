@@ -26,11 +26,11 @@ jobs:
           sed -i 's|<div class="preview-stat"><strong>300 s</strong><span>offline / night interval</span></div>|<div class="preview-stat"><strong>2 misses</strong><span>RSSI becomes unavailable</span></div>|' docs/index.html
           sed -i 's|<div class="preview-note">Default retry interval: 30 s · Offline after 3 consecutive protocol failures · Logger Wi-Fi remains diagnostic only.</div>|<div class="preview-note">No validated register-map or write-behavior changes · Fully local and strictly read-only.</div>|' docs/index.html
           ! grep -q 'NEW IN 1.6.0' docs/index.html
-      - name: Commit homepage and remove updater
+      - name: Commit homepage and remove updater on PR branch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm .github/workflows/update-site-161.yml
           git add docs/index.html
           git commit -m 'Update public site highlights for 1.6.1'
-          git push
+          git push origin HEAD:refs/heads/site/v1.6.1-visible
