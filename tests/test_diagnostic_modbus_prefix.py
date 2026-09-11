@@ -44,6 +44,13 @@ class DiagnosticModbusPrefixTests(unittest.TestCase):
             payload,
         )
 
+    def test_strips_one_leading_ff_from_modbus_exception(self) -> None:
+        payload = bytes.fromhex("01 83 02 C0 F1")
+        self.assertEqual(
+            DUMP.parse_ap_frame(_build_ap_reply(b"\xFF" + payload)),
+            payload,
+        )
+
     def test_keeps_non_modbus_ff_payload(self) -> None:
         payload = bytes.fromhex("FF A1 81 01 00 00")
         self.assertEqual(DUMP.parse_ap_frame(_build_ap_reply(payload)), payload)
