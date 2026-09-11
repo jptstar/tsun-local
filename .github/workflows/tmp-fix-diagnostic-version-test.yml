@@ -1,0 +1,40 @@
+name: Temporary diagnostic version test patch
+
+on:
+  push:
+    branches:
+      - fix/diagnostic-leading-ff
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/diagnostic-leading-ff
+
+      - name: Update version contract
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("tests/test_tsun_dump_tool.py")
+          source = path.read_text(encoding="utf-8")
+          old = 'self.assertEqual(TOOL.TOOL_VERSION, "2.8.0")'
+          new = 'self.assertEqual(TOOL.TOOL_VERSION, "2.8.1")'
+          if old not in source:
+              raise SystemExit("Expected 2.8.0 version assertion not found")
+          path.write_text(source.replace(old, new, 1), encoding="utf-8")
+          Path(".github/workflows/tmp-fix-diagnostic-version-test.yml").unlink()
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update diagnostic version contract to 2.8.1"
+          git push origin HEAD:fix/diagnostic-leading-ff
