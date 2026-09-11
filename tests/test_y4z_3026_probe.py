@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import sys
 import unittest
 
 
@@ -9,6 +10,7 @@ PROBE_PATH = Path(__file__).resolve().parents[1] / "tools" / "y4z_3026_readonly_
 SPEC = importlib.util.spec_from_file_location("y4z_3026_probe", PROBE_PATH)
 assert SPEC is not None and SPEC.loader is not None
 PROBE = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = PROBE
 SPEC.loader.exec_module(PROBE)
 
 
