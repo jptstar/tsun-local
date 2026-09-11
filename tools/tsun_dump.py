@@ -5,7 +5,7 @@
 """Standalone, privacy-safe, strictly read-only TSUN hardware dump tool.
 
 The tool uses only the Python standard library. It supports the local TSUN
-protocol families currently researched by TSUN Local: 1511, 02B0 and 1097.
+protocol families currently researched by TSUN Local: 1511, 02B0, 1097 and experimental 3026.
 
 Discovery deliberately uses several independent read-only paths because TSUN
 logger generations do not all answer the same discovery service reliably:
@@ -39,7 +39,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.7.5"
+TOOL_VERSION = "2.8.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -99,7 +99,9 @@ CHARACTERIZATION_TIMEOUT_CAP = 2.0
 CHARACTERIZATION_MARKER_WAIT = 1.0
 CHARACTERIZATION_DELAY = 0.15
 SHORT_LOGGER_MARKERS = (b"\x05\x00", b"\x06\x00")
-SUPPORTED_PROTOCOLS = ("1511", "02b0", "1097")
+VALIDATED_PROTOCOLS = ("1511", "02b0", "1097")
+EXPERIMENTAL_PROTOCOLS = ("3026",)
+SUPPORTED_PROTOCOLS = (*VALIDATED_PROTOCOLS, *EXPERIMENTAL_PROTOCOLS)
 
 DISCOVERY_MESSAGES = (
     b"WIFIKIT-214028-READ",
@@ -147,7 +149,7 @@ _WEB_ACTION_TOKENS = (
 _SERIAL_TOKEN = re.compile(r"(?<!\d)(\d{8,10})(?!\d)")
 _SAFE_NAME = re.compile(r"[^a-z0-9._-]+")
 _FIRMWARE_PROTOCOL_TOKEN = re.compile(
-    r"(?:^|[_-])(1511|1097|02b0)(?=[_-]|$)", re.IGNORECASE
+    r"(?:^|[_-])(1511|1097|02b0|3026)(?=[_-]|$)", re.IGNORECASE
 )
 _FIRMWARE_PATTERNS = (
     re.compile(
@@ -2312,6 +2314,11 @@ def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
         )
         return dynamic, supplemental
 
+    if protocol == "3026":
+        # Experimental read-only candidate family. Keep the capture raw until
+        # the hardware mapping is validated on real devices.
+        return split_modbus_range(0x0000, 0x002C), []
+
     if protocol == "1511":
         dynamic = [
             (0xA1, 0x01, 0x0BB8, 0x0BD7),
@@ -2349,6 +2356,16 @@ def _probe_protocol(
             0x1100,
             0x1100,
             sensor_list=0x1097,
+            timeout=timeout,
+        )
+    elif protocol == "3026":
+        read_modbus_block(
+            host,
+            port,
+            sn,
+            0x0000,
+            0x0000,
+            sensor_list=0x3026,
             timeout=timeout,
         )
     else:
@@ -2452,7 +2469,11 @@ def read_plan(
                 )
             else:
                 start, end = block
-                sensor_list = 0x1097 if protocol == "1097" else 0
+                sensor_list = (
+                    0x1097 if protocol == "1097"
+                    else 0x3026 if protocol == "3026"
+                    else 0
+                )
                 values, request_payload, response_payload = read_modbus_block(
                     host,
                     port,
@@ -2569,6 +2590,10 @@ def _detect_pv_count(protocol: str, r: dict[int, int]) -> int:
                 detected = number
         return detected
 
+    if protocol == "3026":
+        # Raw-only experimental capture: no PV-count inference until validated.
+        return 0
+
     if protocol == "1097":
         detected = 0
         for number in range(1, 7):
@@ -2668,6 +2693,15 @@ def decode_known(protocol: str, raw: dict[str, int]) -> dict[str, Any]:
                 data[f"pv{number}_voltage"] = round(r[base] * 0.1, 2)
                 data[f"pv{number}_current"] = round(r[base + 1] * 0.01, 2)
                 data[f"pv{number}_power"] = round(r[base + 2] * 0.1, 2)
+
+    elif protocol == "3026":
+        data.update(
+            {
+                "experimental_protocol": True,
+                "candidate_sensor_list": "0x3026",
+                "mapping_status": "raw_only_pending_hardware_validation",
+            }
+        )
 
     else:
         mapping = {
@@ -2851,6 +2885,7 @@ def capture(
         "1511": "TITAN",
         "02b0": "GEN3 / GEN3 PLUS",
         "1097": "GEN3 / GEN3 PLUS (1097)",
+        "3026": "GEN3 / GEN3 PLUS (3026 candidate)",
     }[protocol]
     logger_web = capture_logger_web_pages(host, args.http_page_timeout)
     logger_dns_probe = (
@@ -2886,6 +2921,9 @@ def capture(
             "read_only": True,
             "capture_mode": "full" if args.full else "standard",
             "detected_protocol": protocol,
+            "protocol_validation_status": (
+                "experimental_candidate" if protocol == "3026" else "validated"
+            ),
             "model_family": family,
             "model_supplied_by_user": args.model,
             "pv_count": _detect_pv_count(protocol, _address_map(merged)),
@@ -2909,7 +2947,11 @@ def capture(
         "protocol_detection": {
             "requested": args.protocol,
             "selected": protocol,
-            "confidence": "direct successful protocol read",
+            "confidence": (
+                "direct successful experimental 3026 read"
+                if protocol == "3026"
+                else "direct successful protocol read"
+            ),
             "attempts": detection_attempts,
         },
         "decoded_known_measurements": decode_known(protocol, merged),
@@ -3209,7 +3251,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Standalone, privacy-safe, strictly read-only TSUN hardware dump for "
-            "1511, 02B0 and 1097. Discovery combines UDP, TCP 8899, HTTP and AP identity."
+            "1511, 02B0, 1097 and experimental 3026. Discovery combines UDP, TCP 8899, HTTP and AP identity."
         )
     )
     parser.add_argument(
