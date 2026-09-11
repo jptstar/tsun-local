@@ -50,20 +50,17 @@ jobs:
           PY
           git diff --check
 
-      - name: Commit and publish PR branch
+      - name: Commit and publish clean PR branch
         shell: bash
         run: |
           rm -f \
-            tools/_generic_dump_patch.py \
             tools/_y4z_3026_dump_patch.py \
             tools/_apply_3026_generic.py \
-            tools/tsun_play2_probe.py \
             tools/y4z_3026_readonly_probe.py \
             tests/test_y4z_3026_probe.py \
-            docs/evidence/Y4Z_3026_PROBE_REQUEST.md \
-            .github/workflows/generic-dump-maintenance.yml
+            docs/evidence/Y4Z_3026_PROBE_REQUEST.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Add experimental 3026 capture to generic diagnostics"
-          git push --force origin HEAD:diagnostic/2.8.0-experimental-3026
+          git push --force origin HEAD:diagnostic/2.8.0-experimental-3026-clean
