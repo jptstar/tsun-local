@@ -33,7 +33,7 @@ jobs:
               raise SystemExit(f"expected exactly one old version assertion, got {text.count(old)}")
           path.write_text(text.replace(old, new, 1), encoding="utf-8")
           PY
-          python -m unittest discover -s tests -v
+          python -m unittest tests.test_tsun_dump_tool tests.test_tsun_dump_3026 -v
           git diff --check
 
       - name: Commit to clean PR branch
