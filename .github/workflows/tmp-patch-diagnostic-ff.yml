@@ -1,0 +1,55 @@
+name: Temporary diagnostic FF patch
+
+on:
+  push:
+    branches:
+      - fix/diagnostic-leading-ff
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/diagnostic-leading-ff
+
+      - name: Apply diagnostic patch
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("tools/tsun_dump.py")
+          source = path.read_text(encoding="utf-8")
+          old = '''def parse_ap_frame(frame: bytes) -> bytes:\n    _validate_ap_frame(frame)\n    if frame[11] != 0x02:\n        raise TsunProtocolError("Unexpected AP frame type")\n    if frame[12] != 0x01:\n        raise TsunProtocolError(f"AP returned status 0x{frame[12]:02X}")\n    return frame[25:-2]\n'''
+          new = '''def _normalize_modbus_payload(payload: bytes) -> bytes:\n    """Drop the optional TSUN 0xFF marker seen before some Modbus replies."""\n    if (\n        len(payload) >= 4\n        and payload[0] == 0xFF\n        and payload[1] == 0x01\n        and payload[2] in (0x03, 0x04, 0x83, 0x84)\n    ):\n        return payload[1:]\n    return payload\n\n\ndef parse_ap_frame(frame: bytes) -> bytes:\n    _validate_ap_frame(frame)\n    if frame[11] != 0x02:\n        raise TsunProtocolError("Unexpected AP frame type")\n    if frame[12] != 0x01:\n        raise TsunProtocolError(f"AP returned status 0x{frame[12]:02X}")\n    return _normalize_modbus_payload(frame[25:-2])\n'''
+          if old not in source:
+              raise SystemExit("Expected parse_ap_frame block not found")
+          source = source.replace(old, new, 1)
+
+          match = re.search(r'^TOOL_VERSION = "(\d+)\.(\d+)\.(\d+)"$', source, re.MULTILINE)
+          if match is None:
+              raise SystemExit("TOOL_VERSION not found")
+          major, minor, patch = map(int, match.groups())
+          next_version = f'{major}.{minor}.{patch + 1}'
+          source = source[:match.start()] + f'TOOL_VERSION = "{next_version}"' + source[match.end():]
+          path.write_text(source, encoding="utf-8")
+
+          test_path = Path("tests/test_diagnostic_modbus_prefix.py")
+          test_path.write_text('''# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)\n# SPDX-License-Identifier: GPL-3.0-or-later\n\n"""Regression tests for diagnostic handling of the optional 0xFF marker."""\n\nfrom __future__ import annotations\n\nimport importlib.util\nfrom pathlib import Path\nimport sys\nimport unittest\n\n\nMODULE_PATH = Path(__file__).parents[1] / "tools" / "tsun_dump.py"\nSPEC = importlib.util.spec_from_file_location("tsun_dump_ff_tests", MODULE_PATH)\nassert SPEC is not None and SPEC.loader is not None\nDUMP = importlib.util.module_from_spec(SPEC)\nsys.modules[SPEC.name] = DUMP\nSPEC.loader.exec_module(DUMP)\n\n\ndef _build_ap_reply(payload: bytes) -> bytes:\n    length = 14 + len(payload)\n    scope = (\n        length.to_bytes(2, "little")\n        + b"\\x10\\x15\\x00\\x01"\n        + b"\\x78\\x56\\x34\\x12"\n        + b"\\x02\\x01"\n        + bytes(12)\n        + payload\n    )\n    return b"\\xA5" + scope + bytes((DUMP.checksum_ap(scope), 0x15))\n\n\nclass DiagnosticModbusPrefixTests(unittest.TestCase):\n    def test_keeps_normal_modbus_reply(self) -> None:\n        payload = bytes.fromhex("01 03 02 12 34 B5 33")\n        self.assertEqual(DUMP.parse_ap_frame(_build_ap_reply(payload)), payload)\n\n    def test_strips_one_leading_ff_from_modbus_reply(self) -> None:\n        payload = bytes.fromhex("01 03 02 12 34 B5 33")\n        self.assertEqual(\n            DUMP.parse_ap_frame(_build_ap_reply(b"\\xFF" + payload)),\n            payload,\n        )\n\n    def test_keeps_non_modbus_ff_payload(self) -> None:\n        payload = bytes.fromhex("FF A1 81 01 00 00")\n        self.assertEqual(DUMP.parse_ap_frame(_build_ap_reply(payload)), payload)\n\n    def test_ap_checksum_is_validated_before_normalization(self) -> None:\n        frame = bytearray(_build_ap_reply(bytes.fromhex("FF 01 03 02 12 34 B5 33")))\n        frame[-2] ^= 0x01\n        with self.assertRaises(DUMP.TsunProtocolError):\n            DUMP.parse_ap_frame(bytes(frame))\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding="utf-8")
+
+          Path(".github/workflows/tmp-patch-diagnostic-ff.yml").unlink()
+          print(f"Patched diagnostic tool to {next_version}")
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Handle optional 0xFF in diagnostic Modbus replies"
+          git push origin HEAD:fix/diagnostic-leading-ff
