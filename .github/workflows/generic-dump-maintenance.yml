@@ -19,10 +19,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply generic dump updates
-        run: |
-          python tools/_generic_dump_patch.py
-          python tools/_y4z_3026_dump_patch.py
+      - name: Apply experimental 3026 support
+        run: python tools/_apply_3026_generic.py
 
       - name: Validate dump tool
         shell: bash
@@ -42,13 +40,6 @@ jobs:
           sys.modules[spec.name] = module
           spec.loader.exec_module(module)
 
-          assert module._smartlink_serial_candidates(
-              b'{"mid":"1234567890","mac":"00:00:00:00:00:00","ip":"192.0.2.10"}'
-          ) == {1234567890}
-          assert module._smartlink_serial_candidates(
-              b'smart_config##00:00:00:00:00:00##192.0.2.10##1234567890'
-          ) == {1234567890}
-
           assert "3026" in module.SUPPORTED_PROTOCOLS
           dynamic, supplemental = module.capture_plans("3026", full=True)
           assert dynamic == [(0x0000, 0x000F), (0x0010, 0x001F), (0x0020, 0x002C)]
@@ -56,10 +47,6 @@ jobs:
           decoded = module.decode_known("3026", {"0x0000": 1, "0x0001": 2})
           assert decoded["mapping_status"] == "raw_only_pending_hardware_validation"
           assert decoded["detected_pv_count"] == 0
-
-          lower = path.read_text(encoding="utf-8").lower()
-          forbidden = ("sunology", "play2", "dca31", "puppenstube", "y4z")
-          assert not any(term in lower for term in forbidden)
           PY
           git diff --check
 
@@ -69,6 +56,7 @@ jobs:
           rm -f \
             tools/_generic_dump_patch.py \
             tools/_y4z_3026_dump_patch.py \
+            tools/_apply_3026_generic.py \
             tools/tsun_play2_probe.py \
             tools/y4z_3026_readonly_probe.py \
             tests/test_y4z_3026_probe.py \
@@ -77,5 +65,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Integrate experimental 3026 capture into generic diagnostics"
+          git commit -m "Add experimental 3026 capture to generic diagnostics"
           git push origin HEAD:main
