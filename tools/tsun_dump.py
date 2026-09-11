@@ -39,7 +39,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.0"
+TOOL_VERSION = "2.8.1"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -542,13 +542,25 @@ def extract_ap_logger_sn(frame: bytes) -> int:
     return logger_sn
 
 
+def _normalize_modbus_payload(payload: bytes) -> bytes:
+    """Drop the optional TSUN 0xFF marker seen before some Modbus replies."""
+    if (
+        len(payload) >= 4
+        and payload[0] == 0xFF
+        and payload[1] == 0x01
+        and payload[2] in (0x03, 0x04, 0x83, 0x84)
+    ):
+        return payload[1:]
+    return payload
+
+
 def parse_ap_frame(frame: bytes) -> bytes:
     _validate_ap_frame(frame)
     if frame[11] != 0x02:
         raise TsunProtocolError("Unexpected AP frame type")
     if frame[12] != 0x01:
         raise TsunProtocolError(f"AP returned status 0x{frame[12]:02X}")
-    return frame[25:-2]
+    return _normalize_modbus_payload(frame[25:-2])
 
 
 def crc16_modbus(data: bytes) -> bytes:
