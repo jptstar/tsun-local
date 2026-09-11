@@ -19,15 +19,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply experimental 3026 support
-        run: python tools/_apply_3026_generic.py
+      - name: Apply generic dump update
+        run: python tools/_generic_dump_patch.py
 
       - name: Validate dump tool
         shell: bash
         run: |
           python -m py_compile tools/tsun_dump.py
           python tools/tsun_dump.py --help >/dev/null
-          python tests/test_tsun_dump_3026.py
           python - <<'PY'
           import importlib.util
           import sys
@@ -40,27 +39,25 @@ jobs:
           sys.modules[spec.name] = module
           spec.loader.exec_module(module)
 
-          assert "3026" in module.SUPPORTED_PROTOCOLS
-          dynamic, supplemental = module.capture_plans("3026", full=True)
-          assert dynamic == [(0x0000, 0x000F), (0x0010, 0x001F), (0x0020, 0x002C)]
-          assert supplemental == []
-          decoded = module.decode_known("3026", {"0x0000": 1, "0x0001": 2})
-          assert decoded["mapping_status"] == "raw_only_pending_hardware_validation"
-          assert decoded["detected_pv_count"] == 0
+          assert module._smartlink_serial_candidates(
+              b'{"mid":"1234567890","mac":"00:00:00:00:00:00","ip":"192.0.2.10"}'
+          ) == {1234567890}
+          assert module._smartlink_serial_candidates(
+              b'smart_config##00:00:00:00:00:00##192.0.2.10##1234567890'
+          ) == {1234567890}
+
+          lower = path.read_text(encoding="utf-8").lower()
+          forbidden = ("sunology", "play2", "dca31")
+          assert not any(term in lower for term in forbidden)
           PY
           git diff --check
 
-      - name: Commit and publish clean PR branch
+      - name: Commit and publish
         shell: bash
         run: |
-          rm -f \
-            tools/_y4z_3026_dump_patch.py \
-            tools/_apply_3026_generic.py \
-            tools/y4z_3026_readonly_probe.py \
-            tests/test_y4z_3026_probe.py \
-            docs/evidence/Y4Z_3026_PROBE_REQUEST.md
+          rm -f tools/_generic_dump_patch.py tools/tsun_play2_probe.py .github/workflows/generic-dump-maintenance.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Add experimental 3026 capture to generic diagnostics"
-          git push --force origin HEAD:diagnostic/2.8.0-experimental-3026-clean
+          git commit -m "Improve generic SmartLink discovery diagnostics"
+          git push origin HEAD:main
