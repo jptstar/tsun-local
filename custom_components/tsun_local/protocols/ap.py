@@ -121,6 +121,18 @@ def extract_ap_logger_sn(frame: bytes) -> int:
     return logger_sn
 
 
+def _normalize_modbus_payload(payload: bytes) -> bytes:
+    """Drop the optional TSUN 0xFF marker seen before some Modbus replies."""
+    if (
+        len(payload) >= 4
+        and payload[0] == 0xFF
+        and payload[1] == 0x01
+        and payload[2] in (0x03, 0x04, 0x83, 0x84)
+    ):
+        return payload[1:]
+    return payload
+
+
 def parse_ap_frame(frame: bytes) -> bytes:
     """Validate an AP response and return its embedded protocol payload."""
     _validate_ap_frame(frame)
@@ -128,7 +140,7 @@ def parse_ap_frame(frame: bytes) -> bytes:
         raise TsunProtocolError(f"Unexpected AP frame type 0x{frame[11]:02X}")
     if frame[12] != 0x01:
         raise TsunProtocolError(f"AP returned status 0x{frame[12]:02X}")
-    return frame[25:-2]
+    return _normalize_modbus_payload(frame[25:-2])
 
 
 async def read_ap_frame(reader: asyncio.StreamReader) -> bytes:
