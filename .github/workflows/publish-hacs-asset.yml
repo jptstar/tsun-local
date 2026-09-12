@@ -1,0 +1,143 @@
+name: Publish HACS release asset
+
+on:
+  workflow_run:
+    workflows:
+      - Publish release
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to (re)package, for example v1.6.2
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and attach HACS ZIP
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.head_branch == 'main' ||
+        github.event.workflow_run.head_branch == 'beta-1097'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out completed release source
+        if: github.event_name == 'workflow_run'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Check out requested release source
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+
+      - name: Resolve eligible release tag
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch --force --tags origin
+
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            TAG="${REQUESTED_TAG}"
+          else
+            VERSION="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(
+              Path('custom_components/tsun_local/manifest.json').read_text(encoding='utf-8')
+          )
+          print(manifest['version'])
+          PY
+          )"
+            TAG="v${VERSION}"
+          fi
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+          if ! git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG} does not exist; this was not a release publication."
+            exit 0
+          fi
+
+          if ! gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "GitHub Release ${TAG} does not exist; nothing to package."
+            exit 0
+          fi
+
+          HACS_CONFIG="$(git show "${TAG}:hacs.json")"
+          if ! printf '%s' "${HACS_CONFIG}" | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          ok = data.get("zip_release") is True and data.get("filename") == "tsun-local.zip"
+          raise SystemExit(0 if ok else 1)
+          '; then
+            echo "eligible=false" >> "$GITHUB_OUTPUT"
+            echo "${TAG} predates the counted HACS ZIP configuration; leaving the release unchanged."
+            exit 0
+          fi
+
+          echo "eligible=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check out release tag
+        if: steps.release.outputs.eligible == 'true'
+        run: git checkout --detach "${{ steps.release.outputs.tag }}"
+
+      - name: Build HACS integration ZIP
+        if: steps.release.outputs.eligible == 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          source = Path('custom_components/tsun_local')
+          target = Path('tsun-local.zip')
+
+          if not (source / 'manifest.json').is_file():
+              raise SystemExit('Missing custom_components/tsun_local/manifest.json')
+
+          with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+              for path in sorted(source.rglob('*')):
+                  if not path.is_file():
+                      continue
+                  relative = path.relative_to(source)
+                  if '__pycache__' in relative.parts or path.suffix == '.pyc':
+                      continue
+                  archive.write(path, relative.as_posix())
+
+          with zipfile.ZipFile(target) as archive:
+              names = set(archive.namelist())
+              if 'manifest.json' not in names or '__init__.py' not in names:
+                  raise SystemExit('Invalid HACS ZIP: integration files are not at the archive root')
+              if any(name.startswith('custom_components/') or name.startswith('tsun_local/') for name in names):
+                  raise SystemExit('Invalid HACS ZIP: unexpected wrapper directory')
+
+          print(f'Built {target} with {len(names)} files ({target.stat().st_size} bytes)')
+          PY
+
+      - name: Attach HACS ZIP to GitHub Release
+        if: steps.release.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "${TAG}" tsun-local.zip --clobber
+          gh release view "${TAG}" --json assets --jq '.assets[] | select(.name == "tsun-local.zip") | {name: .name, size: .size, downloadCount: .downloadCount}'
