@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Coverage tests for the 1.6.2 protocol-family work."""
+"""Coverage tests for the 1.6.2 protocol-family and diagnostic alignment work."""
 
 from __future__ import annotations
 
