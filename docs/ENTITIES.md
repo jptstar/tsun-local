@@ -297,7 +297,7 @@ All entities below are **🛡️ disabled by default**.
 **Status:** ✅ Validated on Sunology PLAY2 (GEN4)  
 **PV inputs:** up to 6, detected dynamically
 
-The 1097 adapter is a supported local read-only protocol family. Individual fields that still require semantic confirmation remain explicitly marked as field-validation candidates rather than making the whole protocol experimental.
+The 1097 adapter is a supported local read-only protocol family. Individual fields that still require semantic confirmation remain explicitly marked as field-validation candidates.
 
 ## 1097-specific diagnostics
 

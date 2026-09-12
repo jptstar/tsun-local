@@ -504,7 +504,7 @@
         "auto": "Automático — según el firmware",
         "force": "Detección forzada — probar protocolos",
         "1511": "Usar el protocolo 1511",
-        "1097": "Usar el protocolo 1097 — experimental",
+        "1097": "Usar el protocolo 1097",
         "02b0": "Usar el protocolo 02B0"
       }
     }

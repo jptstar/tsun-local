@@ -238,7 +238,7 @@ Los nombres funcionales y el soporte de un modelo solo se marcan como validados 
 TSUN Local se beneficia de investigación pública de protocolos y validación independiente con hardware real. Estos créditos describen referencias y validaciones; no implican afiliación ni respaldo.
 
 - **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — referencia pública independiente para contrastar determinados registros Solarman / 02B0.
-- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — investigación pública GEN3 / 1097 y country/profile usada en validación experimental.
+- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — investigación pública GEN3 / 1097 y country/profile usada en validación.
 - **TheSmartGerman** — pruebas con hardware real que revelaron la familia de protocolo 1097.
 - **dca31** — validación independiente de Sunology PLAY2 mediante el flujo normal de TSUN Local en Home Assistant.
 - **Kmotr** — validación independiente del TSOL-MS800 con TSUN Local y un diagnóstico anonimizado de Home Assistant.

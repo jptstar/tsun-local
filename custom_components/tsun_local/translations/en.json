@@ -504,7 +504,7 @@
         "auto": "Automatic — based on firmware",
         "force": "Forced detection — test protocols",
         "1511": "Use protocol 1511",
-        "1097": "Use protocol 1097 — experimental",
+        "1097": "Use protocol 1097",
         "02b0": "Use protocol 02B0"
       }
     }

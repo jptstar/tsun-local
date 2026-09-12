@@ -238,7 +238,7 @@ TSUN Local 将已确认的硬件支持与实验性的协议研究明确区分。
 TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢仅说明参考工作和验证来源，不代表任何隶属或官方背书。
 
 - **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — 在部分 Solarman / 02B0 寄存器研究中用作独立公开交叉参考。
-- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — 公开的 GEN3 / 1097 与国家/配置文件研究，用于实验性验证。
+- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — 公开的 GEN3 / 1097 与国家/配置文件研究，用于验证。
 - **TheSmartGerman** — 真实设备测试揭示了额外的 1097 协议系列。
 - **dca31** — 通过 TSUN Local 的标准 Home Assistant 流程独立验证 Sunology PLAY2。
 - **Kmotr** — 使用 TSUN Local 和匿名化 Home Assistant 诊断文件对 TSOL-MS800 进行了独立实机验证。

@@ -291,7 +291,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "insulation_impedance_ry": "0x1217",
         "inverter_temperature": "0x1218",
         "country_profile_raw": "0x1400",
-        "output_coefficient": "0x1423 — experimental",
+        "output_coefficient": "0x1423 — field validation",
     },
 }
 

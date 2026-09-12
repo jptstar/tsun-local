@@ -368,14 +368,14 @@ All notable changes to this project are documented here. The project follows [Se
 - Decode 1511 registers 3017 and 3028 as final inverter and inverter-ambient temperature entities using the `-40 °C` offset, removing the temporary raw 3017/3028 comparison entities.
 - Keep 1511 register 3018 raw because its meaning remains unconfirmed.
 - Expose 1511 decimal register 2028 (`0x07EC`) as **Power level (candidate)** for field validation.
-- Expose the 1097 power-level diagnostic as part of the experimental 1097 mapping.
+- Expose the 1097 power-level diagnostic as a field-validation candidate.
 - Refresh entity documentation, translations and project pages for the new field semantics.
 
 ## [1.4.0] - 2026-08-17
 
 ### Added
 
-- stable support for the 1511 and 02B0 protocol families, plus experimental 1097 support;
+- stable support for the 1511, 02B0 and 1097 protocol families;
 - firmware-guided protocol identification with explicit protocol probing for compatibility testing;
 - progressive / dynamic PV-input detection across supported protocol families;
 - expanded read-only inverter, logger, alarm and advanced grid-protection diagnostics;
@@ -399,7 +399,7 @@ All notable changes to this project are documented here. The project follows [Se
 - advanced diagnostics remain disabled by default so normal Home Assistant device pages stay uncluttered;
 - TITAN registers 3017 and 3028 remain unscaled raw decimal measurement sensors so their Home Assistant history can be charted during temperature-mapping validation; no temperature offset is applied yet;
 - version 1.4 moves TSUN Local from individual known models toward protocol-family compatibility;
-- the experimental 1097 implementation continues to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
+- the 1097 implementation continues to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
 
 ### Safety
 
@@ -413,7 +413,7 @@ All notable changes to this project are documented here. The project follows [Se
 
 - complete read-only advanced grid-protection diagnostics for the 1511 and 02B0 protocol families;
 - read-only 02B0 output coefficient diagnostic;
-- experimental 1097 diagnostics for protocol/inverter versions, inverter temperature, insulation impedance RX/RY and raw country/profile code;
+- 1097 diagnostics for protocol/inverter versions, inverter temperature, insulation impedance RX/RY and raw country/profile code;
 - advanced diagnostic entity names in English, French, German, Dutch, Italian, Spanish, Polish and Simplified Chinese;
 - a concise 1.4-ready README focused on local access and protocol-family compatibility.
 
@@ -425,7 +425,7 @@ All notable changes to this project are documented here. The project follows [Se
 ### Changed
 
 - advanced diagnostics are categorized as diagnostic entities and disabled by default so normal installations stay uncluttered;
-- the experimental 1097 diagnostics continue to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
+- the 1097 diagnostics continue to credit the public `s-allius/tsun-gen3-proxy` protocol research by Stefan Allius.
 
 ### Safety
 

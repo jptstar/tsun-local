@@ -504,7 +504,7 @@
         "auto": "Automatisch — anhand der Firmware",
         "force": "Erzwungene Erkennung — Protokolle testen",
         "1511": "Protokoll 1511 verwenden",
-        "1097": "Protokoll 1097 verwenden — experimentell",
+        "1097": "Protokoll 1097 verwenden",
         "02b0": "Protokoll 02B0 verwenden"
       }
     }
