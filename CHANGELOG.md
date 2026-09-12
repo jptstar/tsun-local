@@ -4,11 +4,24 @@ All notable changes to this project are documented here. The project follows [Se
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-09-12
+
+### Fixed
+
+- Normalize restored Home Assistant energy states from their stored display unit to TSUN Local's native kWh before reusing them, preventing Wh/kWh scale corruption after an update or restart.
+- Apply the same restore-unit protection to AC and PV energy entities across 1511, 02B0 and 1097.
+- Repair only clearly impossible 1.6.1 daily-energy states already contaminated by the x1000 restore regression; plausible values are left untouched and normal midnight rollover remains authoritative.
+
 ### Changed
 
 - Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized alarm **Low solar input** with stable code `1511-A030`. Keep the existing non-fault handling when this low-solar status is the only active bit.
 - Add a protocol-aware `country_profile` diagnostic that keeps the numeric code and appends a native country/grid-profile name when known, including 1511 evidence for `2 (Deutschland)`, `6 (Polska)` and `8 (France)`.
 - Reduce Home Assistant Activity noise across 1511, 02B0 and 1097 by publishing the visible `communication_last_success` timestamp at most every five minutes, hiding it and raw `*_raw` diagnostics from normal UI visibility while keeping exact last-success timing in diagnostics; existing entries are migrated once and user unhide choices are respected afterwards.
+
+### Validation
+
+- Add regression coverage for restored Wh/kWh energy states, clearly contaminated 1.6.1 daily states, plausible legacy values, and tracker metadata versioning.
+- Run the complete unit-test suite, HACS validation and Home Assistant Hassfest on the final stable source before publication.
 
 ## [1.6.1] - 2026-09-10
 

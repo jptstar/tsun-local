@@ -52,6 +52,24 @@ class EnergyRestoreContractTests(unittest.TestCase):
         self.assertIn('protocol_name == "1511"', source)
         self.assertIn('description.key.startswith("pv")', source)
 
+    def test_restored_energy_is_normalized_from_display_unit_to_kwh(self) -> None:
+        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("def _restored_energy_kwh", source)
+        self.assertIn("EnergyConverter.convert", source)
+        self.assertIn('state.attributes.get("unit_of_measurement")', source)
+        self.assertIn("UnitOfEnergy.KILO_WATT_HOUR", source)
+        self.assertNotIn("state_value = energy_value(last_state.state)", source)
+        self.assertNotIn("_restored_energy_value = energy_value(last_state.state)", source)
+
+    def test_161_contamination_is_only_repaired_without_v2_tracker_metadata(self) -> None:
+        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("repair_legacy_daily_state", source)
+        self.assertIn('\"tracking_version\" not in last_state.attributes', source)
+
 
 if __name__ == "__main__":
     unittest.main()
