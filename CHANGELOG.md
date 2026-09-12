@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.2-beta.3] - 2026-09-12
+
+### Changed since beta.2
+
+- Reduce Home Assistant Activity noise across runtime protocols `1511`, `02B0` and `1097`.
+- Publish the user-facing `communication_last_success` timestamp at most every five minutes while retaining the exact last-success timestamp in integration diagnostics.
+- Hide `communication_last_success` and raw `*_raw` diagnostic entities from normal UI visibility by default without removing them or disabling their underlying diagnostics. Existing installations receive a one-time visibility migration and users can reveal the entities again.
+- Add the protocol-aware `country_profile` diagnostic. It preserves the numeric code and appends a native country/grid-profile name when known.
+- For 1511 / MP3000, expose the evidence-backed mappings `2 (Deutschland)`, `6 (Polska)` and `8 (France)`; unknown codes remain numeric.
+- Keep the established protocol-specific profile enumeration for `02B0` and `1097` rather than assuming that all families share one raw source register.
+
+### Retained from beta.2
+
+- Keep validated runtime protocol detection across `1511`, `1097` and `02B0` with firmware used only as a priority hint.
+- Keep MP3000 / 1511 low-solar status `1511-A030` localized and non-fault when it is the only active bit.
+- Keep validated 1097 / GEN4 wording and transparent TSUN Local brand assets.
+- Keep experimental `3026` diagnostic-only and excluded from runtime automatic detection.
+- Keep all inverter access local and strictly read-only.
+
+### Validation
+
+- Full Unit tests, HACS repository validation and Home Assistant Hassfest are required by the beta publication workflow before the release is created.
+
 ## [Unreleased]
 
 ### Changed
