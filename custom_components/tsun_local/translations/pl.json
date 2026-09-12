@@ -426,6 +426,9 @@
       "product_compliance_type_raw": {
         "name": "Profil kraju (surowy)"
       },
+      "country_profile": {
+        "name": "Kraj / profil sieci"
+      },
       "country_profile_raw": {
         "name": "Profil kraju (surowy)"
       },

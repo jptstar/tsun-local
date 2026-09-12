@@ -426,6 +426,9 @@
       "product_compliance_type_raw": {
         "name": "国家配置（原始）"
       },
+      "country_profile": {
+        "name": "国家 / 电网配置"
+      },
       "country_profile_raw": {
         "name": "国家配置（原始）"
       },

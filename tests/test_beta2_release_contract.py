@@ -55,10 +55,13 @@ class Release160ContractTests(unittest.TestCase):
                 end += 1
             return source[start:end]
 
-        visible = {"communication_last_success", "communication_failures", "adaptive_polling_interval", "adaptive_polling_state"}
+        visible = {"communication_failures", "adaptive_polling_interval", "adaptive_polling_state"}
         advanced = {"communication_duration", "communication_blocks", "communication_successes_consecutive", "adaptive_polling_reason", "adaptive_backoff_events"}
         for key in visible:
             self.assertNotIn("        entity_registry_enabled_default=False,", block(key), key)
+        last_success = block("communication_last_success")
+        self.assertNotIn("        entity_registry_enabled_default=False,", last_success)
+        self.assertIn("        entity_registry_visible_default=False,", last_success)
         for key in advanced:
             self.assertIn("        entity_registry_enabled_default=False,", block(key), key)
 
