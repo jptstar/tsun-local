@@ -65,10 +65,11 @@ from .discovery import (
 from .logger_web import async_read_logger_web_data
 from .protocols import (
     DEFAULT_PROTOCOL,
+    DETECTION_MIN_SCORE,
     FORCE_PROTOCOL,
     SUPPORTED_PROTOCOLS,
     create_protocol_client,
-    protocol_from_firmware,
+    score_protocol_candidate,
 )
 
 
@@ -81,15 +82,37 @@ _FORCE_PROTOCOL_DETECTION = "force"
 
 
 async def _validate_input(hass: HomeAssistant, data: dict[str, Any]) -> str:
+    requested_protocol = str(
+        data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL)
+    ).lower()
     client = create_protocol_client(
-        data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
+        requested_protocol,
         data[CONF_HOST],
         data[CONF_PORT],
         data[CONF_LOGGER_SN],
     )
     async with get_poll_lock(hass, data[CONF_LOGGER_SN]):
-        await client.async_read_all()
+        result = await client.async_read_all()
+
+    # An explicit family remains authoritative, but it must validate reliably.
+    # Manual mode never falls back silently to another protocol.
+    if requested_protocol in SUPPORTED_PROTOCOLS:
+        assessment = score_protocol_candidate(requested_protocol, result)
+        if not assessment.hard_valid or assessment.score < DETECTION_MIN_SCORE:
+            raise ValueError(
+                f"Protocol {requested_protocol} did not validate reliably"
+            )
     return client.protocol_name
+
+
+def _normalize_protocol_selection(value: str) -> str:
+    """Translate UI protocol choices to runtime protocol modes."""
+    normalized = value.lower()
+    if normalized == _FORCE_PROTOCOL_DETECTION:
+        return FORCE_PROTOCOL
+    if normalized in SUPPORTED_PROTOCOLS:
+        return normalized
+    return DEFAULT_PROTOCOL
 
 
 def _connection_schema(
@@ -158,14 +181,34 @@ def _discovery_network_schema(
     )
 
 
-RECONFIGURE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_HOST): str,
-        vol.Required(CONF_PORT): vol.All(
-            vol.Coerce(int), vol.Range(min=1, max=65535)
-        ),
-    }
-)
+def _reconfigure_schema(current_protocol: str) -> vol.Schema:
+    """Allow connection details and protocol detection mode to be retested."""
+    default_protocol = (
+        current_protocol
+        if current_protocol in SUPPORTED_PROTOCOLS
+        else DEFAULT_PROTOCOL
+    )
+    return vol.Schema(
+        {
+            vol.Required(CONF_HOST): str,
+            vol.Required(CONF_PORT): vol.All(
+                vol.Coerce(int), vol.Range(min=1, max=65535)
+            ),
+            vol.Required(
+                CONF_PROTOCOL, default=default_protocol
+            ): SelectSelector(
+                SelectSelectorConfig(
+                    translation_key="protocol",
+                    options=[
+                        DEFAULT_PROTOCOL,
+                        _FORCE_PROTOCOL_DETECTION,
+                        *SUPPORTED_PROTOCOLS,
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            ),
+        }
+    )
 
 OPTIONS_SCHEMA = vol.Schema(
     {
@@ -340,17 +383,9 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             entry_input[CONF_LOGGER_SN] = logger_sn
             self._detected_logger_sn = logger_sn
 
-        if detection_mode == _FORCE_PROTOCOL_DETECTION:
-            entry_input[CONF_PROTOCOL] = FORCE_PROTOCOL
-        elif detection_mode in SUPPORTED_PROTOCOLS:
-            entry_input[CONF_PROTOCOL] = detection_mode
-        else:
-            firmware_protocol = protocol_from_firmware(
-                self._logger_firmware_version
-            )
-            if firmware_protocol is None:
-                return "unknown_firmware"
-            entry_input[CONF_PROTOCOL] = firmware_protocol
+        # Auto keeps firmware as a priority hint inside TsunAutoClient.
+        # Force ignores that hint; explicit families remain strict.
+        entry_input[CONF_PROTOCOL] = _normalize_protocol_selection(detection_mode)
 
         try:
             detected_protocol = await _validate_input(self.hass, entry_input)
@@ -560,26 +595,46 @@ class TsunConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            updated_data = {**entry.data, **user_input}
+            requested_protocol = _normalize_protocol_selection(
+                str(
+                    user_input.get(
+                        CONF_PROTOCOL,
+                        entry.data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL),
+                    )
+                )
+            )
+            updated_data = {
+                **entry.data,
+                **user_input,
+                CONF_PROTOCOL: requested_protocol,
+            }
             try:
-                await _validate_input(self.hass, updated_data)
-            except (TimeoutError, asyncio.TimeoutError):
+                detected_protocol = await _validate_input(self.hass, updated_data)
+            except (TimeoutError, asyncio.TimeoutError, ConnectionError, OSError):
                 errors["base"] = "cannot_connect"
             except Exception:
                 errors["base"] = "invalid_response"
             else:
                 await self.async_set_unique_id(str(entry.data[CONF_LOGGER_SN]))
                 self._abort_if_unique_id_mismatch()
+                # Transactional reconfigure: only persist after validation.
+                data_updates = {
+                    **user_input,
+                    CONF_PROTOCOL: detected_protocol,
+                }
                 return self.async_update_reload_and_abort(
                     entry,
-                    data_updates=user_input,
+                    data_updates=data_updates,
                     reload_even_if_entry_is_unchanged=False,
                 )
 
+        current_protocol = str(
+            entry.data.get(CONF_PROTOCOL, DEFAULT_PROTOCOL)
+        ).lower()
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
-                RECONFIGURE_SCHEMA, entry.data
+                _reconfigure_schema(current_protocol), entry.data
             ),
             errors=errors,
         )
