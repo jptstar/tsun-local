@@ -1,0 +1,68 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+VERSION = "1.6.2-beta.2"
+
+manifest_path = Path("custom_components/tsun_local/manifest.json")
+manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+manifest["version"] = VERSION
+manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+changelog_path = Path("CHANGELOG.md")
+changelog = changelog_path.read_text(encoding="utf-8")
+section = """## [1.6.2-beta.2] - 2026-09-12
+
+### Changed since beta.1
+
+- Publish the latest 1.6.2 beta source from current `main`, including the validated 1097 / GEN4 presentation and field-validation wording.
+- Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized **Low solar input** status with stable code `1511-A030`, while keeping it non-fault when it is the only active bit.
+- Replace the connected light background of the existing TSUN Local brand artwork with real PNG transparency across Home Assistant, HACS package assets and the public website icon, without redesigning the logo.
+
+### Retained from beta.1
+
+- Keep conservative automatic protocol detection across validated runtime families `1511`, `1097` and `02B0`, with firmware used only as a priority hint.
+- Keep strict manual protocol selection, ambiguity rejection, night-safe zero-production handling and the selected protocol locked after setup.
+- Keep experimental `3026` diagnostic-only and excluded from runtime automatic detection.
+- Keep all inverter access local and strictly read-only.
+
+### Validation
+
+- Run the complete unit-test suite, HACS repository validation and Home Assistant Hassfest before publication.
+
+"""
+marker = "All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).\n\n"
+if f"## [{VERSION}]" not in changelog:
+    if marker not in changelog:
+        raise SystemExit("Changelog header marker not found")
+    changelog_path.write_text(changelog.replace(marker, marker + section, 1), encoding="utf-8")
+
+notes = Path("docs/releases") / f"{VERSION}.md"
+notes.write_text("""# TSUN Local 1.6.2-beta.2
+
+This beta supersedes 1.6.2-beta.1 and republishes the current 1.6.2 development source with the latest validated protocol wording, MP3000 low-solar alarm mapping and transparent TSUN Local brand assets.
+
+## Changes since beta.1
+
+- **1097 / GEN4:** the runtime family is presented consistently as validated on the Sunology PLAY2 GEN4 path; only individual fields that still need semantic confirmation remain marked for field validation.
+- **MP3000 / 1511:** `alarm_global_1_raw = 8192` (`0x2000`, bit 13) is exposed as localized **Low solar input** (`1511-A030`). When this is the only active bit it remains a normal non-fault low-irradiance condition.
+- **Branding:** the existing TSUN Local icon/logo design and colors are unchanged, but the connected light background is now true PNG transparency in Home Assistant brand assets, HACS package assets and the public website icon.
+
+## Retained from beta.1
+
+- Firmware is only the first protocol priority; automatic detection can validate the other supported runtime families if needed.
+- Manual `1511`, `1097` and `02B0` selections remain strict with no silent fallback.
+- Ambiguous candidates are rejected instead of guessed.
+- Zero solar production is neutral, so protocol detection remains usable at night.
+- Once selected and stored, the runtime protocol is not rescored or switched during normal polling.
+- Experimental `3026` remains diagnostic-only and is not part of runtime automatic detection.
+
+## Validation requested
+
+Please test normal setup and Reconfigure on known 1511, 02B0 and 1097 hardware. For MP3000 users, also verify that dawn/dusk low-solar conditions show the localized low-solar status without creating a false fault.
+
+## Safety
+
+TSUN Local remains local and strictly read-only. This beta adds no inverter configuration, protection-setting or control write operation.
+""", encoding="utf-8")
