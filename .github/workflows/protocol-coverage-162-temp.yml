@@ -1,0 +1,121 @@
+name: Apply protocol coverage updates
+
+on:
+  push:
+    branches:
+      - feature/1.6.2-protocol-coverage
+    paths:
+      - .github/workflows/protocol-coverage-162-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.event.head_commit.message == 'Apply protocol coverage updates'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Update protocol coverage and 1097 status
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"Expected text not found in {path}: {old[:80]!r}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          p = Path("custom_components/tsun_local/protocols/protocol_02b0.py")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              "# IMPORTANT: keep the exact validated register coverage unchanged.  The\n# resilience work below changes only the TCP/session lifecycle and retry policy.\n",
+              "# Fast telemetry remains limited to the validated production registers.\n# Additional read-only signature ranges are sampled with the slow diagnostics.\n",
+          )
+          old_diag = '''DIAGNOSTIC_BLOCKS = (\n    # Retain the established max-power probe while extending the same read-only\n    # area with status and compliance metadata.\n    (0x03, 0x2007, 0x2007),\n    (0x03, 0x2000, 0x2010),\n    # Advanced read-only grid parameters and output coefficient.\n    (0x03, 0x2014, 0x202C),\n)\n'''
+          new_diag = '''DIAGNOSTIC_BLOCKS = (\n    # Retain the established max-power probe while extending the same read-only\n    # area with status, compliance and family-signature metadata.\n    (0x03, 0x2007, 0x2007),\n    (0x03, 0x2000, 0x2010),\n    # Previously uncovered gap between the base and grid-parameter ranges.\n    (0x03, 0x2011, 0x2013),\n    # Advanced read-only grid parameters and output coefficient.\n    (0x03, 0x2014, 0x202C),\n    # Remaining 02B0 configuration/signature range. Values stay raw until\n    # independently mapped; this includes the 0x204x zero-export area.\n    (0x03, 0x202D, 0x205F),\n    # Tail of the 0x3000 telemetry family, also retained raw for signatures.\n    (0x03, 0x302B, 0x302F),\n)\n'''
+          if old_diag not in text:
+              raise SystemExit("02B0 DIAGNOSTIC_BLOCKS pattern not found")
+          text = text.replace(old_diag, new_diag, 1)
+          text = text.replace(
+              '"""Read the unchanged 02B0 register set over a resilient TCP session."""',
+              '"""Read 02B0 telemetry plus slow read-only signature diagnostics."""',
+          )
+          text = text.replace(
+              "# Critical telemetry: same blocks and addresses as before. A block\n            # gets one reconnect/retry before the full polling cycle fails.",
+              "# Critical telemetry uses the validated production blocks. A block\n            # gets one reconnect/retry before the full polling cycle fails.",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          p = Path("custom_components/tsun_local/protocols/protocol_1097.py")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              "# The experimental 1097 register mapping was informed by publicly available\n# protocol research from Stefan Allius (s-allius/tsun-gen3-proxy).\n\n",
+              "",
+          )
+          text = text.replace(
+              '"""Decode known experimental 1097 diagnostics."""',
+              '"""Decode known 1097 diagnostics."""',
+          )
+          text = text.replace(
+              "        # The entire 1097 adapter is experimental; keep this mapping under\n        # field validation while exposing the same user-facing power level.\n",
+              "        # Keep this individual power-level field under semantic validation.\n",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          status_words = {
+              "README.md": "Supported",
+              "docs/README_FR.md": "Pris en charge",
+              "docs/README_DE.md": "Unterstützt",
+              "docs/README_ES.md": "Compatible",
+              "docs/README_IT.md": "Supportato",
+              "docs/README_NL.md": "Ondersteund",
+              "docs/README_PL.md": "Obsługiwany",
+              "docs/README_ZH.md": "已支持",
+          }
+          row_re = re.compile(r"^\| \*\*1097\*\* \| GEN3 / GEN3 PLUS \| — \| .* \|$", re.MULTILINE)
+          for filename, status in status_words.items():
+              p = Path(filename)
+              text = p.read_text(encoding="utf-8")
+              text, count = row_re.subn(
+                  f"| **1097** | GEN3 / GEN3 PLUS | — | ✅ **{status}** |",
+                  text,
+                  count=1,
+              )
+              if count != 1:
+                  raise SystemExit(f"1097 status row not found exactly once in {filename}")
+              p.write_text(text, encoding="utf-8")
+
+          p = Path("docs/ENTITIES.md")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace("| 🧪 | Experimental protocol support |\n", "")
+          text = text.replace("**Status:** 🧪 Experimental  \n", "**Status:** ✅ Supported  \n", 1)
+          old = "The experimental 1097 mapping is informed by public protocol research from **Stefan Allius / `s-allius/tsun-gen3-proxy`**. This includes the country/profile mapping and enumeration used as an external semantic reference; TSUN Local does not present those findings as its own discovery.\n"
+          text = text.replace(
+              old,
+              "The 1097 adapter is a supported local read-only protocol family. Individual fields that still require semantic confirmation remain explicitly marked as field-validation candidates rather than making the whole protocol experimental.\n",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          p = Path("docs/MP3000_FIELD_VALIDATION.md")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              "This country/profile discovery is credited to **Stefan Allius**. TSUN Local reuses that public research as an external semantic reference for its experimental 1097 support and for the 1511 country-candidate investigation.\n",
+              "The 1097 adapter uses the established raw country/profile field. The separate 1511 country address remains a field-validation candidate until independently confirmed on hardware.\n",
+          )
+          p.write_text(text, encoding="utf-8")
+          PY
+
+          git config user.name "JP"
+          git config user.email "dev@jptstar.com"
+          git add custom_components/tsun_local/protocols/protocol_02b0.py \
+                  custom_components/tsun_local/protocols/protocol_1097.py \
+                  README.md docs/README_*.md docs/ENTITIES.md docs/MP3000_FIELD_VALIDATION.md
+          git commit -m "Extend 02B0 signatures and support 1097"
+          git push origin HEAD:feature/1.6.2-protocol-coverage
