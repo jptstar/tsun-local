@@ -429,21 +429,20 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
 
             @property
             def diagnostic_trace(self):
-                return (
-                    {
-                        "protocol": self.protocol_name,
-                        "stage": "complete" if self.succeeds else "validation",
-                    },
-                )
+                return ({"protocol": self.protocol_name, "stage": "complete"},)
 
             async def async_read_all(self):
                 self.reads += 1
                 if not self.succeeds:
                     raise RuntimeError("wrong protocol")
                 return PROTOCOLS.TsunReadResult(
-                    measurements={"ac_power": 1},
+                    measurements={
+                        "ac_power": 0,
+                        "rated_power": 800,
+                        "max_designed_power": 800,
+                    },
                     duration_ms=1,
-                    blocks_ok=1,
+                    blocks_ok=2,
                 )
 
         working_client = FakeClient("02b0", True)
@@ -460,9 +459,7 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
                 "async_detect_protocol_from_firmware",
                 new=AsyncMock(return_value=None),
             ),
-            patch.object(
-                PROTOCOLS, "_create_specific_client", new=create_client
-            ),
+            patch.object(PROTOCOLS, "_create_specific_client", new=create_client),
         ):
             client = PROTOCOLS.TsunAutoClient("192.0.2.10", 8899, 123456)
             await client.async_read_all()
@@ -471,7 +468,6 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(attempts, ["1511", "1097", "02b0"])
         self.assertEqual(client.protocol_name, "02b0")
         self.assertEqual(working_client.reads, 2)
-        self.assertEqual(client.diagnostic_trace[0]["protocol"], "1511")
 
     def test_extracts_protocol_from_known_firmware_names(self) -> None:
         self.assertEqual(PROTOCOLS.protocol_from_firmware("LSW5_SSL_1511_1.03"), "1511")
@@ -485,7 +481,7 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
         class FakeClient:
             model = "Test"
             pv_count = 1
-            measurement_keys = frozenset({"ac_power"})
+            measurement_keys = frozenset()
             diagnostic_trace = ()
 
             def __init__(self, protocol_name: str) -> None:
@@ -495,7 +491,9 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
                 if self.protocol_name != "1097":
                     raise RuntimeError("wrong protocol")
                 return PROTOCOLS.TsunReadResult(
-                    measurements={"ac_power": 1}, duration_ms=1, blocks_ok=1
+                    measurements={"rated_power": 800, "max_designed_power": 800},
+                    duration_ms=1,
+                    blocks_ok=3,
                 )
 
         def create_client(protocol_name: str, *_args):
@@ -508,43 +506,55 @@ class AutoProtocolTests(unittest.IsolatedAsyncioTestCase):
                 "async_detect_protocol_from_firmware",
                 new=AsyncMock(return_value="02b0"),
             ),
-            patch.object(
-                PROTOCOLS, "_create_specific_client", new=create_client
-            ),
+            patch.object(PROTOCOLS, "_create_specific_client", new=create_client),
         ):
             client = PROTOCOLS.create_protocol_client(
                 PROTOCOLS.FORCE_PROTOCOL, "192.0.2.10", 8899, 123456
             )
             await client.async_read_all()
 
-        self.assertEqual(attempts, ["1511", "1097"])
+        self.assertEqual(attempts, ["1511", "1097", "02b0"])
         self.assertEqual(client.protocol_name, "1097")
 
-    async def test_firmware_hint_prevents_blind_protocol_probing(self) -> None:
+    async def test_firmware_hint_is_priority_not_a_lock(self) -> None:
         attempts: list[str] = []
 
         class FakeClient:
             model = "Test"
-            protocol_name = "02b0"
             pv_count = 1
-            measurement_keys = frozenset({"ac_power"})
+            measurement_keys = frozenset()
             diagnostic_trace = ()
 
+            def __init__(self, protocol_name: str) -> None:
+                self.protocol_name = protocol_name
+
             async def async_read_all(self):
-                return PROTOCOLS.TsunReadResult(measurements={"ac_power": 1}, duration_ms=1, blocks_ok=1)
+                if self.protocol_name != "02b0":
+                    raise RuntimeError("wrong protocol")
+                return PROTOCOLS.TsunReadResult(
+                    measurements={"rated_power": 800, "max_designed_power": 800},
+                    duration_ms=1,
+                    blocks_ok=2,
+                )
 
         def create_client(protocol_name: str, *_args):
             attempts.append(protocol_name)
-            return FakeClient()
+            return FakeClient(protocol_name)
 
         with (
-            patch.object(PROTOCOLS, "async_detect_protocol_from_firmware", new=AsyncMock(return_value="02b0")),
+            patch.object(
+                PROTOCOLS,
+                "async_detect_protocol_from_firmware",
+                new=AsyncMock(return_value="02b0"),
+            ),
             patch.object(PROTOCOLS, "_create_specific_client", new=create_client),
         ):
             client = PROTOCOLS.TsunAutoClient("192.0.2.10", 8899, 123456)
             await client.async_read_all()
 
-        self.assertEqual(attempts, ["02b0"])
+        self.assertEqual(attempts, ["02b0", "1511", "1097"])
+        self.assertEqual(client.protocol_name, "02b0")
+
 
 
 class DiscoveryTests(unittest.IsolatedAsyncioTestCase):
