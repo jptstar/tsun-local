@@ -482,6 +482,15 @@
       },
       "qcpu2_firmware_version": {
         "name": "QCPU2 firmware version"
+      },
+      "solar_plant_rated_power": {
+        "name": "Solar plant rated power"
+      },
+      "zero_export_status": {
+        "name": "Zero export status"
+      },
+      "zero_export_power_offset": {
+        "name": "Zero export power offset"
       }
     },
     "binary_sensor": {

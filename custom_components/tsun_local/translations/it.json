@@ -482,6 +482,15 @@
       },
       "qcpu2_firmware_version": {
         "name": "Versione firmware QCPU2"
+      },
+      "solar_plant_rated_power": {
+        "name": "Potenza nominale dell’impianto solare"
+      },
+      "zero_export_status": {
+        "name": "Stato immissione zero"
+      },
+      "zero_export_power_offset": {
+        "name": "Offset di potenza immissione zero"
       }
     },
     "binary_sensor": {

@@ -92,6 +92,9 @@ DEVICE_DIAGNOSTIC_KEYS = frozenset(
         "rated_level_raw",
         "input_coefficient",
         "product_compliance_type_raw",
+        "solar_plant_rated_power",
+        "zero_export_status",
+        "zero_export_power_offset",
     }
 )
 ADVANCED_GRID_KEYS = frozenset(
@@ -292,6 +295,8 @@ def decode_device_diagnostics(
         "output_shutdown_raw": 0x2006,
         "rated_level_raw": 0x2008,
         "product_compliance_type_raw": 0x2010,
+        "solar_plant_rated_power": 0x2047,
+        "zero_export_status": 0x2048,
     }
     data: dict[str, float | int] = {
         key: registers[address]
@@ -300,6 +305,11 @@ def decode_device_diagnostics(
     }
     if 0x2009 in registers:
         data["input_coefficient"] = round(registers[0x2009] * 100 / 1024, 2)
+    if 0x204A in registers:
+        raw_offset = registers[0x204A]
+        data["zero_export_power_offset"] = (
+            raw_offset - 0x10000 if raw_offset & 0x8000 else raw_offset
+        )
     return data
 
 

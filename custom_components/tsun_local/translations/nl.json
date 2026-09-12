@@ -482,6 +482,15 @@
       },
       "qcpu2_firmware_version": {
         "name": "QCPU2-firmwareversie"
+      },
+      "solar_plant_rated_power": {
+        "name": "Nominaal vermogen van de zonne-installatie"
+      },
+      "zero_export_status": {
+        "name": "Status nul-teruglevering"
+      },
+      "zero_export_power_offset": {
+        "name": "Vermogensoffset nul-teruglevering"
       }
     },
     "binary_sensor": {

@@ -58,6 +58,9 @@ class Protocol02b0ExtendedTests(unittest.TestCase):
             "rated_level_raw",
             "input_coefficient",
             "product_compliance_type_raw",
+            "solar_plant_rated_power",
+            "zero_export_status",
+            "zero_export_power_offset",
         ):
             self.assertIn(key, keys)
 
@@ -98,6 +101,9 @@ class Protocol02b0ExtendedTests(unittest.TestCase):
                 0x2008: 4,
                 0x2009: 512,
                 0x2010: 6,
+                0x2047: 3000,
+                0x2048: 1,
+                0x204A: 0xFFF6,
             }
         )
         self.assertEqual(data["boot_status_raw"], 1)
@@ -107,6 +113,9 @@ class Protocol02b0ExtendedTests(unittest.TestCase):
         self.assertEqual(data["rated_level_raw"], 4)
         self.assertEqual(data["input_coefficient"], 50.0)
         self.assertEqual(data["product_compliance_type_raw"], 6)
+        self.assertEqual(data["solar_plant_rated_power"], 3000)
+        self.assertEqual(data["zero_export_status"], 1)
+        self.assertEqual(data["zero_export_power_offset"], -10)
 
 
 if __name__ == "__main__":
