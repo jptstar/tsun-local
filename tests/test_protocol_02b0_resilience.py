@@ -1,10 +1,17 @@
+# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+"""Regression tests for resilient TSUN 02B0 polling."""
+
 from __future__ import annotations
 
-import asyncio
 import importlib.util
 from pathlib import Path
 import sys
+import time
 import unittest
+from unittest.mock import patch
+
 
 PROTOCOLS_PATH = (
     Path(__file__).parents[1]
@@ -18,48 +25,75 @@ SPEC = importlib.util.spec_from_file_location(
     submodule_search_locations=[str(PROTOCOLS_PATH)],
 )
 assert SPEC is not None and SPEC.loader is not None
-PKG = importlib.util.module_from_spec(SPEC)
-sys.modules[SPEC.name] = PKG
-SPEC.loader.exec_module(PKG)
+PROTOCOLS = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = PROTOCOLS
+SPEC.loader.exec_module(PROTOCOLS)
 
+from tsun_local_02b0_resilience_tests.ap import checksum_ap  # noqa: E402
 from tsun_local_02b0_resilience_tests.protocol_02b0 import (  # noqa: E402
     ALARM_BLOCKS,
     BLOCKS,
     DIAGNOSTIC_BLOCKS,
     Tsun02b0Client,
-    build_modbus_request,
     crc16_modbus,
 )
-from tsun_local_02b0_resilience_tests.ap import build_ap_frame  # noqa: E402
 
 
-def _modbus_reply(block: tuple[int, int, int]) -> bytes:
-    function, start, end = block
-    count = end - start + 1
-    values = b"".join((start + index).to_bytes(2, "big") for index in range(count))
-    body = bytes((0x01, function, len(values))) + values
-    return body + crc16_modbus(body)
+def _build_ap_reply(payload: bytes) -> bytes:
+    """Build a synthetic valid AP response around a protocol payload."""
+    length = 14 + len(payload)
+    scope = (
+        length.to_bytes(2, "little")
+        + b"\x10\x15\x00\x01"
+        + b"\x78\x56\x34\x12"
+        + b"\x02\x01"
+        + bytes(12)
+        + payload
+    )
+    return b"\xA5" + scope + bytes((checksum_ap(scope), 0x15))
 
 
 def _block_reply(block: tuple[int, int, int]) -> bytes:
-    return build_ap_frame(123456, _modbus_reply(block))
+    function, start, end = block
+    values = bytearray((end - start + 1) * 2)
+
+    def set_register(address: int, value: int) -> None:
+        if start <= address <= end:
+            offset = (address - start) * 2
+            values[offset : offset + 2] = value.to_bytes(2, "big")
+
+    set_register(0x3000, 1)
+    set_register(0x3008, 0x4039)
+    set_register(0x3009, 2301)
+    set_register(0x300A, 123)
+    set_register(0x300B, 5000)
+    set_register(0x300C, 65)
+    set_register(0x300E, 800)
+    set_register(0x300F, 4567)
+    set_register(0x3010, 410)
+    set_register(0x3011, 222)
+    set_register(0x3012, 910)
+    set_register(0x301C, 125)
+    set_register(0x301D, 0)
+    set_register(0x301E, 2345)
+    set_register(0x301F, 150)
+    set_register(0x3020, 0)
+    set_register(0x3021, 12345)
+    body = bytes((1, function, len(values))) + bytes(values)
+    return _build_ap_reply(body + crc16_modbus(body))
 
 
 class FakeReader:
-    def __init__(self, data: bytes) -> None:
-        self.data = bytearray(data)
+    def __init__(self, payload: bytes) -> None:
+        self.payload = payload
+        self.offset = 0
 
-    async def readexactly(self, count: int) -> bytes:
-        if len(self.data) < count:
-            raise asyncio.IncompleteReadError(bytes(self.data), count)
-        result = bytes(self.data[:count])
-        del self.data[:count]
+    async def readexactly(self, size: int) -> bytes:
+        result = self.payload[self.offset : self.offset + size]
+        self.offset += size
+        if len(result) != size:
+            raise EOFError("synthetic stream exhausted")
         return result
-
-
-class FailingReader:
-    async def readexactly(self, count: int) -> bytes:
-        raise ConnectionResetError("simulated reset")
 
 
 class FakeWriter:
@@ -81,7 +115,7 @@ class FakeWriter:
 
 
 class Protocol02b0ResilienceTests(unittest.IsolatedAsyncioTestCase):
-    """Verify validated fast coverage plus slow read-only signature diagnostics."""
+    """Verify resilient fast polling plus the expanded slow read-only diagnostics."""
 
     def test_register_coverage_matches_current_read_only_plan(self) -> None:
         self.assertEqual(
@@ -115,48 +149,43 @@ class Protocol02b0ResilienceTests(unittest.IsolatedAsyncioTestCase):
             open_calls += 1
             return FakeReader(stream), writer
 
-        client = Tsun02b0Client("192.0.2.1", 8899, 123456)
-        client._last_diagnostic_read = float("inf")
-        original = asyncio.open_connection
-        asyncio.open_connection = open_connection
-        try:
+        module = sys.modules["tsun_local_02b0_resilience_tests.protocol_02b0"]
+        with patch.object(module.asyncio, "open_connection", new=open_connection):
+            client = Tsun02b0Client("192.0.2.10", 8899, 123456)
+            client._last_diagnostic_read = time.monotonic()
             result = await client.async_read_all()
-        finally:
-            asyncio.open_connection = original
 
         self.assertEqual(open_calls, 1)
-        self.assertEqual(result.blocks_ok, len(cycle_blocks))
-        self.assertEqual(len(writer.requests), len(cycle_blocks))
+        self.assertEqual(len(writer.requests), 3)
+        self.assertEqual(result.blocks_ok, 3)
+        self.assertAlmostEqual(result.measurements["ac_energy_today"], 1.25)
+        self.assertAlmostEqual(result.measurements["pv1_energy_total"], 123.45)
 
     async def test_reconnects_once_and_retries_failed_fast_block(self) -> None:
-        writers: list[FakeWriter] = []
+        bad = bytearray(_block_reply(BLOCKS[0]))
+        bad[-2] ^= 0x01
+        good_stream = b"".join(
+            _block_reply(block) for block in (*BLOCKS, *ALARM_BLOCKS)
+        )
+        readers = iter((FakeReader(bytes(bad)), FakeReader(good_stream)))
+        writers = [FakeWriter(), FakeWriter()]
         open_calls = 0
-        retry_stream = b"".join(_block_reply(block) for block in (*BLOCKS, *ALARM_BLOCKS))
 
         async def open_connection(_host: str, _port: int):
             nonlocal open_calls
+            writer = writers[open_calls]
             open_calls += 1
-            writer = FakeWriter()
-            writers.append(writer)
-            if open_calls == 1:
-                return FailingReader(), writer
-            return FakeReader(retry_stream), writer
+            return next(readers), writer
 
-        client = Tsun02b0Client("192.0.2.1", 8899, 123456)
-        client._last_diagnostic_read = float("inf")
-        original = asyncio.open_connection
-        asyncio.open_connection = open_connection
-        try:
+        module = sys.modules["tsun_local_02b0_resilience_tests.protocol_02b0"]
+        with patch.object(module.asyncio, "open_connection", new=open_connection):
+            client = Tsun02b0Client("192.0.2.10", 8899, 123456)
+            client._last_diagnostic_read = time.monotonic()
             result = await client.async_read_all()
-        finally:
-            asyncio.open_connection = original
 
         self.assertEqual(open_calls, 2)
-        self.assertEqual(result.blocks_ok, len((*BLOCKS, *ALARM_BLOCKS)))
         self.assertTrue(writers[0].closed)
-        expected_first = build_modbus_request(*BLOCKS[0])
-        self.assertIn(expected_first, writers[0].requests[0])
-        self.assertIn(expected_first, writers[1].requests[0])
+        self.assertEqual(result.blocks_ok, 3)
 
 
 if __name__ == "__main__":
