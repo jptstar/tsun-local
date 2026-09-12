@@ -39,7 +39,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.1"
+TOOL_VERSION = "2.8.2"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -906,7 +906,7 @@ def characterize_02b0(
         "attempted": True,
         "read_only": True,
         "canonical_sensor_list": "0x02B0",
-        "regular_dump_sensor_list": "0x0000",
+        "regular_dump_sensor_list": "0x02B0",
         "timeout_seconds": test_timeout,
         "short_marker_followup_wait_seconds": CHARACTERIZATION_MARKER_WAIT,
         "tests": tests,
@@ -2299,22 +2299,27 @@ def capture_plans(protocol: str, full: bool) -> tuple[list[tuple], list[tuple]]:
     if protocol == "02b0":
         dynamic = split_modbus_range(0x3000, 0x302F)
         supplemental = (
-            split_modbus_range(0x2000, 0x204F)
+            split_modbus_range(0x2000, 0x205F)
             if full
-            else [(0x2007, 0x2007), *split_modbus_range(0x2014, 0x202C)]
+            else [
+                (0x2007, 0x2007),
+                *split_modbus_range(0x2011, 0x2013),
+                *split_modbus_range(0x2014, 0x202C),
+                *split_modbus_range(0x202D, 0x205F),
+            ]
         )
         return dynamic, supplemental
 
     if protocol == "1097":
         dynamic = [
             *split_modbus_range(0x1100, 0x110F),
-            *split_modbus_range(0x1200, 0x121F),
-            *split_modbus_range(0x1300, 0x132F),
+            *split_modbus_range(0x1200, 0x122F),
+            *split_modbus_range(0x1300, 0x133F),
         ]
         supplemental = (
             [
                 *split_modbus_range(0x1008, 0x100F),
-                *split_modbus_range(0x1400, 0x143F),
+                *split_modbus_range(0x1400, 0x144F),
             ]
             if full
             else [
@@ -2357,7 +2362,7 @@ def _probe_protocol(
             sn,
             0x3000,
             0x3000,
-            sensor_list=0,
+            sensor_list=0x02B0,
             timeout=timeout,
         )
     elif protocol == "1097":
@@ -2482,7 +2487,8 @@ def read_plan(
             else:
                 start, end = block
                 sensor_list = (
-                    0x1097 if protocol == "1097"
+                    0x02B0 if protocol == "02b0"
+                    else 0x1097 if protocol == "1097"
                     else 0x3026 if protocol == "3026"
                     else 0
                 )
@@ -2896,7 +2902,7 @@ def capture(
     family = {
         "1511": "TITAN",
         "02b0": "GEN3 / GEN3 PLUS",
-        "1097": "GEN3 / GEN3 PLUS (1097)",
+        "1097": "GEN4",
         "3026": "GEN3 / GEN3 PLUS (3026 candidate)",
     }[protocol]
     logger_web = capture_logger_web_pages(host, args.http_page_timeout)

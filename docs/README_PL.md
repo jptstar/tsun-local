@@ -35,7 +35,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Zweryfikowany** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Zweryfikowany** |
-| **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Eksperymentalny** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **Zweryfikowany** |
 
 > [!TIP]
 > **Brak modelu na liście nie oznacza braku zgodności.** TSUN Local określa kompatybilność głównie na podstawie wykrytego protokołu lokalnego, a nie tylko nazwy handlowej.
@@ -171,7 +171,7 @@ Ta **sama aplikacja TSUN Local Diagnostic** jest teraz dostępna dla Windows, ma
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Aktualne wersje: GUI **1.5.11** · silnik dump **2.7.4**.
+Aktualne wersje: GUI **1.5.12** · silnik dump **2.8.2**.
 
 Dotychczasowy link Windows pozostaje celowo bez zmian, aby starsze posty i poradniki nadal działały.
 

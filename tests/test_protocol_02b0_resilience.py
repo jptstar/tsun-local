@@ -115,9 +115,9 @@ class FakeWriter:
 
 
 class Protocol02b0ResilienceTests(unittest.IsolatedAsyncioTestCase):
-    """Verify unchanged register coverage with a resilient session lifecycle."""
+    """Verify resilient fast polling plus the expanded slow read-only diagnostics."""
 
-    def test_register_coverage_is_unchanged(self) -> None:
+    def test_register_coverage_matches_current_read_only_plan(self) -> None:
         self.assertEqual(
             BLOCKS,
             ((0x03, 0x3008, 0x301E), (0x03, 0x301F, 0x302A)),
@@ -128,8 +128,14 @@ class Protocol02b0ResilienceTests(unittest.IsolatedAsyncioTestCase):
             (
                 (0x03, 0x2007, 0x2007),
                 (0x03, 0x2000, 0x2010),
+                (0x03, 0x2011, 0x2013),
                 (0x03, 0x2014, 0x202C),
+                (0x03, 0x202D, 0x205F),
+                (0x03, 0x302B, 0x302F),
             ),
+        )
+        self.assertTrue(
+            all(function == 0x03 for function, _, _ in DIAGNOSTIC_BLOCKS)
         )
 
     async def test_one_healthy_session_serves_fast_and_alarm_reads(self) -> None:
@@ -180,3 +186,7 @@ class Protocol02b0ResilienceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(open_calls, 2)
         self.assertTrue(writers[0].closed)
         self.assertEqual(result.blocks_ok, 3)
+
+
+if __name__ == "__main__":
+    unittest.main()

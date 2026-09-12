@@ -35,7 +35,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **已验证** |
-| **1097** | GEN3 / GEN3 PLUS | — | 🧪 **实验性** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **已验证** |
 
 > [!TIP]
 > **未列出的型号并不代表不兼容。** TSUN Local 主要依据检测到的本地协议判断兼容性，而不是只看商业型号名称。
@@ -171,7 +171,7 @@ TSUN Local 为未列出的型号和通信问题提供注重隐私且 **严格只
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-当前版本：桌面 GUI **1.5.11** · dump 引擎 **2.7.4**。
+当前版本：桌面 GUI **1.5.12** · dump 引擎 **2.8.2**。
 
 历史 Windows 下载链接刻意保持不变，因此旧论坛帖子和教程中的链接仍然有效。
 

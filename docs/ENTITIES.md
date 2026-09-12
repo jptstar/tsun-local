@@ -14,7 +14,6 @@ This page lists the Home Assistant entities exposed by TSUN Local **by local pro
 | ✅ | Enabled by default |
 | 🛡️ | Advanced diagnostic entity, **disabled by default** |
 | 🔄 | Created dynamically when the corresponding PV input is detected |
-| 🧪 | Experimental protocol support |
 | 🔬 | Field-validation candidate; live read confirmed but semantic validation still pending |
 
 ---
@@ -293,12 +292,12 @@ All entities below are **🛡️ disabled by default**.
 
 ---
 
-# 1097 · GEN3 / GEN3 PLUS
+# 1097 · GEN4
 
-**Status:** 🧪 Experimental  
+**Status:** ✅ Validated on Sunology PLAY2 (GEN4)  
 **PV inputs:** up to 6, detected dynamically
 
-The experimental 1097 mapping is informed by public protocol research from **Stefan Allius / `s-allius/tsun-gen3-proxy`**. This includes the country/profile mapping and enumeration used as an external semantic reference; TSUN Local does not present those findings as its own discovery.
+The 1097 adapter is a supported local read-only protocol family. Individual fields that still require semantic confirmation remain explicitly marked as field-validation candidates rather than making the whole protocol experimental.
 
 ## 1097-specific diagnostics
 
