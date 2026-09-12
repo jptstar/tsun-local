@@ -1,0 +1,122 @@
+name: Align 1097 with validated GEN4 family
+
+on:
+  push:
+    branches:
+      - feature/1.6.2-protocol-coverage
+    paths:
+      - .github/workflows/protocol-1097-gen4-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.event.head_commit.message == 'Align 1097 with validated GEN4 family'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Align current protocol-family documentation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path("custom_components/tsun_local/protocols/protocol_1097.py")
+          text = p.read_text(encoding="utf-8")
+          old = 'MODEL = "GEN3 / GEN3 PLUS (1097)"'
+          if old not in text:
+              raise SystemExit("1097 MODEL marker not found")
+          p.write_text(text.replace(old, 'MODEL = "GEN4"', 1), encoding="utf-8")
+
+          readmes = [
+              Path("README.md"),
+              *sorted(Path("docs").glob("README_*.md")),
+          ]
+          row_02 = re.compile(
+              r"^\| \*\*02B0\*\* \| GEN3 / GEN3 PLUS \| .*? \| (?P<status>.+?) \|$",
+              re.MULTILINE,
+          )
+          row_1097 = re.compile(
+              r"^\| \*\*1097\*\* \| .*? \| .*? \| .+? \|$",
+              re.MULTILINE,
+          )
+          for p in readmes:
+              text = p.read_text(encoding="utf-8")
+              m = row_02.search(text)
+              if m is None:
+                  raise SystemExit(f"02B0 status row missing in {p}")
+              replacement = (
+                  "| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | "
+                  + m.group("status")
+                  + " |"
+              )
+              text, count = row_1097.subn(replacement, text, count=1)
+              if count != 1:
+                  raise SystemExit(f"1097 row missing in {p}")
+              p.write_text(text, encoding="utf-8")
+
+          p = Path("README.md")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              "**Sunology PLAY2 is validated on real Home Assistant hardware** through the local 02B0 / Solarman V5 path.",
+              "**Sunology PLAY2 is validated on real Home Assistant hardware** through both the local 02B0 / GEN3 Plus path and the 1097 / GEN4 path.",
+          )
+          text = text.replace(
+              "- The exact MX400/MX450/MX500 hardware variant remains intentionally unspecified; the detected **02B0** protocol is authoritative.",
+              "- The commercial PLAY2 name spans more than one local hardware generation; the detected **02B0** or **1097** protocol is authoritative.",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          p = Path("docs/ENTITIES.md")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace("# 1097 · GEN3 / GEN3 PLUS", "# 1097 · GEN4", 1)
+          text = text.replace(
+              "**Status:** ✅ Supported  ",
+              "**Status:** ✅ Validated on Sunology PLAY2 (GEN4)  ",
+              1,
+          )
+          p.write_text(text, encoding="utf-8")
+
+          p = Path("docs/index.html")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              '<span class="compat-status experimental">🧪 Field testing</span>',
+              '<span class="compat-status validated">✅ Validated</span>',
+              1,
+          )
+          text = text.replace(
+              '<div class="card"><strong>1097</strong><span class="muted">64 catalogue positions while protocol support remains experimental.</span></div>',
+              '<div class="card"><strong>1097</strong><span class="muted">64 catalogue positions on the validated PLAY2 GEN4 protocol path.</span></div>',
+              1,
+          )
+          text = text.replace(
+              "used during experimental protocol validation.",
+              "used during protocol validation.",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          p = Path("docs/sunology-play2.html")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              "Follow the PLAY2 1097 field-validation issue →",
+              "Follow the PLAY2 1097 stability issue →",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          p = Path("docs/contributors.html")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace("the experimental 1097 adapter", "the 1097 adapter")
+          p.write_text(text, encoding="utf-8")
+          PY
+
+          git config user.name "JP"
+          git config user.email "dev@jptstar.com"
+          git add custom_components/tsun_local/protocols/protocol_1097.py \
+                  README.md docs/README_*.md docs/ENTITIES.md docs/index.html \
+                  docs/sunology-play2.html docs/contributors.html
+          git commit -m "Align 1097 with validated GEN4 family"
+          git push origin HEAD:feature/1.6.2-protocol-coverage
