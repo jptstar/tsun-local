@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.2-beta.1] - 2026-09-12
+
+### Added
+
+- Extend read-only 02B0 diagnostic/signature coverage through the remaining `0x2000..0x205F` gaps and the `0x302B..0x302F` telemetry tail while keeping the new values raw until their semantics are independently validated.
+- Treat protocol 1097 as the validated GEN4 family, including the real Sunology PLAY2 GEN4 path.
+- Add fail-safe automatic protocol detection across the validated runtime families 1511, 1097 and 02B0.
+- Add protocol selection to Reconfigure so Auto, Force detection and strict manual 1511/1097/02B0 choices can be retested before being saved.
+
+### Detection safety
+
+- Use the logger firmware only as a priority hint; it never forces the selected family and never adds confidence points.
+- Require protocol transport/framing validation before scoring, then require a confidence score of at least 80/100 and a minimum 20-point margin over another valid candidate.
+- Treat zero solar production as neutral so detection remains usable at night.
+- Reject ambiguous detection instead of selecting the least-bad candidate.
+- Keep explicit manual protocol selection strict with no silent fallback to another family.
+- Keep the selected protocol locked after setup; normal polling failures do not trigger runtime family switching.
+- Keep experimental 3026 diagnostic-only and excluded from runtime detection.
+
+### Validation
+
+- Add regression coverage for wrong firmware hints, night/zero-production reads, implausible values, incomplete core reads, ambiguity handling, Force mode and strict manual validation.
+- Pass the complete unit-test suite, HACS validation and Home Assistant Hassfest before beta publication.
+
 ## [1.6.1] - 2026-09-10
 
 ### Fixed
