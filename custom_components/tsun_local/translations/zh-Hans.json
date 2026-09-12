@@ -482,6 +482,15 @@
       },
       "qcpu2_firmware_version": {
         "name": "QCPU2 固件版本"
+      },
+      "solar_plant_rated_power": {
+        "name": "光伏电站额定功率"
+      },
+      "zero_export_status": {
+        "name": "零回馈状态"
+      },
+      "zero_export_power_offset": {
+        "name": "零回馈功率偏移"
       }
     },
     "binary_sensor": {

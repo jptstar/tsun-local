@@ -286,6 +286,9 @@ All entities below are **🛡️ disabled by default**.
 | `rated_level_raw` | Raw rated level | raw |
 | `input_coefficient` | Input coefficient | % |
 | `product_compliance_type_raw` | Product compliance type (raw) | raw |
+| `solar_plant_rated_power` | Solar plant rated power (disabled by default, 02B0) | W |
+| `zero_export_status` | Zero export status (disabled by default, 02B0) | raw 0/1 |
+| `zero_export_power_offset` | Zero export power offset (disabled by default, 02B0) | raw signed |
 
 > [!NOTE]
 > `product_compliance_type_raw` is intentionally exposed as a raw diagnostic. TSUN Local does not translate this 02B0 value into a country or grid profile until independent hardware correlation confirms its semantics.

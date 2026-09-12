@@ -482,6 +482,15 @@
       },
       "qcpu2_firmware_version": {
         "name": "Wersja oprogramowania QCPU2"
+      },
+      "solar_plant_rated_power": {
+        "name": "Moc znamionowa instalacji PV"
+      },
+      "zero_export_status": {
+        "name": "Stan zerowego eksportu"
+      },
+      "zero_export_power_offset": {
+        "name": "Przesunięcie mocy zerowego eksportu"
       }
     },
     "binary_sensor": {
