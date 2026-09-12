@@ -906,7 +906,7 @@ def characterize_02b0(
         "attempted": True,
         "read_only": True,
         "canonical_sensor_list": "0x02B0",
-        "regular_dump_sensor_list": "0x0000",
+        "regular_dump_sensor_list": "0x02B0",
         "timeout_seconds": test_timeout,
         "short_marker_followup_wait_seconds": CHARACTERIZATION_MARKER_WAIT,
         "tests": tests,
