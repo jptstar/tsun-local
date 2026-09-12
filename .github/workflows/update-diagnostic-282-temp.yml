@@ -1,0 +1,134 @@
+name: Update diagnostic 2.8.2
+
+on:
+  push:
+    branches:
+      - feature/1.6.2-protocol-coverage
+    paths:
+      - .github/workflows/update-diagnostic-282-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: github.event.head_commit.message == 'Prepare diagnostic 2.8.2 update'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Align diagnostic with protocol coverage
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_required(path: str, old: str, new: str, count: int = 1) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              found = text.count(old)
+              if found < count:
+                  raise SystemExit(f"Expected at least {count} occurrence(s) in {path}: {old!r}; found {found}")
+              text = text.replace(old, new, count)
+              p.write_text(text, encoding="utf-8")
+
+          dump = Path("tools/tsun_dump.py")
+          text = dump.read_text(encoding="utf-8")
+          replacements = [
+              ('TOOL_VERSION = "2.8.1"', 'TOOL_VERSION = "2.8.2"'),
+              ('split_modbus_range(0x2000, 0x204F)', 'split_modbus_range(0x2000, 0x205F)'),
+              ('else [(0x2007, 0x2007), *split_modbus_range(0x2014, 0x202C)]',
+               'else [\n                (0x2007, 0x2007),\n                *split_modbus_range(0x2011, 0x2013),\n                *split_modbus_range(0x2014, 0x202C),\n                *split_modbus_range(0x202D, 0x205F),\n            ]'),
+              ('*split_modbus_range(0x1200, 0x121F)', '*split_modbus_range(0x1200, 0x122F)'),
+              ('*split_modbus_range(0x1300, 0x132F)', '*split_modbus_range(0x1300, 0x133F)'),
+              ('*split_modbus_range(0x1400, 0x143F)', '*split_modbus_range(0x1400, 0x144F)'),
+              ('"1097": "GEN3 / GEN3 PLUS (1097)"', '"1097": "GEN4"'),
+          ]
+          for old, new in replacements:
+              if old not in text:
+                  raise SystemExit(f"Expected tsun_dump marker not found: {old!r}")
+              text = text.replace(old, new, 1)
+
+          # Use the explicit validated 02B0 sensor list for both protocol probing
+          # and all subsequent Modbus captures. 1097/3026 already do the same.
+          old_probe = '''    elif protocol == "02b0":\n        read_modbus_block(\n            host,\n            port,\n            sn,\n            0x3000,\n            0x3000,\n            sensor_list=0,\n            timeout=timeout,\n        )\n'''
+          new_probe = old_probe.replace('sensor_list=0,', 'sensor_list=0x02B0,')
+          if old_probe not in text:
+              raise SystemExit("02B0 probe block not found")
+          text = text.replace(old_probe, new_probe, 1)
+
+          old_capture = '''                sensor_list = (\n                    0x1097 if protocol == "1097"\n                    else 0x3026 if protocol == "3026"\n                    else 0\n                )\n'''
+          new_capture = '''                sensor_list = (\n                    0x02B0 if protocol == "02b0"\n                    else 0x1097 if protocol == "1097"\n                    else 0x3026 if protocol == "3026"\n                    else 0\n                )\n'''
+          if old_capture not in text:
+              raise SystemExit("Modbus capture sensor-list selector not found")
+          text = text.replace(old_capture, new_capture, 1)
+          dump.write_text(text, encoding="utf-8")
+
+          # Desktop packages embed the dump engine, so bump the GUI version too;
+          # otherwise installed GUIs would not see a newer package in update.json.
+          replace_required(
+              "tools/tsun_diagnostic.py",
+              'APP_VERSION = "1.5.11"',
+              'APP_VERSION = "1.5.12"',
+          )
+
+          # Protect the version and expanded capture maps.
+          p = Path("tests/test_tsun_dump_tool.py")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace('self.assertEqual(TOOL.TOOL_VERSION, "2.8.1")', 'self.assertEqual(TOOL.TOOL_VERSION, "2.8.2")', 1)
+          marker = '''    def test_02b0_characterization_classifies_strict_16_limit(self) -> None:\n'''
+          extra = '''    def test_capture_plans_match_162_family_coverage(self) -> None:\n        dynamic_02b0, standard_02b0 = TOOL.capture_plans("02b0", full=False)\n        _, full_02b0 = TOOL.capture_plans("02b0", full=True)\n        self.assertIn((0x3020, 0x302F), dynamic_02b0)\n        self.assertIn((0x2011, 0x2013), standard_02b0)\n        self.assertIn((0x202D, 0x203C), standard_02b0)\n        self.assertEqual(full_02b0[-1][1], 0x205F)\n\n        dynamic_1097, full_1097 = TOOL.capture_plans("1097", full=True)\n        self.assertIn((0x1220, 0x122F), dynamic_1097)\n        self.assertIn((0x1330, 0x133F), dynamic_1097)\n        self.assertEqual(full_1097[-1][1], 0x144F)\n\n    def test_02b0_probe_uses_explicit_sensor_list(self) -> None:\n        calls = []\n        original = TOOL.read_modbus_block\n        try:\n            def fake(*args, **kwargs):\n                calls.append((args, kwargs))\n                return {}, b"", b""\n            TOOL.read_modbus_block = fake\n            TOOL._probe_protocol("02b0", "192.0.2.10", 8899, 123456, 1.0)\n        finally:\n            TOOL.read_modbus_block = original\n        self.assertEqual(calls[0][1]["sensor_list"], 0x02B0)\n\n'''
+          if marker not in text:
+              raise SystemExit("test insertion marker not found")
+          text = text.replace(marker, extra + marker, 1)
+          p.write_text(text, encoding="utf-8")
+
+          for test_path in (
+              "tests/test_diagnostic_desktop_test_mode.py",
+              "tests/test_diagnostic_upload_gui.py",
+          ):
+              p = Path(test_path)
+              text = p.read_text(encoding="utf-8")
+              text = text.replace('"1.5.11"', '"1.5.12"')
+              p.write_text(text, encoding="utf-8")
+
+          # Update the dump guide to reflect the actual capture families.
+          p = Path("docs/HARDWARE_DUMP.md")
+          text = p.read_text(encoding="utf-8")
+          text = text.replace(
+              "Standard supplemental diagnostics:\n\n- `0x2007`;\n- `0x2014–0x202C`.\n\nFull supplemental capture:\n\n- FC03 `0x2000–0x204F`, including the public research area around `0x2047–0x204A`.",
+              "Standard supplemental diagnostics:\n\n- `0x2007`;\n- `0x2011–0x2013`;\n- `0x2014–0x202C`;\n- `0x202D–0x205F`.\n\nFull supplemental capture:\n\n- FC03 `0x2000–0x205F`, split into conservative 16-register requests. Unknown values remain raw for family/signature analysis.",
+          )
+          text = text.replace("- FC03 `0x1200–0x121F`;", "- FC03 `0x1200–0x122F`;")
+          text = text.replace("- FC03 `0x1300–0x132F`.", "- FC03 `0x1300–0x133F`.")
+          text = text.replace(
+              "Supplemental capture includes `0x1008–0x100F` and the known profile/diagnostic area.",
+              "Supplemental capture includes `0x1008–0x100F` and, in full mode, the complete read-only `0x1400–0x144F` profile/diagnostic area.",
+          )
+          text = text.replace(
+              "Current standalone diagnostic versions: **desktop GUI 1.5.11** · **dump engine 2.7.4**.",
+              "Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.2**.",
+          )
+          p.write_text(text, encoding="utf-8")
+
+          # Keep the current-version text in public localized documentation aligned.
+          docs = [Path("README.md"), *sorted(Path("docs").glob("README_*.md"))]
+          for p in docs:
+              text = p.read_text(encoding="utf-8")
+              text = text.replace("1.5.11", "1.5.12")
+              text = text.replace("2.7.4", "2.8.2")
+              p.write_text(text, encoding="utf-8")
+          PY
+
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic.py
+          python -m unittest tests.test_tsun_dump_tool tests.test_tsun_dump_3026 tests.test_protocol_coverage_162
+
+          git config user.name "JP"
+          git config user.email "dev@jptstar.com"
+          git add tools/tsun_dump.py tools/tsun_diagnostic.py \
+                  tests/test_tsun_dump_tool.py tests/test_diagnostic_desktop_test_mode.py \
+                  tests/test_diagnostic_upload_gui.py docs/HARDWARE_DUMP.md \
+                  README.md docs/README_*.md
+          git commit -m "Update diagnostic for 1.6.2 protocol coverage"
+          git push origin HEAD:feature/1.6.2-protocol-coverage
