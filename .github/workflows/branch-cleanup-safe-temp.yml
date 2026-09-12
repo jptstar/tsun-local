@@ -1,0 +1,94 @@
+name: One-time safe branch cleanup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/branch-cleanup-safe-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.event.head_commit.message == 'Run safe branch cleanup'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Delete branches whose work is safely preserved
+        shell: bash
+        run: |
+          set -u
+          git fetch --prune --tags origin '+refs/heads/*:refs/remotes/origin/*'
+
+          deleted=0
+          kept=0
+          failed=0
+
+          delete_branch() {
+            local branch="$1"
+            local reason="$2"
+            echo "DELETE [$reason]: $branch"
+            if git push origin --delete "$branch"; then
+              deleted=$((deleted + 1))
+            else
+              echo "FAILED delete: $branch"
+              failed=$((failed + 1))
+            fi
+          }
+
+          while IFS= read -r ref; do
+            branch="${ref#origin/}"
+
+            case "$branch" in
+              main|gh-pages|feature/cloud-guard-foundation)
+                echo "KEEP explicit: $branch"
+                kept=$((kept + 1))
+                continue
+                ;;
+            esac
+
+            # 1) Commit history already reachable from main.
+            if git merge-base --is-ancestor "$ref" origin/main; then
+              delete_branch "$branch" "reachable-from-main"
+              continue
+            fi
+
+            # 2) Exact same repository tree as main, despite different history.
+            if git diff --quiet origin/main "$ref"; then
+              delete_branch "$branch" "same-tree-as-main"
+              continue
+            fi
+
+            # 3) Tip is preserved by an immutable version tag (v*).
+            preserved_by_tag=""
+            while IFS= read -r tag; do
+              if git merge-base --is-ancestor "$ref" "$tag"; then
+                preserved_by_tag="${tag#refs/tags/}"
+                break
+              fi
+            done < <(git for-each-ref --format='%(refname)' 'refs/tags/v*')
+
+            if [[ -n "$preserved_by_tag" ]]; then
+              delete_branch "$branch" "preserved-by-tag:$preserved_by_tag"
+              continue
+            fi
+
+            # 4) Every branch-only commit has a patch-equivalent commit in main.
+            cherry_output="$(git cherry origin/main "$ref" 2>/dev/null || true)"
+            if [[ -n "$cherry_output" ]] && ! grep -q '^+' <<<"$cherry_output"; then
+              delete_branch "$branch" "patch-equivalent-in-main"
+              continue
+            fi
+
+            echo "KEEP unique/diverged: $branch"
+            kept=$((kept + 1))
+          done < <(git for-each-ref --format='%(refname:short)' refs/remotes/origin | grep '^origin/' | grep -v '^origin/HEAD$')
+
+          echo "SUMMARY deleted=$deleted kept=$kept failed=$failed"
