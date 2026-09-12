@@ -1,0 +1,167 @@
+name: Apply hidden 02B0 diagnostics
+
+on:
+  push:
+    branches:
+      - feature/1.6.2-02b0-hidden-diagnostics
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[hidden-diag-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/1.6.2-02b0-hidden-diagnostics
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply code and translation changes
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+
+          root = Path('.')
+
+          protocol = root / 'custom_components/tsun_local/protocols/protocol_02b0.py'
+          text = protocol.read_text(encoding='utf-8')
+          old = '''        "input_coefficient",\n        "product_compliance_type_raw",\n    }\n)'''
+          new = '''        "input_coefficient",\n        "product_compliance_type_raw",\n        "solar_plant_rated_power",\n        "zero_export_status",\n        "zero_export_power_offset",\n    }\n)'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''        "product_compliance_type_raw": 0x2010,\n    }'''
+          new = '''        "product_compliance_type_raw": 0x2010,\n        "solar_plant_rated_power": 0x2047,\n        "zero_export_status": 0x2048,\n    }'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''    if 0x2009 in registers:\n        data["input_coefficient"] = round(registers[0x2009] * 100 / 1024, 2)\n    return data\n'''
+          new = '''    if 0x2009 in registers:\n        data["input_coefficient"] = round(registers[0x2009] * 100 / 1024, 2)\n    if 0x204A in registers:\n        raw_offset = registers[0x204A]\n        data["zero_export_power_offset"] = (\n            raw_offset - 0x10000 if raw_offset & 0x8000 else raw_offset\n        )\n    return data\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          protocol.write_text(text, encoding='utf-8')
+
+          sensor = root / 'custom_components/tsun_local/sensor.py'
+          text = sensor.read_text(encoding='utf-8')
+          old = '''        "product_compliance_type_raw": "0x2010",\n        "inverter_status_raw": "0x3000",'''
+          new = '''        "product_compliance_type_raw": "0x2010",\n        "solar_plant_rated_power": "0x2047",\n        "zero_export_status": "0x2048",\n        "zero_export_power_offset": "0x204A",\n        "inverter_status_raw": "0x3000",'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''    _advanced_diagnostic(\n        "product_compliance_type_raw",\n        "product_compliance_type_raw",\n        state_class=None,\n    ),\n)\n'''
+          new = '''    _advanced_diagnostic(\n        "product_compliance_type_raw",\n        "product_compliance_type_raw",\n        state_class=None,\n    ),\n    TsunSensorDescription(\n        key="solar_plant_rated_power",\n        suggested_object_id="solar_plant_rated_power",\n        translation_key="solar_plant_rated_power",\n        device_class=SensorDeviceClass.POWER,\n        native_unit_of_measurement=UnitOfPower.WATT,\n        state_class=SensorStateClass.MEASUREMENT,\n        suggested_display_precision=0,\n        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n        register_address="0x2047",\n    ),\n    TsunSensorDescription(\n        key="zero_export_status",\n        suggested_object_id="zero_export_status",\n        translation_key="zero_export_status",\n        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n        register_address="0x2048",\n    ),\n    TsunSensorDescription(\n        key="zero_export_power_offset",\n        suggested_object_id="zero_export_power_offset",\n        translation_key="zero_export_power_offset",\n        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n        register_address="0x204A",\n    ),\n)\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          sensor.write_text(text, encoding='utf-8')
+
+          names = {
+              'strings.json': {
+                  'solar_plant_rated_power': 'Solar plant rated power',
+                  'zero_export_status': 'Zero export status',
+                  'zero_export_power_offset': 'Zero export power offset',
+              },
+              'translations/en.json': {
+                  'solar_plant_rated_power': 'Solar plant rated power',
+                  'zero_export_status': 'Zero export status',
+                  'zero_export_power_offset': 'Zero export power offset',
+              },
+              'translations/fr.json': {
+                  'solar_plant_rated_power': 'Puissance nominale de l’installation solaire',
+                  'zero_export_status': 'État de l’injection zéro',
+                  'zero_export_power_offset': 'Décalage de puissance de l’injection zéro',
+              },
+              'translations/de.json': {
+                  'solar_plant_rated_power': 'Nennleistung der Solaranlage',
+                  'zero_export_status': 'Status der Nulleinspeisung',
+                  'zero_export_power_offset': 'Leistungsversatz der Nulleinspeisung',
+              },
+              'translations/es.json': {
+                  'solar_plant_rated_power': 'Potencia nominal de la instalación solar',
+                  'zero_export_status': 'Estado de inyección cero',
+                  'zero_export_power_offset': 'Desplazamiento de potencia de inyección cero',
+              },
+              'translations/it.json': {
+                  'solar_plant_rated_power': 'Potenza nominale dell’impianto solare',
+                  'zero_export_status': 'Stato immissione zero',
+                  'zero_export_power_offset': 'Offset di potenza immissione zero',
+              },
+              'translations/nl.json': {
+                  'solar_plant_rated_power': 'Nominaal vermogen van de zonne-installatie',
+                  'zero_export_status': 'Status nul-teruglevering',
+                  'zero_export_power_offset': 'Vermogensoffset nul-teruglevering',
+              },
+              'translations/pl.json': {
+                  'solar_plant_rated_power': 'Moc znamionowa instalacji PV',
+                  'zero_export_status': 'Stan zerowego eksportu',
+                  'zero_export_power_offset': 'Przesunięcie mocy zerowego eksportu',
+              },
+              'translations/zh-Hans.json': {
+                  'solar_plant_rated_power': '光伏电站额定功率',
+                  'zero_export_status': '零回馈状态',
+                  'zero_export_power_offset': '零回馈功率偏移',
+              },
+          }
+          base = root / 'custom_components/tsun_local'
+          for rel, translated_names in names.items():
+              path = base / rel
+              data = json.loads(path.read_text(encoding='utf-8'))
+              sensors = data.setdefault('entity', {}).setdefault('sensor', {})
+              for key, name in translated_names.items():
+                  sensors[key] = {'name': name}
+              path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          test = root / 'tests/test_protocol_02b0_extended.py'
+          text = test.read_text(encoding='utf-8')
+          old = '''            "product_compliance_type_raw",\n        ):'''
+          new = '''            "product_compliance_type_raw",\n            "solar_plant_rated_power",\n            "zero_export_status",\n            "zero_export_power_offset",\n        ):'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''                0x2009: 512,\n                0x2010: 6,\n            }'''
+          new = '''                0x2009: 512,\n                0x2010: 6,\n                0x2047: 3000,\n                0x2048: 1,\n                0x204A: 0xFFF6,\n            }'''
+          assert old in text
+          text = text.replace(old, new, 1)
+
+          old = '''        self.assertEqual(data["input_coefficient"], 50.0)\n        self.assertEqual(data["product_compliance_type_raw"], 6)\n'''
+          new = '''        self.assertEqual(data["input_coefficient"], 50.0)\n        self.assertEqual(data["product_compliance_type_raw"], 6)\n        self.assertEqual(data["solar_plant_rated_power"], 3000)\n        self.assertEqual(data["zero_export_status"], 1)\n        self.assertEqual(data["zero_export_power_offset"], -10)\n'''
+          assert old in text
+          text = text.replace(old, new, 1)
+          test.write_text(text, encoding='utf-8')
+
+          contract = root / 'tests/test_02b0_hidden_entity_contract.py'
+          contract.write_text('''from __future__ import annotations\n\nfrom pathlib import Path\nimport re\nimport unittest\n\nROOT = Path(__file__).parents[1]\n\n\nclass Hidden02b0EntityContractTests(unittest.TestCase):\n    def test_entities_are_disabled_by_default(self) -> None:\n        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(encoding="utf-8")\n        for key in (\n            "solar_plant_rated_power",\n            "zero_export_status",\n            "zero_export_power_offset",\n        ):\n            match = re.search(\n                rf'key="{key}".*?entity_registry_enabled_default=False',\n                source,\n                flags=re.DOTALL,\n            )\n            self.assertIsNotNone(match, key)\n\n    def test_register_addresses_are_documented_in_sensor_metadata(self) -> None:\n        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(encoding="utf-8")\n        for key, address in {\n            "solar_plant_rated_power": "0x2047",\n            "zero_export_status": "0x2048",\n            "zero_export_power_offset": "0x204A",\n        }.items():\n            self.assertIn(f'"{key}": "{address}"', source)\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
+
+          entities = root / 'docs/ENTITIES.md'
+          text = entities.read_text(encoding='utf-8')
+          anchor = '| `product_compliance_type_raw` | Product compliance type (raw) | raw |\n'
+          if anchor in text:
+              text = text.replace(
+                  anchor,
+                  anchor
+                  + '| `solar_plant_rated_power` | Solar plant rated power (disabled by default, 02B0) | W |\n'
+                  + '| `zero_export_status` | Zero export status (disabled by default, 02B0) | raw 0/1 |\n'
+                  + '| `zero_export_power_offset` | Zero export power offset (disabled by default, 02B0) | raw signed |\n',
+                  1,
+              )
+              entities.write_text(text, encoding='utf-8')
+
+      - name: Run tests
+        run: |
+          python -m compileall -q custom_components tests
+          python -m unittest discover -s tests -p 'test_*.py'
+          git diff --check
+
+      - name: Commit applied patch
+        run: |
+          git config user.name "JP"
+          git config user.email "dev@jptstar.com"
+          git add custom_components tests docs/ENTITIES.md
+          git commit -m "[hidden-diag-applied] Add opt-in 02B0 zero-export diagnostics"
+          git push origin HEAD:feature/1.6.2-02b0-hidden-diagnostics
