@@ -22,7 +22,7 @@ from .ap import (
 _LOGGER = logging.getLogger(__name__)
 
 PROTOCOL_NAME = "1097"
-MODEL = "GEN3 / GEN3 PLUS (1097)"
+MODEL = "GEN4"
 SENSOR_LIST = 0x1097
 MAX_PV_COUNT = 6
 DIAGNOSTIC_INTERVAL = 300.0

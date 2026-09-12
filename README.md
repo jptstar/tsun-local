@@ -36,7 +36,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validated** |
-| **1097** | GEN3 / GEN3 PLUS | — | ✅ **Supported** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **Validated** |
 
 > [!TIP]
 > **Not listed does not mean unsupported.** TSUN Local identifies compatibility primarily from the detected local protocol, not only from the commercial model name.
@@ -214,11 +214,11 @@ The standalone dumper checks the same `diagnostic-latest` channel, verifies SHA-
 
 ### Sunology PLAY2
 
-**Sunology PLAY2 is validated on real Home Assistant hardware** through the local 02B0 / Solarman V5 path.
+**Sunology PLAY2 is validated on real Home Assistant hardware** through both the local 02B0 / GEN3 Plus path and the 1097 / GEN4 path.
 
 - Automatic discovery and normal TSUN Local setup confirmed independently.
 - Local and read-only: no cloud or inverter configuration writes.
-- The exact MX400/MX450/MX500 hardware variant remains intentionally unspecified; the detected **02B0** protocol is authoritative.
+- The commercial PLAY2 name spans more than one local hardware generation; the detected **02B0** or **1097** protocol is authoritative.
 
 📚 **[PLAY2 research details](docs/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optional read-only PLAY2 probe](tools/tsun_play2_probe.py)**
 
