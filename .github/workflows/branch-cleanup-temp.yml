@@ -36,3 +36,5 @@ jobs:
               echo "Already absent: $branch"
             fi
           done
+
+# Trigger commit for the one-time cleanup.
