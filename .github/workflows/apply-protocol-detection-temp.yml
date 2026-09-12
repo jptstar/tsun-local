@@ -24,10 +24,12 @@ jobs:
           python-version: '3.13'
 
       - name: Apply detection and reconfiguration changes
-        run: python tools/_apply_detection_162.py
+        run: |
+          python tools/_apply_detection_162.py
+          python tools/_patch_detection_test_stub.py
 
-      - name: Remove temporary helper
-        run: rm tools/_apply_detection_162.py
+      - name: Remove temporary helpers
+        run: rm tools/_apply_detection_162.py tools/_patch_detection_test_stub.py
 
       - name: Validate syntax and complete unit-test suite
         run: |
