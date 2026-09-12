@@ -1,0 +1,282 @@
+name: Prepare activity cleanup and country profile
+
+on:
+  push:
+    branches:
+      - feature/1.6.2-activity-country-profile
+    paths:
+      - .github/workflows/apply-activity-country-temp.yml
+
+permissions:
+  contents: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v6
+        with:
+          ref: feature/1.6.2-activity-country-profile
+          fetch-depth: 0
+
+      - name: Apply activity cleanup and country profile changes
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+
+          # ------------------------------------------------------------------
+          # Protocol-aware country / grid profile decoding.
+          # ------------------------------------------------------------------
+          country_module = root / 'custom_components/tsun_local/country_profiles.py'
+          country_module.write_text('''# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)\n# SPDX-License-Identifier: GPL-3.0-or-later\n\n"""Protocol-aware TSUN country / grid-profile presentation."""\n\nfrom __future__ import annotations\n\nfrom typing import Any, Mapping\n\n\nCOUNTRY_PROFILE_SOURCE_KEYS: dict[str, str] = {\n    "1511": "country_profile_raw",\n    "02b0": "product_compliance_type_raw",\n    "1097": "country_profile_raw",\n}\n\n# 1511 / TITAN evidence is intentionally conservative. Local MP3000 dumps\n# currently confirm code 6 on three independent units and code 8 on two units.\n# Cloud-side TSUN/Talent profile evidence also associates 1002/1006/1008 with\n# Germany/Poland/France respectively, matching a local +1000 export offset.\nCOUNTRY_PROFILES_1511: dict[int, str] = {\n    2: "Deutschland",\n    6: "Polska",\n    8: "France",\n}\n\n# 02B0 and 1097 expose the established TSUN product-compliance enumeration.\n# Country names use a native/endonym form where practical.\nCOUNTRY_PROFILES_GEN3_GEN4: dict[int, str] = {\n    0: "Testing",\n    1: "Brasil",\n    2: "Deutschland",\n    3: "Nederland",\n    4: "Éire / Ireland",\n    5: "Italia",\n    6: "Polska",\n    7: "België / Belgique / Belgien",\n    8: "France",\n    9: "Österreich",\n    10: "España",\n    11: "VDE 0126",\n    12: "Australia",\n    13: "ประเทศไทย (MEA)",\n    14: "ประเทศไทย (PEA)",\n    15: "South Africa",\n    16: "United Kingdom",\n}\n\nCOUNTRY_PROFILES_BY_PROTOCOL: dict[str, Mapping[int, str]] = {\n    "1511": COUNTRY_PROFILES_1511,\n    "02b0": COUNTRY_PROFILES_GEN3_GEN4,\n    "1097": COUNTRY_PROFILES_GEN3_GEN4,\n}\n\n\ndef country_profile_raw_value(\n    protocol: str, data: Mapping[str, Any]\n) -> int | None:\n    """Return the raw country/profile code for one runtime protocol."""\n    key = COUNTRY_PROFILE_SOURCE_KEYS.get(protocol.lower())\n    if key is None:\n        return None\n    value = data.get(key)\n    if isinstance(value, bool) or not isinstance(value, int):\n        return None\n    return value\n\n\ndef country_profile_name(protocol: str, raw_code: int) -> str | None:\n    """Return a protocol-specific native country/profile name."""\n    profiles = COUNTRY_PROFILES_BY_PROTOCOL.get(protocol.lower())\n    if profiles is None:\n        return None\n    return profiles.get(raw_code)\n\n\ndef country_profile_state(\n    protocol: str, data: Mapping[str, Any]\n) -> str | None:\n    """Return ``code (native name)`` while preserving unknown raw codes."""\n    raw_code = country_profile_raw_value(protocol, data)\n    if raw_code is None:\n        return None\n    name = country_profile_name(protocol, raw_code)\n    return f"{raw_code} ({name})" if name is not None else str(raw_code)\n''', encoding='utf-8')
+
+          # ------------------------------------------------------------------
+          # Home Assistant sensor presentation and activity-noise defaults.
+          # ------------------------------------------------------------------
+          sensor_path = root / 'custom_components/tsun_local/sensor.py'
+          sensor = sensor_path.read_text(encoding='utf-8')
+
+          old = 'from .coordinator import TsunCoordinator\nfrom .daily_energy import DailyEnergyTracker, energy_value\n'
+          new = 'from .coordinator import TsunCoordinator\nfrom .country_profiles import country_profile_raw_value, country_profile_state\nfrom .daily_energy import DailyEnergyTracker, energy_value\n'
+          if old not in sensor:
+              raise SystemExit('sensor import anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          old = '''        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n        register_address=register_address,\n'''
+          new = '''        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n        entity_registry_visible_default=False,\n        register_address=register_address,\n'''
+          if old not in sensor:
+              raise SystemExit('_raw_alarm anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          raw_register_start = sensor.index('def _raw_register(')
+          raw_register_end = sensor.index('\n\ndef _diagnostic_power', raw_register_start)
+          raw_register = sensor[raw_register_start:raw_register_end]
+          old = '        entity_category=EntityCategory.DIAGNOSTIC,\n        register_address=register_address,\n'
+          new = '        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_visible_default=False,\n        register_address=register_address,\n'
+          if old not in raw_register:
+              raise SystemExit('_raw_register anchor not found')
+          raw_register = raw_register.replace(old, new, 1)
+          sensor = sensor[:raw_register_start] + raw_register + sensor[raw_register_end:]
+
+          advanced_start = sensor.index('def _advanced_diagnostic(')
+          advanced_end = sensor.index('\n\ndef _field_validation_diagnostic', advanced_start)
+          advanced = sensor[advanced_start:advanced_end]
+          old = '        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n'
+          new = '        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_enabled_default=False,\n        entity_registry_visible_default=not key.endswith("_raw"),\n'
+          if old not in advanced:
+              raise SystemExit('_advanced_diagnostic anchor not found')
+          advanced = advanced.replace(old, new, 1)
+          sensor = sensor[:advanced_start] + advanced + sensor[advanced_end:]
+
+          old = 'DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS\n'
+          new = 'DIAGNOSTIC_SENSOR_KEYS = (\n    COMMUNICATION_SENSOR_KEYS\n    | LOGGER_METADATA_SENSOR_KEYS\n    | frozenset({"country_profile"})\n)\n'
+          if old not in sensor:
+              raise SystemExit('DIAGNOSTIC_SENSOR_KEYS anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          # Register metadata for the normalized profile entity and the 1511 raw source.
+          sensor = sensor.replace(
+              '        "inverter_status_raw": "3000 (0x0BB8)",\n',
+              '        "inverter_status_raw": "3000 (0x0BB8)",\n        "country_profile": "2000 (0x07D0)",\n        "country_profile_raw": "2000 (0x07D0)",\n',
+              1,
+          )
+          sensor = sensor.replace(
+              '        "product_compliance_type_raw": "0x2010",\n',
+              '        "product_compliance_type_raw": "0x2010",\n        "country_profile": "0x2010",\n',
+              1,
+          )
+          sensor = sensor.replace(
+              '        "country_profile_raw": "0x1400",\n',
+              '        "country_profile_raw": "0x1400",\n        "country_profile": "0x1400",\n',
+              1,
+          )
+
+          old = '''    TsunSensorDescription(\n        key="inverter_operating_state",\n'''
+          new = '''    TsunSensorDescription(\n        key="country_profile",\n        suggested_object_id="country_profile",\n        translation_key="country_profile",\n        icon="mdi:earth",\n        entity_category=EntityCategory.DIAGNOSTIC,\n    ),\n    TsunSensorDescription(\n        key="inverter_operating_state",\n'''
+          if old not in sensor:
+              raise SystemExit('country profile description anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          old = '''        device_class=SensorDeviceClass.TIMESTAMP,\n        entity_category=EntityCategory.DIAGNOSTIC,\n    ),\n    TsunSensorDescription(\n        key="communication_duration",\n'''
+          new = '''        device_class=SensorDeviceClass.TIMESTAMP,\n        entity_category=EntityCategory.DIAGNOSTIC,\n        entity_registry_visible_default=False,\n    ),\n    TsunSensorDescription(\n        key="communication_duration",\n'''
+          if old not in sensor:
+              raise SystemExit('communication_last_success anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          old = '''        if self.entity_description.key == "active_alarm_names":\n            return active_alarm_state(\n                self.coordinator.data,\n                self.coordinator.hass.config.language,\n            )\n        key = self.entity_description.key\n'''
+          new = '''        if self.entity_description.key == "active_alarm_names":\n            return active_alarm_state(\n                self.coordinator.data,\n                self.coordinator.hass.config.language,\n            )\n        if self.entity_description.key == "country_profile":\n            protocol_name = str(\n                getattr(self.coordinator.client, "protocol_name", "")\n            )\n            return country_profile_state(protocol_name, self.coordinator.data)\n        key = self.entity_description.key\n'''
+          if old not in sensor:
+              raise SystemExit('native_value anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          old = '''        if self.entity_description.key == "alarm_active_count":\n            return alarm_state_attributes(\n                self.coordinator.data,\n                self.coordinator.hass.config.language,\n            )\n        address = self._source_register_address()\n'''
+          new = '''        if self.entity_description.key == "alarm_active_count":\n            return alarm_state_attributes(\n                self.coordinator.data,\n                self.coordinator.hass.config.language,\n            )\n        if self.entity_description.key == "country_profile":\n            protocol_name = str(\n                getattr(self.coordinator.client, "protocol_name", "")\n            )\n            raw_code = country_profile_raw_value(\n                protocol_name, self.coordinator.data\n            )\n            if raw_code is None:\n                return None\n            return {\n                "raw_code": raw_code,\n                "register_address": self._source_register_address(),\n            }\n        address = self._source_register_address()\n'''
+          if old not in sensor:
+              raise SystemExit('extra_state_attributes anchor not found')
+          sensor = sensor.replace(old, new, 1)
+
+          old = '''        key = self.entity_description.key\n        if self._source_register_address() is not None:\n'''
+          new = '''        key = self.entity_description.key\n        if key == "country_profile":\n            protocol_name = str(\n                getattr(self.coordinator.client, "protocol_name", "")\n            )\n            return (\n                super().available\n                and country_profile_raw_value(\n                    protocol_name, self.coordinator.data\n                )\n                is not None\n            )\n        if self._source_register_address() is not None:\n'''
+          if old not in sensor:
+              raise SystemExit('available anchor not found')
+          sensor = sensor.replace(old, new, 1)
+          sensor_path.write_text(sensor, encoding='utf-8')
+
+          # ------------------------------------------------------------------
+          # One-time registry migration for existing installs. New entries use
+          # visible_default=False directly; existing visible raw/last-response
+          # entities are hidden once, after which a user's explicit unhide is
+          # respected on subsequent restarts.
+          # ------------------------------------------------------------------
+          init_path = root / 'custom_components/tsun_local/__init__.py'
+          init = init_path.read_text(encoding='utf-8')
+          old = 'LOGGER_METADATA_REFRESH_INTERVAL = timedelta(minutes=5)\n'
+          new = '''LOGGER_METADATA_REFRESH_INTERVAL = timedelta(minutes=5)\n_ACTIVITY_VISIBILITY_VERSION_KEY = "_activity_visibility_version"\n_ACTIVITY_VISIBILITY_VERSION = 1\n'''
+          if old not in init:
+              raise SystemExit('__init__ constant anchor not found')
+          init = init.replace(old, new, 1)
+
+          anchor = '\n\ndef _async_migrate_141_entity_registry(\n'
+          idx = init.index(anchor)
+          helper = '''\n\ndef _async_migrate_activity_visibility(\n    hass: HomeAssistant, entry: TsunConfigEntry, logger_sn: str\n) -> None:\n    """Hide high-churn/raw diagnostics once without disabling recording."""\n    if (\n        int(entry.data.get(_ACTIVITY_VISIBILITY_VERSION_KEY, 0))\n        >= _ACTIVITY_VISIBILITY_VERSION\n    ):\n        return\n\n    registry = er.async_get(hass)\n    unique_prefix = f"{logger_sn}_"\n    for registry_entry in er.async_entries_for_config_entry(\n        registry, entry.entry_id\n    ):\n        if not registry_entry.entity_id.startswith("sensor."):\n            continue\n        if not registry_entry.unique_id.startswith(unique_prefix):\n            continue\n        key = registry_entry.unique_id[len(unique_prefix) :]\n        if key != "communication_last_success" and not key.endswith("_raw"):\n            continue\n        if registry_entry.hidden_by is not None:\n            continue\n        registry.async_update_entity(\n            registry_entry.entity_id,\n            hidden_by=er.RegistryEntryHider.INTEGRATION,\n        )\n\n    data = dict(entry.data)\n    data[_ACTIVITY_VISIBILITY_VERSION_KEY] = _ACTIVITY_VISIBILITY_VERSION\n    hass.config_entries.async_update_entry(entry, data=data)\n'''
+          init = init[:idx] + helper + init[idx:]
+
+          old = '''    _async_remove_removed_beta_entities(hass, logger_sn)\n    _async_remove_legacy_raw_profile_entity(hass, logger_sn)\n    _async_migrate_141_entity_registry(hass, logger_sn)\n'''
+          new = '''    _async_remove_removed_beta_entities(hass, logger_sn)\n    _async_remove_legacy_raw_profile_entity(hass, logger_sn)\n    _async_migrate_141_entity_registry(hass, logger_sn)\n    _async_migrate_activity_visibility(hass, entry, logger_sn)\n'''
+          if old not in init:
+              raise SystemExit('__init__ setup migration anchor not found')
+          init = init.replace(old, new, 1)
+          init_path.write_text(init, encoding='utf-8')
+
+          # ------------------------------------------------------------------
+          # Entity-name translations. Country names in the entity state remain
+          # native/endonym labels and are deliberately not localized by HA.
+          # ------------------------------------------------------------------
+          labels = {
+              'strings.json': 'Country / grid profile',
+              'en.json': 'Country / grid profile',
+              'fr.json': 'Pays / profil réseau',
+              'de.json': 'Land / Netzprofil',
+              'es.json': 'País / perfil de red',
+              'it.json': 'Paese / profilo di rete',
+              'nl.json': 'Land / netprofiel',
+              'pl.json': 'Kraj / profil sieci',
+              'zh-Hans.json': '国家 / 电网配置',
+          }
+          for filename, label in labels.items():
+              path = (root / 'custom_components/tsun_local' / filename) if filename == 'strings.json' else (root / 'custom_components/tsun_local/translations' / filename)
+              text = path.read_text(encoding='utf-8')
+              if '"country_profile": {' in text:
+                  continue
+              needle = '      "country_profile_raw": {\n'
+              if needle not in text:
+                  raise SystemExit(f'country_profile_raw anchor not found in {filename}')
+              block = f'      "country_profile": {{\n        "name": "{label}"\n      }},\n'
+              text = text.replace(needle, block + needle, 1)
+              path.write_text(text, encoding='utf-8')
+
+          # ------------------------------------------------------------------
+          # Documentation/changelog.
+          # ------------------------------------------------------------------
+          changelog_path = root / 'CHANGELOG.md'
+          changelog = changelog_path.read_text(encoding='utf-8')
+          anchor = '- Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized alarm **Low solar input** with stable code `1511-A030`. Keep the existing non-fault handling when this low-solar status is the only active bit.\n'
+          addition = anchor + '- Add a protocol-aware `country_profile` diagnostic that keeps the numeric code and appends a native country/grid-profile name when known, including 1511 evidence for `2 (Deutschland)`, `6 (Polska)` and `8 (France)`.\n- Reduce Home Assistant Activity noise across 1511, 02B0 and 1097 by hiding `communication_last_success` and raw `*_raw` diagnostics from normal UI visibility while keeping them available for diagnostics; existing entries are migrated once and user unhide choices are respected afterwards.\n'
+          if anchor not in changelog:
+              raise SystemExit('changelog anchor not found')
+          if 'protocol-aware `country_profile` diagnostic' not in changelog:
+              changelog = changelog.replace(anchor, addition, 1)
+          changelog_path.write_text(changelog, encoding='utf-8')
+
+          entities_path = root / 'docs/ENTITIES.md'
+          entities = entities_path.read_text(encoding='utf-8')
+          entities = entities.replace(
+              '| `communication_last_success` | Communication — Last response | ✅ |',
+              '| `communication_last_success` | Communication — Last response | ✅ · hidden |',
+          )
+          entities = entities.replace(
+              '| `communication_last_success` | Last successful communication | timestamp | ✅ |',
+              '| `communication_last_success` | Last successful communication | timestamp | ✅ · hidden |',
+          )
+          if '`country_profile` | Country / grid profile' not in entities:
+              entities = entities.replace(
+                  '| `max_designed_power` | Maximum designed power | W | ✅ |\n',
+                  '| `max_designed_power` | Maximum designed power | W | ✅ |\n| `country_profile` | Country / grid profile | text (`code (native name)`) | ✅ |\n',
+                  1,
+              )
+          old_country = '- `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.\n'
+          new_country = '- `country_profile_raw` is read on 1511 from `2000 / 0x07D0`. The TSUN Local dump archive now contains three independent MP3000 units with raw `6` and two MP3000 units with raw `8`. Cloud-side TSUN/Talent profile evidence aligns these with `6 = Polska` and `8 = France`; the same evidence links `2 = Deutschland`. The normalized `country_profile` sensor presents these as `code (native name)` while preserving the raw diagnostic separately.\n'
+          if old_country in entities:
+              entities = entities.replace(old_country, new_country, 1)
+          entities = entities.replace(
+              '| `country_profile_raw` | Country/profile code | `2000 / 0x07D0` candidate | raw (`8` observed for France) |',
+              '| `country_profile_raw` | Country/profile code | `2000 / 0x07D0` | raw (`6` and `8` observed on MP3000 dumps) |',
+          )
+          old_tail = 'The exported TSUN/Talent country `raw_value = 1008` is retained as profile evidence only and is **not** used as the local country enum. The local semantic reference used for research is France=`8` from Stefan Allius\'s public 1097 country table.\n'
+          new_tail = 'The exported TSUN/Talent values `1002`, `1006` and `1008` are retained as profile evidence and are not used directly as local register values. Combined with the independent local dumps, TSUN Local currently presents the 1511 codes `2 (Deutschland)`, `6 (Polska)` and `8 (France)`; unknown codes remain numeric only.\n'
+          if old_tail in entities:
+              entities = entities.replace(old_tail, new_tail, 1)
+          if 'Activity cleanup' not in entities:
+              marker = 'Logger Wi-Fi remains diagnostic only.'
+              note = '### Activity cleanup\n\nTo keep Home Assistant Activity useful, `communication_last_success` and raw `*_raw` diagnostics are hidden from normal UI visibility by default across 1511, 02B0 and 1097. They are not removed: users can reveal them from entity settings, and existing enabled entities continue to be recorded. Meaningful states such as online/offline, adaptive polling state, operating state and decoded alarm names remain visible.\n\n'
+              pos = entities.find(marker)
+              if pos != -1:
+                  entities = entities[:pos] + note + entities[pos:]
+          entities_path.write_text(entities, encoding='utf-8')
+
+          field_path = root / 'docs/MP3000_FIELD_VALIDATION.md'
+          field = field_path.read_text(encoding='utf-8')
+          section_start = field.index('## Country/profile evidence\n')
+          section_end = field.index('\n## Grid connection / reconnection pair', section_start)
+          replacement = '''## Country/profile evidence\n\nThe TSUN/Talent profile export and the independent TSUN Local hardware-dump archive now provide cross-checkable 1511 evidence. The export uses values in the 1000-range while the local A1/21 register uses the compact code itself. Current evidence aligns:\n\n| Local 1511 code | Cloud/profile evidence | Native display name | Local hardware evidence |\n|---:|---:|---|---|\n| `2` | `1002` | `Deutschland` | cloud/profile evidence; local 1511 dump still requested |\n| `6` | `1006` | `Polska` | three independent TSOL-MP3000 dumps |\n| `8` | `1008` | `France` | two independent TSOL-MP3000 dumps |\n\nThe local source is A1/21 register `2000 / 0x07D0`. Three MP3000 captures from one independent installation read `6`, while the France-configured reference MP3000 and a second independent MP3000 read `8`. This is enough to treat `6 = Polska` and `8 = France` as hardware-supported mappings while keeping code `2 = Deutschland` cloud/profile-backed until a matching local 1511 dump is collected.\n\nTSUN Local therefore exposes two complementary diagnostics: `country_profile_raw` keeps the untouched local integer and `country_profile` shows `code (native name)` when the protocol-specific mapping is known. Unknown 1511 codes remain numeric only. No country/profile write is implemented.\n'''
+          field = field[:section_start] + replacement + field[section_end:]
+          field_path.write_text(field, encoding='utf-8')
+
+          # ------------------------------------------------------------------
+          # Regression tests.
+          # ------------------------------------------------------------------
+          test_country = root / 'tests/test_country_profiles.py'
+          test_country.write_text('''# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)\n# SPDX-License-Identifier: GPL-3.0-or-later\n\n"""Regression tests for protocol-aware country/grid-profile labels."""\n\nfrom __future__ import annotations\n\nimport importlib.util\nfrom pathlib import Path\nimport unittest\n\nROOT = Path(__file__).parents[1]\nMODULE_PATH = ROOT / "custom_components/tsun_local/country_profiles.py"\nSPEC = importlib.util.spec_from_file_location("tsun_country_profiles", MODULE_PATH)\nassert SPEC is not None and SPEC.loader is not None\nMODULE = importlib.util.module_from_spec(SPEC)\nSPEC.loader.exec_module(MODULE)\n\n\nclass CountryProfileTests(unittest.TestCase):\n    def test_1511_hardware_backed_profiles(self) -> None:\n        self.assertEqual(MODULE.country_profile_state("1511", {"country_profile_raw": 6}), "6 (Polska)")\n        self.assertEqual(MODULE.country_profile_state("1511", {"country_profile_raw": 8}), "8 (France)")\n        self.assertEqual(MODULE.country_profile_state("1511", {"country_profile_raw": 2}), "2 (Deutschland)")\n\n    def test_1511_unknown_code_stays_numeric(self) -> None:\n        self.assertEqual(MODULE.country_profile_state("1511", {"country_profile_raw": 99}), "99")\n\n    def test_02b0_uses_product_compliance_source(self) -> None:\n        self.assertEqual(MODULE.country_profile_state("02b0", {"product_compliance_type_raw": 16}), "16 (United Kingdom)")\n        self.assertIsNone(MODULE.country_profile_state("02b0", {"country_profile_raw": 8}))\n\n    def test_1097_uses_gen4_country_source(self) -> None:\n        self.assertEqual(MODULE.country_profile_state("1097", {"country_profile_raw": 2}), "2 (Deutschland)")\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
+
+          test_activity = root / 'tests/test_activity_visibility.py'
+          test_activity.write_text('''# Copyright (C) 2026 Jean-Philippe TESTART (jptstar)\n# SPDX-License-Identifier: GPL-3.0-or-later\n\n"""Regression tests for Home Assistant Activity noise reduction."""\n\nfrom __future__ import annotations\n\nfrom pathlib import Path\nimport unittest\n\nROOT = Path(__file__).parents[1]\n\n\nclass ActivityVisibilityTests(unittest.TestCase):\n    def test_raw_helpers_are_hidden_without_removing_entities(self) -> None:\n        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(encoding="utf-8")\n        raw_alarm = source[source.index("def _raw_alarm("):source.index("def _raw_register(")]\n        raw_register = source[source.index("def _raw_register("):source.index("def _diagnostic_power(")]\n        advanced = source[source.index("def _advanced_diagnostic("):source.index("def _field_validation_diagnostic(")]\n        self.assertIn("entity_registry_visible_default=False", raw_alarm)\n        self.assertIn("entity_registry_visible_default=False", raw_register)\n        self.assertIn('entity_registry_visible_default=not key.endswith("_raw")', advanced)\n\n    def test_last_success_is_hidden_but_enabled(self) -> None:\n        source = (ROOT / "custom_components/tsun_local/sensor.py").read_text(encoding="utf-8").splitlines()\n        key_line = '        key="communication_last_success",'\n        index = source.index(key_line)\n        start = index\n        while source[start] != "    TsunSensorDescription(":\n            start -= 1\n        end = index\n        while source[end] != "    ),":\n            end += 1\n        block = source[start:end]\n        self.assertIn("        entity_registry_visible_default=False,", block)\n        self.assertNotIn("        entity_registry_enabled_default=False,", block)\n\n    def test_existing_entries_get_one_time_visibility_migration(self) -> None:\n        source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8")\n        self.assertIn('key != "communication_last_success" and not key.endswith("_raw")', source)\n        self.assertIn("RegistryEntryHider.INTEGRATION", source)\n        self.assertIn("_ACTIVITY_VISIBILITY_VERSION_KEY", source)\n\n\nif __name__ == "__main__":\n    unittest.main()\n''', encoding='utf-8')
+
+          # Update the existing release-contract expectation: last-success remains
+          # enabled, but is intentionally hidden from normal UI visibility.
+          contract_path = root / 'tests/test_beta2_release_contract.py'
+          contract = contract_path.read_text(encoding='utf-8')
+          contract = contract.replace(
+              'visible = {"communication_last_success", "communication_failures", "adaptive_polling_interval", "adaptive_polling_state"}',
+              'visible = {"communication_failures", "adaptive_polling_interval", "adaptive_polling_state"}',
+          )
+          old = '''        for key in visible:\n            self.assertNotIn("        entity_registry_enabled_default=False,", block(key), key)\n        for key in advanced:\n'''
+          new = '''        for key in visible:\n            self.assertNotIn("        entity_registry_enabled_default=False,", block(key), key)\n        last_success = block("communication_last_success")\n        self.assertNotIn("        entity_registry_enabled_default=False,", last_success)\n        self.assertIn("        entity_registry_visible_default=False,", last_success)\n        for key in advanced:\n'''
+          if old not in contract:
+              raise SystemExit('release contract activity anchor not found')
+          contract = contract.replace(old, new, 1)
+          contract_path.write_text(contract, encoding='utf-8')
+          PY
+
+      - name: Remove one-time workflow
+        run: rm .github/workflows/apply-activity-country-temp.yml
+
+      - name: Validate source
+        run: |
+          set -euo pipefail
+          python -m compileall -q custom_components tests
+          python -m unittest discover -s tests -v
+          git diff --check
+
+      - name: Commit prepared changes
+        run: |
+          set -euo pipefail
+          git config user.name "jptstar"
+          git config user.email "dev@jptstar.com"
+          git add -A
+          git commit -m "Reduce activity noise and add country profiles"
+          git push origin HEAD:feature/1.6.2-activity-country-profile
