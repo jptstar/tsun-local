@@ -31,6 +31,7 @@ from tsun_local_protocol_coverage_tests.protocol_02b0 import (  # noqa: E402
 )
 from tsun_local_protocol_coverage_tests.protocol_1097 import (  # noqa: E402
     BLOCKS as BLOCKS_1097,
+    MODEL as MODEL_1097,
     SENSOR_LIST as SENSOR_LIST_1097,
     SLOW_BLOCKS as SLOW_BLOCKS_1097,
 )
@@ -46,6 +47,7 @@ class ProtocolCoverage162Tests(unittest.TestCase):
         self.assertTrue(all(function == 0x03 for function, _, _ in BLOCKS_02B0))
 
     def test_1097_family_remains_complete_and_read_only(self) -> None:
+        self.assertEqual(MODEL_1097, "GEN4")
         self.assertEqual(SENSOR_LIST_1097, 0x1097)
         self.assertEqual(
             BLOCKS_1097,
@@ -63,7 +65,10 @@ class ProtocolCoverage162Tests(unittest.TestCase):
             ),
         )
         self.assertTrue(
-            all(function == 0x03 for function, _, _ in (*BLOCKS_1097, *SLOW_BLOCKS_1097))
+            all(
+                function == 0x03
+                for function, _, _ in (*BLOCKS_1097, *SLOW_BLOCKS_1097)
+            )
         )
 
 
