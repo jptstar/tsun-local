@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The project follows [Se
 
 - Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized alarm **Low solar input** with stable code `1511-A030`. Keep the existing non-fault handling when this low-solar status is the only active bit.
 - Add a protocol-aware `country_profile` diagnostic that keeps the numeric code and appends a native country/grid-profile name when known, including 1511 evidence for `2 (Deutschland)`, `6 (Polska)` and `8 (France)`.
-- Reduce Home Assistant Activity noise across 1511, 02B0 and 1097 by hiding `communication_last_success` and raw `*_raw` diagnostics from normal UI visibility while keeping them available for diagnostics; existing entries are migrated once and user unhide choices are respected afterwards.
+- Reduce Home Assistant Activity noise across 1511, 02B0 and 1097 by publishing the visible `communication_last_success` timestamp at most every five minutes, hiding it and raw `*_raw` diagnostics from normal UI visibility while keeping exact last-success timing in diagnostics; existing entries are migrated once and user unhide choices are respected afterwards.
 
 ## [1.6.1] - 2026-09-10
 

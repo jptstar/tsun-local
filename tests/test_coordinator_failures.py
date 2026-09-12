@@ -210,6 +210,52 @@ class CoordinatorFailureTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertFalse(coordinator.diagnostic_summary["wifi_controls_online"])
 
+    async def test_last_success_entity_is_throttled_but_diagnostics_stay_exact(self) -> None:
+        times = iter(
+            (
+                datetime(2026, 8, 11, 12, 0, tzinfo=timezone.utc),
+                datetime(2026, 8, 11, 12, 0, 20, tzinfo=timezone.utc),
+                datetime(2026, 8, 11, 12, 5, tzinfo=timezone.utc),
+            )
+        )
+        original_utcnow = COORDINATOR.dt_util.utcnow
+        COORDINATOR.dt_util.utcnow = lambda: next(times)
+        try:
+            client = _Client(
+                [
+                    _ReadResult({"ac_power": 400}),
+                    _ReadResult({"ac_power": 410}),
+                    _ReadResult({"ac_power": 420}),
+                ]
+            )
+            coordinator = COORDINATOR.TsunCoordinator(
+                object(), object(), client, 20, 25, 300, 3, asyncio.Lock()
+            )
+            first = await coordinator._async_update_data()
+            coordinator.data = first
+            second = await coordinator._async_update_data()
+            coordinator.data = second
+            third = await coordinator._async_update_data()
+
+            self.assertEqual(
+                first["communication_last_success"],
+                datetime(2026, 8, 11, 12, 0, tzinfo=timezone.utc),
+            )
+            self.assertEqual(
+                second["communication_last_success"],
+                first["communication_last_success"],
+            )
+            self.assertEqual(
+                third["communication_last_success"],
+                datetime(2026, 8, 11, 12, 5, tzinfo=timezone.utc),
+            )
+            self.assertEqual(
+                coordinator.diagnostic_summary["last_success"],
+                "2026-08-11T12:05:00+00:00",
+            )
+        finally:
+            COORDINATOR.dt_util.utcnow = original_utcnow
+
     async def test_refreshed_serial_updates_log_prefix(self) -> None:
         client = _Client([_ReadResult({"ac_power": 400})])
         coordinator = COORDINATOR.TsunCoordinator(

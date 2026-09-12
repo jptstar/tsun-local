@@ -36,7 +36,7 @@ TSUN Local 1.6.0 enables **adaptive polling by default** for entries without an 
 
 ### Activity cleanup
 
-To keep Home Assistant Activity useful, `communication_last_success` and raw `*_raw` diagnostics are hidden from normal UI visibility by default across 1511, 02B0 and 1097. They are not removed: users can reveal them from entity settings, and existing enabled entities continue to be recorded. Meaningful states such as online/offline, adaptive polling state, operating state and decoded alarm names remain visible.
+To keep Home Assistant Activity useful, the public `communication_last_success` entity is updated at most every five minutes and, together with raw `*_raw` diagnostics, is hidden from normal UI visibility by default across 1511, 02B0 and 1097. The exact last-success time remains available in integration diagnostics. These entities are not removed: users can reveal them from entity settings, and existing enabled entities continue to be recorded. Meaningful states such as online/offline, adaptive polling state, operating state and decoded alarm names remain visible.
 
 Logger Wi-Fi remains diagnostic only. If the periodic HTTP refresh cannot obtain a current signal, TSUN Local 1.6.0 exposes **0%** instead of leaving the previous percentage visible. Online/offline state and adaptive pacing remain driven by protocol communication results.
 
