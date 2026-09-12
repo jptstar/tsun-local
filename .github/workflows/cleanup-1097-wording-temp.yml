@@ -1,0 +1,156 @@
+name: Cleanup 1097 supported wording
+
+on:
+  push:
+    branches:
+      - cleanup/1097-supported-wording
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: ${{ !contains(github.event.head_commit.message, '[1097-cleanup-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: cleanup/1097-supported-wording
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Remove experimental wording from 1097
+        shell: python
+        run: |
+          from pathlib import Path
+          import json
+          import re
+
+          root = Path('.')
+
+          # Home Assistant selector labels: preserve each language, only remove
+          # the obsolete experimental suffix from protocol 1097.
+          component = root / 'custom_components/tsun_local'
+          json_paths = [component / 'strings.json', *sorted((component / 'translations').glob('*.json'))]
+          for path in json_paths:
+              data = json.loads(path.read_text(encoding='utf-8'))
+              options = data.get('selector', {}).get('protocol', {}).get('options', {})
+              value = options.get('1097')
+              if isinstance(value, str):
+                  value = re.sub(r'\s+—\s+[^—]+$', '', value).strip()
+                  options['1097'] = value
+              path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+          # Code/comments and entity metadata: 1097 itself is supported GEN4.
+          # A still-unconfirmed individual field is described as field validation,
+          # not as making the protocol experimental.
+          replacements = {
+              '# Experimental 1097 power-level field.': '# 1097 power-level field retained for field validation.',
+              '"output_coefficient": "0x1423 — experimental"': '"output_coefficient": "0x1423 — field validation"',
+              '1097 / GEN3 / GEN3 PLUS': '1097 / GEN4',
+              'Experimental 1097 / GEN4 support': '1097 / GEN4 support',
+              '### 1097 / GEN4 — experimental': '### 1097 / GEN4 — supported',
+              '**1097 / GEN4** — new experimental protocol support for community validation.': '**1097 / GEN4** — supported local protocol family.',
+              '**1097 / GEN4:** experimental.': '**1097 / GEN4:** supported.',
+              '**1097 / GEN4:** experimental; public mapping research is credited to Stefan Allius.': '**1097 / GEN4:** supported.',
+              '**1097** remains experimental while broader independent validation continues.': '**1097 / GEN4** is supported and validated on Sunology PLAY2 (GEN4).',
+              'Expose the 1097 power-level diagnostic as part of the experimental 1097 mapping.': 'Expose the 1097 power-level diagnostic as a field-validation candidate.',
+              'Individual fields that still require semantic confirmation remain explicitly marked as field-validation candidates rather than making the whole protocol experimental.': 'Individual fields that still require semantic confirmation remain explicitly marked as field-validation candidates.',
+              'experimental 1097 mapping': '1097 field-validation mapping',
+              'Experimental 1097': '1097',
+              '1097 experimental': '1097 supported',
+              '1097 — experimental': '1097 — supported',
+              '1097 / GEN4 — experimental': '1097 / GEN4 — supported',
+          }
+
+          # Localized README credit wording tied specifically to 1097.
+          localized = {
+              'experimental validation': 'validation',
+              'validation expérimentale': 'validation',
+              'experimentelle Validierung': 'Validierung',
+              'validación experimental': 'validación',
+              'validazione sperimentale': 'validazione',
+              'experimentele validatie': 'validatie',
+              'walidacji eksperymentalnej': 'walidacji',
+              '实验性验证': '验证',
+          }
+
+          text_suffixes = {'.py', '.md', '.html', '.json', '.yml', '.yaml', '.txt'}
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts or path.suffix.lower() not in text_suffixes:
+                  continue
+              if path == root / '.github/workflows/cleanup-1097-wording-temp.yml':
+                  continue
+              try:
+                  text = path.read_text(encoding='utf-8')
+              except UnicodeDecodeError:
+                  continue
+              original = text
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+
+              # Only alter localized experimental-validation wording on lines
+              # that actually discuss 1097, leaving unrelated experimental work intact.
+              lines = []
+              for line in text.splitlines(keepends=True):
+                  if '1097' in line:
+                      for old, new in localized.items():
+                          line = line.replace(old, new)
+                  lines.append(line)
+              text = ''.join(lines)
+
+              # Website compatibility card: if any stale 1097 card still carries
+              # the old experimental badge, promote only that card to validated.
+              if path.as_posix() == 'docs/index.html':
+                  def promote_1097_card(match: re.Match[str]) -> str:
+                      block = match.group(0)
+                      if '1097' not in block:
+                          return block
+                      block = block.replace('compat-status experimental', 'compat-status validated')
+                      block = re.sub(r'>Experimental<', '>Validated<', block, flags=re.IGNORECASE)
+                      return block
+                  text = re.sub(r'<div class="compat-item">.*?</div>\s*</div>', promote_1097_card, text, flags=re.DOTALL)
+
+              if text != original:
+                  path.write_text(text, encoding='utf-8')
+
+          # Hard guard: no line may describe 1097 itself as experimental in any
+          # supported language. Field-validation wording is allowed.
+          experimental_terms = (
+              'experimental', 'expérimental', 'experimentell', 'sperimentale',
+              'experimenteel', 'eksperymental', '实验性',
+          )
+          offenders = []
+          for path in root.rglob('*'):
+              if not path.is_file() or '.git' in path.parts or path.suffix.lower() not in text_suffixes:
+                  continue
+              if path == root / '.github/workflows/cleanup-1097-wording-temp.yml':
+                  continue
+              try:
+                  lines = path.read_text(encoding='utf-8').splitlines()
+              except UnicodeDecodeError:
+                  continue
+              for number, line in enumerate(lines, 1):
+                  low = line.lower()
+                  if '1097' in low and any(term in low for term in experimental_terms):
+                      offenders.append(f'{path}:{number}: {line.strip()}')
+          if offenders:
+              raise SystemExit('Remaining 1097 experimental wording:\n' + '\n'.join(offenders))
+
+      - name: Run validation
+        run: |
+          python -m compileall -q custom_components tests
+          python -m unittest discover -s tests -p 'test_*.py'
+          git diff --check
+
+      - name: Commit cleanup
+        run: |
+          git config user.name "JP"
+          git config user.email "dev@jptstar.com"
+          git add -A
+          git reset .github/workflows/cleanup-1097-wording-temp.yml
+          git commit -m "[1097-cleanup-applied] Remove experimental wording from supported 1097"
+          git push origin HEAD:cleanup/1097-supported-wording
