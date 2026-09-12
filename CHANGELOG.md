@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized alarm **Low solar input** with stable code `1511-A030`. Keep the existing non-fault handling when this low-solar status is the only active bit.
+
 ## [1.6.1] - 2026-09-10
 
 ### Fixed

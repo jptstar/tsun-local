@@ -132,7 +132,7 @@ These entities are available across the supported protocol families when the cor
 - In 1.5.1, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
 - `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.
 - The adjacent `0x07D1 = 80` and `0x07D2 = 80` values are documented as the leading pair for the two TSUN/Talent 40.0 s grid connection/reconnection settings with candidate scaling `×0.5 s`. They are **not exposed as separately named Home Assistant entities yet**, because their individual order cannot be proven while both settings have the same value.
-- On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.
+- On validated MP3000 hardware, raw `8192` (`0x2000`) in `alarm_global_1_raw` is repeatedly observed at dawn, dusk and very low irradiance. TSUN documentation describes the corresponding low-PV warning as a normal morning/dusk condition, so TSUN Local maps bit 13 to **`1511-A030 — Low solar input`** (localized in Home Assistant). When this is the only active bit it remains a non-fault operating condition and `inverter_operating_state` reports **Standby — low solar input**.
 
 ## 1511 MP3000 alarm catalogue
 
@@ -140,11 +140,11 @@ The independent local catalogue contains all **224 positions** exposed by the 14
 
 | Catalogue range | Positions | Validation |
 |---|---:|---|
-| `A001`–`A064` | 64 inverter positions | Control-hardware validation required |
+| `A001`–`A064` | 64 inverter positions | 1 low-solar status mapped · 63 require validation |
 | `A065`–`A128` | 64 controller positions | Control-hardware validation required |
 | `A129`–`A224` | 96 PV positions | 12 hardware-observed · 84 require control-hardware validation |
 
-The 12 hardware-observed mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `active_alarm_names` entity publishes the localized alarm text directly; `alarm_active_count` remains the numeric count. Stable Axxx codes are retained only as internal/debug identifiers. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
+The catalogue now has 13 identified mappings: `1511-A030` for low solar input plus low PV input voltage and PV DSP faults for PV1 through PV6. The other 211 positions remain fully active and use neutral local wording until their exact meaning is physically validated. The `active_alarm_names` entity publishes the localized alarm text directly; `alarm_active_count` remains the numeric count. Stable Axxx codes are retained only as internal/debug identifiers. The wording is maintained by TSUN Local and is not represented as vendor-certified server terminology.
 
 ## 1511 PV entities
 
