@@ -1,0 +1,113 @@
+name: Apply 1511 low-solar alarm mapping
+
+on:
+  push:
+    branches:
+      - feature/1.6.2-1511-low-solar-alarm
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[low-solar-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/1.6.2-1511-low-solar-alarm
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Apply mapping and documentation updates
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one occurrence, found {count}: {old!r}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          root = Path('.')
+          catalog = root / 'custom_components/tsun_local/alarm_catalog.py'
+
+          replace_once(
+              catalog,
+              '# 1511 meanings are limited to direct hardware observations.\n_IDENTIFIED_1511: dict[tuple[str, int], str] = {\n',
+              '# 1511 meanings are limited to TSUN-documented or directly observed behavior.\n_IDENTIFIED_1511: dict[tuple[str, int], str] = {\n    ("alarm_global_1_raw", 13): "low_solar_input",\n',
+          )
+
+          translations = {
+              'en': 'Low solar input',
+              'fr': 'Entrée solaire insuffisante',
+              'de': 'Zu geringe Solareinstrahlung',
+              'es': 'Entrada solar insuficiente',
+              'it': 'Ingresso solare insufficiente',
+              'nl': 'Onvoldoende zonne-invoer',
+              'pl': 'Niewystarczające nasłonecznienie',
+              'zh-hans': '太阳能输入不足',
+          }
+          text = catalog.read_text(encoding='utf-8')
+          for language, wording in translations.items():
+              marker = f'    "{language}": {{\n'
+              start = text.index(marker)
+              insert_at = text.index('\n', start + len(marker)) + 1
+              text = text[:insert_at] + f'        "low_solar_input": "{wording}",\n' + text[insert_at:]
+          catalog.write_text(text, encoding='utf-8')
+
+          tests = root / 'tests/test_alarm_catalog.py'
+          replace_once(
+              tests,
+              '        self.assertEqual(sum(alarm.identified for alarm in active), 12)\n        self.assertEqual(sum(not alarm.identified for alarm in active), 212)\n',
+              '        self.assertEqual(sum(alarm.identified for alarm in active), 13)\n        self.assertEqual(sum(not alarm.identified for alarm in active), 211)\n',
+          )
+          replace_once(
+              tests,
+              '    def test_1511_known_and_unknown_names_always_include_code(self) -> None:\n',
+              '''    def test_1511_low_solar_status_is_named_and_localized(self) -> None:\n        expected = {\n            "en": "Low solar input (1511-A030)",\n            "fr": "Entrée solaire insuffisante (1511-A030)",\n            "de": "Zu geringe Solareinstrahlung (1511-A030)",\n            "es": "Entrada solar insuficiente (1511-A030)",\n            "it": "Ingresso solare insufficiente (1511-A030)",\n            "nl": "Onvoldoende zonne-invoer (1511-A030)",\n            "pl": "Niewystarczające nasłonecznienie (1511-A030)",\n            "zh-Hans": "太阳能输入不足 (1511-A030)",\n        }\n        for language, name in expected.items():\n            active = CATALOGUE.decode_active_alarms(\n                {"alarm_global_1_raw": 0x2000}, language, "1511"\n            )\n            self.assertEqual(len(active), 1)\n            self.assertTrue(active[0].identified)\n            self.assertEqual(active[0].identifier, "1511-A030")\n            self.assertEqual(active[0].name, name)\n\n    def test_1511_known_and_unknown_names_always_include_code(self) -> None:\n''',
+          )
+
+          entities = root / 'docs/ENTITIES.md'
+          replace_once(
+              entities,
+              '- On validated MP3000 hardware, raw value `8192` is repeatedly observed during dawn, dusk and very low irradiance. It remains included in the active-position count and receives a neutral local identifier; the operating-state entity reports **Standby — low solar input**. Its exact meaning still requires control-hardware validation.\n',
+              '- On validated MP3000 hardware, raw `8192` (`0x2000`) in `alarm_global_1_raw` is repeatedly observed at dawn, dusk and very low irradiance. TSUN documentation describes the corresponding low-PV warning as a normal morning/dusk condition, so TSUN Local maps bit 13 to **`1511-A030 — Low solar input`** (localized in Home Assistant). When this is the only active bit it remains a non-fault operating condition and `inverter_operating_state` reports **Standby — low solar input**.\n',
+          )
+          replace_once(
+              entities,
+              '| `A001`–`A064` | 64 inverter positions | Control-hardware validation required |\n',
+              '| `A001`–`A064` | 64 inverter positions | 1 low-solar status mapped · 63 require validation |\n',
+          )
+          replace_once(
+              entities,
+              'The 12 hardware-observed mappings cover low PV input voltage and PV DSP faults for PV1 through PV6. The other 212 positions remain fully active and use neutral local wording until their exact meaning is physically validated.',
+              'The catalogue now has 13 identified mappings: `1511-A030` for low solar input plus low PV input voltage and PV DSP faults for PV1 through PV6. The other 211 positions remain fully active and use neutral local wording until their exact meaning is physically validated.',
+          )
+
+          changelog = root / 'CHANGELOG.md'
+          replace_once(
+              changelog,
+              'All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).\n\n',
+              'All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).\n\n## [Unreleased]\n\n### Changed\n\n- Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized alarm **Low solar input** with stable code `1511-A030`. Keep the existing non-fault handling when this low-solar status is the only active bit.\n\n',
+          )
+
+      - name: Validate
+        run: |
+          python -m compileall -q custom_components tests
+          python -m unittest discover -s tests -p 'test_*.py'
+          git diff --check
+
+      - name: Commit final changes and remove helper workflow
+        run: |
+          rm .github/workflows/apply-1511-low-solar-temp.yml
+          git config user.name "JP"
+          git config user.email "dev@jptstar.com"
+          git add -A
+          git commit -m "[low-solar-applied] Map 1511 low-solar status"
+          git push origin HEAD:feature/1.6.2-1511-low-solar-alarm
