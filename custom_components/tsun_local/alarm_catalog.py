@@ -70,8 +70,9 @@ ALARM_SOURCES_BY_PROTOCOL: dict[str, tuple[AlarmSource, ...]] = {
     ),
 }
 
-# 1511 meanings are limited to direct hardware observations.
+# 1511 meanings are limited to TSUN-documented or directly observed behavior.
 _IDENTIFIED_1511: dict[tuple[str, int], str] = {
+    ("alarm_global_1_raw", 13): "low_solar_input",
     **{
         (f"pv{number}_alarm_raw", 8): "pv_input_undervoltage"
         for number in range(1, 7)
@@ -157,6 +158,7 @@ ALARM_BY_POSITION = ALARM_BY_PROTOCOL_POSITION["1511"]
 _TEXTS: dict[str, dict[str, str]] = {
     "en": {
         "pv_input_undervoltage": "PV{pv} input voltage too low",
+        "low_solar_input": "Low solar input",
         "pv_dsp_fault": "PV{pv} DSP fault",
         "h_bridge_fault": "H-bridge fault",
         "drive_voltage_fault": "Drive voltage fault",
@@ -184,6 +186,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "fr": {
         "pv_input_undervoltage": "Tension d’entrée PV{pv} trop faible",
+        "low_solar_input": "Entrée solaire insuffisante",
         "pv_dsp_fault": "Défaut du DSP PV{pv}",
         "h_bridge_fault": "Défaut du pont en H",
         "drive_voltage_fault": "Défaut de tension de commande",
@@ -211,6 +214,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "de": {
         "pv_input_undervoltage": "PV{pv}-Eingangsspannung zu niedrig",
+        "low_solar_input": "Zu geringe Solareinstrahlung",
         "pv_dsp_fault": "PV{pv}-DSP-Fehler",
         "h_bridge_fault": "H-Brücken-Fehler",
         "drive_voltage_fault": "Treiber-Spannungsfehler",
@@ -238,6 +242,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "es": {
         "pv_input_undervoltage": "Tensión de entrada PV{pv} demasiado baja",
+        "low_solar_input": "Entrada solar insuficiente",
         "pv_dsp_fault": "Fallo del DSP de PV{pv}",
         "h_bridge_fault": "Fallo del puente H",
         "drive_voltage_fault": "Fallo de tensión de control",
@@ -265,6 +270,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "it": {
         "pv_input_undervoltage": "Tensione di ingresso PV{pv} troppo bassa",
+        "low_solar_input": "Ingresso solare insufficiente",
         "pv_dsp_fault": "Guasto DSP PV{pv}",
         "h_bridge_fault": "Guasto ponte H",
         "drive_voltage_fault": "Guasto tensione di pilotaggio",
@@ -292,6 +298,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "nl": {
         "pv_input_undervoltage": "PV{pv}-ingangsspanning te laag",
+        "low_solar_input": "Onvoldoende zonne-invoer",
         "pv_dsp_fault": "PV{pv}-DSP-storing",
         "h_bridge_fault": "H-brugstoring",
         "drive_voltage_fault": "Aanstuurspanningsfout",
@@ -319,6 +326,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "pl": {
         "pv_input_undervoltage": "Zbyt niskie napięcie wejściowe PV{pv}",
+        "low_solar_input": "Niewystarczające nasłonecznienie",
         "pv_dsp_fault": "Usterka DSP PV{pv}",
         "h_bridge_fault": "Usterka mostka H",
         "drive_voltage_fault": "Usterka napięcia sterowania",
@@ -346,6 +354,7 @@ _TEXTS: dict[str, dict[str, str]] = {
     },
     "zh-hans": {
         "pv_input_undervoltage": "PV{pv} 输入电压过低",
+        "low_solar_input": "太阳能输入不足",
         "pv_dsp_fault": "PV{pv} DSP 故障",
         "h_bridge_fault": "H 桥故障",
         "drive_voltage_fault": "驱动电压故障",

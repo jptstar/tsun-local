@@ -48,8 +48,28 @@ class AlarmCatalogueTests(unittest.TestCase):
         }
         active = CATALOGUE.decode_active_alarms(measurements, "fr", "1511")
         self.assertEqual(len(active), 224)
-        self.assertEqual(sum(alarm.identified for alarm in active), 12)
-        self.assertEqual(sum(not alarm.identified for alarm in active), 212)
+        self.assertEqual(sum(alarm.identified for alarm in active), 13)
+        self.assertEqual(sum(not alarm.identified for alarm in active), 211)
+
+    def test_1511_low_solar_status_is_named_and_localized(self) -> None:
+        expected = {
+            "en": "Low solar input (1511-A030)",
+            "fr": "Entrée solaire insuffisante (1511-A030)",
+            "de": "Zu geringe Solareinstrahlung (1511-A030)",
+            "es": "Entrada solar insuficiente (1511-A030)",
+            "it": "Ingresso solare insufficiente (1511-A030)",
+            "nl": "Onvoldoende zonne-invoer (1511-A030)",
+            "pl": "Niewystarczające nasłonecznienie (1511-A030)",
+            "zh-Hans": "太阳能输入不足 (1511-A030)",
+        }
+        for language, name in expected.items():
+            active = CATALOGUE.decode_active_alarms(
+                {"alarm_global_1_raw": 0x2000}, language, "1511"
+            )
+            self.assertEqual(len(active), 1)
+            self.assertTrue(active[0].identified)
+            self.assertEqual(active[0].identifier, "1511-A030")
+            self.assertEqual(active[0].name, name)
 
     def test_1511_known_and_unknown_names_always_include_code(self) -> None:
         active = CATALOGUE.decode_active_alarms(
