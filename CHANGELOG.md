@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.2-beta.2] - 2026-09-12
+
+### Changed since beta.1
+
+- Publish the latest 1.6.2 beta source from current `main`, including the validated 1097 / GEN4 presentation and field-validation wording.
+- Map MP3000 / 1511 `alarm_global_1_raw = 8192` (`0x2000`, bit 13) to the localized **Low solar input** status with stable code `1511-A030`, while keeping it non-fault when it is the only active bit.
+- Replace the connected light background of the existing TSUN Local brand artwork with real PNG transparency across Home Assistant, HACS package assets and the public website icon, without redesigning the logo.
+
+### Retained from beta.1
+
+- Keep conservative automatic protocol detection across validated runtime families `1511`, `1097` and `02B0`, with firmware used only as a priority hint.
+- Keep strict manual protocol selection, ambiguity rejection, night-safe zero-production handling and the selected protocol locked after setup.
+- Keep experimental `3026` diagnostic-only and excluded from runtime automatic detection.
+- Keep all inverter access local and strictly read-only.
+
+### Validation
+
+- Run the complete unit-test suite, HACS repository validation and Home Assistant Hassfest before publication.
+
 ## [Unreleased]
 
 ### Changed
