@@ -55,14 +55,14 @@ class Release141FieldUpdateTests(unittest.TestCase):
         data = decode_1511_advanced({0x07EC: 1024})
         self.assertNotIn("output_coefficient_candidate", data)
 
-    def test_1097_power_level_remains_experimental(self) -> None:
+    def test_1097_power_level_is_field_validation(self) -> None:
         self.assertEqual(
             decode_1097({0x1423: 1024})["output_coefficient"], 100.0
         )
         source = (
             ROOT / "custom_components/tsun_local/protocols/protocol_1097.py"
         ).read_text(encoding="utf-8")
-        self.assertIn("Experimental 1097 power-level field", source)
+        self.assertIn("1097 power-level field", source)
 
     def test_141_registry_cleanup_and_percentage_migration(self) -> None:
         source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(

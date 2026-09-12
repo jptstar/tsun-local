@@ -238,7 +238,7 @@ Funktionsnamen und Modellunterstützung werden erst nach reproduzierbaren Prüfu
 TSUN Local profitiert von öffentlicher Protokollforschung und unabhängigen Hardwaretests. Die Nennung beschreibt Referenzarbeit und Validierung und bedeutet keine Zugehörigkeit oder Empfehlung.
 
 - **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — unabhängige öffentliche Referenz für ausgewählte Solarman-/02B0-Register.
-- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — öffentliche GEN3-/1097- und Länder-/Profilforschung für experimentelle Validierung.
+- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — öffentliche GEN3-/1097- und Länder-/Profilforschung für Validierung.
 - **TheSmartGerman** — Realgerätetest, durch den die zusätzliche 1097-Protokollfamilie sichtbar wurde.
 - **dca31** — unabhängige Sunology-PLAY2-Validierung über den normalen TSUN-Local-Home-Assistant-Ablauf.
 - **Kmotr** — unabhängige TSOL-MS800-Validierung mit TSUN Local und einem anonymisierten Home-Assistant-Diagnosebericht.

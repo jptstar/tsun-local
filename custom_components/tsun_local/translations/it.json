@@ -504,7 +504,7 @@
         "auto": "Automatico — in base al firmware",
         "force": "Rilevamento forzato — prova i protocolli",
         "1511": "Usa il protocollo 1511",
-        "1097": "Usa il protocollo 1097 — sperimentale",
+        "1097": "Usa il protocollo 1097",
         "02b0": "Usa il protocollo 02B0"
       }
     }
