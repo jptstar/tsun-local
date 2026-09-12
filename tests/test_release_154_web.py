@@ -21,7 +21,7 @@ class Release160WebTests(unittest.TestCase):
         index = (DOCS / "index.html").read_text(encoding="utf-8")
         if "-beta." in manifest["version"]:
             self.assertNotIn(manifest["version"], index)
-            self.assertIn("NEW IN 1.6.1", index)
+            self.assertIn("NEW IN 1.6.2", index)
         else:
             self.assertIn(manifest["version"], index)
 
@@ -71,7 +71,7 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("tsol-ms800-home-assistant.html", text)
         self.assertIn("tsol-ms2000-home-assistant.html", text)
         self.assertIn("paloindici", text)
-        self.assertIn("NEW IN 1.6.1", text)
+        self.assertIn("NEW IN 1.6.2", text)
         self.assertIn("test-your-inverter.html#windows", text)
         self.assertIn("test-your-inverter.html#python", text)
         self.assertIn("test-your-inverter.html#mac-linux", text)

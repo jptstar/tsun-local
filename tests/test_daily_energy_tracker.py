@@ -23,6 +23,7 @@ MODULE = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = MODULE
 SPEC.loader.exec_module(MODULE)
 DailyEnergyTracker = MODULE.DailyEnergyTracker
+repair_legacy_daily_state = MODULE.repair_legacy_daily_state
 
 
 class DailyEnergyTrackerTests(unittest.TestCase):
@@ -115,6 +116,40 @@ class DailyEnergyTrackerTests(unittest.TestCase):
             online=True,
         )
         self.assertAlmostEqual(value, 2.1)
+
+    def test_repairs_gross_161_wh_kwh_contamination(self) -> None:
+        self.assertAlmostEqual(
+            repair_legacy_daily_state(
+                190.27,
+                current_total_energy=42.0,
+                restored_total_energy=41.99,
+            ),
+            0.19027,
+        )
+
+    def test_repairs_legacy_daily_value_that_exceeds_lifetime_total(self) -> None:
+        self.assertAlmostEqual(
+            repair_legacy_daily_state(
+                50.0,
+                current_total_energy=12.0,
+                restored_total_energy=11.99,
+            ),
+            0.05,
+        )
+
+    def test_keeps_plausible_legacy_daily_value(self) -> None:
+        self.assertEqual(
+            repair_legacy_daily_state(
+                5.0,
+                current_total_energy=120.0,
+                restored_total_energy=119.9,
+            ),
+            5.0,
+        )
+
+    def test_tracker_metadata_marks_normalized_restore_version(self) -> None:
+        tracker = DailyEnergyTracker(date(2026, 9, 12), value=1.25)
+        self.assertEqual(tracker.state_attributes()["tracking_version"], 2)
 
 
 if __name__ == "__main__":

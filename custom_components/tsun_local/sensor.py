@@ -30,6 +30,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -37,13 +38,42 @@ from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
+from homeassistant.util.unit_conversion import EnergyConverter
 
 from . import TsunConfigEntry
 from .alarm_catalog import active_alarm_state, alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
 from .country_profiles import country_profile_raw_value, country_profile_state
-from .daily_energy import DailyEnergyTracker, energy_value
+from .daily_energy import (
+    DailyEnergyTracker,
+    energy_value,
+    repair_legacy_daily_state,
+)
+
+
+def _restored_energy_kwh(state: Any) -> float | None:
+    """Return a restored Home Assistant energy state normalized to native kWh.
+
+    Home Assistant stores the entity state in the user-selected display unit.
+    TSUN Local decoders and the daily tracker use kWh internally, so restoring
+    the numeric state without its unit can introduce a x1000 Wh/kWh error.
+    """
+    value = energy_value(state.state)
+    if value is None:
+        return None
+    unit = state.attributes.get("unit_of_measurement")
+    if unit in (None, UnitOfEnergy.KILO_WATT_HOUR):
+        return value
+    try:
+        return float(
+            EnergyConverter.convert(
+                value, unit, UnitOfEnergy.KILO_WATT_HOUR
+            )
+        )
+    except (HomeAssistantError, TypeError, ValueError):
+        # An unknown historic unit is safer to ignore than to reinterpret.
+        return None
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -1140,7 +1170,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
                 STATE_UNKNOWN,
                 STATE_UNAVAILABLE,
             ):
-                state_value = energy_value(last_state.state)
+                state_value = _restored_energy_kwh(last_state)
                 state_date = dt_util.as_local(last_state.last_updated).date()
                 restored_raw = energy_value(
                     last_state.attributes.get("raw_daily_energy")
@@ -1155,6 +1185,18 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
             current_raw, current_total = self._current_daily_inputs(
                 require_online=True
             )
+            if (
+                state_value is not None
+                and last_state is not None
+                and last_state.attributes.get("tracking_source")
+                == "total_delta_with_daily_fallback"
+                and "tracking_version" not in last_state.attributes
+            ):
+                state_value = repair_legacy_daily_state(
+                    state_value,
+                    current_total_energy=current_total,
+                    restored_total_energy=restored_total,
+                )
             self._daily_tracker.restore(
                 current_date=dt_util.now().date(),
                 state_value=state_value,
@@ -1177,7 +1219,7 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
             STATE_UNAVAILABLE,
         ):
             return
-        self._restored_energy_value = energy_value(last_state.state)
+        self._restored_energy_value = _restored_energy_kwh(last_state)
 
     @callback
     def _async_midnight_rollover(self, _now: datetime) -> None:

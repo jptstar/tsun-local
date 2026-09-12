@@ -25,6 +25,42 @@ def energy_value(value: object) -> float | None:
     return result if math.isfinite(result) else None
 
 
+# Supported TSUN Local micro-inverters cannot physically produce 100 kWh in
+# one local day. This conservative ceiling is used only to repair clearly
+# impossible 1.6.1 states that were already contaminated by the Wh/kWh
+# restore regression. Plausible values are never guessed or rewritten.
+LEGACY_DAILY_SANITY_LIMIT_KWH = 100.0
+
+
+def repair_legacy_daily_state(
+    state_value: float,
+    *,
+    current_total_energy: float | None,
+    restored_total_energy: float | None,
+) -> float:
+    """Repair only unambiguous 1.6.1 x1000 daily-energy contamination."""
+    if state_value < 0:
+        return 0.0
+    candidate = state_value / 1000.0
+
+    # A daily value above this ceiling is impossible for supported hardware.
+    if (
+        state_value >= LEGACY_DAILY_SANITY_LIMIT_KWH
+        and candidate < LEGACY_DAILY_SANITY_LIMIT_KWH
+    ):
+        return candidate
+
+    # Daily energy can never exceed the lifetime total. If only the /1000
+    # candidate satisfies that invariant, the legacy scale error is certain.
+    for total in (current_total_energy, restored_total_energy):
+        if total is None or total < 0:
+            continue
+        if state_value > total + 1e-6 and candidate <= total + 1e-6:
+            return candidate
+
+    return state_value
+
+
 @dataclass(slots=True)
 class DailyEnergyTracker:
     """Keep a Home Assistant day continuous across logger counter resets.
@@ -180,6 +216,7 @@ class DailyEnergyTracker:
         attributes: dict[str, Any] = {
             "tracking_date": self.local_date.isoformat(),
             "tracking_source": "total_delta_with_daily_fallback",
+            "tracking_version": 2,
         }
         if self.raw_daily is not None:
             attributes["raw_daily_energy"] = self.raw_daily
