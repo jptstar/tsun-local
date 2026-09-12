@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.8.1")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.8.2")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -265,6 +265,32 @@ class TsunDumpToolTests(unittest.TestCase):
             if protocol != "1511":
                 for start, end in [*dynamic, *supplemental]:
                     self.assertLessEqual(end - start + 1, 16)
+
+    def test_capture_plans_match_162_family_coverage(self) -> None:
+        dynamic_02b0, standard_02b0 = TOOL.capture_plans("02b0", full=False)
+        _, full_02b0 = TOOL.capture_plans("02b0", full=True)
+        self.assertIn((0x3020, 0x302F), dynamic_02b0)
+        self.assertIn((0x2011, 0x2013), standard_02b0)
+        self.assertIn((0x202D, 0x203C), standard_02b0)
+        self.assertEqual(full_02b0[-1][1], 0x205F)
+
+        dynamic_1097, full_1097 = TOOL.capture_plans("1097", full=True)
+        self.assertIn((0x1220, 0x122F), dynamic_1097)
+        self.assertIn((0x1330, 0x133F), dynamic_1097)
+        self.assertEqual(full_1097[-1][1], 0x144F)
+
+    def test_02b0_probe_uses_explicit_sensor_list(self) -> None:
+        calls = []
+        original = TOOL.read_modbus_block
+        try:
+            def fake(*args, **kwargs):
+                calls.append((args, kwargs))
+                return {}, b"", b""
+            TOOL.read_modbus_block = fake
+            TOOL._probe_protocol("02b0", "192.0.2.10", 8899, 123456, 1.0)
+        finally:
+            TOOL.read_modbus_block = original
+        self.assertEqual(calls[0][1]["sensor_list"], 0x02B0)
 
     def test_02b0_characterization_classifies_strict_16_limit(self) -> None:
         def record(test_id: str, successes: int) -> dict[str, object]:

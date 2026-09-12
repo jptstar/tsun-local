@@ -39,9 +39,9 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         )
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.11")
-        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.11")
-        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.11")
+        self.assertEqual(desktop.APP_VERSION, "1.5.12")
+        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.12")
+        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.12")
 
     def test_cross_platform_update_components_are_explicit(self) -> None:
         self.assertEqual(

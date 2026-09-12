@@ -171,7 +171,7 @@ TSUN Local 为未列出的型号和通信问题提供注重隐私且 **严格只
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-当前版本：桌面 GUI **1.5.11** · dump 引擎 **2.7.4**。
+当前版本：桌面 GUI **1.5.12** · dump 引擎 **2.8.2**。
 
 历史 Windows 下载链接刻意保持不变，因此旧论坛帖子和教程中的链接仍然有效。
 

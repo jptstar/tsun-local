@@ -173,7 +173,7 @@ TSUN Local provides a privacy-safe, **strictly read-only** desktop diagnostic fo
 > 6. Authenticate, then confirm **Open**.  
 > 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
 
-**Current public diagnostic versions:** desktop GUI **1.5.11** · dump engine **2.7.4**.
+**Current public diagnostic versions:** desktop GUI **1.5.12** · dump engine **2.8.2**.
 
 > [!IMPORTANT]
 > The rolling tag and historical Windows asset name are deliberately preserved. The existing `.../diagnostic-latest/TSUN-Local-Diagnostic.exe` link used in older posts continues to point to the latest Windows diagnostic.

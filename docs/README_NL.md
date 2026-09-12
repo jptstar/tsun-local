@@ -171,7 +171,7 @@ De **zelfde TSUN Local Diagnostic-interface** is nu beschikbaar voor Windows, ma
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Huidige versies: GUI **1.5.11** · dump-engine **2.7.4**.
+Huidige versies: GUI **1.5.12** · dump-engine **2.8.2**.
 
 De bestaande Windows-link blijft bewust ongewijzigd zodat oudere forum- en documentatielinks blijven werken.
 

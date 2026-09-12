@@ -171,7 +171,7 @@ Die **gleiche TSUN Local Diagnostic-Oberfläche** steht jetzt für Windows, macO
 | Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
 | Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Aktuelle Versionen: GUI **1.5.11** · Dump-Engine **2.7.4**.
+Aktuelle Versionen: GUI **1.5.12** · Dump-Engine **2.8.2**.
 
 Der bisherige Windows-Link bleibt absichtlich unverändert, damit ältere Forenbeiträge und Anleitungen weiterhin funktionieren.
 

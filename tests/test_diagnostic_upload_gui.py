@@ -15,7 +15,7 @@ import tsun_diagnostic as desktop  # noqa: E402
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.11")
+        self.assertEqual(desktop.APP_VERSION, "1.5.12")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 

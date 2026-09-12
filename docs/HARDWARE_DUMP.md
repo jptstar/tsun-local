@@ -36,7 +36,7 @@ The **same TSUN Local Diagnostic interface** is packaged for all supported deskt
 > 6. Authenticate, then confirm **Open**.  
 > 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
 
-Current standalone diagnostic versions: **desktop GUI 1.5.11** · **dump engine 2.7.4**.
+Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.2**.
 
 All assets remain on the rolling **`diagnostic-latest`** release. The historical Windows URL and filename are intentionally unchanged so old forum posts, issue comments and documentation links stay valid.
 
@@ -228,21 +228,23 @@ Dynamic capture:
 Standard supplemental diagnostics:
 
 - `0x2007`;
-- `0x2014–0x202C`.
+- `0x2011–0x2013`;
+- `0x2014–0x202C`;
+- `0x202D–0x205F`.
 
 Full supplemental capture:
 
-- FC03 `0x2000–0x204F`, including the public research area around `0x2047–0x204A`.
+- FC03 `0x2000–0x205F`, split into conservative 16-register requests. Unknown values remain raw for family/signature analysis.
 
 ### 1097
 
 Dynamic capture:
 
 - FC03 `0x1100–0x110F`;
-- FC03 `0x1200–0x121F`;
-- FC03 `0x1300–0x132F`.
+- FC03 `0x1200–0x122F`;
+- FC03 `0x1300–0x133F`.
 
-Supplemental capture includes `0x1008–0x100F` and the known profile/diagnostic area. The inverter serial-number words `0x1000–0x1007` are deliberately excluded from published dumps.
+Supplemental capture includes `0x1008–0x100F` and, in full mode, the complete read-only `0x1400–0x144F` profile/diagnostic area. The inverter serial-number words `0x1000–0x1007` are deliberately excluded from published dumps.
 
 ### 1511 / TITAN
 
