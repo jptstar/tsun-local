@@ -42,7 +42,7 @@ def _modbus_reply(block: tuple[int, int, int]) -> bytes:
 
 
 def _block_reply(block: tuple[int, int, int]) -> bytes:
-    return build_ap_frame(123456, _modbus_reply(block), sensor_list=0x02B0)
+    return build_ap_frame(123456, _modbus_reply(block))
 
 
 class FakeReader:
