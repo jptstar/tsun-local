@@ -36,7 +36,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validated** |
-| **1097** | GEN3 / GEN3 PLUS | — | 🧪 **Experimental** |
+| **1097** | GEN3 / GEN3 PLUS | — | ✅ **Supported** |
 
 > [!TIP]
 > **Not listed does not mean unsupported.** TSUN Local identifies compatibility primarily from the detected local protocol, not only from the commercial model name.

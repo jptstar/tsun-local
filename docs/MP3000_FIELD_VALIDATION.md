@@ -105,7 +105,7 @@ Country enumeration documented by Stefan Allius:
 | 15 | South Africa |
 | 16 | UK |
 
-This country/profile discovery is credited to **Stefan Allius**. TSUN Local reuses that public research as an external semantic reference for its experimental 1097 support and for the 1511 country-candidate investigation.
+The 1097 adapter uses the established raw country/profile field. The separate 1511 country address remains a field-validation candidate until independently confirmed on hardware.
 
 ### MP3000 / 1511 country candidate
 

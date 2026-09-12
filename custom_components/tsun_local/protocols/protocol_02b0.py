@@ -27,8 +27,8 @@ SENSOR_LIST = 0x02B0
 DIAGNOSTIC_INTERVAL = 300.0
 MAX_BLOCK_RETRIES = 1
 
-# IMPORTANT: keep the exact validated register coverage unchanged.  The
-# resilience work below changes only the TCP/session lifecycle and retry policy.
+# Fast telemetry remains limited to the validated production registers.
+# Additional read-only signature ranges are sampled with the slow diagnostics.
 BLOCKS = (
     # 0x3008 adds the inverter firmware register; 0x300C is the inverter
     # temperature and already sits inside this regular telemetry block.
@@ -43,11 +43,18 @@ ALARM_BLOCKS = (
 
 DIAGNOSTIC_BLOCKS = (
     # Retain the established max-power probe while extending the same read-only
-    # area with status and compliance metadata.
+    # area with status, compliance and family-signature metadata.
     (0x03, 0x2007, 0x2007),
     (0x03, 0x2000, 0x2010),
+    # Previously uncovered gap between the base and grid-parameter ranges.
+    (0x03, 0x2011, 0x2013),
     # Advanced read-only grid parameters and output coefficient.
     (0x03, 0x2014, 0x202C),
+    # Remaining 02B0 configuration/signature range. Values stay raw until
+    # independently mapped; this includes the 0x204x zero-export area.
+    (0x03, 0x202D, 0x205F),
+    # Tail of the 0x3000 telemetry family, also retained raw for signatures.
+    (0x03, 0x302B, 0x302F),
 )
 
 ALARM_REGISTERS = (0x3003, 0x3004, 0x3005, 0x3006)
@@ -465,7 +472,7 @@ class Tsun02b0Client:
             await async_close_writer(writer)
 
     async def async_read_all(self) -> TsunReadResult:
-        """Read the unchanged 02B0 register set over a resilient TCP session."""
+        """Read 02B0 telemetry plus slow read-only signature diagnostics."""
         started = time.monotonic()
         registers: dict[int, int] = {}
         blocks_ok = 0
@@ -474,7 +481,7 @@ class Tsun02b0Client:
         try:
             reader, writer = await self._open_session()
 
-            # Critical telemetry: same blocks and addresses as before. A block
+            # Critical telemetry uses the validated production blocks. A block
             # gets one reconnect/retry before the full polling cycle fails.
             for block in BLOCKS:
                 block_registers, reader, writer = await self._read_with_retry(

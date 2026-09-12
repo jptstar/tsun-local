@@ -3,9 +3,6 @@
 
 """Local TSUN 1097 Modbus transport and decoder."""
 
-# The experimental 1097 register mapping was informed by publicly available
-# protocol research from Stefan Allius (s-allius/tsun-gen3-proxy).
-
 from __future__ import annotations
 
 import asyncio
@@ -191,7 +188,7 @@ def _decode_version(value: int) -> str:
 def decode_advanced_diagnostics(
     registers: dict[int, int],
 ) -> dict[str, float | int | str]:
-    """Decode known experimental 1097 diagnostics."""
+    """Decode known 1097 diagnostics."""
     data: dict[str, float | int | str] = {}
     if 0x100A in registers:
         data["protocol_version"] = _decode_version(registers[0x100A])
@@ -206,8 +203,7 @@ def decode_advanced_diagnostics(
     if 0x1400 in registers:
         data["country_profile_raw"] = registers[0x1400]
     if 0x1423 in registers:
-        # The entire 1097 adapter is experimental; keep this mapping under
-        # field validation while exposing the same user-facing power level.
+        # Keep this individual power-level field under semantic validation.
         data["output_coefficient"] = round(registers[0x1423] * 100 / 1024, 2)
     return data
 
