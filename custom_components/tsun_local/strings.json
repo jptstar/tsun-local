@@ -427,6 +427,9 @@
       "product_compliance_type_raw": {
         "name": "Country profile (raw)"
       },
+      "country_profile": {
+        "name": "Country / grid profile"
+      },
       "country_profile_raw": {
         "name": "Country profile (raw)"
       },

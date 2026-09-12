@@ -426,6 +426,9 @@
       "product_compliance_type_raw": {
         "name": "Profilo paese (grezzo)"
       },
+      "country_profile": {
+        "name": "Paese / profilo di rete"
+      },
       "country_profile_raw": {
         "name": "Profilo paese (grezzo)"
       },

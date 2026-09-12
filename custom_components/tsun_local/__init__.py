@@ -49,6 +49,8 @@ from .protocols import DEFAULT_PROTOCOL, create_protocol_client
 type TsunConfigEntry = ConfigEntry[TsunCoordinator]
 
 LOGGER_METADATA_REFRESH_INTERVAL = timedelta(minutes=5)
+_ACTIVITY_VISIBILITY_VERSION_KEY = "_activity_visibility_version"
+_ACTIVITY_VISIBILITY_VERSION = 1
 
 
 def _async_sync_device_info(
@@ -104,6 +106,40 @@ def _async_remove_legacy_raw_profile_entity(
         entity_registry.async_remove(entity_id)
 
 
+def _async_migrate_activity_visibility(
+    hass: HomeAssistant, entry: TsunConfigEntry, logger_sn: str
+) -> None:
+    """Hide high-churn/raw diagnostics once without disabling recording."""
+    if (
+        int(entry.data.get(_ACTIVITY_VISIBILITY_VERSION_KEY, 0))
+        >= _ACTIVITY_VISIBILITY_VERSION
+    ):
+        return
+
+    registry = er.async_get(hass)
+    unique_prefix = f"{logger_sn}_"
+    for registry_entry in er.async_entries_for_config_entry(
+        registry, entry.entry_id
+    ):
+        if not registry_entry.entity_id.startswith("sensor."):
+            continue
+        if not registry_entry.unique_id.startswith(unique_prefix):
+            continue
+        key = registry_entry.unique_id[len(unique_prefix) :]
+        if key != "communication_last_success" and not key.endswith("_raw"):
+            continue
+        if registry_entry.hidden_by is not None:
+            continue
+        registry.async_update_entity(
+            registry_entry.entity_id,
+            hidden_by=er.RegistryEntryHider.INTEGRATION,
+        )
+
+    data = dict(entry.data)
+    data[_ACTIVITY_VISIBILITY_VERSION_KEY] = _ACTIVITY_VISIBILITY_VERSION
+    hass.config_entries.async_update_entry(entry, data=data)
+
+
 def _async_migrate_141_entity_registry(
     hass: HomeAssistant, logger_sn: str
 ) -> None:
@@ -154,6 +190,7 @@ async def async_setup_entry(
     _async_remove_removed_beta_entities(hass, logger_sn)
     _async_remove_legacy_raw_profile_entity(hass, logger_sn)
     _async_migrate_141_entity_registry(hass, logger_sn)
+    _async_migrate_activity_visibility(hass, entry, logger_sn)
     logger_firmware_version = entry.data.get(CONF_LOGGER_FIRMWARE_VERSION)
     logger_mac_address = entry.data.get(CONF_LOGGER_MAC_ADDRESS)
     logger_raw_profile = entry.data.get(CONF_LOGGER_RAW_PROFILE)

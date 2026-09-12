@@ -426,6 +426,9 @@
       "product_compliance_type_raw": {
         "name": "Landprofiel (ruw)"
       },
+      "country_profile": {
+        "name": "Land / netprofiel"
+      },
       "country_profile_raw": {
         "name": "Landprofiel (ruw)"
       },

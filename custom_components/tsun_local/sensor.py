@@ -42,6 +42,7 @@ from . import TsunConfigEntry
 from .alarm_catalog import active_alarm_state, alarm_state_attributes
 from .const import CONF_LOGGER_SN, DOMAIN, MANUFACTURER
 from .coordinator import TsunCoordinator
+from .country_profiles import country_profile_raw_value, country_profile_state
 from .daily_energy import DailyEnergyTracker, energy_value
 
 
@@ -82,6 +83,7 @@ def _raw_alarm(
         translation_key=translation_key,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
+        entity_registry_visible_default=False,
         register_address=register_address,
     )
 
@@ -101,6 +103,7 @@ def _raw_register(
         state_class=SensorStateClass.MEASUREMENT if chartable else None,
         suggested_display_precision=0 if chartable else None,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_visible_default=False,
         register_address=register_address,
     )
 
@@ -139,6 +142,7 @@ def _advanced_diagnostic(
         suggested_display_precision=precision,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
+        entity_registry_visible_default=not key.endswith("_raw"),
     )
 
 
@@ -187,7 +191,11 @@ LOGGER_METADATA_SENSOR_KEYS = frozenset(
         "logger_wifi_signal",
     }
 )
-DIAGNOSTIC_SENSOR_KEYS = COMMUNICATION_SENSOR_KEYS | LOGGER_METADATA_SENSOR_KEYS
+DIAGNOSTIC_SENSOR_KEYS = (
+    COMMUNICATION_SENSOR_KEYS
+    | LOGGER_METADATA_SENSOR_KEYS
+    | frozenset({"country_profile"})
+)
 
 GRID_TIMING_SENSOR_KEYS = frozenset(
     {
@@ -206,6 +214,8 @@ GRID_TIMING_SENSOR_KEYS = frozenset(
 PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
     "1511": {
         "inverter_status_raw": "3000 (0x0BB8)",
+        "country_profile": "2000 (0x07D0)",
+        "country_profile_raw": "2000 (0x07D0)",
         "rated_power": "3020 (0x0BCC)",
         "max_designed_power": "2042 (0x07FA)",
         "dsp_firmware_version": "3008 (0x0BC0)",
@@ -253,6 +263,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "rated_level_raw": "0x2008",
         "input_coefficient": "0x2009",
         "product_compliance_type_raw": "0x2010",
+        "country_profile": "0x2010",
         "inverter_status_raw": "0x3000",
         "inverter_firmware_version": "0x3008",
         "inverter_temperature": "0x300C",
@@ -291,6 +302,7 @@ PROTOCOL_REGISTER_ADDRESSES: dict[str, dict[str, str]] = {
         "insulation_impedance_ry": "0x1217",
         "inverter_temperature": "0x1218",
         "country_profile_raw": "0x1400",
+        "country_profile": "0x1400",
         "output_coefficient": "0x1423 — field validation",
     },
 }
@@ -658,6 +670,13 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         "3000 (0x0BB8)",
     ),
     TsunSensorDescription(
+        key="country_profile",
+        suggested_object_id="country_profile",
+        translation_key="country_profile",
+        icon="mdi:earth",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    TsunSensorDescription(
         key="inverter_operating_state",
         suggested_object_id="inverter_operating_state",
         translation_key="inverter_operating_state",
@@ -691,6 +710,7 @@ SENSORS: tuple[TsunSensorDescription, ...] = (
         translation_key="communication_last_success",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_visible_default=False,
     ),
     TsunSensorDescription(
         key="communication_duration",
@@ -1210,6 +1230,11 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
                 self.coordinator.data,
                 self.coordinator.hass.config.language,
             )
+        if self.entity_description.key == "country_profile":
+            protocol_name = str(
+                getattr(self.coordinator.client, "protocol_name", "")
+            )
+            return country_profile_state(protocol_name, self.coordinator.data)
         key = self.entity_description.key
         if self._daily_tracker is not None and self._daily_tracker.value is not None:
             return self._daily_tracker.value
@@ -1242,6 +1267,19 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
                 self.coordinator.data,
                 self.coordinator.hass.config.language,
             )
+        if self.entity_description.key == "country_profile":
+            protocol_name = str(
+                getattr(self.coordinator.client, "protocol_name", "")
+            )
+            raw_code = country_profile_raw_value(
+                protocol_name, self.coordinator.data
+            )
+            if raw_code is None:
+                return None
+            return {
+                "raw_code": raw_code,
+                "register_address": self._source_register_address(),
+            }
         address = self._source_register_address()
         value = self.native_value
         if address is None or not isinstance(value, int):
@@ -1261,6 +1299,17 @@ class TsunSensor(CoordinatorEntity[TsunCoordinator], RestoreEntity, SensorEntity
     def available(self) -> bool:
         """Keep valid diagnostics and energy counters available while offline."""
         key = self.entity_description.key
+        if key == "country_profile":
+            protocol_name = str(
+                getattr(self.coordinator.client, "protocol_name", "")
+            )
+            return (
+                super().available
+                and country_profile_raw_value(
+                    protocol_name, self.coordinator.data
+                )
+                is not None
+            )
         if self._source_register_address() is not None:
             return (
                 super().available

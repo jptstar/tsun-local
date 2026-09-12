@@ -25,7 +25,7 @@ TSUN Local 1.6.0 enables **adaptive polling by default** for entries without an 
 | Entity key | Home Assistant name | Default |
 |---|---|:---:|
 | `adaptive_polling_state` | Communication — State | ✅ |
-| `communication_last_success` | Communication — Last response | ✅ |
+| `communication_last_success` | Communication — Last response | ✅ · hidden |
 | `communication_failures` | Communication — Failures | ✅ |
 | `adaptive_polling_interval` | Communication — Interval | ✅ |
 | `communication_duration` | Communication — Duration | 🛡️ |
@@ -33,6 +33,10 @@ TSUN Local 1.6.0 enables **adaptive polling by default** for entries without an 
 | `communication_successes_consecutive` | Communication — Successes | 🛡️ |
 | `adaptive_polling_reason` | Communication — Reason | 🛡️ |
 | `adaptive_backoff_events` | Communication — Slowdowns | 🛡️ |
+
+### Activity cleanup
+
+To keep Home Assistant Activity useful, the public `communication_last_success` entity is updated at most every five minutes and, together with raw `*_raw` diagnostics, is hidden from normal UI visibility by default across 1511, 02B0 and 1097. The exact last-success time remains available in integration diagnostics. These entities are not removed: users can reveal them from entity settings, and existing enabled entities continue to be recorded. Meaningful states such as online/offline, adaptive polling state, operating state and decoded alarm names remain visible.
 
 Logger Wi-Fi remains diagnostic only. If the periodic HTTP refresh cannot obtain a current signal, TSUN Local 1.6.0 exposes **0%** instead of leaving the previous percentage visible. Online/offline state and adaptive pacing remain driven by protocol communication results.
 
@@ -84,7 +88,8 @@ These entities are available across the supported protocol families when the cor
 | `inverter_status_raw` | Raw inverter status | raw | ✅ |
 | `rated_power` | Rated inverter power | W | ✅ |
 | `max_designed_power` | Maximum designed power | W | ✅ |
-| `communication_last_success` | Last successful communication | timestamp | ✅ |
+| `country_profile` | Country / grid profile | text (`code (native name)`) | ✅ |
+| `communication_last_success` | Last successful communication | timestamp | ✅ · hidden |
 | `communication_duration` | Communication duration | ms | ✅ |
 | `communication_blocks` | Blocks received | blocks | ✅ |
 | `communication_failures` | Consecutive communication failures | count | ✅ |
@@ -130,7 +135,7 @@ These entities are available across the supported protocol families when the cor
 - Packed 16-bit firmware words are decoded locally with `firmware_version()`: DSP `3008 / 0x0BC0 = 0x1172 → V1.1.72`, QCPU1 `3622 / 0x0E26 = 0x1154 → V1.1.54`, and QCPU2 `3822 / 0x0EEE = 0x1154 → V1.1.54`. FCPU is not guessed.
 - `register_3018_raw` remains a plain raw diagnostic because its meaning is still unconfirmed.
 - In 1.5.1, ten additional A1/21 values are exposed as advanced **field-validation** diagnostics. Their values were read successfully on the live MP3000 and match the TSUN/Talent profile, but they remain semantically pending an independent configuration-change check.
-- `country_profile_raw` is now also exposed on 1511 from the leading candidate `2000 / 0x07D0`. The live France-configured MP3000 reads raw `8`. Public 1097 protocol research by **Stefan Allius / s-allius/tsun-gen3-proxy** documents France as country code `8`; the 1511 address itself remains under independent validation.
+- `country_profile_raw` is read on 1511 from `2000 / 0x07D0`. The TSUN Local dump archive now contains three independent MP3000 units with raw `6` and two MP3000 units with raw `8`. Cloud-side TSUN/Talent profile evidence aligns these with `6 = Polska` and `8 = France`; the same evidence links `2 = Deutschland`. The normalized `country_profile` sensor presents these as `code (native name)` while preserving the raw diagnostic separately.
 - The adjacent `0x07D1 = 80` and `0x07D2 = 80` values are documented as the leading pair for the two TSUN/Talent 40.0 s grid connection/reconnection settings with candidate scaling `×0.5 s`. They are **not exposed as separately named Home Assistant entities yet**, because their individual order cannot be proven while both settings have the same value.
 - On validated MP3000 hardware, raw `8192` (`0x2000`) in `alarm_global_1_raw` is repeatedly observed at dawn, dusk and very low irradiance. TSUN documentation describes the corresponding low-PV warning as a normal morning/dusk condition, so TSUN Local maps bit 13 to **`1511-A030 — Low solar input`** (localized in Home Assistant). When this is the only active bit it remains a non-fault operating condition and `inverter_operating_state` reports **Standby — low solar input**.
 
@@ -206,9 +211,9 @@ All entries are **🛡️ disabled by default** and carry the evidence status **
 | `grid_start_upper_frequency_limit` | Upper startup frequency limit | `2045 / 0x07FD` | Hz · ×0.01 |
 | `grid_start_lower_frequency_limit` | Lower startup frequency limit | `2046 / 0x07FE` | Hz · ×0.01 |
 | `grid_qp_voltage_threshold` | QP voltage threshold | `2048 / 0x0800` | V |
-| `country_profile_raw` | Country/profile code | `2000 / 0x07D0` candidate | raw (`8` observed for France) |
+| `country_profile_raw` | Country/profile code | `2000 / 0x07D0` | raw (`6` and `8` observed on MP3000 dumps) |
 
-The exported TSUN/Talent country `raw_value = 1008` is retained as profile evidence only and is **not** used as the local country enum. The local semantic reference used for research is France=`8` from Stefan Allius's public 1097 country table.
+The exported TSUN/Talent values `1002`, `1006` and `1008` are retained as profile evidence and are not used directly as local register values. Combined with the independent local dumps, TSUN Local currently presents the 1511 codes `2 (Deutschland)`, `6 (Polska)` and `8 (France)`; unknown codes remain numeric only.
 
 Additional 1511 advanced diagnostics also include:
 

@@ -29,6 +29,7 @@ from .request_queue import LoggerRequestQueue
 _LOGGER = logging.getLogger(__name__)
 POLL_LOCKS = "poll_locks"
 INVERTER_SERIAL_PREFIX_LENGTH = 3
+LAST_SUCCESS_PUBLISH_INTERVAL = timedelta(minutes=5)
 
 
 def get_poll_lock(
@@ -121,6 +122,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._failure_threshold = failure_threshold
         self._adaptive_polling = adaptive_polling
         self._last_success: datetime | None = None
+        self._last_success_published: datetime | None = None
         self._consecutive_failures = 0
         self._consecutive_successes = 0
         self._online: bool | None = None
@@ -456,14 +458,22 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     "communication_online": self._online is True,
                     "communication_duration": 0,
                     "communication_blocks": 0,
-                    "communication_last_success": self._last_success,
+                    "communication_last_success": self._last_success_published,
                     **self._communication_metrics(),
                 }
             )
             return previous_data
 
+        was_offline = self._online is False
         self._handle_successful_poll()
         self._last_success = dt_util.utcnow()
+        if (
+            self._last_success_published is None
+            or was_offline
+            or self._last_success - self._last_success_published
+            >= LAST_SUCCESS_PUBLISH_INTERVAL
+        ):
+            self._last_success_published = self._last_success
         measurements = _add_common_alarm_metadata(
             result.measurements,
             str(getattr(self.client, "protocol_name", "1511")),
@@ -472,7 +482,7 @@ class TsunCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             **self._logger_metadata,
             **measurements,
             "communication_online": True,
-            "communication_last_success": self._last_success,
+            "communication_last_success": self._last_success_published,
             "communication_duration": result.duration_ms,
             "communication_blocks": result.blocks_ok,
             **self._communication_metrics(),

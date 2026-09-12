@@ -426,6 +426,9 @@
       "product_compliance_type_raw": {
         "name": "Profil pays (brut)"
       },
+      "country_profile": {
+        "name": "Pays / profil réseau"
+      },
       "country_profile_raw": {
         "name": "Profil pays (brut)"
       },

@@ -426,6 +426,9 @@
       "product_compliance_type_raw": {
         "name": "Länderprofil (roh)"
       },
+      "country_profile": {
+        "name": "Land / Netzprofil"
+      },
       "country_profile_raw": {
         "name": "Länderprofil (roh)"
       },

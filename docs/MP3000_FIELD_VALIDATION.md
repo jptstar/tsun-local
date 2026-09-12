@@ -70,54 +70,17 @@ The separate register `0x0BCE` remains the inverter AC/internal daily counter an
 
 ## Country/profile evidence
 
-The TSUN/Talent device-profile export reports:
+The TSUN/Talent profile export and the independent TSUN Local hardware-dump archive now provide cross-checkable 1511 evidence. The export uses values in the 1000-range while the local A1/21 register uses the compact code itself. Current evidence aligns:
 
-- `Réglages du Pays`: **France**;
-- exported `raw_value`: **1008**;
-- product: `0_1511_15`;
-- rated power: 3000 W.
+| Local 1511 code | Cloud/profile evidence | Native display name | Local hardware evidence |
+|---:|---:|---|---|
+| `2` | `1002` | `Deutschland` | cloud/profile evidence; local 1511 dump still requested |
+| `6` | `1006` | `Polska` | three independent TSOL-MP3000 dumps |
+| `8` | `1008` | `France` | two independent TSOL-MP3000 dumps |
 
-The exported value `1008` must **not** be treated as the local country enum itself. The latest live dump provides a direct demonstration of why: at that moment decimal register `3022` (`0x0BCE`) also happened to contain raw `1008`, because the AC daily-energy counter was **10.08 kWh**. Matching an exported value numerically is therefore not sufficient evidence for a country mapping.
+The local source is A1/21 register `2000 / 0x07D0`. Three MP3000 captures from one independent installation read `6`, while the France-configured reference MP3000 and a second independent MP3000 read `8`. This is enough to treat `6 = Polska` and `8 = France` as hardware-supported mappings while keeping code `2 = Deutschland` cloud/profile-backed until a matching local 1511 dump is collected.
 
-### Stefan Allius attribution
-
-Public TSUN protocol research by **Stefan Allius** in [`s-allius/tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy) identified the country/profile field used by the 1097 family and its country enumeration. Stefan's 1097 mapping associates the country/profile field with local register **`0x1400`**.
-
-Country enumeration documented by Stefan Allius:
-
-| Code | Country/profile |
-|---:|---|
-| 0 | Testing |
-| 1 | Brazil |
-| 2 | Germany |
-| 3 | Netherlands |
-| 4 | Ireland |
-| 5 | Italy |
-| 6 | Poland |
-| 7 | Belgium |
-| **8** | **France** |
-| 9 | Austria |
-| 10 | Spain |
-| 11 | VDE 0126 |
-| 12 | Australia |
-| 13 | Thailand MEA |
-| 14 | Thailand PEA |
-| 15 | South Africa |
-| 16 | UK |
-
-The 1097 adapter uses the established raw country/profile field. The separate 1511 country address remains a field-validation candidate until independently confirmed on hardware.
-
-### MP3000 / 1511 country candidate
-
-After using the correct semantic France value `8`, the live MP3000 A1/21 block reveals an exact candidate at its first register:
-
-| TSUN/Talent setting | Expected semantic value | Local 1511 candidate | Live raw value | Status |
-|---|---:|---:|---:|---|
-| Country / Réglages du Pays = France | `8` | 2000 (`0x07D0`) | `8` (`0x0008`) | LIVE DEVICE READ CONFIRMED; CONFIGURATION CHANGE VALIDATION PENDING |
-
-TSUN Local 1.5.1 exposes this value only as the raw advanced diagnostic `country_profile_raw`. It does **not** claim that the 1511 semantic address has been fully proven from one France-configured device.
-
-A safer independent confirmation would be a complete dump from another MP3000 configured for a different known country, or another authoritative 1511 mapping showing the same field position.
+TSUN Local therefore exposes two complementary diagnostics: `country_profile_raw` keeps the untouched local integer and `country_profile` shows `code (native name)` when the protocol-specific mapping is known. Unknown 1511 codes remain numeric only. No country/profile write is implemented.
 
 ## Grid connection / reconnection pair
 
