@@ -61,15 +61,36 @@ class TsunDumpUploadTests(unittest.TestCase):
             result = TOOL.upload_diagnostic_report(
                 {"metadata": {"privacy": {"host_in_output": False}}},
                 consent=True,
+                tester_name="Marcus",
+                declared_devices=[{"model": "TSOL-MS800", "quantity": 1}],
             )
 
         self.assertEqual(result["report_id"], "TSL-20260910-ABCDEF01")
         request = urlopen.call_args.args[0]
         payload = json.loads(request.data.decode("utf-8"))
         self.assertTrue(payload["consent"])
-        self.assertEqual(payload["tester_profile"], {"name": "", "declared_devices": []})
+        self.assertEqual(
+            payload["tester_profile"],
+            {
+                "name": "Marcus",
+                "declared_devices": [{"model": "TSOL-MS800", "quantity": 1}],
+            },
+        )
         self.assertIn("diagnostic", payload)
         self.assertEqual(request.full_url, TOOL.REPORT_UPLOAD_URL)
+
+
+    def test_secure_upload_requires_tester_and_device(self) -> None:
+        with self.assertRaises(TOOL.ReportUploadError):
+            TOOL.upload_diagnostic_report(
+                {"metadata": {}}, consent=True, tester_name="",
+                declared_devices=[{"model": "TSOL-MS800", "quantity": 1}],
+            )
+        with self.assertRaises(TOOL.ReportUploadError):
+            TOOL.upload_diagnostic_report(
+                {"metadata": {}}, consent=True, tester_name="Marcus",
+                declared_devices=[],
+            )
 
     def test_all_files_are_privacy_checked_before_first_network_call(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

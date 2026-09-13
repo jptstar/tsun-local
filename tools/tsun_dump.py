@@ -39,7 +39,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.2"
+TOOL_VERSION = "2.8.3"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -102,6 +102,23 @@ SHORT_LOGGER_MARKERS = (b"\x05\x00", b"\x06\x00")
 VALIDATED_PROTOCOLS = ("1511", "02b0", "1097")
 EXPERIMENTAL_PROTOCOLS = ("3026",)
 SUPPORTED_PROTOCOLS = (*VALIDATED_PROTOCOLS, *EXPERIMENTAL_PROTOCOLS)
+
+TSUN_INVERTER_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("GEN3 · 1 in 1", ("TSOL-MS300", "TSOL-MS350", "TSOL-MS400", "TSOL-MX400", "TSOL-MX450", "TSOL-MX500")),
+    ("GEN3 · 2 in 1", ("TSOL-MS600", "TSOL-MS700", "TSOL-MS800", "TSOL-MX800", "TSOL-MX900", "TSOL-MX1000", "TSOL-MX800Elite", "TSOL-MX800Lite")),
+    ("GEN3 · 4 in 1", ("TSOL-MS1600", "TSOL-MS1800", "TSOL-MS2000", "TSOL-MX2250")),
+    ("GEN3 · 6 in 1 · single phase", ("TSOL-MX2400D", "TSOL-MX2500D", "TSOL-MX2700D", "TSOL-MX3000D", "TSOL-MX3300D")),
+    ("GEN3 · 6 in 1 · three phase", ("TSOL-MX2400D-T", "TSOL-MX2500D-T", "TSOL-MX2700D-T", "TSOL-MX3000D-T", "TSOL-MX3300D-T")),
+    ("TITAN", ("TSOL-MS3000", "TSOL-MP2250", "TSOL-MP3000", "TSOL-MP3680", "TSOL-MP3750", "TSOL-MP4000", "TSOL-MP4600", "TSOL-MP5000", "TSOL-MP6000")),
+    ("MG · high-power PV", ("TSOL-MG700", "TSOL-MG750", "TSOL-MG800", "TSOL-MG1400", "TSOL-MG1500", "TSOL-MG1600", "TSOL-MG2800", "TSOL-MG3000", "TSOL-MG3200")),
+    ("ML · AC module", ("TSOL-ML500",)),
+    ("Partner hardware", ("Sunology PLAY 2",)),
+)
+TSUN_INVERTER_MODELS: tuple[str, ...] = tuple(
+    model for _group, models in TSUN_INVERTER_GROUPS for model in models
+)
+PROFILE_DIR_NAME = "TSUN Local Diagnostic"
+PROFILE_FILE_NAME = "upload_profile.json"
 
 DISCOVERY_MESSAGES = (
     b"WIFIKIT-214028-READ",
@@ -3033,6 +3050,222 @@ class ReportUploadError(RuntimeError):
     """Raised when a generated diagnostic cannot be safely submitted."""
 
 
+def _clean_profile_text(value: str, label: str, max_length: int = 80) -> str:
+    """Validate one human-entered report-profile field."""
+    cleaned = value.strip()
+    if len(cleaned) > max_length:
+        raise ReportUploadError(f"{label} is too long")
+    return cleaned
+
+
+def _normalize_declared_devices(
+    declared_devices: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Validate and merge the inverter inventory sent with a report."""
+    merged: dict[str, dict[str, Any]] = {}
+    for item in declared_devices:
+        model = _clean_profile_text(str(item.get("model", "")), "device model")
+        if not model:
+            raise ReportUploadError("device model cannot be empty")
+        quantity = int(item.get("quantity", 1))
+        if not 1 <= quantity <= 99:
+            raise ReportUploadError("device quantity must be between 1 and 99")
+        key = model.casefold()
+        if key in merged:
+            quantity += int(merged[key]["quantity"])
+            if quantity > 99:
+                raise ReportUploadError(f"device quantity exceeds 99 for {model}")
+            merged[key]["quantity"] = quantity
+        else:
+            merged[key] = {"model": model, "quantity": quantity}
+    return list(merged.values())
+
+
+def _declared_device_arg(value: str) -> dict[str, Any]:
+    """Parse --device MODEL[:QTY], with quantity defaulting to one."""
+    text = value.strip()
+    if not text:
+        raise argparse.ArgumentTypeError("device model cannot be empty")
+    model, quantity = text, 1
+    if ":" in text:
+        candidate_model, candidate_quantity = text.rsplit(":", 1)
+        if candidate_quantity.strip().isdigit():
+            model = candidate_model.strip()
+            quantity = int(candidate_quantity.strip())
+    if not model or not 1 <= quantity <= 99:
+        raise argparse.ArgumentTypeError("invalid device model or quantity")
+    return {"model": model, "quantity": quantity}
+
+
+def upload_profile_path() -> Path:
+    """Return the same local profile path used by the desktop diagnostic."""
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        root = Path(appdata)
+    else:
+        xdg = os.environ.get("XDG_CONFIG_HOME")
+        root = Path(xdg) if xdg else Path.home() / ".config"
+    return root / PROFILE_DIR_NAME / PROFILE_FILE_NAME
+
+
+def load_upload_profile(path: Path | None = None) -> dict[str, Any]:
+    """Load only remembered tester identity and inverter inventory."""
+    target = path or upload_profile_path()
+    try:
+        raw = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {"tester_name": "", "declared_devices": []}
+    if not isinstance(raw, dict):
+        return {"tester_name": "", "declared_devices": []}
+    name = raw.get("tester_name", "")
+    if not isinstance(name, str):
+        name = ""
+    devices: list[dict[str, Any]] = []
+    source = raw.get("declared_devices", [])
+    if isinstance(source, list):
+        for item in source:
+            if not isinstance(item, dict):
+                continue
+            model = str(item.get("model", "")).strip()[:80]
+            if not model:
+                continue
+            try:
+                quantity = int(item.get("quantity", 1))
+            except (TypeError, ValueError):
+                continue
+            if 1 <= quantity <= 99:
+                devices.append({"model": model, "quantity": quantity})
+    return {"tester_name": name.strip()[:80], "declared_devices": devices}
+
+
+def save_upload_profile(
+    tester_name: str,
+    devices: list[dict[str, Any]],
+    path: Path | None = None,
+) -> None:
+    """Remember profile only; consent and diagnostics are never stored here."""
+    target = path or upload_profile_path()
+    payload = {
+        "tester_name": tester_name.strip()[:80],
+        "declared_devices": devices,
+    }
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temporary = target.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(target)
+    except OSError:
+        pass
+
+
+def _expanded_profile_models(profile: dict[str, Any]) -> list[str]:
+    result: list[str] = []
+    for item in profile.get("declared_devices", []):
+        if not isinstance(item, dict):
+            continue
+        model = str(item.get("model", "")).strip()
+        try:
+            quantity = int(item.get("quantity", 1))
+        except (TypeError, ValueError):
+            continue
+        result.extend([model] * max(0, min(quantity, 50 - len(result))))
+        if len(result) >= 50:
+            break
+    return result
+
+
+def _print_inverter_catalogue() -> None:
+    print("\n=== Known inverter models ===")
+    number = 1
+    for group, models in TSUN_INVERTER_GROUPS:
+        print(f"{group}:")
+        for model in models:
+            print(f"  {number:>2}) {model}")
+            number += 1
+    print("   0) Other / unknown model")
+    print("Type ? at any model prompt to show this list again.")
+
+
+def _select_inverter_model(index: int, total: int, default: str = "") -> str:
+    while True:
+        suffix = f" [{default}]" if default else ""
+        choice = input(
+            f"Inverter model {index}/{total} (number, 0=Other/unknown){suffix}: "
+        ).strip()
+        if not choice and default:
+            return default
+        if choice == "?":
+            _print_inverter_catalogue()
+            continue
+        try:
+            number = int(choice)
+        except ValueError:
+            print("Please select a model number from the list, or 0 for Other / unknown.")
+            continue
+        if number == 0:
+            while True:
+                custom = _clean_profile_text(
+                    input("Exact model / label text: "), "device model"
+                )
+                if custom:
+                    return custom
+                print("Please enter the model or the text shown on the inverter label.")
+        if 1 <= number <= len(TSUN_INVERTER_MODELS):
+            return TSUN_INVERTER_MODELS[number - 1]
+        print("Unknown selection. Type ? to show the model list again.")
+
+
+def _prompt_upload_profile() -> tuple[str, list[dict[str, Any]]]:
+    """Collect required identity and exactly one model choice per inverter."""
+    profile = load_upload_profile()
+    saved_name = str(profile.get("tester_name", "")).strip()
+    saved_models = _expanded_profile_models(profile)
+
+    print("\n=== Tester / inverter information ===")
+    while True:
+        name_suffix = f" [{saved_name}]" if saved_name else ""
+        entered = _clean_profile_text(
+            input(f"Name or pseudonym (required){name_suffix}: "), "tester name"
+        )
+        tester_name = entered or saved_name
+        if tester_name:
+            break
+        print("A name or pseudonym is required so the report can be linked to the correct tester.")
+
+    while True:
+        count_suffix = f" [{len(saved_models)}]" if saved_models else ""
+        raw_count = input(f"Number of inverters{count_suffix}: ").strip()
+        if not raw_count and saved_models:
+            inverter_count = len(saved_models)
+        else:
+            try:
+                inverter_count = int(raw_count)
+            except ValueError:
+                print("Please enter a whole number.")
+                continue
+        if not 1 <= inverter_count <= 50:
+            print("Number of inverters must be between 1 and 50.")
+            continue
+        print(f"You entered {inverter_count} inverter(s).")
+        confirm = input("Confirm inverter count? [Y/n]: ").strip().lower()
+        if confirm in ("", "y", "yes"):
+            break
+
+    _print_inverter_catalogue()
+    devices: list[dict[str, Any]] = []
+    for index in range(1, inverter_count + 1):
+        default = saved_models[index - 1] if index <= len(saved_models) else ""
+        model = _select_inverter_model(index, inverter_count, default)
+        devices.append({"model": model, "quantity": 1})
+
+    normalized = _normalize_declared_devices(devices)
+    save_upload_profile(tester_name, normalized)
+    return tester_name, normalized
+
+
 def _find_forbidden_upload_key(
     value: Any, path: str = "$", depth: int = 0
 ) -> str | None:
@@ -3107,6 +3340,8 @@ def upload_diagnostic_report(
     diagnostic: dict[str, Any],
     *,
     consent: bool,
+    tester_name: str = "",
+    declared_devices: Iterable[dict[str, Any]] = (),
     endpoint: str = REPORT_UPLOAD_URL,
     timeout: float = REPORT_UPLOAD_TIMEOUT,
 ) -> dict[str, Any]:
@@ -3114,10 +3349,19 @@ def upload_diagnostic_report(
     if consent is not True:
         raise ReportUploadError("explicit consent is required")
     diagnostic = validate_diagnostic_for_upload(diagnostic)
+    name = _clean_profile_text(tester_name, "tester name")
+    devices = _normalize_declared_devices(declared_devices)
+    if not name:
+        raise ReportUploadError("tester name or pseudonym is required")
+    if not devices:
+        raise ReportUploadError("at least one inverter model is required")
     payload = {
         "schema_version": 1,
         "consent": True,
-        "tester_profile": {"name": "", "declared_devices": []},
+        "tester_profile": {
+            "name": name,
+            "declared_devices": devices,
+        },
         "diagnostic": diagnostic,
     }
     body = json.dumps(
@@ -3160,12 +3404,22 @@ def upload_diagnostic_report(
     return result
 
 
-def _submit_completed_reports(paths: list[Path]) -> None:
+def _submit_completed_reports(
+    paths: list[Path],
+    *,
+    tester_name: str = "",
+    declared_devices: Iterable[dict[str, Any]] = (),
+) -> None:
     """Validate every report first, then transmit them one by one."""
     validated = [(path, load_diagnostic_for_upload(path)) for path in paths]
     print("\nSending anonymized report(s) securely to TSUN Local...")
     for path, diagnostic in validated:
-        result = upload_diagnostic_report(diagnostic, consent=True)
+        result = upload_diagnostic_report(
+            diagnostic,
+            consent=True,
+            tester_name=tester_name,
+            declared_devices=declared_devices,
+        )
         report_id = result["report_id"]
         print(f"  {path.name}: sent successfully · report ID {report_id}")
         view_url = result.get("view_url")
@@ -3185,6 +3439,9 @@ def _print_email_report_instructions(paths: list[Path]) -> None:
 
 def _handle_report_delivery(paths: list[Path], args: argparse.Namespace) -> int:
     """Offer secure upload, email fallback or local-only retention."""
+    profile_args_available = hasattr(args, "tester_name") or hasattr(args, "device")
+    tester_name = getattr(args, "tester_name", "")
+    declared_devices = getattr(args, "device", [])
     if args.submit:
         choice = "1"
     elif args.no_submit:
@@ -3206,8 +3463,34 @@ def _handle_report_delivery(paths: list[Path], args: argparse.Namespace) -> int:
             return 0
 
     if choice == "1":
+        if args.submit and profile_args_available:
+            if not tester_name.strip():
+                print(
+                    "Secure upload requires --tester-name NAME_OR_PSEUDONYM.",
+                    file=sys.stderr,
+                )
+                return 2
+            if not declared_devices:
+                print(
+                    "Secure upload requires at least one --device MODEL[:QTY].",
+                    file=sys.stderr,
+                )
+                return 2
+        elif not args.submit:
+            try:
+                tester_name, declared_devices = _prompt_upload_profile()
+            except (EOFError, KeyboardInterrupt):
+                print("\nNo report was transmitted.")
+                return 0
         try:
-            _submit_completed_reports(paths)
+            if profile_args_available or not args.submit:
+                _submit_completed_reports(
+                    paths,
+                    tester_name=tester_name,
+                    declared_devices=declared_devices,
+                )
+            else:
+                _submit_completed_reports(paths)
         except ReportUploadError as exc:
             print(f"Secure upload failed: {exc}", file=sys.stderr)
             _print_email_report_instructions(paths)
@@ -3375,6 +3658,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--no-submit",
         action="store_true",
         help="keep generated report(s) local and skip the end-of-run sharing prompt",
+    )
+    parser.add_argument(
+        "--tester-name",
+        default="",
+        help="tester name or pseudonym; required with --submit",
+    )
+    parser.add_argument(
+        "--device",
+        action="append",
+        type=_declared_device_arg,
+        default=[],
+        metavar="MODEL[:QTY]",
+        help="declare an inverter model for --submit; may be repeated",
     )
     return parser
 
