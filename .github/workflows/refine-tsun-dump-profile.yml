@@ -1,0 +1,90 @@
+name: Refine TSUN dump profile UX
+on:
+  push:
+    branches: [fix/tsun-dump-tester-profile]
+    paths: [.github/workflows/refine-tsun-dump-profile.yml]
+permissions:
+  contents: write
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/tsun-dump-tester-profile
+          fetch-depth: 0
+      - name: Refine standalone profile UX
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('tools/tsun_dump.py')
+          text = p.read_text(encoding='utf-8')
+          text = text.replace('TOOL_VERSION = "2.8.2"', 'TOOL_VERSION = "2.8.3"', 1)
+
+          marker = 'SUPPORTED_PROTOCOLS = (*VALIDATED_PROTOCOLS, *EXPERIMENTAL_PROTOCOLS)\n'
+          catalogue = '''SUPPORTED_PROTOCOLS = (*VALIDATED_PROTOCOLS, *EXPERIMENTAL_PROTOCOLS)\n\nTSUN_INVERTER_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (\n    ("GEN3 · 1 in 1", ("TSOL-MS300", "TSOL-MS350", "TSOL-MS400", "TSOL-MX400", "TSOL-MX450", "TSOL-MX500")),\n    ("GEN3 · 2 in 1", ("TSOL-MS600", "TSOL-MS700", "TSOL-MS800", "TSOL-MX800", "TSOL-MX900", "TSOL-MX1000", "TSOL-MX800Elite", "TSOL-MX800Lite")),\n    ("GEN3 · 4 in 1", ("TSOL-MS1600", "TSOL-MS1800", "TSOL-MS2000", "TSOL-MX2250")),\n    ("GEN3 · 6 in 1 · single phase", ("TSOL-MX2400D", "TSOL-MX2500D", "TSOL-MX2700D", "TSOL-MX3000D", "TSOL-MX3300D")),\n    ("GEN3 · 6 in 1 · three phase", ("TSOL-MX2400D-T", "TSOL-MX2500D-T", "TSOL-MX2700D-T", "TSOL-MX3000D-T", "TSOL-MX3300D-T")),\n    ("TITAN", ("TSOL-MS3000", "TSOL-MP2250", "TSOL-MP3000", "TSOL-MP3680", "TSOL-MP3750", "TSOL-MP4000", "TSOL-MP4600", "TSOL-MP5000", "TSOL-MP6000")),\n    ("MG · high-power PV", ("TSOL-MG700", "TSOL-MG750", "TSOL-MG800", "TSOL-MG1400", "TSOL-MG1500", "TSOL-MG1600", "TSOL-MG2800", "TSOL-MG3000", "TSOL-MG3200")),\n    ("ML · AC module", ("TSOL-ML500",)),\n    ("Partner hardware", ("Sunology PLAY 2",)),\n)\nTSUN_INVERTER_MODELS: tuple[str, ...] = tuple(\n    model for _group, models in TSUN_INVERTER_GROUPS for model in models\n)\nPROFILE_DIR_NAME = "TSUN Local Diagnostic"\nPROFILE_FILE_NAME = "upload_profile.json"\n'''
+          if marker not in text:
+              raise SystemExit('SUPPORTED_PROTOCOLS marker missing')
+          text = text.replace(marker, catalogue, 1)
+
+          start = text.index('def _prompt_upload_profile() -> tuple[str, list[dict[str, Any]]]:')
+          end = text.index('\n\ndef _find_forbidden_upload_key(', start)
+          replacement = '''def upload_profile_path() -> Path:\n    """Return the same local profile path used by the desktop diagnostic."""\n    appdata = os.environ.get("APPDATA")\n    if appdata:\n        root = Path(appdata)\n    else:\n        xdg = os.environ.get("XDG_CONFIG_HOME")\n        root = Path(xdg) if xdg else Path.home() / ".config"\n    return root / PROFILE_DIR_NAME / PROFILE_FILE_NAME\n\n\ndef load_upload_profile(path: Path | None = None) -> dict[str, Any]:\n    """Load only remembered tester identity and inverter inventory."""\n    target = path or upload_profile_path()\n    try:\n        raw = json.loads(target.read_text(encoding="utf-8"))\n    except (OSError, UnicodeError, json.JSONDecodeError):\n        return {"tester_name": "", "declared_devices": []}\n    if not isinstance(raw, dict):\n        return {"tester_name": "", "declared_devices": []}\n    name = raw.get("tester_name", "")\n    if not isinstance(name, str):\n        name = ""\n    devices: list[dict[str, Any]] = []\n    source = raw.get("declared_devices", [])\n    if isinstance(source, list):\n        for item in source:\n            if not isinstance(item, dict):\n                continue\n            model = str(item.get("model", "")).strip()[:80]\n            if not model:\n                continue\n            try:\n                quantity = int(item.get("quantity", 1))\n            except (TypeError, ValueError):\n                continue\n            if 1 <= quantity <= 99:\n                devices.append({"model": model, "quantity": quantity})\n    return {"tester_name": name.strip()[:80], "declared_devices": devices}\n\n\ndef save_upload_profile(\n    tester_name: str,\n    devices: list[dict[str, Any]],\n    path: Path | None = None,\n) -> None:\n    """Remember profile only; consent and diagnostics are never stored here."""\n    target = path or upload_profile_path()\n    payload = {\n        "tester_name": tester_name.strip()[:80],\n        "declared_devices": devices,\n    }\n    try:\n        target.parent.mkdir(parents=True, exist_ok=True)\n        temporary = target.with_suffix(".tmp")\n        temporary.write_text(\n            json.dumps(payload, ensure_ascii=False, indent=2) + "\\n",\n            encoding="utf-8",\n        )\n        temporary.replace(target)\n    except OSError:\n        pass\n\n\ndef _expanded_profile_models(profile: dict[str, Any]) -> list[str]:\n    result: list[str] = []\n    for item in profile.get("declared_devices", []):\n        if not isinstance(item, dict):\n            continue\n        model = str(item.get("model", "")).strip()\n        try:\n            quantity = int(item.get("quantity", 1))\n        except (TypeError, ValueError):\n            continue\n        result.extend([model] * max(0, min(quantity, 50 - len(result))))\n        if len(result) >= 50:\n            break\n    return result\n\n\ndef _print_inverter_catalogue() -> None:\n    print("\\n=== Known inverter models ===")\n    number = 1\n    for group, models in TSUN_INVERTER_GROUPS:\n        print(f"{group}:")\n        for model in models:\n            print(f"  {number:>2}) {model}")\n            number += 1\n    print("   0) Other / unknown model")\n    print("Type ? at any model prompt to show this list again.")\n\n\ndef _select_inverter_model(index: int, total: int, default: str = "") -> str:\n    while True:\n        suffix = f" [{default}]" if default else ""\n        choice = input(\n            f"Inverter model {index}/{total} (number, 0=Other/unknown){suffix}: "\n        ).strip()\n        if not choice and default:\n            return default\n        if choice == "?":\n            _print_inverter_catalogue()\n            continue\n        try:\n            number = int(choice)\n        except ValueError:\n            print("Please select a model number from the list, or 0 for Other / unknown.")\n            continue\n        if number == 0:\n            while True:\n                custom = _clean_profile_text(\n                    input("Exact model / label text: "), "device model"\n                )\n                if custom:\n                    return custom\n                print("Please enter the model or the text shown on the inverter label.")\n        if 1 <= number <= len(TSUN_INVERTER_MODELS):\n            return TSUN_INVERTER_MODELS[number - 1]\n        print("Unknown selection. Type ? to show the model list again.")\n\n\ndef _prompt_upload_profile() -> tuple[str, list[dict[str, Any]]]:\n    """Collect required identity and exactly one model choice per inverter."""\n    profile = load_upload_profile()\n    saved_name = str(profile.get("tester_name", "")).strip()\n    saved_models = _expanded_profile_models(profile)\n\n    print("\\n=== Tester / inverter information ===")\n    while True:\n        name_suffix = f" [{saved_name}]" if saved_name else ""\n        entered = _clean_profile_text(\n            input(f"Name or pseudonym (required){name_suffix}: "), "tester name"\n        )\n        tester_name = entered or saved_name\n        if tester_name:\n            break\n        print("A name or pseudonym is required so the report can be linked to the correct tester.")\n\n    while True:\n        count_suffix = f" [{len(saved_models)}]" if saved_models else ""\n        raw_count = input(f"Number of inverters{count_suffix}: ").strip()\n        if not raw_count and saved_models:\n            inverter_count = len(saved_models)\n        else:\n            try:\n                inverter_count = int(raw_count)\n            except ValueError:\n                print("Please enter a whole number.")\n                continue\n        if not 1 <= inverter_count <= 50:\n            print("Number of inverters must be between 1 and 50.")\n            continue\n        print(f"You entered {inverter_count} inverter(s).")\n        confirm = input("Confirm inverter count? [Y/n]: ").strip().lower()\n        if confirm in ("", "y", "yes"):\n            break\n\n    _print_inverter_catalogue()\n    devices: list[dict[str, Any]] = []\n    for index in range(1, inverter_count + 1):\n        default = saved_models[index - 1] if index <= len(saved_models) else ""\n        model = _select_inverter_model(index, inverter_count, default)\n        devices.append({"model": model, "quantity": 1})\n\n    normalized = _normalize_declared_devices(devices)\n    save_upload_profile(tester_name, normalized)\n    return tester_name, normalized\n'''
+          text = text[:start] + replacement + text[end:]
+
+          old_payload = '''    diagnostic = validate_diagnostic_for_upload(diagnostic)\n    payload = {\n        "schema_version": 1,\n        "consent": True,\n        "tester_profile": {\n            "name": _clean_profile_text(tester_name, "tester name"),\n            "declared_devices": _normalize_declared_devices(declared_devices),\n        },\n        "diagnostic": diagnostic,\n    }'''
+          new_payload = '''    diagnostic = validate_diagnostic_for_upload(diagnostic)\n    name = _clean_profile_text(tester_name, "tester name")\n    devices = _normalize_declared_devices(declared_devices)\n    if not name:\n        raise ReportUploadError("tester name or pseudonym is required")\n    if not devices:\n        raise ReportUploadError("at least one inverter model is required")\n    payload = {\n        "schema_version": 1,\n        "consent": True,\n        "tester_profile": {\n            "name": name,\n            "declared_devices": devices,\n        },\n        "diagnostic": diagnostic,\n    }'''
+          if old_payload not in text:
+              raise SystemExit('upload payload block missing')
+          text = text.replace(old_payload, new_payload, 1)
+          p.write_text(text, encoding='utf-8')
+
+          test = Path('tests/test_tsun_dump_upload.py')
+          t = test.read_text(encoding='utf-8')
+          t = t.replace('''            result = TOOL.upload_diagnostic_report(\n                {"metadata": {"privacy": {"host_in_output": False}}},\n                consent=True,\n            )''', '''            result = TOOL.upload_diagnostic_report(\n                {"metadata": {"privacy": {"host_in_output": False}}},\n                consent=True,\n                tester_name="Marcus",\n                declared_devices=[{"model": "TSOL-MS800", "quantity": 1}],\n            )''')
+          t = t.replace('''        self.assertEqual(payload["tester_profile"], {"name": "", "declared_devices": []})''', '''        self.assertEqual(\n            payload["tester_profile"],\n            {\n                "name": "Marcus",\n                "declared_devices": [{"model": "TSOL-MS800", "quantity": 1}],\n            },\n        )''')
+          insert = '''\n    def test_secure_upload_requires_tester_and_device(self) -> None:\n        with self.assertRaises(TOOL.ReportUploadError):\n            TOOL.upload_diagnostic_report(\n                {"metadata": {}}, consent=True, tester_name="",\n                declared_devices=[{"model": "TSOL-MS800", "quantity": 1}],\n            )\n        with self.assertRaises(TOOL.ReportUploadError):\n            TOOL.upload_diagnostic_report(\n                {"metadata": {}}, consent=True, tester_name="Marcus",\n                declared_devices=[],\n            )\n'''
+          anchor = '    def test_all_files_are_privacy_checked_before_first_network_call(self) -> None:\n'
+          if insert.strip() not in t:
+              t = t.replace(anchor, insert + '\n' + anchor, 1)
+          test.write_text(t, encoding='utf-8')
+
+          profile_test = Path('tests/test_tsun_dump_profile.py')
+          pt = profile_test.read_text(encoding='utf-8')
+          pt = re.sub(r'def test_prompt_asks_one_model_per_inverter_and_merges_duplicates\(self\) -> None:[\s\S]*?\n    def test_parser_collects_submit_profile', '''def test_prompt_asks_one_model_per_inverter_and_merges_duplicates(self) -> None:\n        with mock.patch.object(TOOL, "load_upload_profile", return_value={"tester_name": "", "declared_devices": []}), mock.patch.object(TOOL, "save_upload_profile") as save, mock.patch(\n            "builtins.input",\n            side_effect=["Marcus", "2", "", "9", "9"],\n        ):\n            name, devices = TOOL._prompt_upload_profile()\n        self.assertEqual(name, "Marcus")\n        self.assertEqual(devices, [{"model": "TSOL-MS800", "quantity": 2}])\n        save.assert_called_once_with("Marcus", devices)\n\n    def test_unknown_model_can_be_entered(self) -> None:\n        with mock.patch.object(TOOL, "load_upload_profile", return_value={"tester_name": "", "declared_devices": []}), mock.patch.object(TOOL, "save_upload_profile"), mock.patch(\n            "builtins.input",\n            side_effect=["Marcus", "1", "", "0", "TSOL-UNKNOWN-TEST"],\n        ):\n            name, devices = TOOL._prompt_upload_profile()\n        self.assertEqual(name, "Marcus")\n        self.assertEqual(devices, [{"model": "TSOL-UNKNOWN-TEST", "quantity": 1}])\n\n    def test_saved_profile_supplies_defaults(self) -> None:\n        saved = {\n            "tester_name": "Marcus",\n            "declared_devices": [{"model": "TSOL-MS800", "quantity": 2}],\n        }\n        with mock.patch.object(TOOL, "load_upload_profile", return_value=saved), mock.patch.object(TOOL, "save_upload_profile"), mock.patch(\n            "builtins.input",\n            side_effect=["", "", "", "", ""],\n        ):\n            name, devices = TOOL._prompt_upload_profile()\n        self.assertEqual(name, "Marcus")\n        self.assertEqual(devices, [{"model": "TSOL-MS800", "quantity": 2}])\n\n    def test_parser_collects_submit_profile''', pt)
+          profile_test.write_text(pt, encoding='utf-8')
+
+          tool_test = Path('tests/test_tsun_dump_tool.py')
+          tt = tool_test.read_text(encoding='utf-8').replace('self.assertEqual(TOOL.TOOL_VERSION, "2.8.2")', 'self.assertEqual(TOOL.TOOL_VERSION, "2.8.3")')
+          tool_test.write_text(tt, encoding='utf-8')
+
+          for doc in [Path('README.md'), Path('docs/HARDWARE_DUMP.md'), *Path('docs').glob('README_*.md')]:
+              d = doc.read_text(encoding='utf-8')
+              if '2.8.2' in d:
+                  doc.write_text(d.replace('2.8.2', '2.8.3'), encoding='utf-8')
+
+          changelog = Path('CHANGELOG.md')
+          c = changelog.read_text(encoding='utf-8')
+          note = '- Improve standalone `tsun_dump.py` report identification: require a tester name/pseudonym and inverter inventory for secure uploads, offer a numbered known-model catalogue with an `Other / unknown` fallback, and remember the tester/inverter profile locally using the same profile file as the desktop diagnostic.\n'
+          if note not in c:
+              c = c.replace('## [Unreleased]\n', '## [Unreleased]\n\n### Changed\n\n' + note, 1)
+              changelog.write_text(c, encoding='utf-8')
+          PY
+      - name: Test
+        run: |
+          python -m py_compile tools/tsun_dump.py
+          python tests/test_tsun_dump_tool.py
+          python tests/test_tsun_dump_upload.py
+          python tests/test_tsun_dump_profile.py
+      - name: Commit
+        run: |
+          rm .github/workflows/refine-tsun-dump-profile.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix: improve tsun dump tester profile UX"
+          git push origin HEAD:fix/tsun-dump-tester-profile
