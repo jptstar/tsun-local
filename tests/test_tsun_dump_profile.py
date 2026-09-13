@@ -20,9 +20,32 @@ SPEC.loader.exec_module(TOOL)
 
 class TsunDumpProfileTests(unittest.TestCase):
     def test_prompt_asks_one_model_per_inverter_and_merges_duplicates(self) -> None:
-        with mock.patch(
+        with mock.patch.object(TOOL, "load_upload_profile", return_value={"tester_name": "", "declared_devices": []}), mock.patch.object(TOOL, "save_upload_profile") as save, mock.patch(
             "builtins.input",
-            side_effect=["Marcus", "2", "", "TSOL-MS800", "TSOL-MS800"],
+            side_effect=["Marcus", "2", "", "9", "9"],
+        ):
+            name, devices = TOOL._prompt_upload_profile()
+        self.assertEqual(name, "Marcus")
+        self.assertEqual(devices, [{"model": "TSOL-MS800", "quantity": 2}])
+        save.assert_called_once_with("Marcus", devices)
+
+    def test_unknown_model_can_be_entered(self) -> None:
+        with mock.patch.object(TOOL, "load_upload_profile", return_value={"tester_name": "", "declared_devices": []}), mock.patch.object(TOOL, "save_upload_profile"), mock.patch(
+            "builtins.input",
+            side_effect=["Marcus", "1", "", "0", "TSOL-UNKNOWN-TEST"],
+        ):
+            name, devices = TOOL._prompt_upload_profile()
+        self.assertEqual(name, "Marcus")
+        self.assertEqual(devices, [{"model": "TSOL-UNKNOWN-TEST", "quantity": 1}])
+
+    def test_saved_profile_supplies_defaults(self) -> None:
+        saved = {
+            "tester_name": "Marcus",
+            "declared_devices": [{"model": "TSOL-MS800", "quantity": 2}],
+        }
+        with mock.patch.object(TOOL, "load_upload_profile", return_value=saved), mock.patch.object(TOOL, "save_upload_profile"), mock.patch(
+            "builtins.input",
+            side_effect=["", "", "", "", ""],
         ):
             name, devices = TOOL._prompt_upload_profile()
         self.assertEqual(name, "Marcus")

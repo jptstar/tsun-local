@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The project follows [Se
 
 ## [Unreleased]
 
+### Changed
+
+- Improve standalone `tsun_dump.py` report identification: require a tester name/pseudonym and inverter inventory for secure uploads, offer a numbered known-model catalogue with an `Other / unknown` fallback, and remember the tester/inverter profile locally using the same profile file as the desktop diagnostic.
+
 ## [1.6.2] - 2026-09-12
 
 ### Fixed

@@ -36,7 +36,7 @@ The **same TSUN Local Diagnostic interface** is packaged for all supported deskt
 > 6. Authenticate, then confirm **Open**.  
 > 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
 
-Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.2**.
+Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.3**.
 
 All assets remain on the rolling **`diagnostic-latest`** release. The historical Windows URL and filename are intentionally unchanged so old forum posts, issue comments and documentation links stay valid.
 
