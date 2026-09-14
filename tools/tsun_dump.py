@@ -9,8 +9,9 @@ protocol families currently researched by TSUN Local: 1511, 02B0, 1097 and exper
 
 Discovery deliberately uses several independent read-only paths because TSUN
 logger generations do not all answer the same discovery service reliably:
-UDP 48899, bounded TCP 8899 scanning, local HTTP identity pages and an AP
-identity probe with logger SN=0. No inverter configuration write operation is
+UDP 48899, bounded TCP 8899 scanning, local HTTP identity pages, an AP identity
+probe with logger SN=0, and passive Tuya/ThingClips LAN detection on UDP
+6666/6667/7000 plus TCP 6668. No inverter configuration write operation is
 implemented anywhere in this file.
 """
 
@@ -30,6 +31,7 @@ import math
 import os
 from pathlib import Path
 import re
+import select
 import socket
 import sys
 import time
@@ -39,7 +41,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.3"
+TOOL_VERSION = "2.8.4"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -79,6 +81,10 @@ UPDATE_COMPONENT_WINDOWS_GUI = "windows_gui"
 
 DEFAULT_PORT = 8899
 DEFAULT_DISCOVERY_PORT = 48899
+TUYA_TCP_PORT = 6668
+TUYA_UDP_PORTS = (6666, 6667, 7000)
+TUYA_DISCOVERY_MAX_PACKET = 65535
+TUYA_DISCOVERY_TIMEOUT_CAP = 3.0
 DEFAULT_DISCOVERY_TIMEOUT = 4.0
 DEFAULT_TCP_SCAN_TIMEOUT = 0.45
 DEFAULT_HTTP_SCAN_TIMEOUT = 0.35
@@ -483,6 +489,10 @@ class DiscoveryDevice:
     protocol_hint: str | None = None
     tcp_8899_open: bool = False
     http_open: bool = False
+    tuya_6668_open: bool = False
+    tuya_udp_seen: bool = False
+    tuya_udp_ports: set[int] = field(default_factory=set)
+    tuya_framing: set[str] = field(default_factory=set)
 
 
 def safe_error_details(error: Exception) -> dict[str, str]:
@@ -1015,6 +1025,10 @@ def _merge_device(target: DiscoveryDevice, incoming: DiscoveryDevice) -> None:
     target.sources.update(incoming.sources)
     target.tcp_8899_open = target.tcp_8899_open or incoming.tcp_8899_open
     target.http_open = target.http_open or incoming.http_open
+    target.tuya_6668_open = target.tuya_6668_open or incoming.tuya_6668_open
+    target.tuya_udp_seen = target.tuya_udp_seen or incoming.tuya_udp_seen
+    target.tuya_udp_ports.update(incoming.tuya_udp_ports)
+    target.tuya_framing.update(incoming.tuya_framing)
     target.firmware_version = target.firmware_version or incoming.firmware_version
     target.protocol_hint = target.protocol_hint or incoming.protocol_hint
 
@@ -1261,6 +1275,111 @@ def scan_tcp_network(
             except OSError:
                 pass
     return sorted(found, key=_host_sort_key)
+
+
+def _tuya_framing(payload: bytes, listen_port: int) -> str:
+    '''Return a non-secret framing classification for one passive UDP packet.'''
+    if payload.startswith(b"\x00\x00\x55\xaa"):
+        return "tuya-55aa"
+    if payload.startswith(b"\x00\x00\x66\x99"):
+        return "tuya-6699"
+    stripped = payload.lstrip()
+    if stripped.startswith(b"{"):
+        return "json/plaintext"
+    if listen_port == 6667:
+        return "tuya-encrypted/6667"
+    if listen_port == 7000:
+        return "tuya-app/7000"
+    return "unknown"
+
+
+def discover_tuya_udp(timeout: float) -> list[DiscoveryDevice]:
+    '''Passively observe Tuya/ThingClips LAN announcements without sending data.'''
+    if timeout <= 0:
+        return []
+
+    sockets: list[socket.socket] = []
+    devices: dict[str, DiscoveryDevice] = {}
+    for port in TUYA_UDP_PORTS:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("", port))
+        except OSError:
+            sock.close()
+            continue
+        sock.setblocking(False)
+        sockets.append(sock)
+
+    deadline = time.monotonic() + min(timeout, TUYA_DISCOVERY_TIMEOUT_CAP)
+    try:
+        while sockets:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                readable, _, _ = select.select(sockets, [], [], min(0.5, remaining))
+            except (OSError, ValueError):
+                break
+            for sock in readable:
+                try:
+                    payload, (source, _source_port) = sock.recvfrom(
+                        TUYA_DISCOVERY_MAX_PACKET
+                    )
+                except OSError:
+                    continue
+                try:
+                    IPv4Address(source)
+                except ValueError:
+                    continue
+                listen_port = int(sock.getsockname()[1])
+                device = devices.setdefault(source, DiscoveryDevice(host=source))
+                device.replies += 1
+                device.sources.add(f"tuya_udp{listen_port}")
+                device.tuya_udp_seen = True
+                device.tuya_udp_ports.add(listen_port)
+                device.tuya_framing.add(_tuya_framing(payload, listen_port))
+    finally:
+        for sock in sockets:
+            sock.close()
+
+    return sorted(devices.values(), key=lambda item: _host_sort_key(item.host))
+
+
+def _tuya_candidate_metadata(device: DiscoveryDevice) -> dict[str, Any]:
+    '''Return privacy-safe Tuya evidence for a discovery report.'''
+    return {
+        "transport_kind": "tuya_oem_candidate",
+        "tuya_tcp_6668": device.tuya_6668_open,
+        "tuya_udp_seen": device.tuya_udp_seen,
+        "tuya_udp_ports": sorted(device.tuya_udp_ports),
+        "tuya_framing": sorted(device.tuya_framing),
+    }
+
+
+def _is_tuya_candidate(device: DiscoveryDevice) -> bool:
+    return bool(device.tuya_6668_open or device.tuya_udp_seen)
+
+
+def _tuya_tcp_reachability(host: str, timeout: float) -> dict[str, Any]:
+    '''Open TCP 6668 without sending application data and report reachability.'''
+    started = time.monotonic()
+    try:
+        with socket.create_connection(
+            (host, TUYA_TCP_PORT), timeout=min(max(timeout, 0.05), 3.0)
+        ):
+            latency_ms = round((time.monotonic() - started) * 1000, 1)
+            return {
+                "reachable": True,
+                "connect_latency_ms": latency_ms,
+                "application_payload_sent": False,
+            }
+    except OSError as err:
+        return {
+            "reachable": False,
+            "error": safe_error_details(err),
+            "application_payload_sent": False,
+        }
 
 
 def _http_document(
@@ -2055,22 +2174,30 @@ def discover_candidates(
     udp_targets = {"255.255.255.255"}
     udp_targets.update(str(network.broadcast_address) for network in networks)
     initial_udp = discover_udp_targets(udp_targets, timeout=args.discovery_timeout)
+    tuya_udp = discover_tuya_udp(args.discovery_timeout)
 
     devices: dict[str, DiscoveryDevice] = {}
-    for incoming in initial_udp:
+    for incoming in (*initial_udp, *tuya_udp):
         current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))
         _merge_device(current, incoming)
         networks.add(_network_around_host(incoming.host))
 
     tcp_hosts: set[str] = set()
     http_hosts: set[str] = set()
+    tuya_hosts: set[str] = set()
     for network in sorted(networks, key=lambda item: (int(item.network_address), item.prefixlen)):
-        print(f"Network discovery: scanning {network} on TCP {args.port} and HTTP 80...")
+        print(
+            f"Network discovery: scanning {network} on TCP {args.port}, "
+            f"HTTP 80 and Tuya TCP {TUYA_TCP_PORT}..."
+        )
         tcp_hosts.update(
             scan_tcp_network(network, args.port, timeout=args.tcp_scan_timeout)
         )
         http_hosts.update(
             scan_tcp_network(network, 80, timeout=args.http_scan_timeout)
+        )
+        tuya_hosts.update(
+            scan_tcp_network(network, TUYA_TCP_PORT, timeout=args.tcp_scan_timeout)
         )
 
     candidate_hosts = sorted(tcp_hosts | http_hosts, key=_host_sort_key)
@@ -2113,13 +2240,19 @@ def discover_candidates(
     for host in http_hosts:
         if host in devices:
             devices[host].http_open = True
+    for host in tuya_hosts:
+        current = devices.setdefault(host, DiscoveryDevice(host=host))
+        current.tuya_6668_open = True
+        current.sources.add("tuya_tcp6668")
 
     return (
         sorted(devices.values(), key=lambda item: _host_sort_key(item.host)),
         {
             "udp_devices": len(initial_udp),
+            "tuya_udp_devices": len(tuya_udp),
             "tcp_candidates": len(tcp_hosts),
             "http_candidates": len(http_hosts),
+            "tuya_tcp_candidates": len(tuya_hosts),
             "identified_candidates": len(devices),
             "networks_scanned": len(networks),
         },
@@ -2146,6 +2279,12 @@ def resolve_single_host_identity(args: argparse.Namespace, host: str) -> Discove
         if logger_sn is not None:
             device.serial_candidates.add(logger_sn)
             device.sources.add("ap_identity")
+    if _tcp_port_open(host, TUYA_TCP_PORT, args.tcp_scan_timeout):
+        device.tuya_6668_open = True
+        device.sources.add("tuya_tcp6668")
+    for incoming in discover_tuya_udp(min(args.discovery_timeout, 1.5)):
+        if incoming.host == host:
+            _merge_device(device, incoming)
     return device
 
 
@@ -2187,9 +2326,13 @@ def resolve_targets(
         if monitor_sn is None and len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
-        if monitor_sn is None:
+        tuya_candidate = monitor_sn is None and _is_tuya_candidate(device)
+        if monitor_sn is None and not tuya_candidate:
             print("Monitor SN could not be resolved automatically.")
             monitor_sn = _prompt_monitor_sn()
+        if tuya_candidate:
+            monitor_sn = 0
+            print("Tuya/ThingClips LAN candidate detected; no TSUN Monitor SN required.")
         assert monitor_sn is not None
         summary["devices_found"] = 1
         summary["targets_resolved"] = 1
@@ -2203,16 +2346,22 @@ def resolve_targets(
             "sources": sorted(device.sources),
             "firmware_version": device.firmware_version,
             "protocol_hint": device.protocol_hint,
+            **(_tuya_candidate_metadata(device) if tuya_candidate else {}),
         }
         return [(host, monitor_sn, report)], summary
 
-    print("Searching for TSUN loggers (UDP + TCP 8899 + HTTP + AP identity)...")
+    print(
+        "Searching for TSUN and Tuya/ThingClips devices "
+        "(UDP + TCP 8899 + HTTP + AP identity + Tuya TCP 6668)..."
+    )
     devices, stats = discover_candidates(args)
     summary["devices_found"] = len(devices)
     print(
         "Discovery results: "
         f"UDP={stats['udp_devices']}, TCP8899={stats['tcp_candidates']}, "
-        f"HTTP={stats['http_candidates']}, identified={stats['identified_candidates']}, "
+        f"HTTP={stats['http_candidates']}, TuyaUDP={stats['tuya_udp_devices']}, "
+        f"TuyaTCP6668={stats['tuya_tcp_candidates']}, "
+        f"identified={stats['identified_candidates']}, "
         f"networks={stats['networks_scanned']}"
     )
 
@@ -2226,9 +2375,13 @@ def resolve_targets(
         if monitor_sn is None and len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
-        if monitor_sn is None:
+        tuya_candidate = monitor_sn is None and _is_tuya_candidate(device)
+        if monitor_sn is None and not tuya_candidate:
             print("Monitor SN could not be resolved automatically.")
             monitor_sn = _prompt_monitor_sn()
+        if tuya_candidate:
+            monitor_sn = 0
+            print("Tuya/ThingClips LAN candidate detected; no TSUN Monitor SN required.")
         assert monitor_sn is not None
         summary["devices_found"] = 1
         summary["targets_resolved"] = 1
@@ -2242,6 +2395,7 @@ def resolve_targets(
             "sources": sorted(device.sources),
             "firmware_version": device.firmware_version,
             "protocol_hint": device.protocol_hint,
+            **(_tuya_candidate_metadata(device) if tuya_candidate else {}),
         }
         return [(host, monitor_sn, report)], summary
 
@@ -2261,11 +2415,16 @@ def resolve_targets(
 
         monitor_sn: int | None = None
         discovered_sn = False
+        tuya_candidate = False
         if args.serial is not None and len(devices) == 1:
             monitor_sn = args.serial
         elif len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
+        elif not device.serial_candidates and _is_tuya_candidate(device):
+            monitor_sn = 0
+            tuya_candidate = True
+            print("  Tuya/ThingClips LAN candidate; no TSUN Monitor SN required.")
         else:
             state = "ambiguous" if device.serial_candidates else "missing"
             print(f"  Monitor SN {state}.")
@@ -2289,6 +2448,7 @@ def resolve_targets(
             "sources": sorted(device.sources),
             "firmware_version": device.firmware_version,
             "protocol_hint": device.protocol_hint,
+            **(_tuya_candidate_metadata(device) if tuya_candidate else {}),
         }
         targets.append((device.host, monitor_sn, report))
 
@@ -2841,6 +3001,97 @@ def _flatten_raw_registers(registers: dict[str, int]) -> list[dict[str, Any]]:
         {"key": key, "raw_decimal": value, "raw_hex": f"0x{value:04X}"}
         for key, value in sorted(registers.items())
     ]
+
+
+def capture_tuya_candidate(
+    args: argparse.Namespace,
+    host: str,
+    discovery: dict[str, Any],
+) -> dict[str, Any]:
+    '''Capture privacy-safe evidence for a Tuya/ThingClips OEM LAN candidate.'''
+    created_at = datetime.now(timezone.utc)
+    tcp = _tuya_tcp_reachability(host, args.tcp_scan_timeout)
+    udp_seen = bool(discovery.get("tuya_udp_seen"))
+    framing = list(discovery.get("tuya_framing") or [])
+    ports = list(discovery.get("tuya_udp_ports") or [])
+    confirmed = bool(tcp.get("reachable") or udp_seen)
+
+    return {
+        "format": DUMP_FORMAT,
+        "schema_version": SCHEMA_VERSION,
+        "metadata": {
+            "timestamp_utc": created_at.isoformat(),
+            "tool": "TSUN Local Hardware Validation Dump Tool",
+            "tool_version": TOOL_VERSION,
+            "tool_sha256": _script_sha256(),
+            "tool_source": SOURCE_URL,
+            "standalone": True,
+            "python_required": ">=3.10",
+            "read_only": True,
+            "capture_mode": "full" if args.full else "standard",
+            "capture_status": "tuya_oem_candidate",
+            "detected_protocol": "tuya-lan",
+            "protocol_validation_status": "experimental_oem_transport",
+            "model_family": "Tuya / ThingClips OEM candidate",
+            "model_supplied_by_user": args.model,
+            "pv_count": None,
+            "port": TUYA_TCP_PORT,
+            "privacy": {
+                "host_in_output": False,
+                "logger_sn_in_output": False,
+                "inverter_serial_in_output": False,
+                "ap_envelope_in_output": False,
+                "udp_discovery_payload_in_output": False,
+                "tuya_device_id_in_output": False,
+                "tuya_local_key_in_output": False,
+            },
+        },
+        "discovery": discovery,
+        "tuya_lan": {
+            "candidate_confirmed": confirmed,
+            "tcp_6668": tcp,
+            "udp_seen": udp_seen,
+            "udp_ports": sorted(int(port) for port in ports),
+            "udp_framing": sorted(str(item) for item in framing),
+            "status_read_attempted": False,
+            "status_read_reason": (
+                "Tuya LAN status is encrypted and requires the device-specific "
+                "local key; the diagnostic does not request or store that secret."
+            ),
+            "device_id_requested": False,
+            "local_key_requested": False,
+            "configuration_write_performed": False,
+            "application_payload_sent": False,
+        },
+        "protocol_detection": {
+            "requested": args.protocol,
+            "selected": "tuya-lan",
+            "confidence": (
+                "Tuya TCP 6668 reachable and/or Tuya UDP LAN framing observed"
+            ),
+            "attempts": [],
+        },
+        "decoded_known_measurements": {},
+        "capture_summary": {
+            "snapshots": 0,
+            "snapshot_interval_seconds": args.interval,
+            "coherent_snapshots": 0,
+            "decoded_snapshot_index": None,
+            "successful_block_reads": 0,
+            "failed_block_reads": 0,
+            "unique_raw_registers": 0,
+        },
+        "raw_registers": [],
+        "snapshots": [],
+        "analysis": analyze_snapshots([]),
+        "blocks": [],
+        "protocol_trace": [],
+        "logger_dns_probe": {
+            "attempted": False,
+            "read_only": True,
+            "reason": "not a TSUN logger transport",
+        },
+    }
 
 
 def capture(
@@ -3552,7 +3803,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Standalone, privacy-safe, strictly read-only TSUN hardware dump for "
-            "1511, 02B0, 1097 and experimental 3026. Discovery combines UDP, TCP 8899, HTTP and AP identity."
+            "1511, 02B0, 1097 and experimental 3026, with experimental "
+            "Tuya/ThingClips OEM LAN detection. Discovery combines UDP, TCP 8899, "
+            "HTTP, AP identity and Tuya TCP 6668."
         )
     )
     parser.add_argument(
@@ -3794,7 +4047,11 @@ def main() -> int:
         if discovery.get("firmware_version"):
             print(f"Firmware : {discovery['firmware_version']}")
         try:
-            document = capture(args, host, sn, discovery)
+            if discovery.get("transport_kind") == "tuya_oem_candidate":
+                document = capture_tuya_candidate(args, host, discovery)
+                print("Protocol detected: tuya-lan (experimental OEM transport)")
+            else:
+                document = capture(args, host, sn, discovery)
         except (KeyboardInterrupt, EOFError):
             print("\nCancelled.")
             return 130
