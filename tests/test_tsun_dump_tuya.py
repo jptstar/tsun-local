@@ -8,6 +8,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 import sys
+from types import SimpleNamespace
+from unittest import mock
 import unittest
 
 
@@ -35,6 +37,44 @@ class TuyaDiagnosticTests(unittest.TestCase):
         metadata = TOOL._tuya_candidate_metadata(device)
         self.assertEqual(metadata["transport_kind"], "tuya_oem_candidate")
         self.assertTrue(metadata["tuya_tcp_6668"])
+
+    def test_confirmed_tuya_capture_is_partial_success_not_failure(self) -> None:
+        args = SimpleNamespace(
+            tcp_scan_timeout=0.2,
+            full=True,
+            model="TSOL-MS800",
+            protocol="auto",
+            interval=3.0,
+        )
+        discovery = {
+            "tuya_udp_seen": False,
+            "tuya_framing": [],
+            "tuya_udp_ports": [],
+        }
+        with mock.patch.object(
+            TOOL,
+            "_tuya_tcp_reachability",
+            return_value={
+                "reachable": True,
+                "connect_latency_ms": 12.0,
+                "application_payload_sent": False,
+            },
+        ):
+            document = TOOL.capture_tuya_candidate(args, "192.0.2.10", discovery)
+
+        metadata = document["metadata"]
+        self.assertEqual(metadata["capture_status"], "partial_success")
+        self.assertEqual(metadata["protocol_validation_status"], "transport_detected")
+        self.assertEqual(
+            metadata["capture_limitation"], "encrypted_status_requires_local_key"
+        )
+        self.assertFalse(metadata["measurements_available"])
+        self.assertTrue(metadata["requires_local_key_for_status"])
+        self.assertEqual(metadata["model_supplied_by_user"], "TSOL-MS800")
+        self.assertEqual(document["tuya_lan"]["status_read_blocked_by"], "missing_local_key")
+        self.assertFalse(document["tuya_lan"]["local_key_requested"])
+        self.assertFalse(document["tuya_lan"]["local_key_stored"])
+        self.assertFalse(document["tuya_lan"]["application_payload_sent"])
 
     def test_tuya_capture_contract_excludes_secrets_and_writes(self) -> None:
         source = TOOL_PATH.read_text(encoding="utf-8")
