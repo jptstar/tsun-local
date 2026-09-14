@@ -90,7 +90,7 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
         import tsun_diagnostic as desktop
 
         self.assertIs(base.upload_file, retry.upload_file_with_retry)
-        self.assertEqual(desktop.APP_VERSION, "1.5.14")
+        self.assertEqual(desktop.APP_VERSION, "1.5.15")
 
 
 if __name__ == "__main__":

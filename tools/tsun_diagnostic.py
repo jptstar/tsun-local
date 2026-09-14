@@ -11,6 +11,7 @@ engine and report-upload flow remain shared with the existing desktop modules.
 
 from __future__ import annotations
 
+import builtins
 import os
 from pathlib import Path
 import platform
@@ -18,12 +19,14 @@ import subprocess
 import sys
 import threading
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 
 import tsun_dump
 import tsun_diagnostic_desktop_v159 as ui
+import tsun_report_model_assignment
 import tsun_report_upload as report_upload
 import tsun_report_upload_retry as report_upload_retry
+import tsun_tuya_probe
 
 # Keep the public compatibility shape used by existing tests and helper code:
 # `previous` remains the 1.5.8 UI/persistence layer while `ui` is the 1.5.10
@@ -31,7 +34,7 @@ import tsun_report_upload_retry as report_upload_retry
 previous = ui.previous
 
 APP_NAME = ui.APP_NAME
-APP_VERSION = "1.5.14"
+APP_VERSION = "1.5.15"
 MAX_DEVICE_ROWS = ui.MAX_DEVICE_ROWS
 PROJECT_URL = ui.PROJECT_URL
 COPYRIGHT_TEXT = ui.COPYRIGHT_TEXT
@@ -54,6 +57,53 @@ previous.legacy.upload_app.APP_VERSION = APP_VERSION
 # The UI keeps the existing privacy-safe uploader API. Only transient transport
 # failures are retried; permanent HTTP/client validation errors still fail once.
 report_upload.upload_file = report_upload_retry.upload_file_with_retry
+
+# Add a second privacy gate for Tuya credential field names. The authenticated
+# probe never emits these fields, but a malformed/future report is rejected before
+# upload rather than relying only on the probe implementation to stay correct.
+report_upload.FORBIDDEN_KEYS = report_upload.FORBIDDEN_KEYS | frozenset(
+    {
+        "device_id",
+        "dev_id",
+        "local_key",
+        "localkey",
+        "tuya_local_key",
+    }
+)
+
+# Allow extra LAN candidates to remain unassigned while still linking TSUN dumps
+# to the declared inverter inventory when rated power makes the match unambiguous.
+tsun_report_model_assignment.install(report_upload)
+
+# The inherited GUI routes interactive CLI prompts through tkinter.simpledialog.
+# Mark Local Key prompts so only that secret field is masked; ordinary diagnostic
+# questions keep their existing behavior. The key remains in process memory only.
+if not hasattr(simpledialog, "_tsun_local_original_askstring"):
+    simpledialog._tsun_local_original_askstring = simpledialog.askstring  # type: ignore[attr-defined]
+
+
+def _privacy_aware_askstring(title: str, prompt: str, *args, **kwargs):
+    original = simpledialog._tsun_local_original_askstring  # type: ignore[attr-defined]
+    if isinstance(prompt, str) and prompt.startswith(tsun_tuya_probe.SECRET_PROMPT_PREFIX):
+        prompt = prompt[len(tsun_tuya_probe.SECRET_PROMPT_PREFIX) :]
+        kwargs.setdefault("show", "*")
+    return original(title, prompt, *args, **kwargs)
+
+
+simpledialog.askstring = _privacy_aware_askstring
+
+
+def _install_authenticated_tuya_probe() -> None:
+    """Attach authenticated Tuya reads only when the real desktop app starts."""
+    # Lambdas resolve builtins.input at call time, after the inherited worker has
+    # redirected it to the GUI dialog bridge. No secret enters argv/env/profile.
+    tsun_tuya_probe.install(
+        tsun_dump,
+        value_prompt=lambda prompt: builtins.input(prompt),
+        secret_prompt=lambda prompt: builtins.input(
+            tsun_tuya_probe.SECRET_PROMPT_PREFIX + prompt
+        ),
+    )
 
 
 UPDATE_COMPONENT_WINDOWS = "windows_gui"
@@ -221,6 +271,7 @@ def main() -> int:
     internal_result = previous.legacy.base._internal_update_mode()
     if internal_result is not None:
         return internal_result
+    _install_authenticated_tuya_probe()
     root = tk.Tk()
     CleanDiagnosticApp(root)
     root.mainloop()
