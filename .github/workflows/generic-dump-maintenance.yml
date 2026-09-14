@@ -20,7 +20,10 @@ jobs:
           fetch-depth: 0
 
       - name: Integrate Tuya discovery into diagnostic
-        run: python tools/_generic_dump_patch.py
+        shell: bash
+        run: |
+          python tools/_generic_dump_patch.py
+          sed -i 's/self.assertEqual(TOOL.TOOL_VERSION, "2.8.3")/self.assertEqual(TOOL.TOOL_VERSION, "2.8.4")/' tests/test_tsun_dump_tool.py
 
       - name: Validate diagnostic tool
         shell: bash
