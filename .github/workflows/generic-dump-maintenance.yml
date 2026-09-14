@@ -1,4 +1,4 @@
-name: Generic dump maintenance
+name: Integrate Tuya OEM diagnostic
 
 on:
   push:
@@ -19,10 +19,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply generic dump update
+      - name: Integrate Tuya discovery into diagnostic
         run: python tools/_generic_dump_patch.py
 
-      - name: Validate dump tool
+      - name: Validate diagnostic tool
         shell: bash
         run: |
           python -m py_compile tools/tsun_dump.py
@@ -39,25 +39,30 @@ jobs:
           sys.modules[spec.name] = module
           spec.loader.exec_module(module)
 
-          assert module._smartlink_serial_candidates(
-              b'{"mid":"1234567890","mac":"00:00:00:00:00:00","ip":"192.0.2.10"}'
-          ) == {1234567890}
-          assert module._smartlink_serial_candidates(
-              b'smart_config##00:00:00:00:00:00##192.0.2.10##1234567890'
-          ) == {1234567890}
+          assert module.TOOL_VERSION == "2.8.4"
+          assert module.TUYA_TCP_PORT == 6668
+          assert module.TUYA_UDP_PORTS == (6666, 6667, 7000)
+          assert module._tuya_framing(b"\x00\x00\x55\xaa\x00", 6666) == "tuya-55aa"
+          assert module._tuya_framing(b"\x00\x00\x66\x99\x00", 7000) == "tuya-6699"
+
+          device = module.DiscoveryDevice(host="192.0.2.10")
+          device.tuya_6668_open = True
+          metadata = module._tuya_candidate_metadata(device)
+          assert metadata["transport_kind"] == "tuya_oem_candidate"
+          assert metadata["tuya_tcp_6668"] is True
 
           lower = path.read_text(encoding="utf-8").lower()
-          forbidden = ("sunology", "play2", "dca31")
-          assert not any(term in lower for term in forbidden)
+          assert "tuya/thingclips" in lower
+          assert "local key" in lower
           PY
           git diff --check
 
       - name: Commit and publish
         shell: bash
         run: |
-          rm -f tools/_generic_dump_patch.py tools/tsun_play2_probe.py .github/workflows/generic-dump-maintenance.yml
+          rm -f tools/_generic_dump_patch.py tools/poolex_tuya_probe.py .github/workflows/generic-dump-maintenance.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Improve generic SmartLink discovery diagnostics"
+          git commit -m "Integrate Tuya OEM discovery into diagnostic"
           git push origin HEAD:main
