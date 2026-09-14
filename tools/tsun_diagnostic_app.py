@@ -536,6 +536,11 @@ class UploadDiagnosticApp(base.DiagnosticApp):
         self.upload_thread.start()
 
     def _upload_reports(self, paths: list[Path], tester_name: str, devices: list[dict[str, Any]]) -> None:
+        try:
+            report_upload.annotate_report_files(paths, devices)
+        except report_upload.ReportUploadError as exc:
+            self.upload_events.put(("error", str(exc)))
+            return
         for current, path in enumerate(paths, 1):
             self.upload_events.put(("progress", current, len(paths)))
             try:

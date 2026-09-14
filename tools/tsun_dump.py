@@ -41,7 +41,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.4"
+TOOL_VERSION = "2.8.5"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -3029,9 +3029,17 @@ def capture_tuya_candidate(
             "python_required": ">=3.10",
             "read_only": True,
             "capture_mode": "full" if args.full else "standard",
-            "capture_status": "tuya_oem_candidate",
+            "capture_status": (
+                "partial_success" if confirmed else "transport_unconfirmed"
+            ),
             "detected_protocol": "tuya-lan",
-            "protocol_validation_status": "experimental_oem_transport",
+            "protocol_validation_status": (
+                "transport_detected" if confirmed else "transport_unconfirmed"
+            ),
+            "capture_limitation": "encrypted_status_requires_local_key",
+            "measurements_available": False,
+            "device_reachable": confirmed,
+            "requires_local_key_for_status": True,
             "model_family": "Tuya / ThingClips OEM candidate",
             "model_supplied_by_user": args.model,
             "pv_count": None,
@@ -3049,17 +3057,20 @@ def capture_tuya_candidate(
         "discovery": discovery,
         "tuya_lan": {
             "candidate_confirmed": confirmed,
+            "transport_detected": confirmed,
             "tcp_6668": tcp,
             "udp_seen": udp_seen,
             "udp_ports": sorted(int(port) for port in ports),
             "udp_framing": sorted(str(item) for item in framing),
             "status_read_attempted": False,
+            "status_read_blocked_by": "missing_local_key",
             "status_read_reason": (
                 "Tuya LAN status is encrypted and requires the device-specific "
                 "local key; the diagnostic does not request or store that secret."
             ),
             "device_id_requested": False,
             "local_key_requested": False,
+            "local_key_stored": False,
             "configuration_write_performed": False,
             "application_payload_sent": False,
         },
@@ -3933,6 +3944,11 @@ def _print_dump_summary(document: dict[str, Any], output: Path) -> None:
     privacy = document["metadata"]["privacy"]
     print("Dump completed.")
     print(f"Protocol : {document['metadata']['detected_protocol']}")
+    capture_status = document["metadata"].get("capture_status")
+    if capture_status:
+        print(f"Status   : {capture_status}")
+    if document["metadata"].get("detected_protocol") == "tuya-lan":
+        print("Measures : unavailable (encrypted status requires local key)")
     print(
         f"Blocks   : {summary['successful_block_reads']} successful / "
         f"{summary['failed_block_reads']} failed"

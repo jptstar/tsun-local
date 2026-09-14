@@ -64,6 +64,76 @@ class DiagnosticReportUploadTests(unittest.TestCase):
             with self.assertRaisesRegex(upload.ReportUploadError, "not valid JSON"):
                 upload.load_diagnostic(path)
 
+    def test_associates_unambiguous_inventory_and_tuya_leftover(self) -> None:
+        diagnostics = [
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 450}},
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 300}},
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 450}},
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {}},
+        ]
+        devices = [
+            {"model": "TSOL-MX450", "quantity": 2},
+            {"model": "TSOL-MS800", "quantity": 1},
+            {"model": "TSOL-MS300", "quantity": 1},
+        ]
+        assigned = upload.associate_declared_models(diagnostics, devices)
+        self.assertEqual(
+            assigned,
+            {
+                0: "TSOL-MX450",
+                1: "TSOL-MS300",
+                2: "TSOL-MX450",
+                3: "TSOL-MS800",
+            },
+        )
+        self.assertEqual(
+            diagnostics[3]["metadata"]["model_assignment"]["method"],
+            "remaining_declared_inventory",
+        )
+
+    def test_same_power_families_remain_unassigned_when_ambiguous(self) -> None:
+        diagnostics = [
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 800}},
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 800}},
+        ]
+        devices = [
+            {"model": "TSOL-MS800", "quantity": 1},
+            {"model": "TSOL-MX800", "quantity": 1},
+        ]
+        self.assertEqual(upload.associate_declared_models(diagnostics, devices), {})
+        self.assertIsNone(diagnostics[0]["metadata"]["model_supplied_by_user"])
+        self.assertIsNone(diagnostics[1]["metadata"]["model_supplied_by_user"])
+
+    def test_inventory_count_mismatch_does_not_guess(self) -> None:
+        diagnostics = [
+            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 450}},
+        ]
+        devices = [{"model": "TSOL-MX450", "quantity": 2}]
+        self.assertEqual(upload.associate_declared_models(diagnostics, devices), {})
+        self.assertIsNone(diagnostics[0]["metadata"]["model_supplied_by_user"])
+
+    def test_annotation_is_persisted_before_upload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "tuya.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "metadata": {"model_supplied_by_user": None},
+                        "decoded_known_measurements": {},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            assigned = upload.annotate_report_files(
+                [path], [{"model": "TSOL-MS800", "quantity": 1}]
+            )
+            self.assertEqual(assigned, {path: "TSOL-MS800"})
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["metadata"]["model_supplied_by_user"], "TSOL-MS800")
+            self.assertEqual(
+                saved["metadata"]["model_assignment"]["confidence"], "unambiguous"
+            )
+
     def test_upload_success_returns_report_receipt(self) -> None:
         response = _Response(
             {

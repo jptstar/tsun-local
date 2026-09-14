@@ -156,6 +156,172 @@ def parse_declared_devices(text: str) -> list[dict[str, Any]]:
     return sorted(merged.values(), key=lambda item: str(item["model"]).casefold())
 
 
+_MODEL_POWER_RE = re.compile(
+    r"^TSOL-(?:MS|MX|MP|MG|ML)(?P<power>\d{3,4})(?:D(?:-T)?|Elite|Lite)?$",
+    re.IGNORECASE,
+)
+
+
+def _model_nominal_power(model: str) -> int | None:
+    match = _MODEL_POWER_RE.fullmatch(model.strip())
+    return int(match.group("power")) if match else None
+
+
+def _diagnostic_rated_power(diagnostic: dict[str, Any]) -> int | None:
+    measurements = diagnostic.get("decoded_known_measurements")
+    if not isinstance(measurements, dict):
+        return None
+    for key in ("rated_power", "max_designed_power"):
+        value = measurements.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        rounded = int(round(float(value)))
+        if 1 <= rounded <= 20000:
+            return rounded
+    return None
+
+
+def _expanded_declared_models(
+    declared_devices: Iterable[dict[str, Any]],
+) -> list[str]:
+    result: list[str] = []
+    for index, item in enumerate(declared_devices):
+        if not isinstance(item, dict):
+            raise ReportUploadError(f"declared device {index + 1} is invalid")
+        model = _assert_string(str(item.get("model", "")), "device model", 80)
+        if not model:
+            raise ReportUploadError("device model cannot be empty")
+        try:
+            quantity = int(item.get("quantity", 1))
+        except (TypeError, ValueError) as exc:
+            raise ReportUploadError("device quantity must be an integer") from exc
+        if not 1 <= quantity <= 99:
+            raise ReportUploadError("device quantity must be between 1 and 99")
+        result.extend([model] * quantity)
+        if len(result) > 99:
+            raise ReportUploadError("too many declared inverter units")
+    return result
+
+
+def _pop_model(remaining: list[str], model: str) -> bool:
+    wanted = model.casefold()
+    for index, candidate in enumerate(remaining):
+        if candidate.casefold() == wanted:
+            remaining.pop(index)
+            return True
+    return False
+
+
+def _annotate_model(
+    diagnostic: dict[str, Any], model: str, method: str
+) -> None:
+    metadata = diagnostic.setdefault("metadata", {})
+    if not isinstance(metadata, dict):
+        raise ReportUploadError("diagnostic metadata must contain an object")
+    metadata["model_supplied_by_user"] = model
+    metadata["model_assignment"] = {
+        "source": "declared_inventory",
+        "method": method,
+        "confidence": "unambiguous",
+    }
+
+
+def associate_declared_models(
+    diagnostics: list[dict[str, Any]],
+    declared_devices: Iterable[dict[str, Any]],
+) -> dict[int, str]:
+    """Assign declared models to individual dumps only when unambiguous."""
+    remaining = _expanded_declared_models(declared_devices)
+    if not diagnostics or len(remaining) != len(diagnostics):
+        return {}
+
+    unresolved: set[int] = set(range(len(diagnostics)))
+    for index, diagnostic in enumerate(diagnostics):
+        metadata = diagnostic.get("metadata")
+        existing = (
+            metadata.get("model_supplied_by_user")
+            if isinstance(metadata, dict)
+            else None
+        )
+        if isinstance(existing, str) and existing.strip():
+            if not _pop_model(remaining, existing.strip()):
+                return {}
+            unresolved.discard(index)
+
+    assignments: dict[int, str] = {}
+    progress = True
+    while progress:
+        progress = False
+        for index in sorted(tuple(unresolved)):
+            rated = _diagnostic_rated_power(diagnostics[index])
+            if rated is None:
+                continue
+            candidates: dict[str, str] = {}
+            for model in remaining:
+                if _model_nominal_power(model) == rated:
+                    candidates.setdefault(model.casefold(), model)
+            if len(candidates) != 1:
+                continue
+            model = next(iter(candidates.values()))
+            _annotate_model(diagnostics[index], model, "rated_power_match")
+            _pop_model(remaining, model)
+            unresolved.remove(index)
+            assignments[index] = model
+            progress = True
+
+    if unresolved and len(remaining) == len(unresolved):
+        distinct = {model.casefold(): model for model in remaining}
+        if len(distinct) == 1:
+            model = next(iter(distinct.values()))
+            for index in sorted(unresolved):
+                _annotate_model(
+                    diagnostics[index], model, "remaining_declared_inventory"
+                )
+                assignments[index] = model
+            remaining.clear()
+            unresolved.clear()
+
+    return assignments
+
+
+def annotate_report_files(
+    paths: Iterable[Path],
+    declared_devices: Iterable[dict[str, Any]],
+) -> dict[Path, str]:
+    """Persist safe per-report model links before upload when resolvable."""
+    path_list = [Path(path) for path in paths]
+    device_list = list(declared_devices)
+    if not path_list or not device_list:
+        return {}
+    diagnostics = [load_diagnostic(path) for path in path_list]
+    assignments = associate_declared_models(diagnostics, device_list)
+    result: dict[Path, str] = {}
+    for index, model in assignments.items():
+        path = path_list[index]
+        diagnostic = validate_diagnostic(diagnostics[index])
+        encoded = (
+            json.dumps(diagnostic, ensure_ascii=False, indent=2) + "\n"
+        ).encode("utf-8")
+        if len(encoded) > MAX_REPORT_BYTES:
+            raise ReportUploadError(
+                f"diagnostic file is too large after model annotation: {path.name}"
+            )
+        temporary = path.with_suffix(path.suffix + ".model.tmp")
+        try:
+            temporary.write_bytes(encoded)
+            temporary.replace(path)
+        except OSError as exc:
+            raise ReportUploadError(
+                f"cannot annotate diagnostic file: {path.name}"
+            ) from exc
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+        result[path] = model
+    return result
+
 def build_payload(
     diagnostic: dict[str, Any],
     *,
