@@ -1,0 +1,34 @@
+name: Patch diagnostic version contracts
+
+on:
+  push:
+    branches:
+      - fix/diagnostic-tuya-model-link
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/diagnostic-tuya-model-link
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Update expected versions
+        run: python scripts/apply_temp_version_contracts.py
+      - name: Run full unit test suite
+        run: python -m unittest discover -s tests -v
+      - name: Commit changes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/patch-diagnostic-version-contracts.yml scripts/apply_temp_version_contracts.py
+          git add tests/test_diagnostic_desktop_test_mode.py tests/test_diagnostic_upload_gui.py tests/test_tsun_dump_tool.py
+          git commit -m "Update diagnostic version contracts"
+          git push origin HEAD:fix/diagnostic-tuya-model-link
