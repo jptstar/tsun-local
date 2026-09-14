@@ -57,7 +57,7 @@ jobs:
           PY
           git diff --check
 
-      - name: Commit and publish
+      - name: Commit and publish branch
         shell: bash
         run: |
           rm -f tools/_generic_dump_patch.py tools/poolex_tuya_probe.py .github/workflows/generic-dump-maintenance.yml
@@ -65,4 +65,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Integrate Tuya OEM discovery into diagnostic"
-          git push origin HEAD:main
+          git push --force origin HEAD:diagnostic/2.8.4-tuya-oem
