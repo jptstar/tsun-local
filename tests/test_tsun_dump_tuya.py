@@ -65,6 +65,9 @@ class TuyaDiagnosticTests(unittest.TestCase):
         metadata = document["metadata"]
         self.assertEqual(metadata["capture_status"], "partial_success")
         self.assertEqual(metadata["protocol_validation_status"], "transport_detected")
+        self.assertEqual(
+            metadata["capture_limitation"], "encrypted_status_requires_local_key"
+        )
         self.assertFalse(metadata["measurements_available"])
         self.assertTrue(metadata["requires_local_key_for_status"])
         self.assertEqual(metadata["model_supplied_by_user"], "TSOL-MS800")
