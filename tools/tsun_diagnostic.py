@@ -23,6 +23,7 @@ from tkinter import messagebox, simpledialog
 
 import tsun_dump
 import tsun_diagnostic_desktop_v159 as ui
+import tsun_report_model_assignment
 import tsun_report_upload as report_upload
 import tsun_report_upload_retry as report_upload_retry
 import tsun_tuya_probe
@@ -56,6 +57,23 @@ previous.legacy.upload_app.APP_VERSION = APP_VERSION
 # The UI keeps the existing privacy-safe uploader API. Only transient transport
 # failures are retried; permanent HTTP/client validation errors still fail once.
 report_upload.upload_file = report_upload_retry.upload_file_with_retry
+
+# Add a second privacy gate for Tuya credential field names. The authenticated
+# probe never emits these fields, but a malformed/future report is rejected before
+# upload rather than relying only on the probe implementation to stay correct.
+report_upload.FORBIDDEN_KEYS = report_upload.FORBIDDEN_KEYS | frozenset(
+    {
+        "device_id",
+        "dev_id",
+        "local_key",
+        "localkey",
+        "tuya_local_key",
+    }
+)
+
+# Allow extra LAN candidates to remain unassigned while still linking TSUN dumps
+# to the declared inverter inventory when rated power makes the match unambiguous.
+tsun_report_model_assignment.install(report_upload)
 
 # The inherited GUI routes interactive CLI prompts through tkinter.simpledialog.
 # Mark Local Key prompts so only that secret field is masked; ordinary diagnostic
