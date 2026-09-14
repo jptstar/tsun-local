@@ -22,6 +22,8 @@ from tkinter import messagebox
 
 import tsun_dump
 import tsun_diagnostic_desktop_v159 as ui
+import tsun_report_upload as report_upload
+import tsun_report_upload_retry as report_upload_retry
 
 # Keep the public compatibility shape used by existing tests and helper code:
 # `previous` remains the 1.5.8 UI/persistence layer while `ui` is the 1.5.10
@@ -29,7 +31,7 @@ import tsun_diagnostic_desktop_v159 as ui
 previous = ui.previous
 
 APP_NAME = ui.APP_NAME
-APP_VERSION = "1.5.13"
+APP_VERSION = "1.5.14"
 MAX_DEVICE_ROWS = ui.MAX_DEVICE_ROWS
 PROJECT_URL = ui.PROJECT_URL
 COPYRIGHT_TEXT = ui.COPYRIGHT_TEXT
@@ -48,6 +50,10 @@ previous.APP_VERSION = APP_VERSION
 previous.legacy.APP_VERSION = APP_VERSION
 previous.legacy.base.APP_VERSION = APP_VERSION
 previous.legacy.upload_app.APP_VERSION = APP_VERSION
+
+# The UI keeps the existing privacy-safe uploader API. Only transient transport
+# failures are retried; permanent HTTP/client validation errors still fail once.
+report_upload.upload_file = report_upload_retry.upload_file_with_retry
 
 
 UPDATE_COMPONENT_WINDOWS = "windows_gui"
