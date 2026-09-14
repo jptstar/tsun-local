@@ -92,16 +92,18 @@ def _privacy_aware_askstring(title: str, prompt: str, *args, **kwargs):
 
 simpledialog.askstring = _privacy_aware_askstring
 
-# Extend only the desktop package with authenticated Tuya status reads. Lambdas
-# resolve builtins.input at call time, after the inherited worker has redirected
-# it to the GUI dialog bridge. No secret is placed in argv, environment or profile.
-tsun_tuya_probe.install(
-    tsun_dump,
-    value_prompt=lambda prompt: builtins.input(prompt),
-    secret_prompt=lambda prompt: builtins.input(
-        tsun_tuya_probe.SECRET_PROMPT_PREFIX + prompt
-    ),
-)
+
+def _install_authenticated_tuya_probe() -> None:
+    """Attach authenticated Tuya reads only when the real desktop app starts."""
+    # Lambdas resolve builtins.input at call time, after the inherited worker has
+    # redirected it to the GUI dialog bridge. No secret enters argv/env/profile.
+    tsun_tuya_probe.install(
+        tsun_dump,
+        value_prompt=lambda prompt: builtins.input(prompt),
+        secret_prompt=lambda prompt: builtins.input(
+            tsun_tuya_probe.SECRET_PROMPT_PREFIX + prompt
+        ),
+    )
 
 
 UPDATE_COMPONENT_WINDOWS = "windows_gui"
@@ -269,6 +271,7 @@ def main() -> int:
     internal_result = previous.legacy.base._internal_update_mode()
     if internal_result is not None:
         return internal_result
+    _install_authenticated_tuya_probe()
     root = tk.Tk()
     CleanDiagnosticApp(root)
     root.mainloop()
