@@ -95,7 +95,7 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
         ) as original:
             with self.assertRaisesRegex(
                 base.ReportUploadError,
-                "Upload service reached but temporarily unavailable \(HTTP 503\).*still saved locally",
+                r"Upload service reached but temporarily unavailable \(HTTP 503\).*still saved locally",
             ):
                 retry.upload_file_with_retry(
                     Path("diagnostic.json"),
