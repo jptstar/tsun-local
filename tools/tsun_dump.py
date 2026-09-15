@@ -41,7 +41,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.5"
+TOOL_VERSION = "2.8.6"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -315,6 +315,14 @@ _SENSITIVE_HTML_NAME_VALUE = re.compile(
 
 class TsunProtocolError(Exception):
     """Raised when a TSUN protocol frame is invalid."""
+
+
+class ProtocolDetectionError(RuntimeError):
+    """Raised after every bounded supported-protocol probe has failed."""
+
+    def __init__(self, message: str, attempts: list[dict[str, Any]]) -> None:
+        super().__init__(message)
+        self.attempts = attempts
 
 
 class TsunUpdateError(Exception):
@@ -2604,9 +2612,10 @@ def detect_protocol(
             {"protocol": protocol, "result": "failure", "attempts": failures}
         )
 
-    raise RuntimeError(
+    raise ProtocolDetectionError(
         "No supported TSUN local protocol detected after "
-        f"{PROTOCOL_PROBE_RETRIES} attempts per protocol"
+        f"{PROTOCOL_PROBE_RETRIES} attempts per protocol",
+        attempts,
     ) from last_error
 
 
@@ -3102,6 +3111,195 @@ def capture_tuya_candidate(
             "read_only": True,
             "reason": "not a TSUN logger transport",
         },
+    }
+
+
+
+def _capture_failed_protocol_observations(
+    host: str,
+    port: int,
+    sn: int,
+    timeout: float,
+) -> list[dict[str, Any]]:
+    """Keep one bounded raw observation for each Modbus candidate family."""
+    cases = (
+        ("02b0", 0x02B0, 0x3000),
+        ("1097", 0x1097, 0x1100),
+        ("3026", 0x3026, 0x0000),
+    )
+    observations: list[dict[str, Any]] = []
+    probe_timeout = min(timeout, CHARACTERIZATION_TIMEOUT_CAP)
+    for protocol, sensor_list, start in cases:
+        try:
+            observation = _observe_02b0_read(
+                host,
+                port,
+                sn,
+                start,
+                start,
+                sensor_list=sensor_list,
+                timeout=probe_timeout,
+            )
+        except Exception as err:
+            observation = {
+                "result": "transport_error",
+                "error": safe_error_details(err),
+            }
+        observation.update(
+            {
+                "protocol_candidate": protocol,
+                "sensor_list": f"0x{sensor_list:04X}",
+                "start": f"0x{start:04X}",
+                "end": f"0x{start:04X}",
+                "attempt": 1,
+            }
+        )
+        observations.append(observation)
+    return observations
+
+
+def capture_protocol_detection_failure(
+    args: argparse.Namespace,
+    host: str,
+    sn: int,
+    discovery: dict[str, Any],
+    error: ProtocolDetectionError,
+) -> dict[str, Any]:
+    """Create a privacy-safe JSON report even when no protocol is recognized."""
+    created_at = datetime.now(timezone.utc)
+    full = bool(args.full)
+    raw_observations = (
+        _capture_failed_protocol_observations(host, args.port, sn, args.timeout)
+        if full
+        else []
+    )
+
+    try:
+        logger_web = capture_logger_web_pages(host, args.http_page_timeout)
+    except Exception as err:
+        logger_web = {
+            "attempted": True,
+            "pages_found": 0,
+            "error": safe_error_details(err),
+            "privacy": {
+                "raw_html_stored": False,
+                "host_ip_stored": False,
+            },
+        }
+
+    if full:
+        try:
+            logger_dns_probe = probe_logger_dns_read_only(
+                host, min(args.timeout, 2.5)
+            )
+        except Exception as err:
+            logger_dns_probe = {
+                "attempted": True,
+                "read_only": True,
+                "supported": False,
+                "error": safe_error_details(err),
+                "dns_server_address_stored": False,
+            }
+    else:
+        logger_dns_probe = {
+            "attempted": False,
+            "read_only": True,
+            "reason": "requires a full capture",
+            "dns_server_address_stored": False,
+        }
+
+    return {
+        "format": DUMP_FORMAT,
+        "schema_version": SCHEMA_VERSION,
+        "metadata": {
+            "timestamp_utc": created_at.isoformat(),
+            "tool": "TSUN Local Hardware Validation Dump Tool",
+            "tool_version": TOOL_VERSION,
+            "tool_sha256": _script_sha256(),
+            "tool_source": SOURCE_URL,
+            "standalone": True,
+            "python_required": ">=3.10",
+            "read_only": True,
+            "capture_mode": "full" if full else "standard",
+            "capture_status": "protocol_detection_failed",
+            "detected_protocol": None,
+            "protocol_validation_status": "undetected",
+            "capture_limitation": "no_supported_local_protocol_detected",
+            "measurements_available": False,
+            "device_reachable": True,
+            "model_family": "unknown / unsupported local protocol",
+            "model_supplied_by_user": args.model,
+            "pv_count": None,
+            "port": args.port,
+            "privacy": {
+                "host_in_output": False,
+                "logger_sn_in_output": False,
+                "inverter_serial_in_output": False,
+                "ap_envelope_in_output": False,
+                "udp_discovery_payload_in_output": False,
+                "logger_web_raw_html_in_output": False,
+                "logger_web_anonymized_html_in_output": True,
+                "logger_dns_address_in_output": False,
+                "raw_protocol_probe_payloads_in_output": full,
+                "inverter_serial_prefix_characters": 3,
+            },
+        },
+        "logger_web": logger_web,
+        "logger_dns_probe": logger_dns_probe,
+        "protocol_characterization": {
+            "attempted": False,
+            "reason": "no supported protocol selected",
+        },
+        "discovery": discovery,
+        "protocol_detection": {
+            "requested": args.protocol,
+            "selected": None,
+            "confidence": "no supported protocol probe succeeded",
+            "error": {
+                "type": type(error).__name__,
+                "message": str(error),
+            },
+            "attempts": error.attempts,
+        },
+        "protocol_failure_characterization": {
+            "attempted": full,
+            "read_only": True,
+            "reason": (
+                "bounded raw Modbus candidate observations collected"
+                if full
+                else "requires --full for raw candidate observations"
+            ),
+            "modbus_candidate_observations": raw_observations,
+            "legacy_1511_raw_observation": {
+                "attempted": False,
+                "reason": (
+                    "1511 uses different framing; normal bounded detection "
+                    "attempts are retained in protocol_detection"
+                ),
+            },
+            "safety": {
+                "configuration_write_performed": False,
+                "inverter_write_performed": False,
+                "cloud_access_performed": False,
+                "modbus_function": "0x03",
+                "registers_per_candidate": 1,
+            },
+        },
+        "decoded_known_measurements": {},
+        "capture_summary": {
+            "snapshots": 0,
+            "snapshot_interval_seconds": args.interval,
+            "coherent_snapshots": 0,
+            "decoded_snapshot_index": None,
+            "successful_block_reads": 0,
+            "failed_block_reads": 0,
+            "unique_raw_registers": 0,
+        },
+        "raw_registers": [],
+        "snapshots": [],
+        "analysis": analyze_snapshots([]),
+        "blocks": [],
+        "protocol_trace": [],
     }
 
 
@@ -3943,12 +4141,14 @@ def _print_dump_summary(document: dict[str, Any], output: Path) -> None:
     summary = document["capture_summary"]
     privacy = document["metadata"]["privacy"]
     print("Dump completed.")
-    print(f"Protocol : {document['metadata']['detected_protocol']}")
+    print(f"Protocol : {document['metadata'].get('detected_protocol') or 'undetected'}")
     capture_status = document["metadata"].get("capture_status")
     if capture_status:
         print(f"Status   : {capture_status}")
     if document["metadata"].get("detected_protocol") == "tuya-lan":
         print("Measures : unavailable (encrypted status requires local key)")
+    elif not document["metadata"].get("detected_protocol"):
+        print("Measures : unavailable (no supported local protocol detected)")
     print(
         f"Blocks   : {summary['successful_block_reads']} successful / "
         f"{summary['failed_block_reads']} failed"
@@ -4071,6 +4271,24 @@ def main() -> int:
         except (KeyboardInterrupt, EOFError):
             print("\nCancelled.")
             return 130
+        except ProtocolDetectionError as err:
+            print(
+                "No supported local protocol detected; generating a bounded "
+                "read-only failure report.",
+                file=sys.stderr,
+            )
+            try:
+                document = capture_protocol_detection_failure(
+                    args, host, sn, discovery, err
+                )
+            except Exception as report_err:
+                failed += 1
+                print(
+                    f"ERROR: device {sequence}/{total}: failure report could not "
+                    f"be created: {type(report_err).__name__}: {report_err}",
+                    file=sys.stderr,
+                )
+                continue
         except Exception as err:
             failed += 1
             print(
@@ -4083,7 +4301,7 @@ def main() -> int:
         output = output_path_for_target(
             args.output,
             args.model,
-            document["metadata"]["detected_protocol"],
+            document["metadata"].get("detected_protocol") or "undetected",
             timestamp,
             device_index=discovered_index,
             total_targets=total,

@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.8.5")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.8.6")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -363,6 +363,81 @@ class TsunDumpToolTests(unittest.TestCase):
         comparison = TOOL.compare_documents(before, after)
         self.assertEqual(len(comparison["changed_registers"]), 1)
         self.assertEqual(comparison["changed_registers"][0]["key"], "0x2048")
+
+
+    def test_protocol_detection_error_preserves_failed_attempts(self) -> None:
+        original_probe = TOOL._probe_protocol
+        original_delay = TOOL.PROTOCOL_RETRY_DELAY
+
+        def fail_probe(*_args, **_kwargs):
+            raise TOOL.TsunProtocolError("synthetic probe failure")
+
+        try:
+            TOOL._probe_protocol = fail_probe
+            TOOL.PROTOCOL_RETRY_DELAY = 0
+            with self.assertRaises(TOOL.ProtocolDetectionError) as caught:
+                TOOL.detect_protocol(
+                    "3026", "192.0.2.10", 8899, 123456789, 0.01
+                )
+        finally:
+            TOOL._probe_protocol = original_probe
+            TOOL.PROTOCOL_RETRY_DELAY = original_delay
+
+        attempts = caught.exception.attempts
+        self.assertEqual(len(attempts), 1)
+        self.assertEqual(attempts[0]["protocol"], "3026")
+        self.assertEqual(attempts[0]["result"], "failure")
+        self.assertEqual(len(attempts[0]["attempts"]), 3)
+
+    def test_failed_detection_capture_is_shareable_without_identifiers(self) -> None:
+        class Args:
+            full = False
+            interval = 0.0
+            model = "TSOL-UNKNOWN"
+            port = 8899
+            protocol = "auto"
+            http_page_timeout = 0.1
+            timeout = 0.1
+
+        error = TOOL.ProtocolDetectionError(
+            "No supported TSUN local protocol detected after 3 attempts per protocol",
+            [
+                {
+                    "protocol": "3026",
+                    "result": "failure",
+                    "attempts": [
+                        {
+                            "attempt": 1,
+                            "error": {"type": "TsunProtocolError"},
+                        }
+                    ],
+                }
+            ],
+        )
+        original_web = TOOL.capture_logger_web_pages
+        try:
+            TOOL.capture_logger_web_pages = lambda *_args, **_kwargs: {
+                "attempted": True,
+                "pages_found": 0,
+            }
+            document = TOOL.capture_protocol_detection_failure(
+                Args(),
+                "192.0.2.10",
+                123456789,
+                {"protocol_hint": None},
+                error,
+            )
+        finally:
+            TOOL.capture_logger_web_pages = original_web
+
+        self.assertEqual(
+            document["metadata"]["capture_status"],
+            "protocol_detection_failed",
+        )
+        self.assertIsNone(document["metadata"]["detected_protocol"])
+        self.assertFalse(document["protocol_failure_characterization"]["attempted"])
+        self.assertEqual(document["protocol_detection"]["attempts"], error.attempts)
+        self.assertIs(TOOL.validate_diagnostic_for_upload(document), document)
 
 
 if __name__ == "__main__":
