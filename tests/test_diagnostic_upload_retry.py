@@ -35,6 +35,25 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
         self.assertEqual(original.call_count, 3)
         self.assertEqual(sleeps, [0.1, 0.2])
 
+    def test_transport_failure_identifies_network_stage_after_final_retry(self) -> None:
+        transient = base.ReportUploadError("upload service is unreachable")
+        transient.__cause__ = error.URLError("temporary DNS failure")
+        with mock.patch.object(
+            retry,
+            "_ORIGINAL_UPLOAD_FILE",
+            side_effect=transient,
+        ):
+            with self.assertRaisesRegex(
+                base.ReportUploadError,
+                "Network/timeout: upload service could not be reached.*still saved locally",
+            ):
+                retry.upload_file_with_retry(
+                    Path("diagnostic.json"),
+                    consent=True,
+                    attempts=3,
+                    retry_delays=(),
+                )
+
     def test_permanent_http_400_is_not_retried(self) -> None:
         http_error = error.HTTPError(
             base.REPORT_UPLOAD_URL,
@@ -59,7 +78,7 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
                 )
         self.assertEqual(original.call_count, 1)
 
-    def test_http_503_is_retried(self) -> None:
+    def test_http_503_is_retried_and_identifies_reachable_service(self) -> None:
         http_error = error.HTTPError(
             base.REPORT_UPLOAD_URL,
             503,
@@ -76,7 +95,7 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
         ) as original:
             with self.assertRaisesRegex(
                 base.ReportUploadError,
-                "still saved locally",
+                r"Upload service reached but temporarily unavailable \(HTTP 503\).*still saved locally",
             ):
                 retry.upload_file_with_retry(
                     Path("diagnostic.json"),
@@ -90,7 +109,7 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
         import tsun_diagnostic as desktop
 
         self.assertIs(base.upload_file, retry.upload_file_with_retry)
-        self.assertEqual(desktop.APP_VERSION, "1.5.15")
+        self.assertEqual(desktop.APP_VERSION, "1.5.16")
 
 
 if __name__ == "__main__":

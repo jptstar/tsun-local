@@ -36,6 +36,30 @@ def _is_retryable(exc: base.ReportUploadError) -> bool:
     return isinstance(cause, (error.URLError, TimeoutError, socket.timeout, OSError))
 
 
+def _final_transient_message(
+    exc: base.ReportUploadError,
+    *,
+    path: Path,
+    attempts: int,
+) -> str:
+    """Describe which upload stage failed without leaking request/report data."""
+    cause = exc.__cause__
+    if isinstance(cause, error.HTTPError):
+        status = int(cause.code)
+        if status == 429:
+            stage = "Upload service reached but rate-limited (HTTP 429)"
+        else:
+            stage = f"Upload service reached but temporarily unavailable (HTTP {status})"
+    else:
+        stage = "Network/timeout: upload service could not be reached"
+
+    return (
+        f"{stage} after {attempts} attempts. "
+        f"The diagnostic report is still saved locally as {Path(path).name}. "
+        "Retry later or use the email fallback."
+    )
+
+
 def upload_file_with_retry(
     path: Path,
     *,
@@ -69,9 +93,7 @@ def upload_file_with_retry(
                 raise
             if attempt >= attempts:
                 raise base.ReportUploadError(
-                    f"Upload service unavailable after {attempts} attempts. "
-                    f"The diagnostic report is still saved locally as {Path(path).name}. "
-                    "Retry later or use the email fallback."
+                    _final_transient_message(exc, path=Path(path), attempts=attempts)
                 ) from exc
 
             delay_index = min(attempt - 1, max(0, len(retry_delays) - 1))
