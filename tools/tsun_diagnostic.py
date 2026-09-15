@@ -21,6 +21,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
+import tsun_1097_research_probe
 import tsun_dump
 import tsun_diagnostic_desktop_v159 as ui
 import tsun_report_model_assignment
@@ -34,7 +35,7 @@ import tsun_tuya_probe
 previous = ui.previous
 
 APP_NAME = ui.APP_NAME
-APP_VERSION = "1.5.16"
+APP_VERSION = "1.5.17"
 MAX_DEVICE_ROWS = ui.MAX_DEVICE_ROWS
 PROJECT_URL = ui.PROJECT_URL
 COPYRIGHT_TEXT = ui.COPYRIGHT_TEXT
@@ -109,6 +110,11 @@ def _privacy_aware_askstring(title: str, prompt: str, *args, **kwargs):
 
 
 simpledialog.askstring = _privacy_aware_askstring
+
+
+def _install_1097_research_probe() -> None:
+    """Attach the narrow firmware-transport research fallback to desktop runs."""
+    tsun_1097_research_probe.install(tsun_dump)
 
 
 def _install_authenticated_tuya_probe() -> None:
@@ -333,6 +339,7 @@ def main() -> int:
     internal_result = previous.legacy.base._internal_update_mode()
     if internal_result is not None:
         return internal_result
+    _install_1097_research_probe()
     _install_authenticated_tuya_probe()
     root = tk.Tk()
     CleanDiagnosticApp(root)

@@ -39,15 +39,21 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         )
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.16")
-        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.16")
-        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.16")
+        self.assertEqual(desktop.APP_VERSION, "1.5.17")
+        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.17")
+        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.17")
 
     def test_tuya_local_key_prompt_is_masked(self) -> None:
         source = Path(desktop.__file__).read_text(encoding="utf-8")
         self.assertIn("SECRET_PROMPT_PREFIX", source)
         self.assertIn('kwargs.setdefault("show", "*")', source)
         self.assertIn("tsun_tuya_probe.install", source)
+
+    def test_1097_research_probe_is_isolated_and_installed_only_at_runtime(self) -> None:
+        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        self.assertIn("import tsun_1097_research_probe", source)
+        self.assertIn("tsun_1097_research_probe.install(tsun_dump)", source)
+        self.assertIn("_install_1097_research_probe()", source)
 
     def test_cross_platform_update_components_are_explicit(self) -> None:
         self.assertEqual(
