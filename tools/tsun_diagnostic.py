@@ -34,7 +34,7 @@ import tsun_tuya_probe
 previous = ui.previous
 
 APP_NAME = ui.APP_NAME
-APP_VERSION = "1.5.15"
+APP_VERSION = "1.5.16"
 MAX_DEVICE_ROWS = ui.MAX_DEVICE_ROWS
 PROJECT_URL = ui.PROJECT_URL
 COPYRIGHT_TEXT = ui.COPYRIGHT_TEXT
@@ -53,6 +53,24 @@ previous.APP_VERSION = APP_VERSION
 previous.legacy.APP_VERSION = APP_VERSION
 previous.legacy.base.APP_VERSION = APP_VERSION
 previous.legacy.upload_app.APP_VERSION = APP_VERSION
+
+# Make the successful upload stages explicit without exposing the private reports
+# repository. A Worker receipt with a report ID is only rendered after the server
+# accepted the report and returned its creation receipt.
+previous.legacy.upload_app._TEXT["fr"].update(
+    {
+        "upload_service_ok": "✓ Service d’envoi joignable",
+        "upload_storage_ok": "✓ Rapport accepté et enregistré côté serveur",
+        "upload_report_id": "✓ Report ID : {report_id}",
+    }
+)
+previous.legacy.upload_app._TEXT["en"].update(
+    {
+        "upload_service_ok": "✓ Upload service reachable",
+        "upload_storage_ok": "✓ Report accepted and stored by the server",
+        "upload_report_id": "✓ Report ID: {report_id}",
+    }
+)
 
 # The UI keeps the existing privacy-safe uploader API. Only transient transport
 # failures are retried; permanent HTTP/client validation errors still fail once.
@@ -189,6 +207,50 @@ previous.legacy.save_upload_profile = previous.save_upload_profile
 
 class CleanDiagnosticApp(ui.CleanDiagnosticApp):
     """Same UI on all desktop platforms with minimal OS-specific integration."""
+
+    def _render_report_links(self, host: tk.Frame, reports: list[tuple[str, str]]) -> None:
+        """Render the normal receipt links plus explicit upload-stage confirmation."""
+        super()._render_report_links(host, reports)
+        try:
+            children = host.winfo_children()
+            if not children:
+                return
+
+            base = previous.legacy.base
+            status = tk.Frame(host, bg=base._SOFT_GREEN)
+            pack_options: dict[str, object] = {
+                "fill": "x",
+                "padx": 10,
+                "pady": (0, 7),
+            }
+            if len(children) > 1:
+                pack_options["before"] = children[1]
+            status.pack(**pack_options)
+
+            for text in (
+                self.u["upload_service_ok"],
+                self.u["upload_storage_ok"],
+            ):
+                tk.Label(
+                    status,
+                    text=text,
+                    bg=base._SOFT_GREEN,
+                    fg=base._SUCCESS,
+                    font=("Segoe UI", 8, "bold"),
+                    anchor="w",
+                ).pack(fill="x")
+
+            for report_id, _url in reports:
+                tk.Label(
+                    status,
+                    text=self.u["upload_report_id"].format(report_id=report_id),
+                    bg=base._SOFT_GREEN,
+                    fg=base._TEXT_COLOR,
+                    font=("Segoe UI", 8, "bold"),
+                    anchor="w",
+                ).pack(fill="x", pady=(2, 0))
+        except tk.TclError:
+            pass
 
     def _open_folder(self) -> None:
         folder = Path(self.output_dir.get()).expanduser()
