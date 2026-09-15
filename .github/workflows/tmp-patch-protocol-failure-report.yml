@@ -28,12 +28,15 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          from textwrap import dedent
 
           def replace_once(path: Path, old: str, new: str) -> None:
               text = path.read_text(encoding="utf-8")
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f"Expected exactly one match in {path}: found {count}\n--- OLD ---\n{old}")
+                  raise SystemExit(
+                      f"Expected exactly one match in {path}: found {count}\n--- OLD ---\n{old}"
+                  )
               path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
           dump = Path("tools/tsun_dump.py")
@@ -41,40 +44,35 @@ jobs:
 
           replace_once(
               dump,
-              '''class TsunProtocolError(Exception):
-              """Raised when a TSUN protocol frame is invalid."""
+              'class TsunUpdateError(Exception):',
+              dedent('''\
+              class ProtocolDetectionError(RuntimeError):
+                  """Raised after every bounded supported-protocol probe has failed."""
+
+                  def __init__(self, message: str, attempts: list[dict[str, Any]]) -> None:
+                      super().__init__(message)
+                      self.attempts = attempts
 
 
-          class TsunUpdateError(Exception):'''.replace("          ", ""),
-              '''class TsunProtocolError(Exception):
-              """Raised when a TSUN protocol frame is invalid."""
-
-
-          class ProtocolDetectionError(RuntimeError):
-              """Raised after every bounded supported-protocol probe has failed."""
-
-              def __init__(self, message: str, attempts: list[dict[str, Any]]) -> None:
-                  super().__init__(message)
-                  self.attempts = attempts
-
-
-          class TsunUpdateError(Exception):'''.replace("          ", ""),
+              class TsunUpdateError(Exception):'''),
           )
 
-          replace_once(
-              dump,
-              '''    raise RuntimeError(
-              "No supported TSUN local protocol detected after "
-              f"{PROTOCOL_PROBE_RETRIES} attempts per protocol"
-          ) from last_error'''.replace("          ", ""),
-              '''    raise ProtocolDetectionError(
-              "No supported TSUN local protocol detected after "
-              f"{PROTOCOL_PROBE_RETRIES} attempts per protocol",
-              attempts,
-          ) from last_error'''.replace("          ", ""),
+          old_raise = (
+              '    raise RuntimeError(\n'
+              '        "No supported TSUN local protocol detected after "\n'
+              '        f"{PROTOCOL_PROBE_RETRIES} attempts per protocol"\n'
+              '    ) from last_error'
           )
+          new_raise = (
+              '    raise ProtocolDetectionError(\n'
+              '        "No supported TSUN local protocol detected after "\n'
+              '        f"{PROTOCOL_PROBE_RETRIES} attempts per protocol",\n'
+              '        attempts,\n'
+              '    ) from last_error'
+          )
+          replace_once(dump, old_raise, new_raise)
 
-          failure_helpers = r'''
+          failure_helpers = dedent(r'''
 
           def _capture_failed_protocol_observations(
               host: str,
@@ -264,79 +262,90 @@ jobs:
                   "blocks": [],
                   "protocol_trace": [],
               }
-          '''.replace("          ", "")
-
+          ''')
           replace_once(dump, "\n\ndef capture(\n", failure_helpers + "\n\ndef capture(\n")
 
+          old_main = dedent('''\
+                  except (KeyboardInterrupt, EOFError):
+                      print("\\nCancelled.")
+                      return 130
+                  except Exception as err:
+                      failed += 1
+                      print(
+                          f"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}",
+                          file=sys.stderr,
+                      )
+                      continue
+
+                  timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])
+          ''')
+          new_main = dedent('''\
+                  except (KeyboardInterrupt, EOFError):
+                      print("\\nCancelled.")
+                      return 130
+                  except ProtocolDetectionError as err:
+                      print(
+                          "No supported local protocol detected; generating a bounded "
+                          "read-only failure report.",
+                          file=sys.stderr,
+                      )
+                      try:
+                          document = capture_protocol_detection_failure(
+                              args, host, sn, discovery, err
+                          )
+                      except Exception as report_err:
+                          failed += 1
+                          print(
+                              f"ERROR: device {sequence}/{total}: failure report could not "
+                              f"be created: {type(report_err).__name__}: {report_err}",
+                              file=sys.stderr,
+                          )
+                          continue
+                  except Exception as err:
+                      failed += 1
+                      print(
+                          f"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}",
+                          file=sys.stderr,
+                      )
+                      continue
+
+                  timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])
+          ''')
+          replace_once(dump, old_main, new_main)
+
           replace_once(
               dump,
-              '''        except (KeyboardInterrupt, EOFError):
-              print("\\nCancelled.")
-              return 130
-          except Exception as err:
-              failed += 1
-              print(
-                  f"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}",
-                  file=sys.stderr,
-              )
-              continue
-
-          timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])'''.replace("          ", ""),
-              '''        except (KeyboardInterrupt, EOFError):
-              print("\\nCancelled.")
-              return 130
-          except ProtocolDetectionError as err:
-              print(
-                  "No supported local protocol detected; generating a bounded "
-                  "read-only failure report.",
-                  file=sys.stderr,
-              )
-              try:
-                  document = capture_protocol_detection_failure(
-                      args, host, sn, discovery, err
-                  )
-              except Exception as report_err:
-                  failed += 1
-                  print(
-                      f"ERROR: device {sequence}/{total}: failure report could not "
-                      f"be created: {type(report_err).__name__}: {report_err}",
-                      file=sys.stderr,
-                  )
-                  continue
-          except Exception as err:
-              failed += 1
-              print(
-                  f"ERROR: device {sequence}/{total}: {type(err).__name__}: {err}",
-                  file=sys.stderr,
-              )
-              continue
-
-          timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])'''.replace("          ", ""),
+              '            document["metadata"]["detected_protocol"],',
+              '            document["metadata"].get("detected_protocol") or "undetected",',
           )
 
           replace_once(
               dump,
-              '''            document["metadata"]["detected_protocol"],''',
-              '''            document["metadata"].get("detected_protocol") or "undetected",''',
+              '    print(f"Protocol : {document[\'metadata\'][\'detected_protocol\']}")',
+              '    print(f"Protocol : {document[\'metadata\'].get(\'detected_protocol\') or \'undetected\'}")',
           )
 
           replace_once(
               dump,
-              '''    if document["metadata"].get("detected_protocol") == "tuya-lan":
-              print("Measures : unavailable (encrypted status requires local key)")'''.replace("          ", ""),
-              '''    if document["metadata"].get("detected_protocol") == "tuya-lan":
-              print("Measures : unavailable (encrypted status requires local key)")
-          elif not document["metadata"].get("detected_protocol"):
-              print("Measures : unavailable (no supported local protocol detected)")'''.replace("          ", ""),
+              '    if document["metadata"].get("detected_protocol") == "tuya-lan":\n'
+              '        print("Measures : unavailable (encrypted status requires local key)")',
+              '    if document["metadata"].get("detected_protocol") == "tuya-lan":\n'
+              '        print("Measures : unavailable (encrypted status requires local key)")\n'
+              '    elif not document["metadata"].get("detected_protocol"):\n'
+              '        print("Measures : unavailable (no supported local protocol detected)")',
           )
 
           diagnostic = Path("tools/tsun_diagnostic.py")
           replace_once(diagnostic, 'APP_VERSION = "1.5.17"', 'APP_VERSION = "1.5.18"')
 
           test_dump = Path("tests/test_tsun_dump_tool.py")
-          replace_once(test_dump, 'self.assertEqual(TOOL.TOOL_VERSION, "2.8.5")', 'self.assertEqual(TOOL.TOOL_VERSION, "2.8.6")')
+          replace_once(
+              test_dump,
+              'self.assertEqual(TOOL.TOOL_VERSION, "2.8.5")',
+              'self.assertEqual(TOOL.TOOL_VERSION, "2.8.6")',
+          )
 
-          extra_tests = r'''
+          extra_tests = dedent(r'''
 
               def test_protocol_detection_error_preserves_failed_attempts(self) -> None:
                   original_probe = TOOL._probe_protocol
@@ -415,7 +424,7 @@ jobs:
                       document["protocol_detection"]["attempts"], error.attempts
                   )
                   self.assertIs(TOOL.validate_diagnostic_for_upload(document), document)
-          '''.replace("          ", "")
+          ''')
           replace_once(
               test_dump,
               '\n\nif __name__ == "__main__":\n    unittest.main()\n',
