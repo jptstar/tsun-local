@@ -133,7 +133,115 @@ class Research1097ProbeTests(unittest.TestCase):
         self.assertEqual(probe.AT_UPURL_QUERY, b"AT+UPURL\n")
         self.assertNotIn(b"=", probe.AT_UPURL_QUERY)
 
+    def test_web_transport_snapshot_extracts_config_without_server_hosts(self) -> None:
+        document = """
+        <script>
+        var yz_tmode = "cmd";
+        var server_a = ",iot.example.invalid,10443,TCP";
+        var server_b = "192.0.2.77,,9000,UDP";
+        var uart_setting_baud = "115200";
+        var uart_setting_data = "databit_8";
+        var uart_setting_parity = "none";
+        var uart_setting_stop = "stopbit_1";
+        var uart_setting_fc = "NFC";
+        var net_setting_pro = "TCP";
+        var net_setting_cs = "SERVER";
+        var net_setting_port = "8899";
+        var net_setting_ip = "192.0.2.50";
+        var net_setting_to = "300";
+        var inv_set = "4247,1,1";
+        var apsta_mode = "0";
+        var inv_tp = "4247:Tengsheng_G4";
+        var inv_tp_seld = "";
+        </script>
+        """
+        result = probe._extract_logger_web_transport_settings(
+            {
+                "pages": [
+                    {
+                        "path": "/hide_set_edit.html",
+                        "authenticated": False,
+                        "content": document,
+                    }
+                ]
+            }
+        )
+        self.assertTrue(result["found"])
+        self.assertEqual(result["transport_mode"], "cmd")
+        self.assertEqual(result["local_network"]["protocol"], "TCP")
+        self.assertEqual(result["local_network"]["role"], "SERVER")
+        self.assertEqual(result["local_network"]["port"], 8899)
+        self.assertEqual(result["local_network"]["timeout_seconds"], 300)
+        self.assertEqual(result["uart"]["baud"], 115200)
+        self.assertEqual(result["inverter_profile"]["id"], "4247")
+        self.assertEqual(result["inverter_profile"]["name"], "Tengsheng_G4")
+        self.assertEqual(result["cloud_server_a"]["endpoint_kind"], "hostname")
+        self.assertEqual(result["cloud_server_a"]["port"], 10443)
+        self.assertEqual(result["cloud_server_b"]["endpoint_kind"], "ip")
+        self.assertEqual(result["cloud_server_b"]["port"], 9000)
+        encoded = json.dumps(result, sort_keys=True)
+        self.assertNotIn("iot.example.invalid", encoded)
+        self.assertNotIn("192.0.2.77", encoded)
+        self.assertNotIn("192.0.2.50", encoded)
+
+    def test_service_watch_is_connection_only_and_bounded(self) -> None:
+        with (
+            mock.patch.object(
+                probe,
+                "_one_tcp_open",
+                side_effect=[None, 8899, 8899, None, None, None],
+            ) as one_tcp_open,
+            mock.patch.object(probe.time, "sleep") as sleep,
+        ):
+            result = probe._watch_tcp_service(
+                "192.0.2.50", 8899, full=False, timeout=0.1
+            )
+        self.assertEqual(result["attempts"], 6)
+        self.assertEqual(one_tcp_open.call_count, 6)
+        self.assertEqual(sleep.call_count, 5)
+        self.assertEqual(result["successful_connections"], 2)
+        self.assertTrue(result["observed_open"])
+        self.assertEqual(result["first_open_offset_seconds"], 1.0)
+        self.assertEqual(result["state_transitions"], 2)
+        self.assertTrue(result["connection_only"])
+        self.assertFalse(result["application_data_sent"])
+        self.assertFalse(result["configuration_write_performed"])
+
+    def test_configured_server_mismatch_is_explicit(self) -> None:
+        settings = {
+            "local_network": {"protocol": "TCP", "role": "SERVER", "port": 8899}
+        }
+        result = probe._compare_configured_service(
+            settings,
+            {"open_ports": [80]},
+            {"observed_open": False},
+        )
+        self.assertTrue(result["configured_as_tcp_server"])
+        self.assertTrue(result["configuration_runtime_mismatch"])
+        self.assertEqual(result["status"], "configured_but_not_observed")
+
     def test_research_report_keeps_network_evidence_anonymous_and_read_only(self) -> None:
+        fake_web_document = """
+        <script>
+        var yz_tmode = "cmd";
+        var server_a = ",iot.example.invalid,10443,TCP";
+        var server_b = ",iot.example.invalid,10443,TCP";
+        var uart_setting_baud = "115200";
+        var uart_setting_data = "databit_8";
+        var uart_setting_parity = "none";
+        var uart_setting_stop = "stopbit_1";
+        var uart_setting_fc = "NFC";
+        var net_setting_pro = "TCP";
+        var net_setting_cs = "SERVER";
+        var net_setting_port = "8899";
+        var net_setting_ip = "<IP>";
+        var net_setting_to = "300";
+        var inv_set = "4247,1,1";
+        var apsta_mode = "0";
+        var inv_tp = "4247:Tengsheng_G4";
+        var inv_tp_seld = "";
+        </script>
+        """
         fake_dump = types.SimpleNamespace(
             DUMP_FORMAT="tsun-local-hardware-dump",
             SCHEMA_VERSION=3,
@@ -149,6 +257,13 @@ class Research1097ProbeTests(unittest.TestCase):
             capture_logger_web_pages=lambda host, timeout: {
                 "attempted": True,
                 "pages_found": 1,
+                "pages": [
+                    {
+                        "path": "/hide_set_edit.html",
+                        "authenticated": False,
+                        "content": fake_web_document,
+                    }
+                ],
                 "privacy": {
                     "raw_html_stored": False,
                     "host_ip_stored": False,
@@ -232,6 +347,25 @@ class Research1097ProbeTests(unittest.TestCase):
             ),
             mock.patch.object(probe, "_tls_probe") as tls_probe,
             mock.patch.object(probe, "_passive_banner_probe", return_value=None),
+            mock.patch.object(
+                probe,
+                "_watch_tcp_service",
+                return_value={
+                    "attempted": True,
+                    "port": 8899,
+                    "duration_seconds": 20.0,
+                    "interval_seconds": 1.0,
+                    "attempts": 21,
+                    "successful_connections": 0,
+                    "observed_open": False,
+                    "first_open_offset_seconds": None,
+                    "state_transitions": 0,
+                    "observations": [],
+                    "connection_only": True,
+                    "application_data_sent": False,
+                    "configuration_write_performed": False,
+                },
+            ),
         ):
             document = probe.capture_research(
                 fake_dump,
@@ -245,15 +379,27 @@ class Research1097ProbeTests(unittest.TestCase):
         encoded = json.dumps(document, sort_keys=True)
         self.assertNotIn(host, encoded)
         self.assertNotIn("failure mentioning", encoded)
+        structured = json.dumps(
+            document["transport_research"]["logger_transport_settings"],
+            sort_keys=True,
+        )
+        self.assertNotIn("iot.example.invalid", structured)
         self.assertEqual(document["metadata"]["detected_protocol"], "1097-research")
         self.assertEqual(document["metadata"]["capture_status"], "partial_success")
         self.assertFalse(document["metadata"]["measurements_available"])
-        ota = document["transport_research"]["firmware_update_url_query"]
+        research = document["transport_research"]
+        self.assertEqual(research["probe_revision"], probe.PROBE_REVISION)
+        self.assertEqual(research["logger_transport_settings"]["transport_mode"], "cmd")
+        self.assertEqual(research["logger_transport_settings"]["local_network"]["port"], 8899)
+        self.assertTrue(
+            research["configuration_vs_runtime"]["configuration_runtime_mismatch"]
+        )
+        ota = research["firmware_update_url_query"]
         self.assertEqual(ota["command"], "AT+UPURL")
         self.assertTrue(ota["getter_form_only"])
         self.assertFalse(ota["assignment_sent"])
         self.assertFalse(ota["external_url_contacted"])
-        safety = document["transport_research"]["safety"]
+        safety = research["safety"]
         self.assertTrue(safety["read_only"])
         self.assertTrue(safety["upurl_query_only"])
         self.assertFalse(safety["upurl_assignment_sent"])
@@ -267,6 +413,8 @@ class Research1097ProbeTests(unittest.TestCase):
         self.assertFalse(safety["firmware_update_performed"])
         self.assertFalse(safety["ota_performed"])
         self.assertFalse(safety["full_65535_tcp_scan_performed"])
+        self.assertTrue(safety["service_watch_connection_only"])
+        self.assertFalse(safety["service_watch_application_data_sent"])
 
 
 if __name__ == "__main__":
