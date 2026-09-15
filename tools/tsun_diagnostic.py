@@ -35,7 +35,7 @@ import tsun_tuya_probe
 previous = ui.previous
 
 APP_NAME = ui.APP_NAME
-APP_VERSION = "1.5.17"
+APP_VERSION = "1.5.18"
 MAX_DEVICE_ROWS = ui.MAX_DEVICE_ROWS
 PROJECT_URL = ui.PROJECT_URL
 COPYRIGHT_TEXT = ui.COPYRIGHT_TEXT
