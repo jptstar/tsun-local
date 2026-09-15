@@ -184,6 +184,40 @@ class Research1097ProbeTests(unittest.TestCase):
         self.assertNotIn("192.0.2.77", encoded)
         self.assertNotIn("192.0.2.50", encoded)
 
+    def test_status_snapshot_extracts_apsta_without_storing_ap_address(self) -> None:
+        document = """
+        <script>
+        var webdata_sn = "Y00SECRET";
+        var webdata_msvn = "";
+        var webdata_ssvn = "";
+        var webdata_pv_type = "";
+        var webdata_rate_p = "";
+        var webdata_now_p = "0";
+        var webdata_today_e = "0.0";
+        var webdata_total_e = "12.3";
+        var webdata_alarm = "";
+        var webdata_utime = "1";
+        var cover_wmode = "APSTA";
+        var cover_ap_ip = "10.10.100.254";
+        var status_a = "1";
+        var status_b = "0";
+        var status_c = "0";
+        </script>
+        """
+        safe, ap_ip = probe._extract_status_runtime_snapshot(document)
+        self.assertEqual(ap_ip, "10.10.100.254")
+        self.assertEqual(safe["wireless_mode"], "APSTA")
+        self.assertTrue(safe["ap_address_present"])
+        self.assertTrue(safe["ap_address_private_ipv4"])
+        self.assertEqual(safe["remote_status_flags"]["a"], 1)
+        self.assertFalse(safe["remote_status_flags"]["semantics_assumed"])
+        self.assertTrue(safe["inverter_webdata_presence"]["serial_present"])
+        self.assertFalse(safe["inverter_webdata_presence"]["main_software_version_present"])
+        self.assertTrue(safe["inverter_webdata_presence"]["total_energy_nonzero"])
+        encoded = json.dumps(safe, sort_keys=True)
+        self.assertNotIn("10.10.100.254", encoded)
+        self.assertNotIn("Y00SECRET", encoded)
+
     def test_service_watch_is_connection_only_and_bounded(self) -> None:
         with (
             mock.patch.object(
@@ -206,6 +240,61 @@ class Research1097ProbeTests(unittest.TestCase):
         self.assertTrue(result["connection_only"])
         self.assertFalse(result["application_data_sent"])
         self.assertFalse(result["configuration_write_performed"])
+
+    def test_ap_interface_probe_can_identify_ap_only_service(self) -> None:
+        with (
+            mock.patch.object(
+                probe,
+                "_one_tcp_open",
+                side_effect=[80, None, 8899, None],
+            ) as one_tcp_open,
+            mock.patch.object(probe.time, "sleep") as sleep,
+        ):
+            result = probe._probe_ap_interface(
+                "10.10.100.254",
+                8899,
+                wireless_mode="APSTA",
+                timeout=0.1,
+            )
+        self.assertEqual(one_tcp_open.call_count, 4)
+        self.assertEqual(sleep.call_count, 2)
+        self.assertTrue(result["reachability_confirmed"])
+        self.assertTrue(result["configured_port_open"])
+        self.assertEqual(result["configured_port_successes"], 1)
+        self.assertEqual(
+            result["outcome"], "configured_service_observed_on_ap_interface"
+        )
+        self.assertNotIn("10.10.100.254", json.dumps(result, sort_keys=True))
+        self.assertTrue(result["connection_only"])
+        self.assertFalse(result["application_data_sent"])
+
+    def test_ap_probe_unreachable_does_not_claim_port_closed(self) -> None:
+        with (
+            mock.patch.object(probe, "_one_tcp_open", return_value=None),
+            mock.patch.object(probe.time, "sleep"),
+        ):
+            ap_probe = probe._probe_ap_interface(
+                "10.10.100.254",
+                8899,
+                wireless_mode="APSTA",
+                timeout=0.1,
+            )
+        assessment = probe._classify_local_access(
+            {
+                "inventory_observed_open": False,
+                "watch_observed_open": False,
+            },
+            ap_probe,
+        )
+        self.assertFalse(ap_probe["reachability_confirmed"])
+        self.assertFalse(ap_probe["configured_port_open"])
+        self.assertEqual(
+            ap_probe["outcome"],
+            "ap_interface_not_reachable_from_current_network_or_services_closed",
+        )
+        self.assertEqual(
+            assessment["status"], "ap_follow_up_requires_direct_ap_connection"
+        )
 
     def test_configured_server_mismatch_is_explicit(self) -> None:
         settings = {
@@ -366,6 +455,60 @@ class Research1097ProbeTests(unittest.TestCase):
                     "configuration_write_performed": False,
                 },
             ),
+            mock.patch.object(
+                probe,
+                "_capture_logger_status_runtime",
+                return_value=(
+                    {
+                        "attempted": True,
+                        "found": True,
+                        "wireless_mode": "APSTA",
+                        "ap_address_present": True,
+                        "ap_address_private_ipv4": True,
+                        "ap_address_value_stored": False,
+                        "remote_status_flags": {
+                            "a": 1,
+                            "b": 0,
+                            "c": 0,
+                            "semantics_assumed": False,
+                        },
+                        "inverter_webdata_presence": {
+                            "serial_present": True,
+                            "main_software_version_present": False,
+                            "slave_software_version_present": False,
+                            "pv_type_present": False,
+                            "rated_power_present": False,
+                            "alarm_present": False,
+                            "uptime_present": True,
+                            "power_nonzero": False,
+                            "today_energy_nonzero": False,
+                            "total_energy_nonzero": False,
+                        },
+                        "raw_status_html_stored": False,
+                    },
+                    "10.10.100.254",
+                ),
+            ),
+            mock.patch.object(
+                probe,
+                "_probe_ap_interface",
+                return_value={
+                    "attempted": True,
+                    "wireless_mode": "APSTA",
+                    "ap_address_private_ipv4": True,
+                    "ap_address_value_stored": False,
+                    "http_port_80_open": False,
+                    "reachability_confirmed": False,
+                    "configured_port": 8899,
+                    "configured_port_attempts": 3,
+                    "configured_port_successes": 0,
+                    "configured_port_open": False,
+                    "outcome": "ap_interface_not_reachable_from_current_network_or_services_closed",
+                    "connection_only": True,
+                    "application_data_sent": False,
+                    "configuration_write_performed": False,
+                },
+            ),
         ):
             document = probe.capture_research(
                 fake_dump,
@@ -379,6 +522,7 @@ class Research1097ProbeTests(unittest.TestCase):
         encoded = json.dumps(document, sort_keys=True)
         self.assertNotIn(host, encoded)
         self.assertNotIn("failure mentioning", encoded)
+        self.assertNotIn("10.10.100.254", encoded)
         structured = json.dumps(
             document["transport_research"]["logger_transport_settings"],
             sort_keys=True,
@@ -393,6 +537,11 @@ class Research1097ProbeTests(unittest.TestCase):
         self.assertEqual(research["logger_transport_settings"]["local_network"]["port"], 8899)
         self.assertTrue(
             research["configuration_vs_runtime"]["configuration_runtime_mismatch"]
+        )
+        self.assertEqual(research["logger_status_runtime"]["wireless_mode"], "APSTA")
+        self.assertEqual(
+            research["local_access_assessment"]["status"],
+            "ap_follow_up_requires_direct_ap_connection",
         )
         ota = research["firmware_update_url_query"]
         self.assertEqual(ota["command"], "AT+UPURL")
@@ -415,6 +564,9 @@ class Research1097ProbeTests(unittest.TestCase):
         self.assertFalse(safety["full_65535_tcp_scan_performed"])
         self.assertTrue(safety["service_watch_connection_only"])
         self.assertFalse(safety["service_watch_application_data_sent"])
+        self.assertTrue(safety["status_snapshot_get_only"])
+        self.assertTrue(safety["ap_interface_probe_connection_only"])
+        self.assertFalse(safety["ap_interface_probe_application_data_sent"])
 
 
 if __name__ == "__main__":
