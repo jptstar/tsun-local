@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — Open-source TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Open-source, local and read-only Home Assistant integration for TSUN microinverters including TSOL-MS300 and Sunology PLAY2 with clear-text alarms. Install with HACS, no cloud or proxy.">
-  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, open source, GitHub, HACS, TSOL-MS300, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, Sunology Play 2, local solar monitoring, 1511, 02B0, 1097">
+  <meta name="description" content="Open-source, local and read-only Home Assistant integration for TSUN microinverters. HACS install, clear-text alarms, no cloud or proxy, plus read-only Windows and Python diagnostics for hardware validation.">
+  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, HACS, TSUN diagnostic, TSUN Local Diagnostic, Windows diagnostic, Python diagnostic, TSOL-MS300, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, 1511, 02B0, 1097, local solar monitoring">
   <meta name="author" content="Jean-Philippe TESTART (jptstar)">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
@@ -114,13 +114,13 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="TSUN Local — Open-source TSUN Microinverters in Home Assistant">
-  <meta property="og:description" content="Open-source local TSUN microinverter monitoring for Home Assistant with clear-text alarms. Install through HACS; read-only, no cloud and no proxy.">
+  <meta property="og:description" content="Local, read-only TSUN microinverter monitoring for Home Assistant plus Windows and Python diagnostics for compatibility testing. HACS install, no cloud, no proxy.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta property="og:image:alt" content="TSUN Local — local TSUN microinverter integration for Home Assistant">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="TSUN Local — Open-source TSUN Microinverters in Home Assistant">
-  <meta name="twitter:description" content="Open-source local TSUN microinverter monitoring for Home Assistant with clear-text alarms. HACS install, read-only, no cloud or proxy.">
+  <meta name="twitter:description" content="TSUN microinverters in Home Assistant: local, read-only, HACS, no cloud or proxy, with Windows and Python diagnostics.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:image:alt" content="TSUN Local — local TSUN microinverter integration for Home Assistant">
   <script type="application/ld+json">
@@ -128,7 +128,8 @@
     "@context":"https://schema.org",
     "@graph":[
       {"@type": "WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/","description":"Open-source local and read-only TSUN microinverter monitoring for Home Assistant.","sameAs":"https://github.com/jptstar/tsun-local"},
-      {"@type":"SoftwareSourceCode","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/","softwareVersion":"1.6.2","codeRepository":"https://github.com/jptstar/tsun-local","sameAs":"https://github.com/jptstar/tsun-local","license":"https://github.com/jptstar/tsun-local/blob/main/LICENSE","isAccessibleForFree":true,"runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration with real-hardware validation on TSOL-MS300, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000 and Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","HACS","open source","GitHub","TSOL-MS300","TSOL-MP3000","TSOL-MX500","TSOL-MS800","TSOL-MS2000","Sunology PLAY2","1511","02B0","1097"]}
+      {"@type":"SoftwareSourceCode","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/","softwareVersion":"1.6.2","codeRepository":"https://github.com/jptstar/tsun-local","sameAs":"https://github.com/jptstar/tsun-local","license":"https://github.com/jptstar/tsun-local/blob/main/LICENSE","isAccessibleForFree":true,"runtimePlatform":"Home Assistant","programmingLanguage":"Python","description":"Open-source local and read-only Home Assistant integration with real-hardware validation on TSOL-MS300, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000 and Sunology PLAY2.","keywords":["TSUN microinverter","Home Assistant","HACS","open source","GitHub","TSOL-MS300","TSOL-MP3000","TSOL-MX500","TSOL-MS800","TSOL-MS2000","Sunology PLAY2","1511","02B0","1097"]},
+      {"@type":"SoftwareApplication","name":"TSUN Local Diagnostic","softwareVersion":"1.5.21","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows; Python 3.10+ on Linux","url":"https://jptstar.github.io/tsun-local/test-your-inverter.html","downloadUrl":"https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest","isAccessibleForFree":true,"description":"Strictly read-only TSUN microinverter hardware diagnostic distributed as a Windows executable and full Python package."}
     ]
   }
   </script>
@@ -276,7 +277,6 @@ Stable code preserved for diagnosis</div>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="entities.html"><strong>Entity reference →</strong><span class="muted">Visual guide to the main Home Assistant entities, protocol-specific diagnostics and alarm fields.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#windows"><strong>Windows diagnostic →</strong><span class="muted">Download the Windows app and run the guided diagnostic. No Python required.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#python"><strong>Python diagnostic →</strong><span class="muted">One script for Windows, macOS and Linux, with clear terminal commands.</span></a>
-      <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#mac-linux"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">Download the packaged app for your Mac or Linux architecture.</span></a>
     </div>
   </section>
 

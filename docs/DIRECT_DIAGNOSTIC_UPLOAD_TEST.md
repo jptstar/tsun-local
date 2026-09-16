@@ -25,7 +25,7 @@ The Python `tsun_dump.py` tool remains available for advanced/terminal use and m
 
 ## Stable download channel
 
-All desktop packages and the Python dumper are published under the rolling `diagnostic-latest` release:
+The Windows executable and full Python package are published under the rolling `diagnostic-latest` release:
 
 `https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest`
 

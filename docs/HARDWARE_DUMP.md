@@ -45,7 +45,7 @@ The standard desktop flow is the same everywhere: **1 → 2 → 3 → 4**.
 1. reproduce the problem and **do not reload TSUN Local first**;
 2. download the Home Assistant diagnostic when possible;
 3. **disable the affected TSUN Local config entry** so it does not compete for the logger connection;
-4. launch the desktop diagnostic for the current operating system and run the capture;
+4. launch the Windows diagnostic or the full Python package and run the capture;
 5. use **step 3 direct upload** after reviewing the explicit consent, or **step 4 manual e-mail** only as fallback;
 6. re-enable TSUN Local when the capture is finished.
 

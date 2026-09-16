@@ -2,57 +2,27 @@
 
 Diagnostic and validation utilities for TSUN Local.
 
-## Desktop diagnostic — Windows, macOS and Linux
+## Diagnostic distributions — Windows and Python
 
-For users who are not comfortable with Python or a command prompt, TSUN Local provides the same desktop diagnostic interface for Windows, macOS and Linux. Every package is built from the shared [`tsun_diagnostic.py`](tsun_diagnostic.py) entry point and uses the same privacy-safe, **strictly read-only** `tsun_dump.py` engine.
+TSUN Local maintains exactly two supported diagnostic distributions. Both use the same privacy-safe, **strictly read-only** hardware engine and the same ordered 1097/Tuya runtime.
 
-> ### 🟠 macOS — read this before the first launch
-> **TSUN Local Diagnostic is not yet notarized by Apple.** macOS may block the first launch.  
-> **Do not disable Gatekeeper or Mac security globally.**  
-> 1. Download and unzip the package for your Mac.  
-> 2. Try to open **TSUN Local Diagnostic.app** once.  
-> 3. If macOS blocks it, click **Done**.  
-> 4. Open **Apple menu → System Settings → Privacy & Security**.  
-> 5. In **Security**, click **Open Anyway** for TSUN Local Diagnostic.  
-> 6. Authenticate, then confirm **Open**.  
-> 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
-
-All packages are published independently from Home Assistant integration releases under the stable rolling **`diagnostic-latest`** release. The historical Windows URL is deliberately unchanged so links in older posts continue to work.
-
-| Platform | Download | SHA-256 |
+| Distribution | Download | SHA-256 |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
+| Full Python package | [TSUN-Local-Diagnostic-Python.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256) |
 
-> **Which Mac should I download?**  
-> • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
-> • **About This Mac says Intel** → **Mac Intel**.
+**Versions:** application **1.5.21** · dump engine **2.9.0**.
 
-### Updates
-
-All packages use the same `diagnostic-latest` manifest and SHA-256 metadata.
-
-- **Windows:** keeps the existing verified in-place self-update flow and the existing download URL.
-- **macOS / Linux:** checks the same architecture-specific rolling package and reports when a newer GUI is available. Package replacement is manual for now.
-- **Python dumper:** keeps its verified self-update behavior.
-
-Tester profile data is stored outside the executable/application bundle, so replacing a package does not remove the saved tester name or micro-inverter list.
-
-### First launch notes
-
-macOS public packages are available for Apple Silicon and Intel. The first launch can require the per-application **Open Anyway** procedure above; never disable Gatekeeper globally. Linux downloads are portable executables. If the browser removes the executable bit, restore it once:
+Windows is the recommended end-user package. Linux users use the full Python package:
 
 ```bash
-chmod +x TSUN-Local-Diagnostic-Linux-x86_64
-./TSUN-Local-Diagnostic-Linux-x86_64
+python -m pip install -r requirements.txt
+python tsun_diagnostic_cli.py --full
 ```
 
-Use `TSUN-Local-Diagnostic-Linux-arm64` instead on arm64 Linux.
+The historical single-file `tsun_dump.py` remains available for compatibility, but it is not the feature-parity distribution.
 
-📋 [Cross-platform desktop/direct-upload validation protocol](../docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
+📋 [Diagnostic/direct-upload validation protocol](../docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 
 ## Hardware validation dump
 
@@ -60,7 +30,7 @@ Use `TSUN-Local-Diagnostic-Linux-arm64` instead on arm64 Linux.
 
 ### Desktop diagnostic
 
-The desktop packages above are the recommended route for end users. They use the same read-only dump engine and create the same anonymized JSON evidence, with direct report upload added as a separate HTTPS action only after explicit consent.
+The Windows executable and full Python package above are the recommended diagnostic routes. They use the same read-only dump engine and create the same anonymized JSON evidence, with direct report upload added as a separate HTTPS action only after explicit consent.
 
 ### Python / command-line version
 
@@ -80,7 +50,7 @@ python3 tsun_dump.py --full
 
 The standalone Python file checks the same `diagnostic-latest` manifest on startup, downloads a newer `tsun_dump.py` when available, verifies SHA-256, atomically replaces the current script and restarts. `--no-update` disables the check for one run and `--check-update` only reports availability. If the script location is not writable, the diagnostic continues with the local version and never requests `sudo`.
 
-Dump engine **2.7.4** preserves the strictly read-only logger/protocol research path, including the bounded passive logger-web capture and the getter-only `AT+WSDNS` capability probe. The actual DNS server address is deliberately excluded from the shareable JSON.
+Dump engine **2.9.0** preserves the strictly read-only logger/protocol research path, including the bounded passive logger-web capture and the getter-only `AT+WSDNS` capability probe. The actual DNS server address is deliberately excluded from the shareable JSON.
 
 The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON. `--monitor-sn` and the legacy `--serial` option are equivalent.
 

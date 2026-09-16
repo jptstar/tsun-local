@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TSUN Microinverter Home Assistant Compatibility Test | TSUN Local</title>
-  <meta name="description" content="Test whether your TSUN microinverter works locally with Home Assistant using the same TSUN Local Diagnostic interface on Windows, macOS, Linux or directly with Python.">
-  <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local, HACS, TSUN diagnostic, tsun_dump.py, Python, TSOL-MP3000, TSOL-MX500, 1511, 02B0, 1097, microinverter compatibility">
+  <title>TSUN Microinverter Compatibility Test for Home Assistant | TSUN Local</title>
+  <meta name="description" content="Test an unlisted TSUN microinverter locally with TSUN Local Diagnostic. Use the Windows executable or full Python package; strictly read-only, no cloud, privacy-safe report upload with explicit consent.">
+  <meta name="keywords" content="TSUN microinverter compatibility, TSUN Home Assistant, TSUN Local Diagnostic, Home Assistant microinverter, Windows diagnostic, Python diagnostic, HACS, TSOL-MP3000, TSOL-MX500, TSOL-MS800, 1511, 02B0, 1097">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/test-your-inverter.html">
@@ -13,21 +13,21 @@
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="TSUN Local">
   <meta property="og:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta property="og:description" content="Use the read-only TSUN Local Diagnostic on Windows, macOS, Linux or directly with Python and optionally upload an anonymized hardware report after explicit consent.">
+  <meta property="og:description" content="Read-only TSUN Local Diagnostic with two supported distributions: Windows x86_64 and the full Python package for Linux and advanced users.">
   <meta property="og:url" content="https://jptstar.github.io/tsun-local/test-your-inverter.html">
   <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta name="twitter:description" content="Read-only TSUN Local Diagnostic for Windows, macOS, Linux and Python.">
+  <meta name="twitter:description" content="Read-only TSUN Local Diagnostic for Windows and full Python, with privacy-safe report upload.">
   <meta name="twitter:image" content="https://jptstar.github.io/tsun-local/icon.png">
   <script type="application/ld+json">
   {
     "@context":"https://schema.org",
     "@type":"HowTo",
     "name":"Test a TSUN microinverter with TSUN Local in Home Assistant",
-    "description":"Test whether an unlisted TSUN microinverter is compatible with TSUN Local through automatic local discovery and a strictly read-only standalone diagnostic.",
+    "description":"Test an unlisted TSUN microinverter locally with the strictly read-only TSUN Local Diagnostic, available as Windows x86_64 and a full Python package.",
     "url":"https://jptstar.github.io/tsun-local/test-your-inverter.html",
-    "dateModified":"2026-09-08",
+    "dateModified":"2026-09-16",
     "step":[
       {"@type":"HowToStep","name":"Disable the affected TSUN Local entry","text":"Temporarily disable the affected TSUN Local config entry so Home Assistant and the standalone diagnostic do not poll the logger at the same time."},
       {"@type":"HowToStep","name":"Run the diagnostic","text":"Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report."},
@@ -129,27 +129,16 @@
   </section>
 
   <section id="python">
-    <h2>Python diagnostic — all platforms</h2>
-    <p class="intro">Prefer the terminal? Download <code>tsun_dump.py</code> and run it with Python 3.10+ on Windows, macOS or Linux.</p>
-    <div class="actions">
-      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py">Download tsun_dump.py</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256">SHA-256</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/blob/main/docs/HARDWARE_DUMP.md">Full Python guide</a>
-    </div>
-    <div class="python-highlight">
-      <strong>Recommended full diagnostic</strong>
-      <div class="command-grid">
-        <div class="command-card"><strong>Windows</strong><pre><code>py tsun_dump.py --full</code></pre></div>
-        <div class="command-card"><strong>macOS / Linux</strong><pre><code>python3 tsun_dump.py --full</code></pre></div>
-      </div>
-      <p>To target one known logger or a routed subnet:</p>
-      <div class="command-grid">
-        <div class="command-card"><strong>Known logger</strong><pre><code>python3 tsun_dump.py --host 192.168.1.50 --full</code></pre></div>
-        <div class="command-card"><strong>Routed subnet / VLAN</strong><pre><code>python3 tsun_dump.py --network 192.168.1.0/24 --full</code></pre></div>
-      </div>
-      <p>On Windows, replace <code>python3</code> with <code>py</code> in the commands above.</p>
-    </div>
-  </section>
+  <h2>Full Python diagnostic — Linux and advanced users</h2>
+  <p class="intro">The full Python package uses the same diagnostic engine, ordered 1097/Tuya runtime, privacy validation and retrying uploader as the Windows application. Python 3.10+ is required.</p>
+  <div class="actions">
+    <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip">Download full Python package</a>
+    <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256">SHA-256</a>
+  </div>
+  <pre class="code">python -m pip install -r requirements.txt
+python tsun_diagnostic_cli.py --full</pre>
+  <div class="callout"><strong>Linux:</strong> use this package instead of a dedicated Linux executable. <code>tsun_dump.py</code> remains only as a minimal compatibility tool.</div>
+</section>
 
   <section id="mac-linux">
     <h2>Mac &amp; Linux diagnostic</h2>
@@ -157,10 +146,6 @@
     <div class="privacy"><strong>Which Mac?</strong> Apple chip <strong>M1, M2, M3, M4 or newer</strong> → Apple Silicon. If <strong>About This Mac</strong> says Intel → Mac Intel.</div>
     <div class="mac-warning"><strong>🟠 macOS — first launch</strong><p><strong>The app is not yet notarized by Apple.</strong> macOS may block the first launch. You do not need to disable Gatekeeper.</p><ol><li>Download and unzip the Mac package.</li><li>Try to open <strong>TSUN Local Diagnostic.app</strong> once, then click <strong>Done</strong> if blocked.</li><li>Open <strong>System Settings → Privacy &amp; Security</strong>.</li><li>Click <strong>Open Anyway</strong>, authenticate, then confirm <strong>Open</strong>.</li></ol></div>
     <div class="actions">
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip">Mac Apple Silicon</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip">Mac Intel</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64">Linux x86_64</a>
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64">Linux ARM64</a>
       <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
     </div>
     <div class="privacy"><strong>Linux:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
