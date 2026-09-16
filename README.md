@@ -122,14 +122,12 @@ TSUN microinverter
 
 ## 🔬 Validate another TSUN model
 
-The diagnostic is privacy-safe and **strictly read-only**. Official public distribution is intentionally simple:
+The diagnostic is privacy-safe and **strictly read-only**. The rolling diagnostic release contains two primary packages:
 
-| Package | Platform | Download |
+| Package | Requirement | Download |
 |---|---|---|
 | **Windows diagnostic** | Windows x86_64 · no Python required | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) · [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| **Full Python diagnostic** | Windows · macOS · Linux · Python 3.10+ | [TSUN-Local-Diagnostic-Python.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip) · [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256) |
-
-The full Python package contains the supported command-line diagnostic and its required files. There are **no separate official macOS or Linux native binaries** in the public distribution.
+| **Full Python diagnostic** | Python 3.10+ | [TSUN-Local-Diagnostic-Python.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip) · [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256) |
 
 Typical full-Python launch after extracting the package:
 
@@ -148,7 +146,7 @@ The workflow is the same:
 
 The tester name/pseudonym and inverter model/quantity rows can be saved locally. Consent is never remembered. Submitted reports remain anonymized and the uploader returns a `TSL-...` receipt with a private-token link that lets the tester inspect the submitted report.
 
-`tsun_dump.py` remains available as a **compatibility / advanced fallback**, but the full Python diagnostic package is the normal cross-platform Python distribution.
+`tsun_dump.py` remains available as a **compatibility / advanced fallback**, but the full Python diagnostic package is the normal Python distribution.
 
 📦 [Rolling diagnostic release](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest) · 📚 [Hardware diagnostic guide](docs/HARDWARE_DUMP.md) · 📋 [Direct-upload validation protocol](docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md) · 🌐 [Public diagnostic page](https://jptstar.github.io/tsun-local/test-your-inverter.html)
 
