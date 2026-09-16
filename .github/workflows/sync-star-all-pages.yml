@@ -1,0 +1,66 @@
+name: Sync Star CTA across site pages
+
+on:
+  push:
+    branches:
+      - docs/star-all-pages
+
+permissions:
+  contents: write
+
+jobs:
+  sync-star-cta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: docs/star-all-pages
+          fetch-depth: 0
+
+      - name: Add Star on GitHub CTA to every public HTML page
+        shell: python
+        run: |
+          from pathlib import Path
+
+          docs = Path("docs")
+          repo_url = "https://github.com/jptstar/tsun-local"
+          star_link = f'<a href="{repo_url}" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a>'
+          changed = []
+
+          for path in sorted(docs.glob("*.html")):
+              text = path.read_text(encoding="utf-8")
+              if "⭐ Star on GitHub" in text:
+                  continue
+
+              if "</footer>" in text:
+                  text = text.replace("</footer>", f" · {star_link}</footer>", 1)
+              elif "</body>" in text:
+                  fallback = f'<div style="padding:18px;text-align:center;font-size:14px"><a href="{repo_url}" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a></div>'
+                  text = text.replace("</body>", fallback + "\n</body>", 1)
+              else:
+                  raise SystemExit(f"No safe insertion point found in {path}")
+
+              path.write_text(text, encoding="utf-8")
+              changed.append(str(path))
+
+          if not changed:
+              print("No HTML page needed an update.")
+          else:
+              print("Updated pages:")
+              for item in changed:
+                  print(f"- {item}")
+
+      - name: Remove temporary workflow and commit changes
+        shell: bash
+        run: |
+          rm -f .github/workflows/sync-star-all-pages.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/*.html .github/workflows/sync-star-all-pages.yml
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+            exit 0
+          fi
+          git commit -m "docs: add GitHub star CTA across site pages"
+          git push origin HEAD:docs/star-all-pages
