@@ -17,10 +17,10 @@ import tsun_report_upload as report_upload  # noqa: E402
 
 
 class DiagnosticPythonParityTests(unittest.TestCase):
-    def test_python_and_desktop_publish_same_application_version(self) -> None:
+    def test_python_and_windows_publish_same_application_version(self) -> None:
         self.assertEqual(python_cli.APP_VERSION, desktop.APP_VERSION)
 
-    def test_python_uses_exact_desktop_runtime_pipeline(self) -> None:
+    def test_python_uses_exact_windows_runtime_pipeline(self) -> None:
         self.assertIs(python_cli.runtime, runtime)
         self.assertEqual(
             python_cli.runtime.pipeline_stage_names(),
@@ -84,19 +84,21 @@ class DiagnosticPythonParityTests(unittest.TestCase):
             "TSUN-Local-Diagnostic-Python.zip",
         )
 
-    def test_official_build_uses_same_tuya_backend_on_windows_and_macos(self) -> None:
+    def test_windows_build_uses_canonical_tuya_backend(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "build-diagnostic-exe.yml").read_text(
             encoding="utf-8"
         )
+        self.assertIn("windows-latest", workflow)
         self.assertIn("tinytuya==1.20.0", workflow)
         self.assertIn("--collect-all tinytuya", workflow)
+        self.assertNotIn("macos-latest", workflow)
+        self.assertNotIn("ubuntu-24.04-arm", workflow)
+        self.assertNotIn("TSUN-Local-Diagnostic-Linux-x86_64", workflow.split("Publish Windows diagnostic and remove retired platform binaries")[0])
 
-    def test_community_macos_build_keeps_same_tuya_backend(self) -> None:
-        workflow = (
-            ROOT / ".github" / "workflows" / "build-diagnostic-macos-community.yml"
-        ).read_text(encoding="utf-8")
-        self.assertIn("tinytuya==1.20.0", workflow)
-        self.assertIn("--collect-all tinytuya", workflow)
+    def test_no_dedicated_macos_workflow_is_published(self) -> None:
+        self.assertFalse(
+            (ROOT / ".github" / "workflows" / "build-diagnostic-macos-community.yml").exists()
+        )
 
     def test_python_bundle_is_built_from_same_runtime_sources(self) -> None:
         workflow = (
@@ -113,9 +115,13 @@ class DiagnosticPythonParityTests(unittest.TestCase):
             "tsun_report_upload.py",
         ):
             self.assertIn(filename, workflow)
+        self.assertIn("windows-latest", workflow)
+        self.assertIn("ubuntu-24.04", workflow)
         self.assertIn("tinytuya==1.20.0", workflow)
         self.assertIn("python_full", workflow)
         self.assertIn("TSUN-Local-Diagnostic-Python.zip", workflow)
+        self.assertNotIn("macos-latest", workflow)
+        self.assertNotIn("macos-15-intel", workflow)
 
 
 if __name__ == "__main__":
