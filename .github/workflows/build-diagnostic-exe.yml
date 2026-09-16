@@ -172,7 +172,7 @@ jobs:
           print(json.dumps(manifest, indent=2))
           PY
 
-      - name: Publish Windows diagnostic and remove retired platform binaries
+      - name: Publish canonical rolling diagnostic assets
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -185,7 +185,7 @@ jobs:
           git tag -f "$tag" "$GITHUB_SHA"
           git push --force origin "refs/tags/$tag"
 
-          notes='Rolling prerelease for TSUN Local Diagnostic. Two supported distributions are maintained at feature parity: the Windows x86_64 executable and the full Python package. Linux users should use the Python package. Dedicated macOS and Linux binaries are no longer published. The historical single-file tsun_dump.py remains available only for compatibility.'
+          notes='Rolling prerelease for TSUN Local Diagnostic. Two supported distributions are maintained at feature parity: the Windows x86_64 executable and the full Python package. The historical single-file tsun_dump.py remains available only for compatibility.'
 
           if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             gh release edit "$tag" --title "TSUN Local Diagnostic — latest" --notes "$notes" --prerelease --repo "${{ github.repository }}"
@@ -193,17 +193,15 @@ jobs:
             gh release create "$tag" --verify-tag --title "TSUN Local Diagnostic — latest" --notes "$notes" --prerelease --repo "${{ github.repository }}"
           fi
 
-          for asset in \
-            TSUN-Local-Diagnostic-macOS-arm64.zip \
-            TSUN-Local-Diagnostic-macOS-arm64.zip.sha256 \
-            TSUN-Local-Diagnostic-macOS-x86_64.zip \
-            TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256 \
-            TSUN-Local-Diagnostic-Linux-x86_64 \
-            TSUN-Local-Diagnostic-Linux-x86_64.sha256 \
-            TSUN-Local-Diagnostic-Linux-arm64 \
-            TSUN-Local-Diagnostic-Linux-arm64.sha256; do
-            gh release delete-asset "$tag" "$asset" -y --repo "${{ github.repository }}" 2>/dev/null || true
-          done
+          while IFS= read -r asset; do
+            case "$asset" in
+              TSUN-Local-Diagnostic.exe|TSUN-Local-Diagnostic.exe.sha256|TSUN-Local-Diagnostic-Python.zip|TSUN-Local-Diagnostic-Python.zip.sha256)
+                ;;
+              TSUN-Local-Diagnostic-*)
+                gh release delete-asset "$tag" "$asset" -y --repo "${{ github.repository }}" || true
+                ;;
+            esac
+          done < <(gh release view "$tag" --repo "${{ github.repository }}" --json assets --jq '.assets[].name')
 
           gh release upload "$tag" release/* --clobber --repo "${{ github.repository }}"
           echo "Published Windows diagnostic base release; full Python package is added by the parity workflow."
