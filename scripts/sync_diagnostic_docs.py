@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Keep TSUN Local public diagnostic docs aligned with Windows + full Python."""
+"""Synchronize public TSUN Local diagnostic docs and SEO.
+
+The supported diagnostic distributions are intentionally limited to:
+- Windows x86_64 executable
+- Full Python package (Linux and advanced users)
+
+The script is idempotent and reads versions from the source files so future
+releases cannot reintroduce stale diagnostic versions or retired Mac/Linux
+binary download copy.
+"""
 from __future__ import annotations
 
 from datetime import date
@@ -13,18 +22,6 @@ RELEASE = "https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest"
 TODAY = date.today().isoformat()
 
 
-def version(path: str, name: str) -> str:
-    text = (ROOT / path).read_text(encoding="utf-8")
-    match = re.search(rf'^\s*{re.escape(name)}\s*=\s*["\']([^"\']+)', text, re.MULTILINE)
-    if not match:
-        raise RuntimeError(f"Unable to read {name} from {path}")
-    return match.group(1)
-
-
-APP_VERSION = version("tools/tsun_diagnostic_version.py", "APP_VERSION")
-DUMP_VERSION = version("tools/tsun_dump.py", "TOOL_VERSION")
-
-
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
@@ -33,19 +30,34 @@ def write(path: str, text: str) -> None:
     (ROOT / path).write_text(text, encoding="utf-8")
 
 
-def replace_between(text: str, start: str, end: str, replacement: str) -> str:
-    a = text.find(start)
-    if a < 0:
-        raise RuntimeError(f"Missing start marker: {start}")
-    b = text.find(end, a + len(start))
-    if b < 0:
-        raise RuntimeError(f"Missing end marker: {end}")
-    return text[:a] + replacement.rstrip() + "\n\n" + text[b:]
+def version(path: str, variable: str) -> str:
+    text = read(path)
+    match = re.search(
+        rf'^\s*{re.escape(variable)}\s*=\s*["\']([^"\']+)',
+        text,
+        re.MULTILINE,
+    )
+    if not match:
+        raise RuntimeError(f"Unable to read {variable} from {path}")
+    return match.group(1)
 
+
+def replace_between(text: str, start: str, end: str, replacement: str) -> str:
+    first = text.find(start)
+    if first < 0:
+        raise RuntimeError(f"Missing start marker: {start}")
+    last = text.find(end, first + len(start))
+    if last < 0:
+        raise RuntimeError(f"Missing end marker: {end}")
+    return text[:first] + replacement.rstrip() + "\n\n" + text[last:]
+
+
+APP_VERSION = version("tools/tsun_diagnostic_version.py", "APP_VERSION")
+DUMP_VERSION = version("tools/tsun_dump.py", "TOOL_VERSION")
 
 README_BLOCK = f'''## 🔬 Validate another TSUN model
 
-TSUN Local provides a privacy-safe, **strictly read-only** diagnostic for unlisted models and communication issues. There are now exactly **two supported distributions**, both using the same diagnostic engine, the same ordered 1097/Tuya extensions, the same privacy checks and the same retrying report uploader.
+TSUN Local provides a privacy-safe, **strictly read-only** diagnostic for unlisted models and communication issues. There are exactly **two supported distributions**, both using the same diagnostic engine, ordered 1097/Tuya extensions, privacy checks and retrying report uploader.
 
 ### Windows x86_64
 
@@ -69,21 +81,21 @@ python tsun_diagnostic_cli.py --full
 > [!IMPORTANT]
 > `tsun_dump.py` remains available only as a minimal compatibility tool. For complete diagnostics, including the current 1097/Tuya extensions and canonical upload retry/privacy path, use the Windows executable or the full Python package above.
 
-The diagnostic workflow is the same in both supported distributions:
+The workflow is identical in both supported distributions:
 
 1. **Disable TSUN Local** for the affected logger.
 2. **Run the diagnostic**.
 3. **Direct report upload** — recommended; explicit consent is mandatory.
 4. **Manual e-mail report** — optional fallback only.
 
-Reports stay local if upload fails. Transient network failures are retried automatically, while privacy validation is performed before any transmission.
+Reports stay local if upload fails. Transient network failures are retried automatically, and privacy validation runs before any transmission.
 
 **📦 [Open the rolling diagnostic release]({RELEASE})** · 📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)** · 📋 **[Diagnostic upload validation protocol](docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 🌐 **[Test your inverter](https://jptstar.github.io/tsun-local/test-your-inverter.html)**
 '''
 
 FR_BLOCK = f'''## 🔬 Valider un autre modèle TSUN
 
-TSUN Local propose un diagnostic respectueux de la vie privée et **strictement en lecture seule** pour les modèles non listés et les problèmes de communication. Il existe désormais exactement **deux distributions prises en charge**, utilisant le même moteur, les mêmes extensions 1097/Tuya, les mêmes contrôles de confidentialité et le même envoi avec nouvelles tentatives automatiques.
+TSUN Local propose un diagnostic respectueux de la vie privée et **strictement en lecture seule** pour les modèles non listés et les problèmes de communication. Il existe exactement **deux distributions prises en charge**, utilisant le même moteur, les mêmes extensions 1097/Tuya, les mêmes contrôles de confidentialité et le même envoi avec nouvelles tentatives automatiques.
 
 ### Windows x86_64
 
@@ -119,15 +131,7 @@ En cas d'échec d'envoi, les rapports restent enregistrés localement. Les erreu
 **📦 [Ouvrir la release diagnostic]({RELEASE})** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)** · 📋 **[Protocole de validation de l'envoi](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 🌐 **[Tester votre onduleur](https://jptstar.github.io/tsun-local/test-your-inverter.html)**
 '''
 
-text = read("README.md")
-text = replace_between(text, "## 🔬 Validate another TSUN model", "### Sunology PLAY2", README_BLOCK)
-write("README.md", text)
-
-text = read("docs/README_FR.md")
-text = replace_between(text, "## 🔬 Valider un autre modèle TSUN", "### Sunology PLAY2", FR_BLOCK)
-write("docs/README_FR.md", text)
-
-tools_block = f'''## Diagnostic distributions — Windows and Python
+TOOLS_BLOCK = f'''## Diagnostic distributions — Windows and Python
 
 TSUN Local maintains exactly two supported diagnostic distributions. Both use the same privacy-safe, **strictly read-only** hardware engine and the same ordered 1097/Tuya runtime.
 
@@ -149,13 +153,24 @@ The historical single-file `tsun_dump.py` remains available for compatibility, b
 
 📋 [Diagnostic/direct-upload validation protocol](../docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 '''
+
+# Main README and French README.
+text = read("README.md")
+text = replace_between(text, "## 🔬 Validate another TSUN model", "### Sunology PLAY2", README_BLOCK)
+write("README.md", text)
+
+text = read("docs/README_FR.md")
+text = replace_between(text, "## 🔬 Valider un autre modèle TSUN", "### Sunology PLAY2", FR_BLOCK)
+write("docs/README_FR.md", text)
+
+# Tools README: support both the historical heading and the synchronized heading.
 text = read("tools/README.md")
 tools_start = (
     "## Diagnostic distributions — Windows and Python"
     if "## Diagnostic distributions — Windows and Python" in text
     else "## Desktop diagnostic —"
 )
-text = replace_between(text, tools_start, "## Hardware validation dump", tools_block)
+text = replace_between(text, tools_start, "## Hardware validation dump", TOOLS_BLOCK)
 text = text.replace(
     "The desktop packages above are the recommended route for end users.",
     "The Windows executable and full Python package above are the recommended diagnostic routes.",
@@ -163,7 +178,7 @@ text = text.replace(
 text = re.sub(r'Dump engine \*\*[0-9.]+\*\*', f'Dump engine **{DUMP_VERSION}**', text)
 write("tools/README.md", text)
 
-# Keep distribution wording in validation docs current without rewriting protocol details.
+# Validation guides: change distribution wording only; keep protocol details intact.
 for path in ("docs/HARDWARE_DUMP.md", "docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md"):
     text = read(path)
     text = text.replace(
@@ -178,7 +193,7 @@ for path in ("docs/HARDWARE_DUMP.md", "docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md"):
     text = text.replace("Python dumper", "full Python diagnostic")
     write(path, text)
 
-# Homepage SEO: retain the strong Home Assistant query while adding diagnostic entry points.
+# Homepage search/social metadata and SoftwareApplication structured data.
 path = "docs/index.html"
 text = read(path)
 text = re.sub(
@@ -227,7 +242,7 @@ text = re.sub(
 )
 write(path, text)
 
-# Public compatibility-test page: current distribution + search/social metadata.
+# Public compatibility-test page: SEO, structured data and visible Windows/Python-only flow.
 path = "docs/test-your-inverter.html"
 text = read(path)
 text = re.sub(
@@ -274,33 +289,51 @@ text = re.sub(
 )
 text = re.sub(r'"dateModified":"[0-9-]+"', f'"dateModified":"{TODAY}"', text, count=1)
 text = re.sub(
-    r'"description":"Test whether an unlisted TSUN microinverter[^\"]*"',
+    r'"description":"Test (?:whether )?an unlisted TSUN microinverter[^\"]*"',
     '"description":"Test an unlisted TSUN microinverter locally with the strictly read-only TSUN Local Diagnostic, available as Windows x86_64 and a full Python package."',
     text,
     count=1,
 )
-py_section = f'''  <section id="python">
-  <h2>Full Python diagnostic — Linux and advanced users</h2>
-  <p class="intro">The full Python package uses the same diagnostic engine, ordered 1097/Tuya runtime, privacy validation and retrying uploader as the Windows application. Python 3.10+ is required.</p>
-  <div class="actions">
-    <a class="button primary" href="{PYZIP}">Download full Python package</a>
-    <a class="button secondary" href="{PYZIP}.sha256">SHA-256</a>
-  </div>
-  <pre class="code">python -m pip install -r requirements.txt
+text = text.replace(
+    'Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report.',
+    'Run the Windows executable or the full Python package. Both use the same strictly read-only hardware communication engine and create an anonymized JSON report.',
+)
+text = text.replace(
+    '<p class="lead"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app, use Python on any platform, or choose the packaged Mac/Linux app.</p>',
+    '<p class="lead"><strong>Not listed yet, or communication unstable?</strong> Use the Windows app or the full Python package. Both run the same strictly read-only diagnostic engine.</p>',
+)
+text = text.replace(
+    '<p class="hero-note">Windows · Python 3.10+ · macOS &amp; Linux · Strictly read-only</p>',
+    '<p class="hero-note">Windows x86_64 · Full Python 3.10+ · Strictly read-only</p>',
+)
+python_section = f'''  <section id="python">
+    <h2>Full Python diagnostic — Linux and advanced users</h2>
+    <p class="intro">The full Python package uses the same diagnostic engine, ordered 1097/Tuya runtime, privacy validation and retrying uploader as the Windows application. Python 3.10+ is required.</p>
+    <div class="actions">
+      <a class="button primary" href="{PYZIP}">Download full Python package</a>
+      <a class="button secondary" href="{PYZIP}.sha256">SHA-256</a>
+    </div>
+    <pre class="code">python -m pip install -r requirements.txt
 python tsun_diagnostic_cli.py --full</pre>
-  <div class="callout"><strong>Linux:</strong> use this package instead of a dedicated Linux executable. <code>tsun_dump.py</code> remains only as a minimal compatibility tool.</div>
-</section>'''
-text = re.sub(r'  <section id="python">.*?</section>', py_section, text, count=1, flags=re.DOTALL)
+    <div class="callout"><strong>Linux:</strong> use this package instead of a dedicated Linux executable. <code>tsun_dump.py</code> remains only as a minimal compatibility tool.</div>
+  </section>'''
+text = re.sub(r'  <section id="python">.*?</section>', python_section, text, count=1, flags=re.DOTALL)
+text = re.sub(r'\s*<section id="mac-linux">.*?</section>', '', text, count=1, flags=re.DOTALL)
+text = text.replace(
+    '<div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use Windows, Python, Mac or Linux. Discovery and evidence capture remain read-only.</p></div>',
+    '<div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use the Windows executable or the full Python package. Discovery and evidence capture remain read-only.</p></div>',
+)
+text = text.replace(
+    '<div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Recommended in the desktop app. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>',
+    '<div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Available through the supported diagnostic flow after explicit consent. Add an optional tester name and micro-inverter models, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>',
+)
 text = re.sub(r'^.*TSUN-Local-Diagnostic-macOS-[^\n]*\n?', '', text, flags=re.MULTILINE)
 text = re.sub(r'^.*TSUN-Local-Diagnostic-Linux-[^\n]*\n?', '', text, flags=re.MULTILINE)
-text = text.replace(
-    'Windows, macOS, Linux or directly with Python',
-    'Windows or the full Python package',
-)
+text = text.replace('Windows, macOS, Linux or directly with Python', 'Windows or the full Python package')
 text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')
 write(path, text)
 
-# Sitemap URLs stay stable; refresh lastmod where lastmod is already present.
+# Keep existing sitemap URLs stable; refresh dates only where lastmod exists.
 path = "docs/sitemap.xml"
 text = read(path)
 for url in (
