@@ -7,7 +7,8 @@ import unittest
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
-import tsun_report_model_assignment as assignment  # noqa: E402
+import tsun_report_model_assignment as legacy_assignment  # noqa: E402
+import tsun_report_upload as assignment  # noqa: E402
 
 
 class ExtraCandidateModelAssignmentTests(unittest.TestCase):
@@ -82,6 +83,12 @@ class ExtraCandidateModelAssignmentTests(unittest.TestCase):
         devices = [{"model": "TSOL-MX450", "quantity": 2}]
         self.assertEqual(assignment.associate_declared_models(diagnostics, devices), {})
         self.assertIsNone(diagnostics[0]["metadata"]["model_supplied_by_user"])
+
+    def test_legacy_model_assignment_module_uses_canonical_policy(self) -> None:
+        self.assertIs(
+            legacy_assignment.associate_declared_models,
+            assignment.associate_declared_models,
+        )
 
 
 if __name__ == "__main__":

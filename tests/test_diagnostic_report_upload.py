@@ -57,6 +57,17 @@ class DiagnosticReportUploadTests(unittest.TestCase):
                 consent=True,
             )
 
+    def test_rejects_tuya_credentials_before_network(self) -> None:
+        for key in ("device_id", "local_key", "tuya_local_key"):
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(
+                    upload.ReportUploadError, "forbidden privacy field"
+                ):
+                    upload.build_payload(
+                        {"tuya_lan": {key: "must-never-upload"}},
+                        consent=True,
+                    )
+
     def test_load_file_rejects_invalid_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bad.json"
