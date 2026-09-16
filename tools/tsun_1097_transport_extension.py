@@ -39,7 +39,8 @@ EXTRA_PORTS = frozenset({502, 1502, 2000, 2001, 4000, 4001, 5000, 5001, 7000, 80
 FULL_RANGES = ((1025, 4096), (5000, 8192), (10000, 11050), (20000, 20100), (30000, 30100))
 HTTP_PORTS = frozenset({80, 8000, 8080, 8888})
 TLS_PORTS = frozenset({443, 8443, 8883, 9443, 10443})
-NO_1097_PROBE = HTTP_PORTS | TLS_PORTS | frozenset({48899, 49999})
+NO_1097_PROBE = HTTP_PORTS | TLS_PORTS | frozenset({22, 23, 53, 1883, 8883, 48899, 49999})
+ACTIVE_1097_CANDIDATE_PORTS = frozenset({502, 1502, 2000, 2001, 4000, 4001, 5000, 5001, 7000, 8890, 8898, 9000, 9001, 10000, 10001, 10500})
 SAFE_HTTP_PATHS = ("/status.html", "/hide_set_edit.html", "/remote.html", "/port.html", "/select.html")
 VAR_RE = re.compile(
     r"\bvar\s+(yz_tmode|server_a|server_b|uart_setting_baud|uart_setting_data|"
@@ -302,7 +303,13 @@ def udp_1097_read(tsun_dump: Any, host: str, sn: int, port: int, timeout: float)
 
 def alternate_1097(tsun_dump: Any, host: str, sn: int, ports: Iterable[int], timeout: float) -> list[dict[str, Any]]:
     rows = []
-    for port in [p for p in sorted(set(ports)) if p not in NO_1097_PROBE and p != LEGACY_PORT][:8]:
+    for port in [
+        p
+        for p in sorted(set(ports))
+        if p in ACTIVE_1097_CANDIDATE_PORTS
+        and p not in NO_1097_PROBE
+        and p != LEGACY_PORT
+    ][:8]:
         try:
             protocol, attempts = tsun_dump.detect_protocol("1097", host, port, sn, min(max(timeout, 0.2), 0.8))
         except Exception as exc:
