@@ -2,6 +2,7 @@
 """Keep TSUN Local public diagnostic docs aligned with Windows + full Python."""
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 import re
 
@@ -9,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WIN = "https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe"
 PYZIP = "https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip"
 RELEASE = "https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest"
+TODAY = date.today().isoformat()
+
 
 def version(path: str, name: str) -> str:
     text = (ROOT / path).read_text(encoding="utf-8")
@@ -17,14 +20,18 @@ def version(path: str, name: str) -> str:
         raise RuntimeError(f"Unable to read {name} from {path}")
     return match.group(1)
 
+
 APP_VERSION = version("tools/tsun_diagnostic_version.py", "APP_VERSION")
 DUMP_VERSION = version("tools/tsun_dump.py", "TOOL_VERSION")
+
 
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
+
 def write(path: str, text: str) -> None:
     (ROOT / path).write_text(text, encoding="utf-8")
+
 
 def replace_between(text: str, start: str, end: str, replacement: str) -> str:
     a = text.find(start)
@@ -34,6 +41,7 @@ def replace_between(text: str, start: str, end: str, replacement: str) -> str:
     if b < 0:
         raise RuntimeError(f"Missing end marker: {end}")
     return text[:a] + replacement.rstrip() + "\n\n" + text[b:]
+
 
 README_BLOCK = f'''## 🔬 Validate another TSUN model
 
@@ -142,45 +150,135 @@ The historical single-file `tsun_dump.py` remains available for compatibility, b
 📋 [Diagnostic/direct-upload validation protocol](../docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 '''
 text = read("tools/README.md")
-text = replace_between(text, "## Desktop diagnostic —", "## Hardware validation dump", tools_block)
-text = text.replace("The desktop packages above are the recommended route for end users.", "The Windows executable and full Python package above are the recommended diagnostic routes.")
+tools_start = (
+    "## Diagnostic distributions — Windows and Python"
+    if "## Diagnostic distributions — Windows and Python" in text
+    else "## Desktop diagnostic —"
+)
+text = replace_between(text, tools_start, "## Hardware validation dump", tools_block)
+text = text.replace(
+    "The desktop packages above are the recommended route for end users.",
+    "The Windows executable and full Python package above are the recommended diagnostic routes.",
+)
 text = re.sub(r'Dump engine \*\*[0-9.]+\*\*', f'Dump engine **{DUMP_VERSION}**', text)
 write("tools/README.md", text)
 
-# Keep distribution wording in validation docs current without rewriting their protocol details.
+# Keep distribution wording in validation docs current without rewriting protocol details.
 for path in ("docs/HARDWARE_DUMP.md", "docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md"):
     text = read(path)
-    text = text.replace("launch the desktop diagnostic for the current operating system", "launch the Windows diagnostic or the full Python package")
-    text = text.replace("All desktop packages and the Python dumper are published", "The Windows executable and full Python package are published")
+    text = text.replace(
+        "launch the desktop diagnostic for the current operating system",
+        "launch the Windows diagnostic or the full Python package",
+    )
+    text = text.replace(
+        "All desktop packages and the Python dumper are published",
+        "The Windows executable and full Python package are published",
+    )
     text = text.replace("desktop packages", "supported diagnostic packages")
     text = text.replace("Python dumper", "full Python diagnostic")
     write(path, text)
 
-# Homepage SEO: retain the strong Home Assistant query while adding the diagnostic entry points.
+# Homepage SEO: retain the strong Home Assistant query while adding diagnostic entry points.
 path = "docs/index.html"
 text = read(path)
-text = re.sub(r'<meta name="description" content="[^"]*">', '<meta name="description" content="Open-source, local and read-only Home Assistant integration for TSUN microinverters. HACS install, clear-text alarms, no cloud or proxy, plus read-only Windows and Python diagnostics for hardware validation.">', text, count=1)
-text = re.sub(r'<meta name="keywords" content="[^"]*">', '<meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, HACS, TSUN diagnostic, TSUN Local Diagnostic, Windows diagnostic, Python diagnostic, TSOL-MS300, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, 1511, 02B0, 1097, local solar monitoring">', text, count=1)
-text = re.sub(r'<meta property="og:description" content="[^"]*">', '<meta property="og:description" content="Local, read-only TSUN microinverter monitoring for Home Assistant plus Windows and Python diagnostics for compatibility testing. HACS install, no cloud, no proxy.">', text, count=1)
-text = re.sub(r'<meta name="twitter:description" content="[^"]*">', '<meta name="twitter:description" content="TSUN microinverters in Home Assistant: local, read-only, HACS, no cloud or proxy, with Windows and Python diagnostics.">', text, count=1)
+text = re.sub(
+    r'<meta name="description" content="[^"]*">',
+    '<meta name="description" content="Open-source, local and read-only Home Assistant integration for TSUN microinverters. HACS install, clear-text alarms, no cloud or proxy, plus read-only Windows and Python diagnostics for hardware validation.">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta name="keywords" content="[^"]*">',
+    '<meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, HACS, TSUN diagnostic, TSUN Local Diagnostic, Windows diagnostic, Python diagnostic, TSOL-MS300, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, 1511, 02B0, 1097, local solar monitoring">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta property="og:description" content="[^"]*">',
+    '<meta property="og:description" content="Local, read-only TSUN microinverter monitoring for Home Assistant plus Windows and Python diagnostics for compatibility testing. HACS install, no cloud, no proxy.">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta name="twitter:description" content="[^"]*">',
+    '<meta name="twitter:description" content="TSUN microinverters in Home Assistant: local, read-only, HACS, no cloud or proxy, with Windows and Python diagnostics.">',
+    text,
+    count=1,
+)
 if '"name":"TSUN Local Diagnostic"' not in text:
-    text = text.replace('\n    ]\n  }\n  </script>', f''',\n      {{"@type":"SoftwareApplication","name":"TSUN Local Diagnostic","softwareVersion":"{APP_VERSION}","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows; Python 3.10+ on Linux","url":"https://jptstar.github.io/tsun-local/test-your-inverter.html","downloadUrl":"{RELEASE}","isAccessibleForFree":true,"description":"Strictly read-only TSUN microinverter hardware diagnostic distributed as a Windows executable and full Python package."}}\n    ]\n  }}\n  </script>''', 1)
-# Remove the obsolete third diagnostic card if it still exists.
-text = re.sub(r'\s*<a class="card"[^>]*>\s*<strong>Mac &amp; Linux diagnostic →</strong>.*?</a>', '', text, count=1, flags=re.DOTALL)
+    text = text.replace(
+        '\n    ]\n  }\n  </script>',
+        f''',\n      {{"@type":"SoftwareApplication","name":"TSUN Local Diagnostic","softwareVersion":"{APP_VERSION}","applicationCategory":"UtilitiesApplication","operatingSystem":"Windows; Python 3.10+ on Linux","url":"https://jptstar.github.io/tsun-local/test-your-inverter.html","downloadUrl":"{RELEASE}","isAccessibleForFree":true,"description":"Strictly read-only TSUN microinverter hardware diagnostic distributed as a Windows executable and full Python package."}}\n    ]\n  }}\n  </script>''',
+        1,
+    )
+else:
+    text = re.sub(
+        r'("name":"TSUN Local Diagnostic","softwareVersion":")[^"]+',
+        rf'\g<1>{APP_VERSION}',
+        text,
+        count=1,
+    )
+text = re.sub(
+    r'\s*<a class="card"[^>]*>\s*<strong>Mac &amp; Linux diagnostic →</strong>.*?</a>',
+    '',
+    text,
+    count=1,
+    flags=re.DOTALL,
+)
 write(path, text)
 
 # Public compatibility-test page: current distribution + search/social metadata.
 path = "docs/test-your-inverter.html"
 text = read(path)
-text = re.sub(r'<title>.*?</title>', '<title>TSUN Microinverter Compatibility Test for Home Assistant | TSUN Local</title>', text, count=1)
-text = re.sub(r'<meta name="description" content="[^"]*">', '<meta name="description" content="Test an unlisted TSUN microinverter locally with TSUN Local Diagnostic. Use the Windows executable or full Python package; strictly read-only, no cloud, privacy-safe report upload with explicit consent.">', text, count=1)
-text = re.sub(r'<meta name="keywords" content="[^"]*">', '<meta name="keywords" content="TSUN microinverter compatibility, TSUN Home Assistant, TSUN Local Diagnostic, Home Assistant microinverter, Windows diagnostic, Python diagnostic, HACS, TSOL-MP3000, TSOL-MX500, TSOL-MS800, 1511, 02B0, 1097">', text, count=1)
-text = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="Test your TSUN microinverter with Home Assistant">', text, count=1)
-text = re.sub(r'<meta property="og:description" content="[^"]*">', '<meta property="og:description" content="Read-only TSUN Local Diagnostic with two supported distributions: Windows x86_64 and the full Python package for Linux and advanced users.">', text, count=1)
-text = re.sub(r'<meta name="twitter:title" content="[^"]*">', '<meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">', text, count=1)
-text = re.sub(r'<meta name="twitter:description" content="[^"]*">', '<meta name="twitter:description" content="Read-only TSUN Local Diagnostic for Windows and full Python, with privacy-safe report upload.">', text, count=1)
-text = re.sub(r'"dateModified":"[0-9-]+"', '"dateModified":"2026-09-16"', text, count=1)
-text = re.sub(r'"description":"Test whether an unlisted TSUN microinverter[^\"]*"', '"description":"Test an unlisted TSUN microinverter locally with the strictly read-only TSUN Local Diagnostic, available as Windows x86_64 and a full Python package."', text, count=1)
+text = re.sub(
+    r'<title>.*?</title>',
+    '<title>TSUN Microinverter Compatibility Test for Home Assistant | TSUN Local</title>',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta name="description" content="[^"]*">',
+    '<meta name="description" content="Test an unlisted TSUN microinverter locally with TSUN Local Diagnostic. Use the Windows executable or full Python package; strictly read-only, no cloud, privacy-safe report upload with explicit consent.">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta name="keywords" content="[^"]*">',
+    '<meta name="keywords" content="TSUN microinverter compatibility, TSUN Home Assistant, TSUN Local Diagnostic, Home Assistant microinverter, Windows diagnostic, Python diagnostic, HACS, TSOL-MP3000, TSOL-MX500, TSOL-MS800, 1511, 02B0, 1097">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta property="og:title" content="[^"]*">',
+    '<meta property="og:title" content="Test your TSUN microinverter with Home Assistant">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta property="og:description" content="[^"]*">',
+    '<meta property="og:description" content="Read-only TSUN Local Diagnostic with two supported distributions: Windows x86_64 and the full Python package for Linux and advanced users.">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta name="twitter:title" content="[^"]*">',
+    '<meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">',
+    text,
+    count=1,
+)
+text = re.sub(
+    r'<meta name="twitter:description" content="[^"]*">',
+    '<meta name="twitter:description" content="Read-only TSUN Local Diagnostic for Windows and full Python, with privacy-safe report upload.">',
+    text,
+    count=1,
+)
+text = re.sub(r'"dateModified":"[0-9-]+"', f'"dateModified":"{TODAY}"', text, count=1)
+text = re.sub(
+    r'"description":"Test whether an unlisted TSUN microinverter[^\"]*"',
+    '"description":"Test an unlisted TSUN microinverter locally with the strictly read-only TSUN Local Diagnostic, available as Windows x86_64 and a full Python package."',
+    text,
+    count=1,
+)
 py_section = f'''  <section id="python">
   <h2>Full Python diagnostic — Linux and advanced users</h2>
   <p class="intro">The full Python package uses the same diagnostic engine, ordered 1097/Tuya runtime, privacy validation and retrying uploader as the Windows application. Python 3.10+ is required.</p>
@@ -193,11 +291,25 @@ python tsun_diagnostic_cli.py --full</pre>
   <div class="callout"><strong>Linux:</strong> use this package instead of a dedicated Linux executable. <code>tsun_dump.py</code> remains only as a minimal compatibility tool.</div>
 </section>'''
 text = re.sub(r'  <section id="python">.*?</section>', py_section, text, count=1, flags=re.DOTALL)
+text = re.sub(r'^.*TSUN-Local-Diagnostic-macOS-[^\n]*\n?', '', text, flags=re.MULTILINE)
+text = re.sub(r'^.*TSUN-Local-Diagnostic-Linux-[^\n]*\n?', '', text, flags=re.MULTILINE)
+text = text.replace(
+    'Windows, macOS, Linux or directly with Python',
+    'Windows or the full Python package',
+)
+text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')
 write(path, text)
 
-# Sitemap URLs stay stable; refresh lastmod where the sitemap already exposes it.
+# Sitemap URLs stay stable; refresh lastmod where lastmod is already present.
 path = "docs/sitemap.xml"
 text = read(path)
-for url in ("https://jptstar.github.io/tsun-local/", "https://jptstar.github.io/tsun-local/test-your-inverter.html"):
-    text = re.sub(rf'(<loc>{re.escape(url)}</loc>\s*<lastmod>)[^<]+', rf'\g<1>2026-09-16', text)
+for url in (
+    "https://jptstar.github.io/tsun-local/",
+    "https://jptstar.github.io/tsun-local/test-your-inverter.html",
+):
+    text = re.sub(
+        rf'(<loc>{re.escape(url)}</loc>\s*<lastmod>)[^<]+',
+        rf'\g<1>{TODAY}',
+        text,
+    )
 write(path, text)
