@@ -1,0 +1,142 @@
+name: Move Star CTA to hero
+
+on:
+  push:
+    branches:
+      - docs/star-hero-only
+
+permissions:
+  contents: write
+
+jobs:
+  move-star-cta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/star-hero-only
+          fetch-depth: 0
+
+      - name: Move Star CTA from footer to hero actions
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          docs = Path("docs")
+          pages = (
+              "index.html",
+              "entities.html",
+              "sunology-play2.html",
+              "tsol-mp3000-home-assistant.html",
+              "tsol-ms300-home-assistant.html",
+              "tsol-mx500-home-assistant.html",
+              "tsol-ms800-home-assistant.html",
+              "tsol-ms2000-home-assistant.html",
+              "contributors.html",
+              "test-your-inverter.html",
+          )
+          repo = "https://github.com/jptstar/tsun-local"
+          footer_star = f' · <a href="{repo}" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a>'
+
+          def star_link(css_class: str) -> str:
+              return f'<a class="{css_class}" href="{repo}" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a>'
+
+          changed = []
+          for filename in pages:
+              path = docs / filename
+              text = path.read_text(encoding="utf-8")
+              original = text
+
+              # The Star CTA must never live in the footer.
+              text = text.replace(footer_star, "")
+
+              header_end = text.find("</header>")
+              if header_end < 0:
+                  raise SystemExit(f"Missing </header> in {filename}")
+              header = text[:header_end]
+
+              if "⭐ Star on GitHub" not in header:
+                  # Hardware pages already have a GitHub action in their hero: turn that
+                  # action into the Star CTA, preserving the page's existing button class.
+                  github_action = re.compile(
+                      r'<a class="([^"]+)" href="https://github\.com/jptstar/tsun-local">GitHub</a>'
+                  )
+                  match = github_action.search(header)
+                  if match:
+                      replacement = star_link(match.group(1))
+                      header = github_action.sub(replacement, header, count=1)
+                  else:
+                      # Otherwise add the CTA to the hero itself, directly below the
+                      # lead/strap area, using the page's existing button vocabulary.
+                      if filename == "entities.html":
+                          link = star_link("btn")
+                      elif 'class="button secondary"' in text or ".button{" in text:
+                          link = star_link("button secondary")
+                      elif 'class="btn secondary"' in text or ".btn{" in text:
+                          link = star_link("btn secondary")
+                      else:
+                          link = star_link("button secondary")
+
+                      block = f'<div class="actions">{link}</div>'
+                      inserted = False
+                      for cls in ("strap", "hero-note", "lead"):
+                          pattern = re.compile(rf'(<p class="{cls}">.*?</p>)', re.S)
+                          matches = list(pattern.finditer(header))
+                          if matches:
+                              last = matches[-1]
+                              header = header[:last.end()] + block + header[last.end():]
+                              inserted = True
+                              break
+                      if not inserted:
+                          raise SystemExit(f"No safe hero insertion point in {filename}")
+
+                  text = header + text[header_end:]
+
+              # Contributors previously had no action/button styles in the hero.
+              if filename == "contributors.html" and ".actions{" not in text:
+                  css = '.actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:24px}.button{display:inline-block;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:850}.secondary{color:#fff;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08)}'
+                  text = text.replace("footer{padding:0 0 40px", css + "footer{padding:0 0 40px", 1)
+
+              if "⭐ Star on GitHub" not in text.split("</header>", 1)[0]:
+                  raise SystemExit(f"Star CTA missing from hero in {filename}")
+              footer = re.search(r'<footer class="wrap">(.*?)</footer>', text, flags=re.S)
+              if not footer:
+                  raise SystemExit(f"Footer missing in {filename}")
+              if "⭐ Star on GitHub" in footer.group(1):
+                  raise SystemExit(f"Star CTA still present in footer in {filename}")
+
+              if text != original:
+                  path.write_text(text, encoding="utf-8")
+                  changed.append(filename)
+
+          # Update the web contract: common footer stays clean; Star CTA belongs in hero.
+          test_path = Path("tests/test_release_154_web.py")
+          tests = test_path.read_text(encoding="utf-8")
+          tests = tests.replace(
+              '# Keep one shared footer contract across every public HTML page, including the GitHub star CTA.\n'
+              'FOOTER = \'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design · <a href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a>\'',
+              '# Keep one shared, minimal footer contract across every public HTML page.\n'
+              'FOOTER = \'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design\'',
+          )
+          tests = tests.replace(
+              '            self.assertIn("⭐ Star on GitHub", match.group(1), filename)\n',
+              '            self.assertNotIn("⭐ Star on GitHub", match.group(1), filename)\n',
+          )
+          marker = '    def test_public_pages_do_not_advertise_beta_160(self) -> None:\n'
+          new_test = '''    def test_all_public_pages_expose_star_cta_in_hero(self) -> None:\n        for filename in PAGES:\n            text = (DOCS / filename).read_text(encoding="utf-8")\n            hero = text.split("</header>", 1)[0]\n            self.assertIn('aria-label="Star TSUN Local on GitHub"', hero, filename)\n            self.assertIn("⭐ Star on GitHub", hero, filename)\n\n'''
+          if new_test not in tests:
+              tests = tests.replace(marker, new_test + marker, 1)
+          test_path.write_text(tests, encoding="utf-8")
+
+          print("Updated:", ", ".join(changed))
+
+      - name: Remove temporary workflow and commit
+        shell: bash
+        run: |
+          rm -f .github/workflows/move-star-to-hero.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/*.html tests/test_release_154_web.py .github/workflows/move-star-to-hero.yml
+          git commit -m "docs: move GitHub star CTA to hero actions"
+          git push origin HEAD:docs/star-hero-only
