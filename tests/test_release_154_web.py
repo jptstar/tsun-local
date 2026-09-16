@@ -7,8 +7,8 @@ import unittest
 
 ROOT = Path(__file__).parents[1]
 DOCS = ROOT / "docs"
-# Keep one shared footer contract across every public HTML page, including the GitHub star CTA.
-FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design · <a href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a>'
+# Keep one shared, minimal footer contract across every public HTML page.
+FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design'
 PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
 
 
@@ -43,7 +43,14 @@ class Release160WebTests(unittest.TestCase):
             match = re.search(r'<footer class="wrap">(.*?)</footer>', text, flags=re.S)
             self.assertIsNotNone(match, filename)
             self.assertEqual(FOOTER, match.group(1), filename)
-            self.assertIn("⭐ Star on GitHub", match.group(1), filename)
+            self.assertNotIn("⭐ Star on GitHub", match.group(1), filename)
+
+    def test_all_public_pages_expose_star_cta_in_hero(self) -> None:
+        for filename in PAGES:
+            text = (DOCS / filename).read_text(encoding="utf-8")
+            hero = text.split("</header>", 1)[0]
+            self.assertIn('aria-label="Star TSUN Local on GitHub"', hero, filename)
+            self.assertIn("⭐ Star on GitHub", hero, filename)
 
     def test_public_pages_do_not_advertise_beta_160(self) -> None:
         for filename in PAGES:
