@@ -5,8 +5,9 @@ on:
     branches:
       - main
     paths:
-      - "scripts/publish_macos_first_launch_docs.py"
-      - "scripts/fix_current_mac_copy.py"
+      - "tools/tsun_diagnostic_version.py"
+      - "tools/tsun_dump.py"
+      - "scripts/sync_diagnostic_docs.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
@@ -33,74 +34,87 @@ jobs:
 
       - name: Synchronize public diagnostic documentation
         run: |
-          python scripts/publish_macos_first_launch_docs.py
-          python scripts/fix_current_mac_copy.py
+          python scripts/sync_diagnostic_docs.py
+          # A second pass is intentional: the synchronizer must stay idempotent.
+          python scripts/sync_diagnostic_docs.py
 
-      - name: Verify stable links and generated documentation
+      - name: Verify Windows/Python documentation and SEO contract
         shell: bash
         run: |
-          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py
+          python -m py_compile scripts/sync_diagnostic_docs.py
           python - <<'PY'
           from pathlib import Path
+          import re
+
+          def version(path: str, variable: str) -> str:
+              text = Path(path).read_text(encoding="utf-8")
+              match = re.search(
+                  rf'^\s*{re.escape(variable)}\s*=\s*["\']([^"\']+)',
+                  text,
+                  re.MULTILINE,
+              )
+              if not match:
+                  raise SystemExit(f"Unable to read {variable} from {path}")
+              return match.group(1)
+
+          app_version = version("tools/tsun_diagnostic_version.py", "APP_VERSION")
+          dump_version = version("tools/tsun_dump.py", "TOOL_VERSION")
 
           checks = {
               "README.md": [
-                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe",
-                  "TSUN-Local-Diagnostic-macOS-arm64.zip",
-                  "TSUN-Local-Diagnostic-macOS-x86_64.zip",
-                  "Open Anyway",
-                  "Which Mac should I download?",
-              ],
-              "docs/HARDWARE_DUMP.md": [
-                  "TSUN-Local-Diagnostic-Linux-x86_64",
-              ],
-              "docs/test-your-inverter.html": [
-                  "M1, M2, M3, M4",
-                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip",
-                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip",
+                  "TSUN-Local-Diagnostic.exe",
+                  "TSUN-Local-Diagnostic-Python.zip",
+                  f"application **{app_version}**",
+                  f"dump engine **{dump_version}**",
               ],
               "docs/README_FR.md": [
-                  "Quel Mac choisir ?",
-                  "Ouvrir quand même",
-                  "Gatekeeper",
+                  "TSUN-Local-Diagnostic.exe",
+                  "TSUN-Local-Diagnostic-Python.zip",
+                  "Package Python complet",
+              ],
+              "tools/README.md": [
+                  "Diagnostic distributions — Windows and Python",
+                  "TSUN-Local-Diagnostic-Python.zip",
               ],
               "docs/index.html": [
-                  "Windows diagnostic →",
-                  "Python diagnostic →",
-                  "Mac &amp; Linux diagnostic →",
-                  'class="tested-link"',
-                  '<span class="compat-family">GEN4</span>',
-                  "Sunology · G4 variant",
-                  "entities.html",
+                  "Windows and Python diagnostics",
+                  '"name":"TSUN Local Diagnostic"',
+                  f'"softwareVersion":"{app_version}"',
+                  "TSUN diagnostic, TSUN Local Diagnostic",
               ],
-              "docs/sunology-play2.html": [
-                  "Two PLAY2 generations are now observed",
-                  "GEN3 Plus · protocol 02B0",
-                  "GEN4 · protocol 1097",
-                  "Tengsheng_G4",
-                  "4247",
-                  "phildeg31",
+              "docs/test-your-inverter.html": [
+                  "TSUN Microinverter Compatibility Test for Home Assistant",
+                  "Full Python diagnostic — Linux and advanced users",
+                  "TSUN-Local-Diagnostic-Python.zip",
               ],
           }
 
-          failed = []
+          failures = []
           for filename, markers in checks.items():
               text = Path(filename).read_text(encoding="utf-8")
               for marker in markers:
                   if marker not in text:
-                      failed.append(f"{filename}: missing {marker!r}")
+                      failures.append(f"{filename}: missing {marker!r}")
 
-          stale = {
-              "README.md": "once the signed builds are published",
-              "docs/README_FR.md": "lorsque les builds signés seront publiés",
-          }
-          for filename, marker in stale.items():
-              if marker in Path(filename).read_text(encoding="utf-8"):
-                  failed.append(f"{filename}: stale wording still present: {marker!r}")
+          for filename in (
+              "README.md",
+              "docs/README_FR.md",
+              "tools/README.md",
+              "docs/test-your-inverter.html",
+          ):
+              text = Path(filename).read_text(encoding="utf-8")
+              for stale in (
+                  "TSUN-Local-Diagnostic-macOS-",
+                  "TSUN-Local-Diagnostic-Linux-",
+              ):
+                  if stale in text:
+                      failures.append(f"{filename}: stale {stale}")
 
-          if failed:
-              raise SystemExit("Documentation verification failed:\n- " + "\n- ".join(failed))
-          print("Documentation verification passed.")
+          if failures:
+              raise SystemExit(
+                  "Documentation verification failed:\n- " + "\n- ".join(failures)
+              )
+          print("Windows/Python documentation and SEO contract passed.")
           PY
 
       - name: Publish synchronized docs branch
@@ -119,10 +133,10 @@ jobs:
             tools/README.md \
             docs/HARDWARE_DUMP.md \
             docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md \
-            docs/README_*.md \
+            docs/README_FR.md \
             docs/index.html \
             docs/test-your-inverter.html \
-            docs/sunology-play2.html
-          git commit -m "Synchronize public diagnostic documentation"
+            docs/sitemap.xml
+          git commit -m "Synchronize Windows and Python diagnostic documentation"
           git push --force origin "$branch"
           echo "Synchronized documentation published to $branch for pull-request validation."
