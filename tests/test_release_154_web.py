@@ -7,8 +7,8 @@ import unittest
 
 ROOT = Path(__file__).parents[1]
 DOCS = ROOT / "docs"
-FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design'
-PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
+FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design · <a href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a>'
+PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
 
 
 class Release160WebTests(unittest.TestCase):
@@ -42,6 +42,7 @@ class Release160WebTests(unittest.TestCase):
             match = re.search(r'<footer class="wrap">(.*?)</footer>', text, flags=re.S)
             self.assertIsNotNone(match, filename)
             self.assertEqual(FOOTER, match.group(1), filename)
+            self.assertIn("⭐ Star on GitHub", match.group(1), filename)
 
     def test_public_pages_do_not_advertise_beta_160(self) -> None:
         for filename in PAGES:
@@ -53,6 +54,7 @@ class Release160WebTests(unittest.TestCase):
         sitemap = (DOCS / "sitemap.xml").read_text(encoding="utf-8")
         for filename in (
             "tsol-mp3000-home-assistant.html",
+            "tsol-ms300-home-assistant.html",
             "tsol-mx500-home-assistant.html",
             "tsol-ms800-home-assistant.html",
             "tsol-ms2000-home-assistant.html",
@@ -67,6 +69,7 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("Sunology PLAY2", text)
         self.assertIn("test-your-inverter.html", text)
         self.assertIn("contributors.html", text)
+        self.assertIn("tsol-ms300-home-assistant.html", text)
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
         self.assertIn("tsol-ms2000-home-assistant.html", text)
@@ -78,12 +81,12 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("entities.html", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
 
-
     def test_public_hacs_actions_use_official_badge(self) -> None:
         for filename in (
             "index.html",
             "sunology-play2.html",
             "tsol-mp3000-home-assistant.html",
+            "tsol-ms300-home-assistant.html",
             "tsol-mx500-home-assistant.html",
             "tsol-ms800-home-assistant.html",
             "tsol-ms2000-home-assistant.html",
