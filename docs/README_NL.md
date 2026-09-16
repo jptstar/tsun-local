@@ -21,8 +21,11 @@
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="https://github.com/jptstar/tsun-local"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jptstar/tsun-local?style=flat&logo=github&label=Stars"></a>
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
+
+<p align="center">⭐ <strong>Gebruik je TSUN Local?</strong> Helpt het je, <a href="https://github.com/jptstar/tsun-local">geef het project dan een ster op GitHub</a> — zo kunnen andere TSUN-gebruikers het makkelijker vinden.</p>
 
 
 ---
