@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Add localized star badge and call-to-action
         shell: python
@@ -52,12 +54,14 @@ jobs:
 
               path.write_text(text, encoding="utf-8")
 
-      - name: Commit localized README updates and remove one-shot workflow
+      - name: Publish localized README update branch
         shell: bash
         run: |
+          branch="automation/star-readmes"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
           git rm .github/workflows/sync-star-readmes-once.yml
           git add docs/README_*.md
           git commit -m "Add star CTA to localized READMEs"
-          git push origin main
+          git push --force origin "$branch"
