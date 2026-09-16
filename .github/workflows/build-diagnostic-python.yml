@@ -108,9 +108,9 @@ jobs:
           TSUN Local Diagnostic - full Python package
           ===========================================
 
-          This is the supported non-Windows distribution of TSUN Local Diagnostic.
-          It uses the same read-only engine, ordered 1097/Tuya runtime, privacy gate,
-          model association and retrying uploader as the Windows executable.
+          This package uses the same read-only engine, ordered 1097/Tuya runtime,
+          privacy gate, model association and retrying uploader as the Windows
+          executable.
 
           Requirements: Python 3.10+
 
@@ -119,9 +119,6 @@ jobs:
 
           Run the complete diagnostic:
               python tsun_diagnostic_cli.py --full
-
-          Linux users should use this Python package. There is no separate Linux
-          executable. Dedicated macOS packages are not published.
 
           The Tuya Local Key prompt is masked. Credentials are kept in memory only
           and are never saved or uploaded. All protocol diagnostics remain read-only.
@@ -208,19 +205,18 @@ jobs:
           digest = hashlib.sha256(asset.read_bytes()).hexdigest()
           manifest_path = release / "update.json"
           manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          components = manifest.setdefault("components", {})
+          existing = manifest.get("components", {})
+          components = {
+              key: value
+              for key, value in existing.items()
+              if key in {"dump", "windows_gui"}
+          }
           components["python_full"] = {
               "version": APP_VERSION,
               "asset": asset.name,
               "sha256": digest,
           }
-          for retired in (
-              "macos_arm64_gui",
-              "macos_x86_64_gui",
-              "linux_x86_64_gui",
-              "linux_arm64_gui",
-          ):
-              components.pop(retired, None)
+          manifest["components"] = components
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
           print(json.dumps(manifest, indent=2))
           PY

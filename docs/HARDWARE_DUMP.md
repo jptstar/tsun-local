@@ -5,246 +5,68 @@
 `tsun_dump.py` creates standardized hardware-validation captures for TSUN micro-inverters without Home Assistant and without installing TSUN Local.
 
 > [!IMPORTANT]
-> The tool is **strictly read-only**. It contains no inverter configuration write path. It only implements the local read operations needed for hardware validation.
+> The diagnostic path is **strictly read-only**. It contains no inverter configuration write path.
 
-## ⬇️ Choose the easiest diagnostic
+## Recommended diagnostic
 
-### Desktop application — Windows, macOS and Linux (recommended)
+Use one of the two canonical packages from the rolling `diagnostic-latest` release:
 
-The **same TSUN Local Diagnostic interface** is packaged for all supported desktop platforms. Every package uses the same privacy-safe, **strictly read-only** `tsun_dump.py` hardware engine; direct report upload is a separate HTTPS action performed only after explicit consent.
-
-| Platform | Download | SHA-256 |
+| Package | Requirement | Download |
 |---|---|---|
-| Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
+| Windows diagnostic | Windows x86_64 · no Python required | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) · [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
+| Full Python diagnostic | Python 3.10+ | [TSUN-Local-Diagnostic-Python.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip) · [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256) |
 
-> **Which Mac should I download?**  
-> • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
-> • **About This Mac says Intel** → **Mac Intel**.
+Before capture, **disable the affected TSUN Local config entry** so two clients do not compete for the same logger connection. Re-enable it when the test is complete.
 
-> ### 🟠 macOS — read this before the first launch
-> **TSUN Local Diagnostic is not yet notarized by Apple.** macOS may block the first launch.  
-> **Do not disable Gatekeeper or Mac security globally.**  
-> 1. Download and unzip the package for your Mac.  
-> 2. Try to open **TSUN Local Diagnostic.app** once.  
-> 3. If macOS blocks it, click **Done**.  
-> 4. Open **Apple menu → System Settings → Privacy & Security**.  
-> 5. In **Security**, click **Open Anyway** for TSUN Local Diagnostic.  
-> 6. Authenticate, then confirm **Open**.  
-> 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
+The uploader requires explicit consent. The tester name/pseudonym and selected inverter models can be stored locally; consent is never persisted. A successful upload returns a `TSL-...` receipt and a private-token view link for the submitted anonymized report.
 
-Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.3**.
+📋 [Direct-upload validation protocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 
-All assets remain on the rolling **`diagnostic-latest`** release. The historical Windows URL and filename are intentionally unchanged so old forum posts, issue comments and documentation links stay valid.
+## Advanced single-file fallback
 
-The standard desktop flow is the same everywhere: **1 → 2 → 3 → 4**.
+The historical standalone file remains available for advanced troubleshooting:
 
-1. reproduce the problem and **do not reload TSUN Local first**;
-2. download the Home Assistant diagnostic when possible;
-3. **disable the affected TSUN Local config entry** so it does not compete for the logger connection;
-4. launch the desktop diagnostic for the current operating system and run the capture;
-5. use **step 3 direct upload** after reviewing the explicit consent, or **step 4 manual e-mail** only as fallback;
-6. re-enable TSUN Local when the capture is finished.
-
-The direct-upload UI can remember the tester name/pseudonym and up to 10 selected micro-inverter models/quantities across application updates. The consent checkbox is never persisted. A successful upload returns a `TSL-...` receipt plus a private-token Worker link that lets the tester see exactly the anonymized report sent without exposing the private reports repository.
-
-For an upload-only test away from the installation, enter exactly:
-
-```text
-Logger IP : 89:89:89:89
-Monitor SN: 89898989
-```
-
-This dedicated synthetic mode explicitly records `test_mode: true` and `communication_attempted: false`; no logger or micro-inverter is contacted.
-
-Update behavior is platform-specific only at package-replacement level: Windows keeps verified in-place self-update; macOS/Linux check their own architecture-specific package in the same manifest and report when a replacement is available. Saved tester profiles live outside the executable/app bundle and survive replacement.
-
-macOS packages are currently ad-hoc signed but not Apple-notarized. If Gatekeeper blocks first launch, use Finder → right-click **TSUN Local Diagnostic** → **Open**. Linux downloads are portable executables and may need `chmod +x` once after download.
-
-📋 **[Cross-platform desktop/direct-upload validation protocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)**
-
-### Firmware-resilient logger web capture
-
-Firmware revisions do not always expose logger metadata on the same HTML page or under the same variable name. The 2.5.1 dump engine therefore:
-
-- accepts multiple Wi-Fi signal layouts and preserves whether the value is **%** or **dBm**;
-- records the page/key source used for the detected Wi-Fi signal;
-- prioritizes real logger firmware/MAC fields and ignores generic help placeholders or example MAC addresses;
-- starts from the known logger pages and may follow a **bounded maximum of 10 passive same-logger HTML navigation paths**;
-- stores only **anonymized HTML** in the JSON so future firmware layouts can be analysed without keeping the logger IP, full serial number, full MAC address, Wi-Fi credentials or user email;
-- never follows external links, submits forms or calls paths associated with reboot, reset, firmware update, upload, delete or erase actions.
-
-This web-page capture is diagnostic evidence only. It does not turn the Home Assistant integration into a web crawler and does not add any write path.
-
-### Read-only logger DNS capability probe
-
-Dump engine **2.7.1** adds one deliberately narrow full-mode capability test for the logger DNS setting. Over the local UDP 48899 assistant interface it opens the normal diagnostic session and sends only `AT+WSDNS` **without an equals sign or value**. On logger families that implement the command, this is the documented getter form; the tool never sends `AT+WSDNS=<address>` and therefore never changes DNS configuration.
-
-The JSON records whether the query was supported and only privacy-safe properties such as the number/scope of returned IPv4 addresses. The actual DNS server address is **not stored**. This probe is research evidence for a possible future TSUN Local Cloud/Firmware Protection feature; it is not itself a blocker and it does not modify the logger.
-
-### Python / command-line alternative — all platforms
-
-**[Download `tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py)**
-
-The single Python file uses **only the Python standard library**: no Home Assistant, pip package, Node.js or cloned repository is required. Python **3.10 or newer** is required.
-
-macOS / Linux:
+**[Download `tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py)** · [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256)
 
 ```bash
 python3 tsun_dump.py --full
 ```
 
-At the end of an interactive run, the Python tool now asks whether to:
-
-1. securely submit the anonymized JSON to TSUN Local,
-2. keep it for manual email to `dev@jptstar.com`, or
-3. keep it locally without transmitting anything.
-
-Nothing is uploaded without an explicit choice. For scripted use, `--submit` (alias `--upload`) is explicit consent to upload, while `--no-submit` disables the prompt and keeps the report local.
-
-Windows terminal alternative:
+On Windows:
 
 ```powershell
 py tsun_dump.py --full
 ```
 
-If the Monitor SN is already known, it can be passed directly:
+## Discovery and targeting
 
-```powershell
-py tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
-```
+The tool first performs read-only local discovery. When a logger cannot be resolved automatically, IP address and Monitor SN can be supplied manually. They are not written to the shareable JSON.
 
-`--monitor-sn` is an alias for the existing `--serial` option.
-
-## Automatic discovery: all devices by default
-
-The tool first sends repeated read-only UDP discovery probes. It then performs a **bounded TCP scan on port 8899** for each discovered `/24` (and for each network supplied with `--network`) and directly UDP-probes TCP-only candidates. **When `--host` is not supplied, every resulting candidate is validated and a separate JSON dump is generated for each supported TSUN logger.**
-
-Example with three discovered loggers:
-
-```text
-Searching the local network for all TSUN loggers (read-only UDP)...
-3 candidate logger(s) found. Every discovered logger will be captured.
-
-=== Device 1/3 ===
-...
-=== Device 2/3 ===
-...
-=== Device 3/3 ===
-...
-```
-
-Typical multi-device output files are kept distinct automatically:
-
-```text
-tsun_device-01_unknown_02b0_20260820T100412Z.json
-tsun_device-02_unknown_1511_20260820T100438Z.json
-tsun_device-03_unknown_1097_20260820T100501Z.json
-```
-
-Discovery behavior:
-
-- all discovered loggers with a resolved Monitor SN → all are captured automatically;
-- one discovered logger with a missing Monitor SN → only that SN is requested;
-- several discovered loggers and one has a missing/ambiguous Monitor SN → the SN is requested for that logger; pressing Enter skips only that logger and continues with the others;
-- one device fails during protocol detection or capture → the script continues with the remaining devices;
-- no logger is discovered → the tool falls back to asking for one logger IP and Monitor SN;
-- `--host` supplied → intentional single-device mode.
-
-Interactive Monitor SN entry uses normal terminal input for compatibility with Windows, PowerShell, Command Prompt and other consoles. The Monitor SN is still excluded from generated JSON files.
-
-To target only one known logger:
-
-```bash
-python3 tsun_dump.py --host 192.168.1.50 --full
-```
-
-Or provide both values manually:
+Known logger example:
 
 ```bash
 python3 tsun_dump.py --host 192.168.1.50 --monitor-sn 1234567890 --full
 ```
 
-The legacy spelling remains supported:
+For a routed network, a bounded `/24` scan can be requested:
 
 ```bash
-python3 tsun_dump.py --host 192.168.1.50 --serial 1234567890 --full
+python3 tsun_dump.py --network 10.89.10.0/24 --full
 ```
 
-For a dump intended for publication, remember that a Monitor SN supplied on the command line may remain in shell history even though it is not written to the dump JSON.
-
-> [!NOTE]
-> UDP broadcast discovery normally stays inside the local broadcast domain. For a routed VLAN/subnet, use a bounded network scan such as:
->
-> ```bash
-> python3 tsun_dump.py --network 10.89.10.0/24 --full
-> ```
->
-> `--network` accepts only `/24` or smaller IPv4 networks and may be repeated. If one logger is found by UDP, its `/24` is scanned automatically, which can reveal neighboring TSUN loggers that do not answer broadcast discovery.
-
-## Exact model
-
-If the physical inverter model is known, include it in the generated metadata and filename:
-
-```bash
-python3 tsun_dump.py --model TSOL-MS800 --full
-```
-
-When several devices are discovered, the same `--model` value applies to every generated dump, so omit it if the network contains different models unless you are certain they are identical.
-
-Single-device example output:
-
-```text
-tsun_tsol-ms800_02b0_20260820T100412Z.json
-```
-
-The generated JSON files are what should be attached to the relevant TSUN Local testing issue.
-
-## Standard and full modes
-
-The default mode reads established TSUN Local telemetry/diagnostic areas:
-
-```bash
-python3 tsun_dump.py
-```
-
-The explicit `--full` mode adds only known-safe research ranges:
-
-```bash
-python3 tsun_dump.py --full
-```
-
-`--full` is **not a brute-force scanner**. It does not walk the complete register address space and does not try unknown function codes.
+## Capture ranges
 
 ### 02B0
 
-Dynamic capture:
-
-- FC03 `0x3000–0x302F`, split into conservative 16-register requests.
-
-Standard supplemental diagnostics:
-
-- `0x2007`;
-- `0x2011–0x2013`;
-- `0x2014–0x202C`;
-- `0x202D–0x205F`.
-
-Full supplemental capture:
-
-- FC03 `0x2000–0x205F`, split into conservative 16-register requests. Unknown values remain raw for family/signature analysis.
+- dynamic FC03 reads around `0x3000–0x302F`;
+- supplemental diagnostics in `0x2000–0x205F` in full mode;
+- requests are split into conservative blocks of at most 16 registers.
 
 ### 1097
 
-Dynamic capture:
-
-- FC03 `0x1100–0x110F`;
-- FC03 `0x1200–0x122F`;
-- FC03 `0x1300–0x133F`.
-
-Supplemental capture includes `0x1008–0x100F` and, in full mode, the complete read-only `0x1400–0x144F` profile/diagnostic area. The inverter serial-number words `0x1000–0x1007` are deliberately excluded from published dumps.
+- dynamic FC03 reads at `0x1100–0x110F`, `0x1200–0x122F` and `0x1300–0x133F`;
+- supplemental read-only profile/diagnostic data in full mode;
+- inverter serial-number words are deliberately excluded from published dumps.
 
 ### 1511 / TITAN
 
@@ -258,105 +80,34 @@ Only validated native TITAN read operations are used:
 
 No generic Modbus sweep is attempted on 1511.
 
-## Multiple snapshots
+## Multiple snapshots and comparison
 
-By default three dynamic snapshots are taken three seconds apart for **each captured device**. This separates registers that are changing from registers that remain stable, zero or `0xFFFF`.
+Three dynamic snapshots are taken by default. This separates changing values from stable, zero or `0xFFFF` registers.
 
 ```bash
 python3 tsun_dump.py --snapshots 5 --interval 5
 ```
 
-The purpose is evidence collection, not high-rate polling.
-
-## Before / after validation
-
-Two dumps can be compared without automatically assigning semantic meaning:
+Neutral before/after comparison:
 
 ```bash
 python3 tsun_dump.py --compare before.json after.json
 ```
 
-Example:
+## Privacy
 
-```text
-Changed raw registers: 1
-  0x2048: 0 -> 1
-```
+The shareable JSON excludes full logger IP addresses, Monitor SN, full inverter serial numbers, complete MAC addresses, Wi-Fi credentials, tokens, secrets and raw non-anonymized logger HTML.
 
-A comparison JSON can also be saved:
-
-```bash
-python3 tsun_dump.py \
-  --compare before.json after.json \
-  --output comparison.json
-```
-
-This is useful for controlled setting-change validation while keeping the result neutral until the changed register has been independently identified.
-
-## Output privacy
-
-The generated JSON does **not** store:
-
-- logger IP address;
-- Monitor SN used by the AP envelope;
-- full inverter serial number (only its first 3 characters may be retained as a family/OEM prefix);
-- known inverter serial-number register words;
-- full logger MAC address (only the OUI may be retained);
-- Wi-Fi SSID, Wi-Fi password/PSK, tokens, secrets, email addresses or other recognized credentials from logger web pages;
-- raw, non-anonymized logger HTML;
-- UDP discovery payloads;
-- the AP envelope itself.
-
-It does include:
-
-- anonymized snapshots of the known local logger web pages (`/index_cn.html`, `/index.html`, `/status.html`, `/` and `/hide_set_edit.html`) so future firmware layouts can be re-analysed without requesting a new dump;
-- logger firmware, Wi-Fi signal, raw inverter profile (`inv_tp`) when available, MAC OUI only (first three octets), and only the first **3 characters** of the inverter serial number (for example `Y47`);
-- raw decimal and hexadecimal register values;
-- successful and failed read blocks;
-- multiple timestamped snapshots;
-- stable/changing/zero/`FFFF` classification;
-- established decoded values separately from raw evidence;
-- detected protocol and PV-input count;
-- dump-tool version;
-- the **SHA-256 of the exact `tsun_dump.py` file** used to create the dump;
-- a non-sensitive discovery index so multi-device files can be correlated without storing IP or Monitor SN.
-
-Unknown research registers are never assigned speculative semantic names by the dumper.
+It may include anonymized logger evidence, firmware, Wi-Fi signal metadata, MAC OUI, a short inverter-family prefix, raw register values, read success/failure information, snapshot classification, detected protocol, PV-input count and tool version.
 
 ## Safety design
 
-- one standalone auditable Python file;
-- Python standard library only;
-- read-only UDP discovery;
-- repeated UDP discovery plus bounded `/24` TCP fallback on port 8899;
-- direct UDP retry for TCP-only candidates;
-- protocol detection retried before a candidate is rejected;
-- all discovered loggers processed sequentially, avoiding simultaneous high-rate polling;
-- HTTP `admin:admin` is only sent to an explicitly targeted host or after an unauthenticated page has already been identified as TSUN;
-- Modbus capture implements FC03 reads only;
-- **no FC06/FC16 write implementation**;
-- 02B0/1097 requests are limited to 16 registers each;
-- 1511 uses only known native read commands;
-- failure of one logger does not stop dumps for the others;
-- failed optional blocks do not discard successful evidence;
-- invalid/non-finite timeout values are rejected before network access;
-- Monitor SN values are range-checked before AP framing;
+- local read operations only;
+- Modbus FC03 reads only;
+- no FC06/FC16 write implementation;
+- bounded request sizes and network scans;
 - no address-space brute force;
-- no inverter configuration command.
+- no inverter configuration, reboot, reset or firmware-update command;
+- one failed logger does not stop captures for other discovered devices.
 
-The normal developer/tester command is simply:
-
-```bash
-python3 tsun_dump.py --full
-```
-
-## 02B0 compatibility characterization
-
-Full 02B0 captures run an additional strictly read-only characterization matrix. It reproduces the short and long telemetry read shapes used by TSUN Local, including the historical 1.5.3 block and the 1.5.4/1.6.0 block, and compares the explicit `0x02B0` AP sensor-list selector with the legacy `0x0000` selector on bounded control reads.
-
-Short inner logger payloads such as `05 00` and `06 00` are preserved as unknown markers. The dumper briefly keeps the same socket open to observe whether a second AP envelope containing valid Modbus data follows; it does not assign an undocumented error meaning to those markers.
-
-The JSON `protocol_characterization` section records every request shape, attempt result, inner response payload, response timing, optional follow-up payload and a conservative classification. This can distinguish a strict 16-register limit from register-boundary, selector, timing or short-marker behavior without writing to the inverter.
-
-Dynamic snapshots now include a `coherent` flag. Only the latest snapshot in which every planned dynamic block succeeded is used for decoded measurements and PV-count inference. A partial later snapshot remains in the evidence but cannot overwrite a coherent earlier one or create false PV inputs from shifted/stale responses.
-
+Unknown research values remain raw until independently validated.

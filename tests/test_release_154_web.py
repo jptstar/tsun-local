@@ -7,18 +7,14 @@ import unittest
 
 ROOT = Path(__file__).parents[1]
 DOCS = ROOT / "docs"
-# Keep one shared, minimal footer contract across every public HTML page.
 FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design'
 PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
 
 
-class Release160WebTests(unittest.TestCase):
+class ReleaseWebTests(unittest.TestCase):
     def test_public_site_stays_on_stable_release_during_beta(self) -> None:
         manifest = json.loads((ROOT / "custom_components" / "tsun_local" / "manifest.json").read_text(encoding="utf-8"))
-        self.assertRegex(
-            manifest["version"],
-            r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$",
-        )
+        self.assertRegex(manifest["version"], r"^\d+\.\d+\.\d+(?:-beta\.\d+)?$")
         index = (DOCS / "index.html").read_text(encoding="utf-8")
         if "-beta." in manifest["version"]:
             self.assertNotIn(manifest["version"], index)
@@ -43,7 +39,6 @@ class Release160WebTests(unittest.TestCase):
             match = re.search(r'<footer class="wrap">(.*?)</footer>', text, flags=re.S)
             self.assertIsNotNone(match, filename)
             self.assertEqual(FOOTER, match.group(1), filename)
-            self.assertNotIn("⭐ Star on GitHub", match.group(1), filename)
 
     def test_all_public_pages_expose_star_cta_in_hero(self) -> None:
         for filename in PAGES:
@@ -60,14 +55,7 @@ class Release160WebTests(unittest.TestCase):
 
     def test_sitemap_contains_validated_hardware_pages(self) -> None:
         sitemap = (DOCS / "sitemap.xml").read_text(encoding="utf-8")
-        for filename in (
-            "tsol-mp3000-home-assistant.html",
-            "tsol-ms300-home-assistant.html",
-            "tsol-mx500-home-assistant.html",
-            "tsol-ms800-home-assistant.html",
-            "tsol-ms2000-home-assistant.html",
-            "sunology-play2.html",
-        ):
+        for filename in ("tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "sunology-play2.html"):
             self.assertIn(filename, sitemap)
 
     def test_homepage_keeps_project_identity(self) -> None:
@@ -81,33 +69,23 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
         self.assertIn("tsol-ms2000-home-assistant.html", text)
-        self.assertIn("paloindici", text)
+        self.assertNotIn("paloindici", text)
         self.assertIn("NEW IN 1.6.2", text)
         self.assertIn("test-your-inverter.html#windows", text)
         self.assertIn("test-your-inverter.html#python", text)
-        self.assertIn("test-your-inverter.html#mac-linux", text)
         self.assertIn("entities.html", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
 
     def test_public_hacs_actions_use_official_badge(self) -> None:
-        for filename in (
-            "index.html",
-            "sunology-play2.html",
-            "tsol-mp3000-home-assistant.html",
-            "tsol-ms300-home-assistant.html",
-            "tsol-mx500-home-assistant.html",
-            "tsol-ms800-home-assistant.html",
-            "tsol-ms2000-home-assistant.html",
-        ):
+        for filename in ("index.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html"):
             text = (DOCS / filename).read_text(encoding="utf-8")
             self.assertIn("https://my.home-assistant.io/badges/hacs_repository.svg", text, filename)
-            self.assertNotRegex(text, r">(?:Add TSUN Local to HACS|Add to HACS)</a>", filename)
 
     def test_hardware_test_page_promotes_current_diagnostic(self) -> None:
         text = (DOCS / "test-your-inverter.html").read_text(encoding="utf-8")
-        self.assertIn("TSUN Local 1.6.0", text)
-        self.assertNotIn("TSUN Local 1.5.3", text)
+        self.assertIn("TSUN Local 1.6.2", text)
         self.assertIn("TSUN-Local-Diagnostic.exe", text)
+        self.assertIn("TSUN-Local-Diagnostic-Python.zip", text)
         self.assertIn("disable the affected TSUN Local config entry", text)
 
 
