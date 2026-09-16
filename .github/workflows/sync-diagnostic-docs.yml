@@ -1,128 +1,53 @@
-name: Sync diagnostic documentation
+name: Verify diagnostic documentation
 
 on:
   push:
     branches:
       - main
     paths:
+      - "README.md"
+      - "docs/index.html"
+      - "docs/test-your-inverter.html"
+      - "scripts/sync_diagnostic_docs.py"
+      - "scripts/publish_macos_first_launch_docs.py"
+      - "scripts/fix_current_mac_copy.py"
+      - ".github/workflows/sync-diagnostic-docs.yml"
+  pull_request:
+    paths:
+      - "README.md"
+      - "docs/index.html"
+      - "docs/test-your-inverter.html"
+      - "scripts/sync_diagnostic_docs.py"
       - "scripts/publish_macos_first_launch_docs.py"
       - "scripts/fix_current_mac_copy.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: sync-diagnostic-docs
+  group: verify-diagnostic-docs-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  sync:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Synchronize public diagnostic documentation
+      - name: Compile documentation helpers
         run: |
-          python scripts/publish_macos_first_launch_docs.py
-          python scripts/fix_current_mac_copy.py
+          python -m py_compile \
+            scripts/sync_diagnostic_docs.py \
+            scripts/publish_macos_first_launch_docs.py \
+            scripts/fix_current_mac_copy.py
 
-      - name: Verify stable links and generated documentation
-        shell: bash
-        run: |
-          python -m py_compile scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py
-          python - <<'PY'
-          from pathlib import Path
-
-          checks = {
-              "README.md": [
-                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe",
-                  "TSUN-Local-Diagnostic-macOS-arm64.zip",
-                  "TSUN-Local-Diagnostic-macOS-x86_64.zip",
-                  "Open Anyway",
-                  "Which Mac should I download?",
-              ],
-              "docs/HARDWARE_DUMP.md": [
-                  "TSUN-Local-Diagnostic-Linux-x86_64",
-              ],
-              "docs/test-your-inverter.html": [
-                  "M1, M2, M3, M4",
-                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip",
-                  "releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip",
-              ],
-              "docs/README_FR.md": [
-                  "Quel Mac choisir ?",
-                  "Ouvrir quand même",
-                  "Gatekeeper",
-              ],
-              "docs/index.html": [
-                  "Windows diagnostic →",
-                  "Python diagnostic →",
-                  "Mac &amp; Linux diagnostic →",
-                  'class="tested-link"',
-                  '<span class="compat-family">GEN4</span>',
-                  "Sunology · G4 variant",
-                  "entities.html",
-              ],
-              "docs/sunology-play2.html": [
-                  "Two PLAY2 generations are now observed",
-                  "GEN3 Plus · protocol 02B0",
-                  "GEN4 · protocol 1097",
-                  "Tengsheng_G4",
-                  "4247",
-                  "phildeg31",
-              ],
-          }
-
-          failed = []
-          for filename, markers in checks.items():
-              text = Path(filename).read_text(encoding="utf-8")
-              for marker in markers:
-                  if marker not in text:
-                      failed.append(f"{filename}: missing {marker!r}")
-
-          stale = {
-              "README.md": "once the signed builds are published",
-              "docs/README_FR.md": "lorsque les builds signés seront publiés",
-          }
-          for filename, marker in stale.items():
-              if marker in Path(filename).read_text(encoding="utf-8"):
-                  failed.append(f"{filename}: stale wording still present: {marker!r}")
-
-          if failed:
-              raise SystemExit("Documentation verification failed:\n- " + "\n- ".join(failed))
-          print("Documentation verification passed.")
-          PY
-
-      - name: Publish synchronized docs branch
-        shell: bash
-        run: |
-          if git diff --quiet; then
-            echo "Documentation already synchronized."
-            exit 0
-          fi
-          branch="automation/diagnostic-docs"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B "$branch"
-          git add \
-            README.md \
-            tools/README.md \
-            docs/HARDWARE_DUMP.md \
-            docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md \
-            docs/README_*.md \
-            docs/index.html \
-            docs/test-your-inverter.html \
-            docs/sunology-play2.html
-          git commit -m "Synchronize public diagnostic documentation"
-          git push --force origin "$branch"
-          echo "Synchronized documentation published to $branch for pull-request validation."
+      - name: Verify public diagnostic distribution
+        run: python scripts/sync_diagnostic_docs.py
