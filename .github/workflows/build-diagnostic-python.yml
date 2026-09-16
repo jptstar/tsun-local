@@ -28,10 +28,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build and verify Python parity bundle
+  parity-smoke:
+    name: Python parity ${{ matrix.id }}
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: windows-x86_64
+            os: windows-latest
+          - id: macos-arm64
+            os: macos-latest
+          - id: macos-x86_64
+            os: macos-15-intel
+          - id: linux-x86_64
+            os: ubuntu-24.04
+          - id: linux-arm64
+            os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out matching diagnostic sources
@@ -49,21 +63,33 @@ jobs:
 
       - name: Compile full Python diagnostic sources
         run: |
-          python -m py_compile \
-            tools/tsun_dump.py \
-            tools/tsun_diagnostic_cli.py \
-            tools/tsun_diagnostic_runtime.py \
-            tools/tsun_diagnostic_version.py \
-            tools/tsun_1097_research_probe.py \
-            tools/tsun_1097_transport_extension.py \
-            tools/tsun_tuya_probe.py \
-            tools/tsun_report_upload.py
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_cli.py tools/tsun_diagnostic_runtime.py tools/tsun_diagnostic_version.py tools/tsun_1097_research_probe.py tools/tsun_1097_transport_extension.py tools/tsun_tuya_probe.py tools/tsun_report_upload.py
+
+      - name: Smoke-test full Python entry point
+        run: python tools/tsun_diagnostic_cli.py --help
+
+  package:
+    name: Build verified Python parity bundle
+    needs: parity-smoke
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out matching diagnostic sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the same Tuya backend as packaged diagnostics
+        run: python -m pip install --disable-pip-version-check tinytuya==1.20.0
 
       - name: Verify Python/desktop parity contract
         run: python -m unittest tests.test_diagnostic_python_parity -v
-
-      - name: Smoke-test full Python entry point
-        run: python tools/tsun_diagnostic_cli.py --help >/dev/null
 
       - name: Build portable source bundle
         shell: bash
@@ -124,6 +150,34 @@ jobs:
           Path(str(asset) + ".sha256").write_text(
               f"{digest}  {asset.name}\n", encoding="ascii"
           )
+          PY
+
+      - name: Verify packaged Python bundle content
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          asset = Path("release/TSUN-Local-Diagnostic-Python.zip")
+          required = {
+              "README.txt",
+              "requirements.txt",
+              "tsun_dump.py",
+              "tsun_diagnostic_cli.py",
+              "tsun_diagnostic_runtime.py",
+              "tsun_diagnostic_version.py",
+              "tsun_1097_research_probe.py",
+              "tsun_1097_transport_extension.py",
+              "tsun_tuya_probe.py",
+              "tsun_report_upload.py",
+          }
+          with zipfile.ZipFile(asset) as archive:
+              names = set(archive.namelist())
+          missing = required - names
+          if missing:
+              raise SystemExit(f"Python parity bundle is incomplete: {sorted(missing)}")
+          print("Python parity bundle complete:", sorted(names))
           PY
 
       - name: Upload Python parity artifact
