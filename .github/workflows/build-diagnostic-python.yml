@@ -107,9 +107,10 @@ jobs:
           EOF
           python - <<'PY'
           from pathlib import Path
+          import os
           import zipfile
 
-          source = Path("$RUNNER_TEMP") / "TSUN-Local-Diagnostic-Python"
+          source = Path(os.environ["RUNNER_TEMP"]) / "TSUN-Local-Diagnostic-Python"
           target = Path("release/TSUN-Local-Diagnostic-Python.zip")
           with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
               for path in sorted(source.iterdir()):
