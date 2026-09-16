@@ -66,16 +66,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PyInstaller
+      - name: Install PyInstaller and Tuya diagnostic backend
         if: env.COMMUNITY_MAC_ENABLED == 'true'
-        run: python -m pip install --disable-pip-version-check pyinstaller
+        run: python -m pip install --disable-pip-version-check pyinstaller tinytuya==1.20.0
 
       - name: Validate shared sources
         if: env.COMMUNITY_MAC_ENABLED == 'true'
         shell: bash
         run: |
-          python -m py_compile tools/tsun_dump.py tools/tsun_report_upload.py tools/tsun_diagnostic.py
-          python -c "import sys; sys.path.insert(0, 'tools'); import tsun_dump, tsun_diagnostic as gui; print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'asset', gui.platform_release_asset())"
+          python -m py_compile tools/tsun_dump.py tools/tsun_report_upload.py tools/tsun_tuya_probe.py tools/tsun_diagnostic_runtime.py tools/tsun_diagnostic.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tinytuya, tsun_dump, tsun_diagnostic as gui; print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'TinyTuya', getattr(tinytuya, '__version__', '?'), 'asset', gui.platform_release_asset())"
 
       - name: Build macOS application
         if: env.COMMUNITY_MAC_ENABLED == 'true'
@@ -84,6 +84,7 @@ jobs:
           python -m PyInstaller --noconfirm --clean --windowed \
             --name "TSUN Local Diagnostic" \
             --paths tools \
+            --collect-all tinytuya \
             tools/tsun_diagnostic.py
 
       - name: Ad-hoc sign macOS application
@@ -246,7 +247,7 @@ jobs:
         run: |
           set -euo pipefail
           tag="diagnostic-latest"
-          notes='Rolling prerelease for TSUN Local Diagnostic. Windows, macOS (Apple Silicon and Intel) and Linux packages use the same read-only diagnostic interface. The current Mac packages are not yet Apple-notarized: macOS can block the first launch. Use the per-application Open Anyway procedure included in each ZIP; do not disable Gatekeeper globally.'
+          notes='Rolling prerelease for TSUN Local Diagnostic. Windows, macOS (Apple Silicon and Intel) and Linux packages use the same read-only diagnostic interface and the same TinyTuya backend. The current Mac packages are not yet Apple-notarized: macOS can block the first launch. Use the per-application Open Anyway procedure included in each ZIP; do not disable Gatekeeper globally.'
           gh release edit "$tag" \
             --title "TSUN Local Diagnostic — latest" \
             --notes "$notes" \
