@@ -11,6 +11,10 @@ on:
       - "tools/tsun_diagnostic_desktop_v158.py"
       - "tools/tsun_diagnostic_desktop_v159.py"
       - "tools/tsun_diagnostic.py"
+      - "tools/tsun_diagnostic_runtime.py"
+      - "tools/tsun_diagnostic_version.py"
+      - "tools/tsun_1097_research_probe.py"
+      - "tools/tsun_1097_transport_extension.py"
       - "tools/tsun_report_upload.py"
       - "tools/tsun_report_model_assignment.py"
       - "tools/tsun_tuya_probe.py"
@@ -27,6 +31,10 @@ on:
       - "tools/tsun_diagnostic_desktop_v158.py"
       - "tools/tsun_diagnostic_desktop_v159.py"
       - "tools/tsun_diagnostic.py"
+      - "tools/tsun_diagnostic_runtime.py"
+      - "tools/tsun_diagnostic_version.py"
+      - "tools/tsun_1097_research_probe.py"
+      - "tools/tsun_1097_transport_extension.py"
       - "tools/tsun_report_upload.py"
       - "tools/tsun_report_model_assignment.py"
       - "tools/tsun_tuya_probe.py"
@@ -37,43 +45,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: desktop-diagnostic-${{ github.ref }}
+  group: windows-diagnostic-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build ${{ matrix.id }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - id: windows-x86_64
-            os: windows-latest
-            kind: windows
-            arch: x86_64
-            asset: TSUN-Local-Diagnostic.exe
-          - id: macos-arm64
-            os: macos-latest
-            kind: macos
-            arch: arm64
-            asset: TSUN-Local-Diagnostic-macOS-arm64.zip
-          - id: macos-x86_64
-            os: macos-15-intel
-            kind: macos
-            arch: x86_64
-            asset: TSUN-Local-Diagnostic-macOS-x86_64.zip
-          - id: linux-x86_64
-            os: ubuntu-24.04
-            kind: linux
-            arch: x86_64
-            asset: TSUN-Local-Diagnostic-Linux-x86_64
-          - id: linux-arm64
-            os: ubuntu-24.04-arm
-            kind: linux
-            arch: arm64
-            asset: TSUN-Local-Diagnostic-Linux-arm64
-
-    runs-on: ${{ matrix.os }}
+    name: Build Windows x86_64
+    runs-on: windows-latest
 
     steps:
       - name: Check out repository
@@ -84,49 +62,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Linux GUI runtime
-        if: matrix.kind == 'linux'
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb xauth tk
-
       - name: Install PyInstaller and Tuya diagnostic backend
-        shell: bash
-        if: matrix.kind != 'windows'
+        shell: pwsh
         run: python -m pip install --disable-pip-version-check pyinstaller tinytuya==1.20.0
 
-      - name: Install PyInstaller and Tuya diagnostic backend on Windows
+      - name: Validate shared diagnostic sources
         shell: pwsh
-        if: matrix.kind == 'windows'
-        run: python -m pip install --disable-pip-version-check pyinstaller tinytuya==1.20.0
-
-      - name: Validate shared sources
-        shell: bash
-        if: matrix.kind != 'windows'
         run: |
-          python -m py_compile \
-            tools/tsun_dump.py \
-            tools/tsun_diagnostic_gui.py \
-            tools/tsun_report_upload.py \
-            tools/tsun_report_model_assignment.py \
-            tools/tsun_tuya_probe.py \
-            tools/tsun_diagnostic_app.py \
-            tools/tsun_diagnostic_desktop.py \
-            tools/tsun_diagnostic_desktop_v158.py \
-            tools/tsun_diagnostic_desktop_v159.py \
-            tools/tsun_diagnostic.py
-          python -c "import sys; sys.path.insert(0, 'tools'); import tinytuya, tsun_dump, tsun_diagnostic as gui; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'TinyTuya', getattr(tinytuya, '__version__', '?'), 'asset', gui.platform_release_asset())"
-
-      - name: Validate shared sources on Windows
-        shell: pwsh
-        if: matrix.kind == 'windows'
-        run: |
-          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_report_model_assignment.py tools/tsun_tuya_probe.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py tools/tsun_diagnostic_desktop_v158.py tools/tsun_diagnostic_desktop_v159.py tools/tsun_diagnostic.py
-          python -c "import sys; sys.path.insert(0, 'tools'); import tinytuya, tsun_dump, tsun_diagnostic as gui; assert hasattr(tsun_dump, 'main'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'TinyTuya', getattr(tinytuya, '__version__', '?'), 'asset', gui.platform_release_asset())"
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_report_model_assignment.py tools/tsun_tuya_probe.py tools/tsun_1097_research_probe.py tools/tsun_1097_transport_extension.py tools/tsun_diagnostic_runtime.py tools/tsun_diagnostic_version.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py tools/tsun_diagnostic_desktop_v158.py tools/tsun_diagnostic_desktop_v159.py tools/tsun_diagnostic.py
+          python -c "import sys; sys.path.insert(0, 'tools'); import tinytuya, tsun_dump, tsun_diagnostic as gui, tsun_diagnostic_runtime as runtime; assert hasattr(tsun_dump, 'main'); assert runtime.pipeline_stage_names() == ('1097-research-fallback','1097-transport-enrichment','tuya-authenticated-status'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'TinyTuya', getattr(tinytuya, '__version__', '?'))"
+          python -m unittest tests.test_diagnostic_python_parity -v
 
       - name: Build Windows portable executable
-        if: matrix.kind == 'windows'
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean --onefile --windowed `
@@ -136,7 +83,6 @@ jobs:
             tools/tsun_diagnostic.py
 
       - name: Smoke-test Windows executable
-        if: matrix.kind == 'windows'
         shell: pwsh
         run: |
           $exe = (Resolve-Path "dist/TSUN-Local-Diagnostic.exe").Path
@@ -148,176 +94,16 @@ jobs:
           Stop-Process -Id $process.Id -Force
           Write-Host "Windows GUI launched successfully."
 
-      - name: Build macOS application
-        if: matrix.kind == 'macos'
-        shell: bash
-        run: |
-          python -m PyInstaller --noconfirm --clean --windowed \
-            --name "TSUN Local Diagnostic" \
-            --paths tools \
-            --collect-all tinytuya \
-            tools/tsun_diagnostic.py
-
-      - name: Detect Apple signing and notarization credentials
-        if: matrix.kind == 'macos'
-        shell: bash
-        env:
-          CERT_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
-          CERT_P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
-          NOTARY_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
-          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
-          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
-        run: |
-          if [[ -n "$CERT_P12_BASE64" && -n "$CERT_P12_PASSWORD" && -n "$NOTARY_KEY_P8_BASE64" && -n "$NOTARY_KEY_ID" && -n "$NOTARY_ISSUER_ID" ]]; then
-            echo "MACOS_NOTARIZATION_READY=true" >> "$GITHUB_ENV"
-            echo "Apple Developer ID signing and notarization are enabled for this job."
-          else
-            echo "MACOS_NOTARIZATION_READY=false" >> "$GITHUB_ENV"
-            echo "Apple signing secrets are not available. This macOS build is CI-only and will not be published from main."
-          fi
-
-      - name: Import Apple Developer ID certificate
-        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY == 'true'
-        shell: bash
-        env:
-          CERT_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
-          CERT_P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
-        run: |
-          set -euo pipefail
-          CERT_PATH="$RUNNER_TEMP/developer-id.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/tsun-local-signing.keychain-db"
-          KEYCHAIN_PASSWORD="$(uuidgen)"
-          export CERT_PATH CERT_P12_BASE64
-          python - <<'PY'
-          import base64
-          import os
-          from pathlib import Path
-          Path(os.environ["CERT_PATH"]).write_bytes(base64.b64decode(os.environ["CERT_P12_BASE64"]))
-          PY
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" -P "$CERT_P12_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
-          security list-keychains -d user -s "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          SIGNING_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | awk -F '"' '/Developer ID Application/{print $2; exit}')"
-          if [[ -z "$SIGNING_IDENTITY" ]]; then
-            echo "No Developer ID Application identity found in imported certificate." >&2
-            exit 1
-          fi
-          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
-          echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
-          echo "Imported signing identity: $SIGNING_IDENTITY"
-
-      - name: Sign macOS application with Developer ID
-        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          app="dist/TSUN Local Diagnostic.app"
-          codesign --force --deep --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$app"
-          codesign --verify --deep --strict --verbose=2 "$app"
-
-      - name: Ad-hoc sign macOS CI build
-        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY != 'true'
-        shell: bash
-        run: codesign --force --deep --sign - "dist/TSUN Local Diagnostic.app"
-
-      - name: Smoke-test macOS application
-        if: matrix.kind == 'macos'
-        shell: bash
-        run: |
-          set -e
-          app_bin="dist/TSUN Local Diagnostic.app/Contents/MacOS/TSUN Local Diagnostic"
-          "$app_bin" --no-update &
-          pid=$!
-          sleep 8
-          if ! kill -0 "$pid" 2>/dev/null; then
-            wait "$pid"
-            exit 1
-          fi
-          kill "$pid" || true
-          wait "$pid" || true
-          echo "macOS GUI launched successfully."
-
-      - name: Notarize and staple macOS application
-        if: matrix.kind == 'macos' && env.MACOS_NOTARIZATION_READY == 'true'
-        shell: bash
-        env:
-          NOTARY_KEY_P8_BASE64: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
-          NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
-          NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
-        run: |
-          set -euo pipefail
-          app="dist/TSUN Local Diagnostic.app"
-          key_path="$RUNNER_TEMP/AuthKey_${NOTARY_KEY_ID}.p8"
-          submit_zip="$RUNNER_TEMP/TSUN-Local-Diagnostic-notary.zip"
-          export NOTARY_KEY_P8_BASE64 key_path
-          python - <<'PY'
-          import base64
-          import os
-          from pathlib import Path
-          Path(os.environ["key_path"]).write_bytes(base64.b64decode(os.environ["NOTARY_KEY_P8_BASE64"]))
-          PY
-          chmod 600 "$key_path"
-          ditto -c -k --sequesterRsrc --keepParent "$app" "$submit_zip"
-          xcrun notarytool submit "$submit_zip" \
-            --key "$key_path" \
-            --key-id "$NOTARY_KEY_ID" \
-            --issuer "$NOTARY_ISSUER_ID" \
-            --wait
-          xcrun stapler staple "$app"
-          xcrun stapler validate "$app"
-          codesign --verify --deep --strict --verbose=2 "$app"
-          spctl --assess --type execute --verbose=4 "$app"
-          echo "MACOS_NOTARIZED=true" >> "$GITHUB_ENV"
-
-      - name: Package macOS application
-        if: matrix.kind == 'macos'
-        shell: bash
-        run: |
-          ditto -c -k --sequesterRsrc --keepParent \
-            "dist/TSUN Local Diagnostic.app" \
-            "dist/${{ matrix.asset }}"
-
-      - name: Build Linux portable executable
-        if: matrix.kind == 'linux'
-        shell: bash
-        run: |
-          python -m PyInstaller --noconfirm --clean --onefile --windowed \
-            --name "TSUN-Local-Diagnostic-Linux-${{ matrix.arch }}" \
-            --paths tools \
-            --collect-all tinytuya \
-            tools/tsun_diagnostic.py
-          chmod +x "dist/${{ matrix.asset }}"
-
-      - name: Smoke-test Linux executable
-        if: matrix.kind == 'linux'
-        shell: bash
-        run: |
-          set -e
-          xvfb-run -a "dist/${{ matrix.asset }}" --no-update &
-          pid=$!
-          sleep 8
-          if ! kill -0 "$pid" 2>/dev/null; then
-            wait "$pid"
-            exit 1
-          fi
-          kill "$pid" || true
-          wait "$pid" || true
-          echo "Linux GUI launched successfully."
-
-      - name: Upload platform artifact
-        if: ${{ matrix.kind != 'macos' || env.MACOS_NOTARIZATION_READY == 'true' || github.event_name != 'push' || github.ref != 'refs/heads/main' }}
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: diagnostic-${{ matrix.id }}
-          path: dist/${{ matrix.asset }}
+          name: diagnostic-windows-x86_64
+          path: dist/TSUN-Local-Diagnostic.exe
           if-no-files-found: error
           retention-days: 30
 
   publish:
-    name: Publish rolling desktop diagnostic
+    name: Publish rolling Windows diagnostic
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
@@ -331,25 +117,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Download publishable platform packages
+      - name: Download Windows package
         uses: actions/download-artifact@v4
         with:
-          pattern: diagnostic-*
+          name: diagnostic-windows-x86_64
           path: release
-          merge-multiple: true
 
-      - name: Create checksums and multi-platform update manifest
+      - name: Create checksums and base update manifest
         shell: bash
         run: |
           set -euo pipefail
           cp tools/tsun_dump.py release/tsun_dump.py
           python - <<'PY'
           from __future__ import annotations
-
           import hashlib
           import json
-          from pathlib import Path
           import os
+          from pathlib import Path
           import sys
 
           sys.path.insert(0, "tools")
@@ -358,29 +142,20 @@ jobs:
 
           release = Path("release")
           assets = {
-              "dump": "tsun_dump.py",
-              "windows_gui": gui.ASSET_WINDOWS,
-              "macos_arm64_gui": gui.ASSET_MACOS_ARM64,
-              "macos_x86_64_gui": gui.ASSET_MACOS_X86_64,
-              "linux_x86_64_gui": gui.ASSET_LINUX_X86_64,
-              "linux_arm64_gui": gui.ASSET_LINUX_ARM64,
+              "dump": ("tsun_dump.py", tsun_dump.TOOL_VERSION),
+              "windows_gui": (gui.ASSET_WINDOWS, gui.APP_VERSION),
           }
-          required = {"dump", "windows_gui", "linux_x86_64_gui", "linux_arm64_gui"}
-
           components = {}
-          for component, asset in assets.items():
+          for component, (asset, version) in assets.items():
               path = release / asset
               if not path.is_file():
-                  if component in required:
-                      raise SystemExit(f"Missing required release asset: {asset}")
-                  print(f"Skipping unpublished optional component: {component}")
-                  continue
+                  raise SystemExit(f"Missing required release asset: {asset}")
               digest = hashlib.sha256(path.read_bytes()).hexdigest()
               (release / f"{asset}.sha256").write_text(
                   f"{digest}  {asset}\n", encoding="ascii"
               )
               components[component] = {
-                  "version": tsun_dump.TOOL_VERSION if component == "dump" else gui.APP_VERSION,
+                  "version": version,
                   "asset": asset,
                   "sha256": digest,
               }
@@ -397,7 +172,7 @@ jobs:
           print(json.dumps(manifest, indent=2))
           PY
 
-      - name: Publish dedicated diagnostic release
+      - name: Publish Windows diagnostic and remove retired platform binaries
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -410,35 +185,25 @@ jobs:
           git tag -f "$tag" "$GITHUB_SHA"
           git push --force origin "refs/tags/$tag"
 
-          if [[ -f "release/TSUN-Local-Diagnostic-macOS-arm64.zip" && -f "release/TSUN-Local-Diagnostic-macOS-x86_64.zip" ]]; then
-            notes='Rolling prerelease for TSUN Local Diagnostic. The same read-only desktop interface is published for Windows, notarized macOS (Apple Silicon and Intel) and Linux (x86_64 and arm64). Windows keeps verified in-place auto-update; macOS/Linux check the same rolling channel and report when a new package is available. The Python dumper remains available for advanced users.'
-          else
-            notes='Rolling prerelease for TSUN Local Diagnostic. Windows and Linux packages are published normally. macOS public packages are temporarily withheld until Apple Developer ID signing and notarization are configured, so users are not asked to bypass Gatekeeper security warnings. The stable macOS filenames are reserved and will return at the same URLs once notarization is enabled.'
-          fi
+          notes='Rolling prerelease for TSUN Local Diagnostic. Two supported distributions are maintained at feature parity: the Windows x86_64 executable and the full Python package. Linux users should use the Python package. Dedicated macOS and Linux binaries are no longer published. The historical single-file tsun_dump.py remains available only for compatibility.'
 
           if gh release view "$tag" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release edit "$tag" \
-              --title "TSUN Local Diagnostic — latest" \
-              --notes "$notes" \
-              --prerelease \
-              --repo "${{ github.repository }}"
+            gh release edit "$tag" --title "TSUN Local Diagnostic — latest" --notes "$notes" --prerelease --repo "${{ github.repository }}"
           else
-            gh release create "$tag" \
-              --verify-tag \
-              --title "TSUN Local Diagnostic — latest" \
-              --notes "$notes" \
-              --prerelease \
-              --repo "${{ github.repository }}"
+            gh release create "$tag" --verify-tag --title "TSUN Local Diagnostic — latest" --notes "$notes" --prerelease --repo "${{ github.repository }}"
           fi
 
-          if [[ ! -f "release/TSUN-Local-Diagnostic-macOS-arm64.zip" ]]; then
-            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-arm64.zip" -y --repo "${{ github.repository }}" 2>/dev/null || true
-            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-arm64.zip.sha256" -y --repo "${{ github.repository }}" 2>/dev/null || true
-          fi
-          if [[ ! -f "release/TSUN-Local-Diagnostic-macOS-x86_64.zip" ]]; then
-            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-x86_64.zip" -y --repo "${{ github.repository }}" 2>/dev/null || true
-            gh release delete-asset "$tag" "TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256" -y --repo "${{ github.repository }}" 2>/dev/null || true
-          fi
+          for asset in \
+            TSUN-Local-Diagnostic-macOS-arm64.zip \
+            TSUN-Local-Diagnostic-macOS-arm64.zip.sha256 \
+            TSUN-Local-Diagnostic-macOS-x86_64.zip \
+            TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256 \
+            TSUN-Local-Diagnostic-Linux-x86_64 \
+            TSUN-Local-Diagnostic-Linux-x86_64.sha256 \
+            TSUN-Local-Diagnostic-Linux-arm64 \
+            TSUN-Local-Diagnostic-Linux-arm64.sha256; do
+            gh release delete-asset "$tag" "$asset" -y --repo "${{ github.repository }}" 2>/dev/null || true
+          done
 
           gh release upload "$tag" release/* --clobber --repo "${{ github.repository }}"
-          echo "Published safe desktop diagnostic assets to $tag."
+          echo "Published Windows diagnostic base release; full Python package is added by the parity workflow."
