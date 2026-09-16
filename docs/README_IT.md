@@ -1,271 +1,40 @@
-<p align="center">
-  <a href="https://github.com/jptstar/tsun-local/blob/main/README.md">English</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_FR.md">Français</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_DE.md">Deutsch</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_NL.md">Nederlands</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_IT.md">Italiano</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ES.md">Español</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_PL.md">Polski</a> ·
-  <a href="https://github.com/jptstar/tsun-local/blob/main/docs/README_ZH.md">简体中文</a>
-</p>
-
-<p align="center">
-  <img src="../custom_components/tsun_local/brand/icon@2x.png" width="160" alt="TSUN Local">
-</p>
+<p align="center"><a href="../README.md">English</a> · <a href="README_FR.md">Français</a> · <a href="README_DE.md">Deutsch</a> · <a href="README_NL.md">Nederlands</a> · <strong>Italiano</strong> · <a href="README_ES.md">Español</a> · <a href="README_PL.md">Polski</a> · <a href="README_ZH.md">简体中文</a></p>
 
 <h1 align="center">TSUN Local</h1>
 <h3 align="center">Il tuo inverter. La tua rete. I tuoi dati.</h3>
-<p align="center"><strong>Locale. Sola lettura. Nessun cloud. Nessun proxy.</strong></p>
-<p align="center">Accesso locale diretto ai microinverter TSUN compatibili in Home Assistant.<br><strong>1.6.2</strong></p>
-
-<p align="center">
-  <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
-  <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
-  <a href="https://github.com/jptstar/tsun-local"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jptstar/tsun-local?style=flat&logo=github&label=Stars"></a>
-  <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
-</p>
-
-<p align="center">⭐ <strong>Usi TSUN Local?</strong> Se ti è utile, <a href="https://github.com/jptstar/tsun-local">lascia una stella al progetto su GitHub</a> — aiuta altri utenti TSUN a scoprirlo.</p>
-
-
----
+<p align="center"><strong>Rilevamento automatico · Locale · Sola lettura · Nessun cloud · Nessun proxy</strong><br><strong>1.6.2</strong></p>
 
 ## Compatibilità
 
-**Home Assistant 2026.3.0 o successivo.**
-
-| Protocollo | Famiglia | Hardware validato | Stato |
+| Protocol | Family | Validated hardware | Status |
 |:---:|---|---|:---:|
-| **1511** | TITAN | **TSOL-MP3000** | ✅ **Validato** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validato** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **Validato** |
+| **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validated** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **Validated** |
 
-> [!TIP]
-> **Un modello non elencato non è necessariamente incompatibile.** TSUN Local si basa soprattutto sul protocollo locale rilevato, non solo sul nome commerciale.
+- **1511 — Likely compatible:** `TSOL-MP2250` · `TSOL-MS3000`
+- **02B0 — Likely compatible:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800`
+- **1097 — Likely compatible:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
 
-<details>
-<summary><strong>Modelli probabilmente compatibili per protocollo</strong></summary>
-
-- **1511 — Probabilmente compatibile:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — Probabilmente compatibile:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · varianti `-D` corrispondenti
-- **1097 — Probabilmente compatibile:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
-
-</details>
-
-📚 **[Validazione MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
-
-📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
-
-**Novità in 1.6.0:** La **lettura adattiva** è attiva per impostazione predefinita e regola automaticamente l’intervallo in caso di errori di comunicazione: 20 s normale, 30 s dopo un errore e 300 s offline/notte.
-
-📚 **[Riferimento completo delle entità](ENTITIES.md)**
-
-<p align="center">
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
-    <img alt="Aggiungi TSUN Local a HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
-  </a>
-</p>
-
----
-
-
-## In breve
-
-| | Cosa espone TSUN Local |
-|---|---|
-| ☀️ **PV** | Tensione · Corrente · Potenza · Energia giornaliera · Energia totale |
-| ⚡ **AC** | Tensione · Corrente · Frequenza · Potenza · Energia giornaliera · Energia totale |
-| 🚨 **Diagnostica** | Allarmi attivi · Comunicazione · Informazioni logger |
-| 🛡️ **Avanzata** | Protezione rete · Firmware · Diagnostica inverter · Dati sperimentali di validazione sul campo |
-| 🔒 **Sicurezza** | Sola lettura · Nessuna scrittura di configurazione sull’inverter |
-
-📚 **[Riferimento completo delle entità per protocollo](ENTITIES.md)**
-
-
----
-
-
-## 🚨 Allarmi MP3000
-
-TSUN Local supporta l’intero bitfield degli allarmi MP3000 mantenendo compatta l’interfaccia Home Assistant. **Tutte le 224 posizioni di allarme vengono conservate e valutate quando diventano attive.**
-
-Le **12 corrispondenze funzionali osservate su hardware** coprono la bassa tensione d’ingresso PV e i guasti DSP per PV1 fino a PV6. Le altre **212 posizioni** mantengono identificatori TSUN Local neutri e stabili finché il loro significato funzionale non viene validato fisicamente.
-
-Home Assistant espone uno stato **Allarme inverter**, un conteggio **Allarmi attivi** e un sensore **Nomi allarmi attivi**. Le 14 parole grezze complete restano disponibili come diagnostica disattivata per impostazione predefinita, senza creare 224 entità permanenti.
-
-
----
-
-
-> [!TIP]
-> Gli allarmi attivi sono mostrati anche come **testo chiaro localizzato** con un codice di posizione stabile, ad esempio `Sottotensione rete (02B0-A014)`. **Sunology PLAY2** usa la stessa interfaccia compatta 02B0; le quattro parole ERR grezze restano disponibili come diagnostica avanzata.
-
-## 🛡️ Diagnostica avanzata
-
-Le entità avanzate sono intenzionalmente **disattivate per impostazione predefinita**. A seconda del protocollo includono valori di protezione rete, firmware, diagnostica inverter e alcuni valori sperimentali di validazione sul campo.
-
-Per abilitarle:
-
-**Impostazioni → Dispositivi e servizi → TSUN Local → Dispositivo → Entità → Entità disabilitate**
-
-Le associazioni semantiche sperimentali restano esplicitamente indicate fino a validazione indipendente. Non sono implementate scritture di configurazione verso l’inverter.
-
-📚 **[Evidenze di validazione MP3000](MP3000_FIELD_VALIDATION.md)**
-📚 **[Riferimento completo delle entità](ENTITIES.md)**
-
-
----
-
+Pagine validate: [TSOL-MS300](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html) · [TSOL-MX500](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html) · [TSOL-MS800](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html) · [TSOL-MS2000](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html) · [Sunology PLAY2](https://jptstar.github.io/tsun-local/sunology-play2.html)
 
 ## Installazione
 
-### HACS
+Installa TSUN Local tramite HACS, riavvia Home Assistant e aggiungi l’integrazione da **Impostazioni → Dispositivi e servizi**.
 
-<p align="center">
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&repository=tsun-local&category=integration">
-    <img alt="Aggiungi TSUN Local a HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg">
-  </a>
-</p>
+## Diagnostica
 
-Oppure aggiungi `https://github.com/jptstar/tsun-local` in **HACS → Repository personalizzati → Integrazione**, installa **TSUN Local** e riavvia Home Assistant.
+Sono mantenuti due pacchetti pubblici:
 
-### Manuale
+- **Windows**: [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)
+- **Python 3.10+**: [TSUN-Local-Diagnostic-Python.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip)
 
-Copia `custom_components/tsun_local` in `/config/custom_components/`, riavvia Home Assistant e aggiungi **TSUN Local** da **Impostazioni → Dispositivi e servizi**.
+La diagnostica è rigorosamente in sola lettura. Disattiva la voce TSUN Local interessata prima della cattura e riattivala al termine. L’invio del report anonimizzato richiede sempre consenso esplicito.
 
+📚 [Guida diagnostica](HARDWARE_DUMP.md) · [Ricerca PLAY2](PLAY2_LOCAL_RESEARCH.md) · [Entità](ENTITIES.md) · [Validazione MP3000](MP3000_FIELD_VALIDATION.md)
 
----
+## Crediti
 
+Riferimento pubblico incrociato con [`ha-solarman`](https://github.com/davidrapan/ha-solarman). Validazione hardware indipendente, tra gli altri, da **dca31** e **paloindici**. Crediti completi: [contributors](contributors.html).
 
-## Come funziona
-
-```text
-Inverter TSUN
-     │
-     │ Rete locale
-     ▼
- TSUN Local
-     │
-     ▼
-Home Assistant
-```
-
-**Nessun cloud nel percorso dei dati. Nessun proxy. Nessun servizio runtime remoto. Nessuna scrittura di configurazione sull’inverter.**
-
-Solo polling locale diretto.
-
-
----
-
-
-## 🔬 Valida un altro modello TSUN
-
-TSUN Local offre una diagnostica hardware rispettosa della privacy e **rigorosamente in sola lettura** per modelli non elencati e problemi di comunicazione.
-
-### App desktop — Windows, macOS e Linux
-
-La **stessa interfaccia TSUN Local Diagnostic** è ora disponibile per Windows, macOS e Linux. Tutti i pacchetti usano lo stesso motore hardware **rigorosamente in sola lettura**.
-
-| Piattaforma | Download | Checksum |
-|---|---|---|
-| Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
-
-Versioni correnti: GUI **1.5.12** · motore dump **2.8.3**.
-
-Il link Windows storico resta intenzionalmente invariato per mantenere validi i vecchi post e tutorial.
-
-Il flusso è identico su tutte le piattaforme: **1 → 2 → 3 → 4**.
-
-1. **Disattivare TSUN Local** per il logger interessato.
-2. **Eseguire la diagnostica**.
-3. **Invio diretto del report** — consigliato, solo dopo consenso esplicito.
-4. **Invio manuale via e-mail** — fallback opzionale.
-
-Nome/pseudonimo e fino a 10 modelli di microinverter con quantità possono essere memorizzati localmente e modificati in seguito. Il consenso non viene mai memorizzato. Dopo l'upload l'app mostra l'ID `TSL-...` e un link sicuro per vedere esattamente il report anonimizzato inviato, senza accesso al repository privato.
-
-Test fuori sede: IP logger `89:89:89:89` e Monitor SN `89898989`. La modalità è esplicitamente sintetica e non contatta hardware reale.
-
-Su macOS l'app è firmata ad hoc ma non ancora notarizzata Apple; al primo avvio può essere necessario Finder → clic destro → **Apri**. Su Linux può servire una volta `chmod +x`.
-
-**[Release diagnostica stabile](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[Protocollo di validazione](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[Guida hardware](HARDWARE_DUMP.md)**
-
-### Alternativa Python / riga di comando
-
-[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) resta disponibile per Python 3.10+ e utenti avanzati:
-
-```bash
-python3 tsun_dump.py --full
-```
-
-### Sunology PLAY2
-
-**Sunology PLAY2 è validato su hardware Home Assistant reale** tramite il percorso locale 02B0 / Solarman V5.
-
-- Rilevamento automatico e normale configurazione TSUN Local confermati in modo indipendente.
-- Locale e in sola lettura: nessun cloud e nessuna scrittura di configurazione sull’inverter.
-- La variante hardware esatta MX400/MX450/MX500 resta volutamente non specificata; fa fede il protocollo **02B0** rilevato.
-
-📚 **[Dettagli della ricerca PLAY2](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Probe PLAY2 opzionale in sola lettura](../tools/tsun_play2_probe.py)**
-
----
-
-
-## Prova un inverter non elencato
-
-Se TSUN Local rileva `1511`, `02B0` o `1097`, lascialo funzionare e controlla le entità scoperte.
-
-Sono utili il modello esatto, il protocollo rilevato, la versione firmware, il numero di ingressi PV e quali entità restituiscono valori plausibili.
-
-> [!TIP]
-> **Il tuo inverter potrebbe diventare il prossimo modello validato.**
-
-
----
-
-
-## Politica di validazione
-
-TSUN Local separa il supporto hardware confermato dalla ricerca sperimentale sui protocolli.
-
-I nomi funzionali e il supporto di un modello vengono indicati come validati solo dopo controlli riproducibili su hardware reale. Un valore che coincide semplicemente con un profilo atteso costituisce un indizio, non una prova; le associazioni sperimentali restano marcate finché un’osservazione indipendente non le distingue in modo univoco.
-
-
----
-
-## Contributi e crediti
-
-TSUN Local beneficia di ricerca pubblica sui protocolli e di validazione indipendente su hardware reale. I crediti descrivono riferimenti e verifiche e non implicano affiliazione o approvazione.
-
-- **David Rapan / [`ha-solarman`](https://github.com/davidrapan/ha-solarman)** — riferimento pubblico indipendente per il confronto di alcuni registri Solarman / 02B0.
-- **Stefan Allius / [`tsun-gen3-proxy`](https://github.com/s-allius/tsun-gen3-proxy)** — ricerca pubblica GEN3 / 1097 e country/profile usata nella validazione.
-- **TheSmartGerman** — test su hardware reale che ha fatto emergere la famiglia di protocollo 1097.
-- **dca31** — validazione indipendente di Sunology PLAY2 tramite il normale flusso TSUN Local in Home Assistant.
-- **Kmotr** — validazione indipendente del TSOL-MS800 con TSUN Local e una diagnostica Home Assistant anonimizzata.
-- **paloindici** — validazione indipendente del TSOL-MS2000 con TSUN Local, con diagnostica Home Assistant anonimizzata per TSOL-MS2000 e TSOL-MP3000 e un dump hardware che ha confermato il percorso 02B0 / quattro ingressi PV.
-
-📚 **[Tutti i contributori e crediti](contributors.html)**
-
----
-
-
-## Progetto
-
-> [!IMPORTANT]
-> **Progetto community non ufficiale.** TSUN Local è indipendente e non è sviluppato, approvato, supportato o mantenuto da TSUN.
-
-Creato e mantenuto da **Jean-Philippe TESTART · `jptstar`**
-*Sviluppato e condiviso per divertimento, curiosità tecnica e per la community Home Assistant.*
-
-
----
-
-
-## Licenza
-
-Copyright © 2026 Jean-Philippe TESTART (`jptstar`).
-
-Distribuito sotto **GNU General Public License v3.0 o successiva**. Vedi [LICENSE](../LICENSE).
+Progetto indipendente mantenuto da **Jean-Philippe TESTART (`jptstar`)**. GPL-3.0-or-later.

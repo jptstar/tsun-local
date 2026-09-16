@@ -4,87 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Microinverter Home Assistant Compatibility Test | TSUN Local</title>
-  <meta name="description" content="Test a TSUN microinverter locally with Home Assistant using the read-only TSUN Local Diagnostic: Windows EXE or the full Python package for Windows, macOS and Linux.">
+  <meta name="description" content="Test a TSUN microinverter locally with the strictly read-only TSUN Local Diagnostic using the Windows executable or full Python package.">
   <meta name="keywords" content="TSUN Home Assistant, TSUN microinverter, TSUN Local diagnostic, HACS, TSUN-Local-Diagnostic-Python.zip, TSOL-MP3000, TSOL-MX500, Sunology PLAY2, 1511, 02B0, 1097">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
   <link rel="canonical" href="https://jptstar.github.io/tsun-local/test-your-inverter.html">
   <link rel="icon" type="image/png" href="icon.png">
-  <meta property="og:type" content="article">
-  <meta property="og:site_name" content="TSUN Local">
-  <meta property="og:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta property="og:description" content="Use the read-only TSUN Local Diagnostic on Windows or the full Python package on Windows, macOS and Linux.">
-  <meta property="og:url" content="https://jptstar.github.io/tsun-local/test-your-inverter.html">
-  <meta property="og:image" content="https://jptstar.github.io/tsun-local/icon.png">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Test your TSUN microinverter with Home Assistant">
-  <meta name="twitter:description" content="Windows EXE or full cross-platform Python diagnostic. Local, read-only and privacy-safe.">
   <style>
-    :root{--ink:#10223a;--muted:#617188;--paper:#f4f7fb;--card:#fff;--line:#dce5ef;--blue:#1167d8;--green:#148660;--green-soft:#e7f7f1;--amber:#8a5700;--amber-soft:#fff3db;--max:980px;--shadow:0 18px 50px rgba(19,50,88,.10)}
-    *{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.6 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}.wrap{width:min(var(--max),calc(100% - 32px));margin-inline:auto}.topline{height:5px;background:linear-gradient(90deg,var(--green),var(--blue),#6554d9)}
-    header{padding:22px 0 54px;color:#fff;background:linear-gradient(145deg,#061c39,#0a315e 70%,#105a9a)}nav{display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:850}.brand img{width:40px;height:40px;border-radius:12px}.nav-actions{display:flex;align-items:center;gap:14px}.back{color:#dceaff;text-decoration:none;font-weight:750}h1{margin:46px 0 0;font-size:clamp(38px,6vw,60px);line-height:1;letter-spacing:-.045em}.lead{max-width:780px;margin:18px 0 0;color:#d6e5f7;font-size:19px}
-    main{margin-top:-26px;padding-bottom:64px}section{margin-top:24px;padding:30px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:var(--shadow)}h2{margin:0 0 9px;font-size:31px;letter-spacing:-.03em}.intro{margin:0;color:var(--muted);font-size:17px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px}.card{padding:20px;border:1px solid var(--line);border-radius:16px;background:#f8fafd}.card strong{display:block;margin-bottom:7px;font-size:18px}.button{display:inline-block;margin-top:14px;padding:11px 15px;border-radius:10px;background:var(--blue);color:#fff;text-decoration:none;font-weight:850}.secondary{background:#eef4fb;color:var(--blue)}.good{margin-top:18px;padding:15px 17px;border-radius:14px;background:var(--green-soft);color:#0d684d}.note{margin-top:18px;padding:15px 17px;border-radius:14px;background:var(--amber-soft);color:var(--amber)}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.code{margin-top:14px;padding:15px;border-radius:12px;background:#0e2036;color:#dceaff;overflow:auto}.steps{counter-reset:n;display:grid;gap:10px;margin-top:18px}.step{padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#f8fafd}.step:before{counter-increment:n;content:counter(n);display:inline-grid;place-items:center;width:25px;height:25px;margin-right:9px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:900}.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.links a{font-weight:800}footer{padding:0 0 38px;color:var(--muted);text-align:center;font-size:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}section{padding:22px}h1{font-size:41px}.nav-actions{align-items:flex-end;flex-direction:column;gap:5px}}
+    :root{--ink:#10223a;--muted:#617188;--paper:#f4f7fb;--card:#fff;--line:#dce5ef;--blue:#1167d8;--green:#148660;--green-soft:#e7f7f1;--max:980px;--shadow:0 18px 50px rgba(19,50,88,.10)}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.6 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}.topline{height:5px;background:linear-gradient(90deg,var(--green),var(--blue),#6554d9)}header{padding:22px 0 54px;color:#fff;background:linear-gradient(145deg,#061c39,#0a315e 70%,#105a9a)}nav{display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-weight:850}.brand img{width:40px;height:40px;border-radius:12px}.nav-actions{display:flex;gap:14px}.back{color:#dceaff;text-decoration:none;font-weight:750}h1{margin:46px 0 0;font-size:clamp(38px,6vw,60px);line-height:1;letter-spacing:-.045em}.lead{max-width:780px;margin:18px 0 0;color:#d6e5f7;font-size:19px}main{margin-top:-26px;padding-bottom:64px}section{margin-top:24px;padding:30px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:var(--shadow)}h2{margin:0 0 9px;font-size:31px}.intro{margin:0;color:var(--muted);font-size:17px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px}.card{padding:20px;border:1px solid var(--line);border-radius:16px;background:#f8fafd}.card strong{display:block;margin-bottom:7px;font-size:18px}.button{display:inline-block;margin-top:14px;padding:11px 15px;border-radius:10px;background:var(--blue);color:#fff;text-decoration:none;font-weight:850}.good{margin-top:18px;padding:15px 17px;border-radius:14px;background:var(--green-soft);color:#0d684d}.code{margin-top:14px;padding:15px;border-radius:12px;background:#0e2036;color:#dceaff;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.steps{counter-reset:n;display:grid;gap:10px;margin-top:18px}.step{padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#f8fafd}.step:before{counter-increment:n;content:counter(n);display:inline-grid;place-items:center;width:25px;height:25px;margin-right:9px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:900}footer{padding:0 0 38px;color:var(--muted);text-align:center;font-size:14px}@media(max-width:700px){.grid{grid-template-columns:1fr}section{padding:22px}h1{font-size:41px}}
   </style>
 </head>
 <body>
 <div class="topline"></div>
-<header>
-  <div class="wrap">
-    <nav><a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="nav-actions"><a class="back" href="./">← Project home</a><a class="back" href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a></div></nav>
-    <h1>Test your TSUN microinverter</h1>
-    <p class="lead"><strong>TSUN Local 1.6.2</strong> provides a privacy-safe, strictly read-only diagnostic to validate an unlisted model or investigate local communication. The public distribution is intentionally limited to a Windows EXE and one full Python package.</p>
-  </div>
-</header>
-
+<header><div class="wrap"><nav><a class="brand" href="./"><img src="icon.png" alt="TSUN Local icon"><span>TSUN Local</span></a><div class="nav-actions"><a class="back" href="./">← Project home</a><a class="back" href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a></div></nav><h1>Test your TSUN microinverter</h1><p class="lead"><strong>TSUN Local 1.6.2</strong> provides a privacy-safe, strictly read-only diagnostic for validating unlisted hardware and investigating local communication.</p></div></header>
 <main class="wrap">
-  <section>
-    <h2>Choose one diagnostic</h2>
-    <p class="intro">Both options use the same read-only diagnostic logic and the same anonymized report format.</p>
-    <div class="grid">
-      <div class="card" id="windows"><strong>Windows diagnostic</strong><span>For Windows x86_64. No Python installation required.</span><br><a class="button" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Download Windows EXE</a><div class="links"><a href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256">SHA-256</a></div></div>
-      <div class="card" id="python"><strong>Full Python diagnostic</strong><span>For Windows, macOS and Linux with Python 3.10+. Includes the supported CLI and required files.</span><br><a class="button" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip">Download Python package</a><div class="links"><a href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256">SHA-256</a></div></div>
-    </div>
-    <div class="good" id="mac-linux"><strong>macOS &amp; Linux:</strong> use the full Python ZIP above. There are no separate official native macOS or Linux binaries.</div>
-  </section>
-
-  <section>
-    <h2>Run the full Python package</h2>
-    <p class="intro">Extract the ZIP first, open a terminal in the extracted folder, then run the supported command-line diagnostic.</p>
-    <div class="code"># macOS / Linux
-python3 tsun_diagnostic_cli.py --full
-
-# Windows
-py tsun_diagnostic_cli.py --full</div>
-    <div class="note"><strong>Compatibility tool:</strong> <code>tsun_dump.py</code> remains available for existing workflows and advanced fallback use, but the full Python package is the normal cross-platform distribution.</div>
-  </section>
-
-  <section>
-    <h2>Recommended workflow</h2>
-    <div class="steps">
-      <div class="step">Before capture, <strong>disable the affected TSUN Local config entry</strong> so two clients do not compete for the same local connection.</div>
-      <div class="step"><strong>Run the diagnostic</strong> and complete the requested inverter model / quantity information.</div>
-      <div class="step"><strong>Review and upload</strong> the anonymized report only after explicitly checking the consent option.</div>
-      <div class="step"><strong>Re-enable TSUN Local</strong> when the capture is complete.</div>
-    </div>
-  </section>
-
-  <section>
-    <h2>Privacy and safety</h2>
-    <p class="intro">The diagnostic is designed for validation, not configuration.</p>
-    <div class="grid">
-      <div class="card"><strong>Strictly read-only</strong><span>No inverter configuration writes, provisioning, reboot, reset or firmware-update actions are performed.</span></div>
-      <div class="card"><strong>Anonymized reporting</strong><span>Full local IP addresses, serial identifiers and MAC addresses are redacted or minimized before optional upload.</span></div>
-      <div class="card"><strong>Explicit consent</strong><span>Direct report upload is never automatic and the consent choice is never remembered.</span></div>
-      <div class="card"><strong>Traceable receipt</strong><span>A successful upload returns a <code>TSL-...</code> receipt and a private-token link for the tester to inspect the submitted report.</span></div>
-    </div>
-  </section>
-
-  <section>
-    <h2>What to send when validating new hardware</h2>
-    <p class="intro">The most useful result combines the diagnostic with the exact commercial inverter model, detected protocol, firmware, number of PV inputs and whether PV/AC power and energy values look plausible.</p>
-    <div class="links"><a href="https://github.com/jptstar/tsun-local/issues">GitHub issues</a><a href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Rolling diagnostic release</a><a href="https://github.com/jptstar/tsun-local/blob/main/docs/HARDWARE_DUMP.md">Hardware diagnostic guide</a></div>
-  </section>
+<section><h2>Choose one diagnostic</h2><p class="intro">The Windows executable and full Python package use the same read-only diagnostic engine and anonymized report format.</p><div class="grid"><div class="card" id="windows"><strong>Windows diagnostic</strong><span>No Python installation required.</span><br><a class="button" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe">Download Windows EXE</a></div><div class="card" id="python"><strong>Full Python diagnostic</strong><span>Requires Python 3.10+. Includes the supported CLI and required files.</span><br><a class="button" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip">Download Python package</a></div></div><div class="good"><strong>Canonical public distribution:</strong> Windows executable + full Python package.</div></section>
+<section><h2>Run the Python package</h2><p class="intro">Extract the ZIP, open a terminal in the extracted folder and run:</p><div class="code">python3 tsun_diagnostic_cli.py --full</div><p>The historical single-file <code>tsun_dump.py</code> remains available only as an advanced compatibility fallback.</p></section>
+<section><h2>Recommended workflow</h2><div class="steps"><div class="step">Before capture, <strong>disable the affected TSUN Local config entry</strong> so two clients do not compete for the same local connection.</div><div class="step"><strong>Run the diagnostic</strong> and complete the requested inverter model / quantity information.</div><div class="step"><strong>Review and upload</strong> the anonymized report only after explicitly checking the consent option.</div><div class="step"><strong>Re-enable TSUN Local</strong> when the capture is complete.</div></div></section>
+<section><h2>Privacy and safety</h2><div class="grid"><div class="card"><strong>Strictly read-only</strong><span>No inverter configuration writes, provisioning, reboot, reset or firmware-update actions.</span></div><div class="card"><strong>Anonymized reporting</strong><span>Local identifiers and credentials are removed or minimized before optional upload.</span></div><div class="card"><strong>Explicit consent</strong><span>Direct upload is never automatic and consent is never remembered.</span></div><div class="card"><strong>Traceable receipt</strong><span>A successful upload returns a <code>TSL-...</code> receipt and private-token view link.</span></div></div></section>
 </main>
 <footer class="wrap">TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design</footer>
-</body>
-</html>
+</body></html>
