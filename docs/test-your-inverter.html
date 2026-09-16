@@ -30,7 +30,7 @@
     "dateModified":"2026-09-16",
     "step":[
       {"@type":"HowToStep","name":"Disable the affected TSUN Local entry","text":"Temporarily disable the affected TSUN Local config entry so Home Assistant and the standalone diagnostic do not poll the logger at the same time."},
-      {"@type":"HowToStep","name":"Run the diagnostic","text":"Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report."},
+      {"@type":"HowToStep","name":"Run the diagnostic","text":"Run the Windows executable or the full Python package. Both use the same strictly read-only hardware communication engine and create an anonymized JSON report."},
       {"@type":"HowToStep","name":"Direct upload","text":"Recommended: review the explicit consent, optionally enter a tester pseudonym and micro-inverter models, then upload the anonymized report. The application returns a TSL receipt and a private-token link to view exactly what was sent."},
       {"@type":"HowToStep","name":"Manual fallback","text":"If direct upload is unavailable, use the optional manual e-mail route and attach the generated JSON. Re-enable TSUN Local after the capture."}
     ]
@@ -83,8 +83,6 @@
     .outcome.warn{background:var(--amber-soft);color:#754500}
     .outcome strong{display:block;margin-bottom:6px;font-size:20px}
     .privacy{margin-top:20px;padding:18px;border-radius:16px;background:#f8fafd;border:1px solid var(--line)}
-    .mac-warning{margin-top:20px;padding:20px;border:2px solid #e6a31a;border-radius:16px;background:var(--amber-soft);color:#6e4300}
-    .mac-warning strong{display:block;font-size:20px;margin-bottom:8px}.mac-warning p{margin:7px 0}.mac-warning ol{margin:10px 0 0;padding-left:24px}
     .actions{display:flex;flex-wrap:wrap;gap:11px;margin-top:22px}
     .button{display:inline-block;padding:12px 17px;border-radius:11px;text-decoration:none;font-weight:850}
     .primary{color:#fff;background:var(--blue)}
@@ -105,8 +103,8 @@
     <div class="hero">
       <p class="eyebrow">TSUN Local · Read-only community hardware validation</p>
       <h1>Test your TSUN microinverter with TSUN Local</h1>
-      <p class="lead"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app, use Python on any platform, or choose the packaged Mac/Linux app.</p>
-      <p class="hero-note">Windows · Python 3.10+ · macOS &amp; Linux · Strictly read-only</p><div class="actions"><a class="button secondary" href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a></div>
+      <p class="lead"><strong>Not listed yet, or communication unstable?</strong> Use the Windows app or the full Python package. Both run the same strictly read-only diagnostic engine.</p>
+      <p class="hero-note">Windows x86_64 · Full Python 3.10+ · Strictly read-only</p><div class="actions"><a class="button secondary" href="https://github.com/jptstar/tsun-local" aria-label="Star TSUN Local on GitHub">⭐ Star on GitHub</a></div>
     </div>
   </div>
 </header>
@@ -129,34 +127,23 @@
   </section>
 
   <section id="python">
-  <h2>Full Python diagnostic — Linux and advanced users</h2>
-  <p class="intro">The full Python package uses the same diagnostic engine, ordered 1097/Tuya runtime, privacy validation and retrying uploader as the Windows application. Python 3.10+ is required.</p>
-  <div class="actions">
-    <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip">Download full Python package</a>
-    <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256">SHA-256</a>
-  </div>
-  <pre class="code">python -m pip install -r requirements.txt
-python tsun_diagnostic_cli.py --full</pre>
-  <div class="callout"><strong>Linux:</strong> use this package instead of a dedicated Linux executable. <code>tsun_dump.py</code> remains only as a minimal compatibility tool.</div>
-</section>
-
-  <section id="mac-linux">
-    <h2>Mac &amp; Linux diagnostic</h2>
-    <p class="intro">Use the packaged desktop app if you prefer not to run Python. Choose the package for your architecture.</p>
-    <div class="privacy"><strong>Which Mac?</strong> Apple chip <strong>M1, M2, M3, M4 or newer</strong> → Apple Silicon. If <strong>About This Mac</strong> says Intel → Mac Intel.</div>
-    <div class="mac-warning"><strong>🟠 macOS — first launch</strong><p><strong>The app is not yet notarized by Apple.</strong> macOS may block the first launch. You do not need to disable Gatekeeper.</p><ol><li>Download and unzip the Mac package.</li><li>Try to open <strong>TSUN Local Diagnostic.app</strong> once, then click <strong>Done</strong> if blocked.</li><li>Open <strong>System Settings → Privacy &amp; Security</strong>.</li><li>Click <strong>Open Anyway</strong>, authenticate, then confirm <strong>Open</strong>.</li></ol></div>
+    <h2>Full Python diagnostic — Linux and advanced users</h2>
+    <p class="intro">The full Python package uses the same diagnostic engine, ordered 1097/Tuya runtime, privacy validation and retrying uploader as the Windows application. Python 3.10+ is required.</p>
     <div class="actions">
-      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest">Release &amp; checksums</a>
+      <a class="button primary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip">Download full Python package</a>
+      <a class="button secondary" href="https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Python.zip.sha256">SHA-256</a>
     </div>
-    <div class="privacy"><strong>Linux:</strong> the downloaded file may need <code>chmod +x</code> once.</div>
+    <pre class="code">python -m pip install -r requirements.txt
+python tsun_diagnostic_cli.py --full</pre>
+    <div class="callout"><strong>Linux:</strong> use this package instead of a dedicated Linux executable. <code>tsun_dump.py</code> remains only as a minimal compatibility tool.</div>
   </section>
 
   <section>
     <h2>Four clear steps</h2>
     <div class="steps">
       <div class="step"><span class="n">1</span><strong>Disable TSUN Local</strong><p>Temporarily disable the affected config entry in Home Assistant to avoid two simultaneous polling sessions on the logger.</p></div>
-      <div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use Windows, Python, Mac or Linux. Discovery and evidence capture remain read-only.</p></div>
-      <div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Recommended in the desktop app. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>
+      <div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use the Windows executable or the full Python package. Discovery and evidence capture remain read-only.</p></div>
+      <div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Available through the supported diagnostic flow after explicit consent. Add an optional tester name and micro-inverter models, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>
       <div class="step"><span class="n">4</span><strong>Manual fallback</strong><p>If direct upload is unavailable, send the generated JSON manually by e-mail. Re-enable TSUN Local when the capture is complete.</p></div>
     </div>
   </section>
