@@ -81,7 +81,8 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
         self.assertIn("tsol-ms2000-home-assistant.html", text)
-        self.assertIn("paloindici", text)
+        # Detailed contributor names belong on contributors.html, not the landing page.
+        self.assertNotIn("paloindici", text)
         self.assertIn("NEW IN 1.6.2", text)
         self.assertIn("test-your-inverter.html#windows", text)
         self.assertIn("test-your-inverter.html#python", text)
@@ -105,10 +106,13 @@ class Release160WebTests(unittest.TestCase):
 
     def test_hardware_test_page_promotes_current_diagnostic(self) -> None:
         text = (DOCS / "test-your-inverter.html").read_text(encoding="utf-8")
-        self.assertIn("TSUN Local 1.6.0", text)
+        self.assertIn("TSUN Local 1.6.2", text)
         self.assertNotIn("TSUN Local 1.5.3", text)
         self.assertIn("TSUN-Local-Diagnostic.exe", text)
+        self.assertIn("TSUN-Local-Diagnostic-Python.zip", text)
         self.assertIn("disable the affected TSUN Local config entry", text)
+        self.assertNotIn("TSUN-Local-Diagnostic-macOS-arm64.zip", text)
+        self.assertNotIn("TSUN-Local-Diagnostic-Linux-x86_64", text)
 
 
 if __name__ == "__main__":
