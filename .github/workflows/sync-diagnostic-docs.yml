@@ -8,18 +8,22 @@ on:
       - "README.md"
       - "docs/index.html"
       - "docs/test-your-inverter.html"
+      - "docs/HARDWARE_DUMP.md"
+      - "docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md"
+      - "docs/README_*.md"
+      - "tools/README.md"
       - "scripts/sync_diagnostic_docs.py"
-      - "scripts/publish_macos_first_launch_docs.py"
-      - "scripts/fix_current_mac_copy.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   pull_request:
     paths:
       - "README.md"
       - "docs/index.html"
       - "docs/test-your-inverter.html"
+      - "docs/HARDWARE_DUMP.md"
+      - "docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md"
+      - "docs/README_*.md"
+      - "tools/README.md"
       - "scripts/sync_diagnostic_docs.py"
-      - "scripts/publish_macos_first_launch_docs.py"
-      - "scripts/fix_current_mac_copy.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
   workflow_dispatch:
 
@@ -42,12 +46,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Compile documentation helpers
-        run: |
-          python -m py_compile \
-            scripts/sync_diagnostic_docs.py \
-            scripts/publish_macos_first_launch_docs.py \
-            scripts/fix_current_mac_copy.py
+      - name: Compile documentation verifier
+        run: python -m py_compile scripts/sync_diagnostic_docs.py
 
       - name: Verify public diagnostic distribution
         run: python scripts/sync_diagnostic_docs.py
