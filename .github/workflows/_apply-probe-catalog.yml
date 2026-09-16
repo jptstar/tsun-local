@@ -6,6 +6,7 @@ on:
       - feature/diagnostic-probe-catalogs
     paths:
       - tools/_apply_probe_catalog_patch.py
+      - tools/_fix_probe_patch_helper.py
       - .github/workflows/_apply-probe-catalog.yml
 
 permissions:
@@ -20,6 +21,9 @@ jobs:
           ref: feature/diagnostic-probe-catalogs
           fetch-depth: 0
 
+      - name: Harden patch anchors
+        run: python tools/_fix_probe_patch_helper.py
+
       - name: Apply catalog changes
         run: python tools/_apply_probe_catalog_patch.py
 
@@ -32,12 +36,13 @@ jobs:
       - name: Remove temporary patch machinery
         run: |
           rm tools/_apply_probe_catalog_patch.py
+          rm tools/_fix_probe_patch_helper.py
           rm .github/workflows/_apply-probe-catalog.yml
 
       - name: Commit generated change
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tools/tsun_dump.py tests/test_tsun_dump_tool.py tools/_apply_probe_catalog_patch.py .github/workflows/_apply-probe-catalog.yml
+          git add tools/tsun_dump.py tests/test_tsun_dump_tool.py tools/_apply_probe_catalog_patch.py tools/_fix_probe_patch_helper.py .github/workflows/_apply-probe-catalog.yml
           git commit -m "feat: add adaptive diagnostic probe catalogs"
           git push origin HEAD:feature/diagnostic-probe-catalogs
