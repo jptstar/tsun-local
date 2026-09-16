@@ -83,6 +83,20 @@ class Transport1097ExtensionTests(unittest.TestCase):
         self.assertIn(10443, full)
         self.assertNotEqual(len(full), 65535)
 
+    def test_active_1097_probes_skip_unrelated_service_ports(self) -> None:
+        fake_dump = types.SimpleNamespace(
+            detect_protocol=mock.Mock(side_effect=RuntimeError("no")),
+        )
+        ext.alternate_1097(
+            fake_dump,
+            "192.0.2.10",
+            1234,
+            [22, 80, 443, 1883, 502, 5000, 8883, 9000, 10443, 48899],
+            0.2,
+        )
+        called_ports = [call.args[2] for call in fake_dump.detect_protocol.call_args_list]
+        self.assertEqual(called_ports, [502, 5000, 9000])
+
     def test_normal_capture_is_not_extended(self) -> None:
         expected = {"metadata": {"detected_protocol": "1097"}}
         fake = types.SimpleNamespace(capture=mock.Mock(return_value=expected))
