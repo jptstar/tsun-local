@@ -1,100 +1,88 @@
 name: Sync diagnostic documentation
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - docs/readme-seo-refresh
+      - main
     paths:
+      - "tools/tsun_diagnostic_version.py"
+      - "tools/tsun_dump.py"
+      - "scripts/sync_diagnostic_docs.py"
       - ".github/workflows/sync-diagnostic-docs.yml"
-  workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: sync-diagnostic-docs
+  cancel-in-progress: true
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
-          ref: docs/readme-seo-refresh
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Make remaining public-copy cleanup durable
+      - name: Synchronize public diagnostic documentation
+        run: |
+          python scripts/sync_diagnostic_docs.py
+          python scripts/sync_diagnostic_docs.py
+
+      - name: Verify synchronizer and distribution contract
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('scripts/sync_diagnostic_docs.py')
-          text = path.read_text(encoding='utf-8')
-          anchor = "text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')\nwrite(path, text)"
-          replacement = """text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')
-text = text.replace(
-    'Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report.',
-    'Run the Windows executable or the full Python package. Both use the same strictly read-only hardware communication engine and create an anonymized JSON report.',
-)
-text = text.replace(
-    '<p class=\"lead\"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app, use Python on any platform, or choose the packaged Mac/Linux app.</p>',
-    '<p class=\"lead\"><strong>Not listed yet, or communication unstable?</strong> Use the Windows app or the full Python package. Both run the same strictly read-only diagnostic engine.</p>',
-)
-text = text.replace(
-    '<p class=\"hero-note\">Windows · Python 3.10+ · macOS &amp; Linux · Strictly read-only</p>',
-    '<p class=\"hero-note\">Windows x86_64 · Full Python 3.10+ · Strictly read-only</p>',
-)
-text = re.sub(r'\\s*<section id=\"mac-linux\">.*?</section>', '', text, count=1, flags=re.DOTALL)
-text = text.replace(
-    '<div class=\"step\"><span class=\"n\">2</span><strong>Run the diagnostic</strong><p>Use Windows, Python, Mac or Linux. Discovery and evidence capture remain read-only.</p></div>',
-    '<div class=\"step\"><span class=\"n\">2</span><strong>Run the diagnostic</strong><p>Use the Windows executable or the full Python package. Discovery and evidence capture remain read-only.</p></div>',
-)
-text = text.replace(
-    '<div class=\"step\"><span class=\"n\">3</span><strong>Direct upload</strong><p>Recommended in the desktop app. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>',
-    '<div class=\"step\"><span class=\"n\">3</span><strong>Direct upload</strong><p>Available through the supported diagnostic flow after explicit consent. Add an optional tester name and micro-inverter models, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>',
-)
-write(path, text)"""
-          if anchor not in text:
-              raise SystemExit('Expected cleanup anchor not found')
-          path.write_text(text.replace(anchor, replacement), encoding='utf-8')
-          PY
           python -m py_compile scripts/sync_diagnostic_docs.py
-          python scripts/sync_diagnostic_docs.py
-          python scripts/sync_diagnostic_docs.py
+          grep -q "TSUN-Local-Diagnostic.exe" README.md
+          grep -q "TSUN-Local-Diagnostic-Python.zip" README.md
+          grep -q "TSUN-Local-Diagnostic-Python.zip" docs/README_FR.md
+          grep -q "Diagnostic distributions — Windows and Python" tools/README.md
+          grep -q "Windows and Python diagnostics" docs/index.html
+          grep -q "TSUN Local Diagnostic" docs/index.html
+          grep -q "Full Python diagnostic — Linux and advanced users" docs/test-your-inverter.html
+          grep -q "TSUN-Local-Diagnostic-Python.zip" docs/test-your-inverter.html
+          if grep -q "TSUN-Local-Diagnostic-macOS-" README.md docs/README_FR.md tools/README.md docs/test-your-inverter.html; then
+            echo "Stale macOS diagnostic asset found" >&2
+            exit 1
+          fi
+          if grep -q "TSUN-Local-Diagnostic-Linux-" README.md docs/README_FR.md tools/README.md docs/test-your-inverter.html; then
+            echo "Stale Linux diagnostic asset found" >&2
+            exit 1
+          fi
+          if grep -q 'id="mac-linux"' docs/test-your-inverter.html; then
+            echo "Stale Mac/Linux diagnostic section found" >&2
+            exit 1
+          fi
+          echo "Windows/Python documentation and SEO contract passed."
 
-      - name: Verify Windows/Python-only public copy
+      - name: Publish synchronized docs branch
         shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          text = Path('docs/test-your-inverter.html').read_text(encoding='utf-8')
-          stale = (
-              'TSUN-Local-Diagnostic-macOS-',
-              'TSUN-Local-Diagnostic-Linux-',
-              'id="mac-linux"',
-              'packaged Mac/Linux app',
-              'Windows, Python, Mac or Linux',
-              'Windows, macOS or Linux',
-          )
-          found = [item for item in stale if item in text]
-          if found:
-              raise SystemExit('Stale diagnostic copy remains: ' + ', '.join(found))
-          for marker in (
-              'Windows x86_64 · Full Python 3.10+ · Strictly read-only',
-              'Full Python diagnostic — Linux and advanced users',
-              'TSUN-Local-Diagnostic-Python.zip',
-          ):
-              if marker not in text:
-                  raise SystemExit('Missing expected current copy: ' + marker)
-          print('Public diagnostic copy is Windows/Python only.')
-          PY
-
-      - name: Commit generated docs and durable synchronizer
-        shell: bash
-        run: |
-          git checkout HEAD -- .github/workflows
+          if git diff --quiet; then
+            echo "Documentation already synchronized."
+            exit 0
+          fi
+          branch="automation/diagnostic-docs"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/sync_diagnostic_docs.py README.md tools/README.md docs
-          git commit -m "docs: remove stale Mac and Linux diagnostic copy"
-          git push origin HEAD:docs/readme-seo-refresh
+          git checkout -B "$branch"
+          git add \
+            README.md \
+            tools/README.md \
+            docs/HARDWARE_DUMP.md \
+            docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md \
+            docs/README_FR.md \
+            docs/index.html \
+            docs/test-your-inverter.html \
+            docs/sitemap.xml
+          git commit -m "Synchronize Windows and Python diagnostic documentation"
+          git push --force origin "$branch"
+          echo "Synchronized documentation published to $branch for pull-request validation."
