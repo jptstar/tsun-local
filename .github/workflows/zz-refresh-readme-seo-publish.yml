@@ -1,0 +1,104 @@
+name: Publish validated README SEO changes
+
+on:
+  push:
+    branches:
+      - docs/readme-seo-refresh
+    paths:
+      - ".github/workflows/zz-refresh-readme-seo-publish.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/readme-seo-refresh
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild validated README and SEO files
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          source = Path('.github/workflows/zz-refresh-readme-seo-once.yml').read_text(encoding='utf-8')
+          match = re.search(r"cat > scripts/sync_diagnostic_docs.py <<'PY'\n(.*?)\n          PY\n", source, re.S)
+          if not match:
+              raise SystemExit('Unable to recover documentation synchronizer')
+          lines = match.group(1).splitlines()
+          script = '\n'.join(line[10:] if line.startswith('          ') else line for line in lines) + '\n'
+
+          # Make the generated synchronizer idempotent after the first migration.
+          script = script.replace(
+              'text = replace_between(text, "## Desktop diagnostic —", "## Hardware validation dump", tools_block)',
+              'tools_start = "## Diagnostic distributions — Windows and Python" if "## Diagnostic distributions — Windows and Python" in text else "## Desktop diagnostic —"\ntext = replace_between(text, tools_start, "## Hardware validation dump", tools_block)',
+          )
+          old = 'text = re.sub(r\'  <section id="python">.*?</section>\', py_section, text, count=1, flags=re.DOTALL)\nwrite(path, text)'
+          new = '''text = re.sub(r'  <section id="python">.*?</section>', py_section, text, count=1, flags=re.DOTALL)
+# Remove obsolete binary download CTAs; Linux uses the full Python package.
+text = re.sub(r'^.*TSUN-Local-Diagnostic-macOS-[^\\n]*\\n?', '', text, flags=re.MULTILINE)
+text = re.sub(r'^.*TSUN-Local-Diagnostic-Linux-[^\\n]*\\n?', '', text, flags=re.MULTILINE)
+text = text.replace('Windows, macOS, Linux or directly with Python', 'Windows or the full Python package')
+text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')
+write(path, text)'''
+          if old not in script:
+              raise SystemExit('Unable to install durable stale-download cleanup')
+          script = script.replace(old, new)
+          Path('scripts/sync_diagnostic_docs.py').write_text(script, encoding='utf-8')
+          PY
+          chmod +x scripts/sync_diagnostic_docs.py
+          python scripts/sync_diagnostic_docs.py
+          rm -f scripts/publish_macos_first_launch_docs.py scripts/fix_current_mac_copy.py scripts/clarify_macos_diagnostic_docs.py docs/MACOS_SIGNING.md
+
+      - name: Verify README and SEO contract
+        shell: bash
+        run: |
+          python -m py_compile scripts/sync_diagnostic_docs.py
+          # Idempotence is required: running the synchronizer twice must still work.
+          python scripts/sync_diagnostic_docs.py
+          python - <<'PY'
+          from pathlib import Path
+          checks = {
+              'README.md': ['TSUN-Local-Diagnostic.exe', 'TSUN-Local-Diagnostic-Python.zip', 'Current diagnostic versions', 'dump engine **2.9.0**'],
+              'docs/README_FR.md': ['TSUN-Local-Diagnostic.exe', 'TSUN-Local-Diagnostic-Python.zip', 'Package Python complet'],
+              'tools/README.md': ['Diagnostic distributions — Windows and Python', 'TSUN-Local-Diagnostic-Python.zip'],
+              'docs/index.html': ['Windows and Python diagnostics', '"name":"TSUN Local Diagnostic"', 'TSUN diagnostic, TSUN Local Diagnostic'],
+              'docs/test-your-inverter.html': ['TSUN Microinverter Compatibility Test for Home Assistant', 'Full Python diagnostic — Linux and advanced users', 'TSUN-Local-Diagnostic-Python.zip', '"dateModified":"2026-09-16"'],
+          }
+          errors = []
+          for filename, markers in checks.items():
+              text = Path(filename).read_text(encoding='utf-8')
+              for marker in markers:
+                  if marker not in text:
+                      errors.append(f'{filename}: missing {marker!r}')
+          for filename in ('README.md', 'docs/README_FR.md', 'tools/README.md', 'docs/test-your-inverter.html'):
+              text = Path(filename).read_text(encoding='utf-8')
+              for stale in ('TSUN-Local-Diagnostic-macOS-', 'TSUN-Local-Diagnostic-Linux-'):
+                  if stale in text:
+                      errors.append(f'{filename}: stale {stale}')
+          if errors:
+              raise SystemExit('README/SEO contract failed:\n- ' + '\n- '.join(errors))
+          print('README/SEO contract passed twice (idempotent).')
+          PY
+
+      - name: Commit documentation only
+        shell: bash
+        run: |
+          # GitHub Actions tokens may not alter workflow files; keep those untouched here.
+          git checkout HEAD -- .github/workflows
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md tools/README.md docs scripts
+          if git diff --cached --quiet; then
+            echo "No documentation changes to publish."
+            exit 0
+          fi
+          git commit -m "docs: align README and SEO with Windows and Python diagnostics"
+          git push origin HEAD:docs/readme-seo-refresh
