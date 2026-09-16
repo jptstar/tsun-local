@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Stable cross-platform entry point for TSUN Local Diagnostic.
+"""Stable desktop entry point for TSUN Local Diagnostic.
 
-The same Tk interface is packaged for Windows, macOS and Linux. Platform-specific
-code here is intentionally limited to profile storage, opening folders and
-selecting the correct rolling-release update component. The read-only diagnostic
-engine, extension composition and report-upload flow remain shared.
+The Windows executable and source-run interface share the same read-only diagnostic
+engine, extension composition and report-upload flow. Platform-specific code here is
+limited to profile storage, opening folders and selecting the canonical release
+component.
 """
 
 from __future__ import annotations
@@ -101,16 +101,10 @@ def _configure_diagnostic_runtime() -> tuple[str, ...]:
 
 
 UPDATE_COMPONENT_WINDOWS = "windows_gui"
-UPDATE_COMPONENT_MACOS_ARM64 = "macos_arm64_gui"
-UPDATE_COMPONENT_MACOS_X86_64 = "macos_x86_64_gui"
-UPDATE_COMPONENT_LINUX_X86_64 = "linux_x86_64_gui"
-UPDATE_COMPONENT_LINUX_ARM64 = "linux_arm64_gui"
+UPDATE_COMPONENT_PYTHON = "python_full"
 
 ASSET_WINDOWS = "TSUN-Local-Diagnostic.exe"
-ASSET_MACOS_ARM64 = "TSUN-Local-Diagnostic-macOS-arm64.zip"
-ASSET_MACOS_X86_64 = "TSUN-Local-Diagnostic-macOS-x86_64.zip"
-ASSET_LINUX_X86_64 = "TSUN-Local-Diagnostic-Linux-x86_64"
-ASSET_LINUX_ARM64 = "TSUN-Local-Diagnostic-Linux-arm64"
+ASSET_PYTHON = "TSUN-Local-Diagnostic-Python.zip"
 
 
 def _normalized_machine(value: str | None = None) -> str:
@@ -124,36 +118,23 @@ def _normalized_machine(value: str | None = None) -> str:
 
 def platform_update_component(
     *, system: str | None = None, machine: str | None = None
-) -> str | None:
-    """Return the rolling-release manifest component for this packaged GUI."""
+) -> str:
+    """Return the canonical rolling-release component for this runtime."""
     current_system = (system or platform.system() or "").strip().lower()
-    current_machine = _normalized_machine(machine)
+    _normalized_machine(machine)
     if current_system == "windows":
         return UPDATE_COMPONENT_WINDOWS
-    if current_system == "darwin":
-        if current_machine == "arm64":
-            return UPDATE_COMPONENT_MACOS_ARM64
-        if current_machine == "x86_64":
-            return UPDATE_COMPONENT_MACOS_X86_64
-    if current_system == "linux":
-        if current_machine == "arm64":
-            return UPDATE_COMPONENT_LINUX_ARM64
-        if current_machine == "x86_64":
-            return UPDATE_COMPONENT_LINUX_X86_64
-    return None
+    return UPDATE_COMPONENT_PYTHON
 
 
 def platform_release_asset(
     *, system: str | None = None, machine: str | None = None
-) -> str | None:
+) -> str:
     component = platform_update_component(system=system, machine=machine)
     return {
         UPDATE_COMPONENT_WINDOWS: ASSET_WINDOWS,
-        UPDATE_COMPONENT_MACOS_ARM64: ASSET_MACOS_ARM64,
-        UPDATE_COMPONENT_MACOS_X86_64: ASSET_MACOS_X86_64,
-        UPDATE_COMPONENT_LINUX_X86_64: ASSET_LINUX_X86_64,
-        UPDATE_COMPONENT_LINUX_ARM64: ASSET_LINUX_ARM64,
-    }.get(component)
+        UPDATE_COMPONENT_PYTHON: ASSET_PYTHON,
+    }[component]
 
 
 _original_profile_candidates = previous._profile_candidates
@@ -182,7 +163,7 @@ previous.legacy.save_upload_profile = previous.save_upload_profile
 
 
 class CleanDiagnosticApp(ui.CleanDiagnosticApp):
-    """Same UI on all desktop platforms with minimal OS-specific integration."""
+    """Same diagnostic UI with minimal OS-specific integration."""
 
     def _render_report_links(self, host: tk.Frame, reports: list[tuple[str, str]]) -> None:
         """Render the normal receipt links plus explicit upload-stage confirmation."""
@@ -247,7 +228,7 @@ class CleanDiagnosticApp(ui.CleanDiagnosticApp):
             messagebox.showinfo(APP_NAME, f"{folder}\n\n{exc}")
 
     def _start_update_check(self) -> None:
-        """Use the GUI package component on macOS/Linux; keep Windows auto-update."""
+        """Use the canonical Python package outside Windows; keep Windows auto-update."""
         if os.name == "nt":
             super()._start_update_check()
             return
@@ -262,12 +243,6 @@ class CleanDiagnosticApp(ui.CleanDiagnosticApp):
             return
 
         component = platform_update_component()
-        if component is None:
-            # Unsupported packaging architecture: retain the safe legacy dumper
-            # update check rather than pretending the GUI itself can be updated.
-            super()._start_update_check()
-            return
-
         self.update_busy = True
         self.update_status.set(self.t["update_checking"])
         worker = threading.Thread(
@@ -290,8 +265,8 @@ class CleanDiagnosticApp(ui.CleanDiagnosticApp):
                 tsun_dump.TOOL_VERSION,
             )
             if gui_update is None and dump_update is not None:
-                # Each packaged GUI embeds tsun_dump.py. If only the engine became
-                # newer, a fresh package is still required for macOS/Linux.
+                # The full Python package embeds tsun_dump.py. If only the engine
+                # became newer, a fresh package is still required.
                 gui_update = tsun_dump.select_update_component(
                     manifest, component, "0.0.0"
                 )
@@ -304,8 +279,8 @@ class CleanDiagnosticApp(ui.CleanDiagnosticApp):
 
 
 def main() -> int:
-    # Windows keeps the existing verified self-replacement helper. macOS/Linux
-    # packages intentionally use manual package replacement for now.
+    # Windows keeps the existing verified self-replacement helper. A source-run
+    # GUI uses manual replacement through the full Python package.
     internal_result = previous.legacy.base._internal_update_mode()
     if internal_result is not None:
         return internal_result
