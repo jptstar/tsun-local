@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 import unittest
+from unittest import mock
 
 TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
@@ -81,6 +83,49 @@ class TsunObserve02B0Tests(unittest.TestCase):
         parser = observer.build_parser()
         with self.assertRaises(SystemExit):
             parser.parse_args(["--interval", "1"])
+
+    def test_upload_keeps_observer_contract_through_legacy_retry_import(self) -> None:
+        path = Path("observation.json")
+        devices = [{"model": "TSOL-MS800", "quantity": 1}]
+        args = SimpleNamespace(tester_name="regression-test", device=devices)
+        receipt = {
+            "ok": True,
+            "report_id": "TSL-TEST",
+            "view_url": "https://example.invalid/report/TSL-TEST",
+        }
+
+        with mock.patch.object(
+            observer.report_upload_retry,
+            "upload_file_with_retry",
+            return_value=receipt,
+        ) as upload:
+            observer._upload(path, args)
+
+        upload.assert_called_once_with(
+            path,
+            consent=True,
+            tester_name="regression-test",
+            declared_devices=devices,
+            user_agent=f"TSUN-Local-02B0-Observer/{observer.OBSERVER_VERSION}",
+            on_retry=mock.ANY,
+        )
+        progress = upload.call_args.kwargs["on_retry"]
+        self.assertTrue(callable(progress))
+        progress(1, 5, 0.75)
+
+    def test_upload_rejects_incomplete_metadata_before_network(self) -> None:
+        for args in (
+            SimpleNamespace(tester_name="", device=[{"model": "TSOL-MS800", "quantity": 1}]),
+            SimpleNamespace(tester_name="regression-test", device=[]),
+        ):
+            with self.subTest(args=args):
+                with mock.patch.object(
+                    observer.report_upload_retry,
+                    "upload_file_with_retry",
+                ) as upload:
+                    with self.assertRaises(observer.report_upload.ReportUploadError):
+                        observer._upload(Path("observation.json"), args)
+                upload.assert_not_called()
 
 
 if __name__ == "__main__":
