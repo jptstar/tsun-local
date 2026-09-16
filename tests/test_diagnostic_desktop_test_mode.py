@@ -8,6 +8,7 @@ TOOLS = Path(__file__).resolve().parents[1] / "tools"
 sys.path.insert(0, str(TOOLS))
 
 import tsun_diagnostic as desktop  # noqa: E402
+import tsun_diagnostic_runtime as runtime  # noqa: E402
 
 
 class DiagnosticDesktopTestModeTests(unittest.TestCase):
@@ -39,23 +40,31 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         )
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.20")
-        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.20")
-        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.20")
+        self.assertEqual(desktop.APP_VERSION, "1.5.21")
+        self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.21")
+        self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.21")
 
     def test_tuya_local_key_prompt_is_masked(self) -> None:
         source = Path(desktop.__file__).read_text(encoding="utf-8")
-        self.assertIn("SECRET_PROMPT_PREFIX", source)
+        self.assertIn("runtime.SECRET_PROMPT_PREFIX", source)
         self.assertIn('kwargs.setdefault("show", "*")', source)
-        self.assertIn("tsun_tuya_probe.install", source)
+        runtime_source = Path(runtime.__file__).read_text(encoding="utf-8")
+        self.assertIn("tsun_tuya_probe.install", runtime_source)
 
-    def test_1097_research_probe_is_isolated_and_installed_only_at_runtime(self) -> None:
+    def test_research_extensions_have_one_explicit_runtime_order(self) -> None:
+        self.assertEqual(
+            runtime.pipeline_stage_names(),
+            (
+                "1097-research-fallback",
+                "1097-transport-enrichment",
+                "tuya-authenticated-status",
+            ),
+        )
         source = Path(desktop.__file__).read_text(encoding="utf-8")
-        self.assertIn("import tsun_1097_research_probe", source)
-        self.assertIn("tsun_1097_research_probe.install(tsun_dump)", source)
-        self.assertIn("import tsun_1097_transport_extension", source)
-        self.assertIn("tsun_1097_transport_extension.install(tsun_dump)", source)
-        self.assertIn("_install_1097_research_probe()", source)
+        self.assertIn("_configure_diagnostic_runtime()", source)
+        self.assertNotIn("tsun_1097_research_probe.install(tsun_dump)", source)
+        self.assertNotIn("tsun_1097_transport_extension.install(tsun_dump)", source)
+        self.assertNotIn("tsun_tuya_probe.install(", source)
 
     def test_cross_platform_update_components_are_explicit(self) -> None:
         self.assertEqual(

@@ -2,12 +2,12 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Privacy-safe upload client for TSUN Local diagnostic reports.
+"""Canonical privacy-safe uploader for TSUN Local diagnostic reports.
 
-The client contains no GitHub credential. It sends one already-anonymized
-local diagnostic JSON to the public Cloudflare upload endpoint only after
-explicit user consent. The server performs a second validation pass before
-writing the report into the private reports repository.
+This module owns the complete desktop/observer upload path: local privacy
+validation, optional model association, HTTPS submission and bounded retries for
+transient failures.  Keeping those responsibilities here avoids runtime monkey
+patching and guarantees that every caller uses the same retry/privacy policy.
 """
 
 from __future__ import annotations
@@ -16,12 +16,18 @@ import json
 from pathlib import Path
 import re
 import socket
-from typing import Any, Iterable
+import time
+from typing import Any, Callable, Iterable, Sequence
 from urllib import error, request
 
 REPORT_UPLOAD_URL = "https://tsun-local-reports-uploader.jp-810.workers.dev/report"
 MAX_REPORT_BYTES = 524288
 DEFAULT_TIMEOUT = 20.0
+
+DEFAULT_UPLOAD_ATTEMPTS = 5
+DEFAULT_RETRY_DELAYS = (0.75, 2.0, 5.0, 10.0)
+MAX_RETRY_AFTER_SECONDS = 30.0
+RETRYABLE_HTTP_STATUS = frozenset({408, 425, 429, 500, 502, 503, 504})
 
 FORBIDDEN_KEYS = frozenset(
     {
@@ -40,11 +46,22 @@ FORBIDDEN_KEYS = frozenset(
         "refresh_token",
         "email",
         "e_mail",
+        # Tuya credentials must never reach the upload service even if a future
+        # probe accidentally adds them to the JSON structure.
+        "device_id",
+        "dev_id",
+        "local_key",
+        "localkey",
+        "tuya_local_key",
     }
 )
 
 _DEVICE_SUFFIX_RE = re.compile(r"^(?P<model>.+?)\s+[xX×]\s*(?P<quantity>\d{1,2})$")
 _DEVICE_PREFIX_RE = re.compile(r"^(?P<quantity>\d{1,2})\s*[xX×]\s*(?P<model>.+)$")
+_MODEL_POWER_RE = re.compile(
+    r"^TSOL-(?:MS|MX|MP|MG|ML)(?P<power>\d{3,4})(?:D(?:-T)?|Elite|Lite)?$",
+    re.IGNORECASE,
+)
 
 
 class ReportUploadError(RuntimeError):
@@ -82,7 +99,7 @@ def _find_forbidden_key(value: Any, path: str = "$", depth: int = 0) -> str | No
 
 
 def validate_diagnostic(diagnostic: Any) -> dict[str, Any]:
-    """Validate the local diagnostic before any network transmission occurs."""
+    """Validate one diagnostic before any network transmission occurs."""
     if not isinstance(diagnostic, dict):
         raise ReportUploadError("diagnostic JSON must contain an object")
     forbidden = _find_forbidden_key(diagnostic)
@@ -93,6 +110,7 @@ def validate_diagnostic(diagnostic: Any) -> dict[str, Any]:
 
 def load_diagnostic(path: Path) -> dict[str, Any]:
     """Load one local diagnostic and apply the local privacy gate."""
+    path = Path(path)
     try:
         size = path.stat().st_size
     except OSError as exc:
@@ -109,17 +127,7 @@ def load_diagnostic(path: Path) -> dict[str, Any]:
 
 
 def parse_declared_devices(text: str) -> list[dict[str, Any]]:
-    """Parse an optional human-entered inverter inventory.
-
-    Accepted examples::
-
-        TSOL-MX500
-        TSOL-MP3000 x2
-        2x TSOL-MS800
-
-    Duplicate model names are merged case-insensitively while preserving the
-    spelling from the first line.
-    """
+    """Parse and merge a human-entered inverter inventory."""
     if not isinstance(text, str):
         raise ReportUploadError("device list must be text")
 
@@ -128,7 +136,6 @@ def parse_declared_devices(text: str) -> list[dict[str, Any]]:
         line = raw_line.strip()
         if not line:
             continue
-
         model = line
         quantity = 1
         match = _DEVICE_SUFFIX_RE.match(line) or _DEVICE_PREFIX_RE.match(line)
@@ -154,12 +161,6 @@ def parse_declared_devices(text: str) -> list[dict[str, Any]]:
             merged[key] = {"model": model, "quantity": quantity}
 
     return sorted(merged.values(), key=lambda item: str(item["model"]).casefold())
-
-
-_MODEL_POWER_RE = re.compile(
-    r"^TSOL-(?:MS|MX|MP|MG|ML)(?P<power>\d{3,4})(?:D(?:-T)?|Elite|Lite)?$",
-    re.IGNORECASE,
-)
 
 
 def _model_nominal_power(model: str) -> int | None:
@@ -212,9 +213,7 @@ def _pop_model(remaining: list[str], model: str) -> bool:
     return False
 
 
-def _annotate_model(
-    diagnostic: dict[str, Any], model: str, method: str
-) -> None:
+def _annotate_model(diagnostic: dict[str, Any], model: str, method: str) -> None:
     metadata = diagnostic.setdefault("metadata", {})
     if not isinstance(metadata, dict):
         raise ReportUploadError("diagnostic metadata must contain an object")
@@ -230,12 +229,20 @@ def associate_declared_models(
     diagnostics: list[dict[str, Any]],
     declared_devices: Iterable[dict[str, Any]],
 ) -> dict[int, str]:
-    """Assign declared models to individual dumps only when unambiguous."""
+    """Associate inventory only when the evidence is unambiguous.
+
+    Extra LAN diagnostics are allowed.  This is important when discovery finds
+    unrelated Tuya/ThingClips devices alongside the declared TSUN inverters.  If
+    fewer diagnostics than declared inverter units are present, assignment is
+    disabled because evidence is incomplete.
+    """
     remaining = _expanded_declared_models(declared_devices)
-    if not diagnostics or len(remaining) != len(diagnostics):
+    if not diagnostics or not remaining or len(remaining) > len(diagnostics):
         return {}
 
     unresolved: set[int] = set(range(len(diagnostics)))
+    assignments: dict[int, str] = {}
+
     for index, diagnostic in enumerate(diagnostics):
         metadata = diagnostic.get("metadata")
         existing = (
@@ -244,13 +251,14 @@ def associate_declared_models(
             else None
         )
         if isinstance(existing, str) and existing.strip():
-            if not _pop_model(remaining, existing.strip()):
+            model = existing.strip()
+            if not _pop_model(remaining, model):
                 return {}
             unresolved.discard(index)
+            assignments[index] = model
 
-    assignments: dict[int, str] = {}
     progress = True
-    while progress:
+    while progress and remaining:
         progress = False
         for index in sorted(tuple(unresolved)):
             rated = _diagnostic_rated_power(diagnostics[index])
@@ -269,7 +277,10 @@ def associate_declared_models(
             assignments[index] = model
             progress = True
 
-    if unresolved and len(remaining) == len(unresolved):
+    # Historical fallback is safe only when every unresolved diagnostic is
+    # required to consume every remaining declared unit.  Extra LAN candidates
+    # therefore cannot accidentally inherit an inverter model.
+    if unresolved and remaining and len(remaining) == len(unresolved):
         distinct = {model.casefold(): model for model in remaining}
         if len(distinct) == 1:
             model = next(iter(distinct.values()))
@@ -299,9 +310,9 @@ def annotate_report_files(
     for index, model in assignments.items():
         path = path_list[index]
         diagnostic = validate_diagnostic(diagnostics[index])
-        encoded = (
-            json.dumps(diagnostic, ensure_ascii=False, indent=2) + "\n"
-        ).encode("utf-8")
+        encoded = (json.dumps(diagnostic, ensure_ascii=False, indent=2) + "\n").encode(
+            "utf-8"
+        )
         if len(encoded) > MAX_REPORT_BYTES:
             raise ReportUploadError(
                 f"diagnostic file is too large after model annotation: {path.name}"
@@ -311,9 +322,7 @@ def annotate_report_files(
             temporary.write_bytes(encoded)
             temporary.replace(path)
         except OSError as exc:
-            raise ReportUploadError(
-                f"cannot annotate diagnostic file: {path.name}"
-            ) from exc
+            raise ReportUploadError(f"cannot annotate diagnostic file: {path.name}") from exc
         finally:
             try:
                 temporary.unlink()
@@ -321,6 +330,7 @@ def annotate_report_files(
                 pass
         result[path] = model
     return result
+
 
 def build_payload(
     diagnostic: dict[str, Any],
@@ -368,7 +378,7 @@ def _server_error_message(exc: error.HTTPError) -> str:
         raw = exc.read(4096)
         body = json.loads(raw.decode("utf-8", errors="replace"))
         message = body.get("error") if isinstance(body, dict) else None
-    except (OSError, ValueError, UnicodeError):
+    except (AttributeError, OSError, ValueError, UnicodeError):
         message = None
     if isinstance(message, str) and message.strip():
         return message.strip()
@@ -385,7 +395,7 @@ def upload_diagnostic(
     timeout: float = DEFAULT_TIMEOUT,
     user_agent: str = "TSUN-Local-Diagnostic",
 ) -> dict[str, Any]:
-    """Submit one diagnostic to the upload Worker and return its receipt."""
+    """Perform one HTTPS upload attempt and return the server receipt."""
     payload = build_payload(
         diagnostic,
         consent=consent,
@@ -428,6 +438,67 @@ def upload_diagnostic(
     return result
 
 
+def _is_retryable(exc: ReportUploadError) -> bool:
+    cause = exc.__cause__
+    if isinstance(cause, error.HTTPError):
+        return int(cause.code) in RETRYABLE_HTTP_STATUS
+    return isinstance(cause, (error.URLError, TimeoutError, socket.timeout, OSError))
+
+
+def _retry_after_seconds(exc: ReportUploadError) -> float | None:
+    cause = exc.__cause__
+    if not isinstance(cause, error.HTTPError):
+        return None
+    headers = getattr(cause, "headers", None) or getattr(cause, "hdrs", None)
+    if headers is None:
+        return None
+    try:
+        raw = headers.get("Retry-After")
+    except (AttributeError, TypeError):
+        return None
+    if raw is None:
+        return None
+    try:
+        delay = float(str(raw).strip())
+    except (TypeError, ValueError):
+        return None
+    if delay < 0:
+        return None
+    return min(delay, MAX_RETRY_AFTER_SECONDS)
+
+
+def _retry_delay(
+    exc: ReportUploadError,
+    *,
+    attempt: int,
+    retry_delays: Sequence[float],
+) -> float:
+    retry_after = _retry_after_seconds(exc)
+    if retry_after is not None:
+        return retry_after
+    if not retry_delays:
+        return 0.0
+    delay_index = min(attempt - 1, len(retry_delays) - 1)
+    return max(0.0, float(retry_delays[delay_index]))
+
+
+def _final_transient_message(exc: ReportUploadError, *, path: Path, attempts: int) -> str:
+    cause = exc.__cause__
+    if isinstance(cause, error.HTTPError):
+        status = int(cause.code)
+        if status == 429:
+            stage = "Upload service reached but rate-limited (HTTP 429)"
+        else:
+            stage = f"Upload service reached but temporarily unavailable (HTTP {status})"
+    else:
+        stage = "Network/timeout: upload service could not be reached"
+    return (
+        f"{stage} after {attempts} attempts. "
+        f"The diagnostic report is still saved locally as {Path(path).name}. "
+        "Retry later or use the email fallback."
+    )
+
+
 def upload_file(
     path: Path,
     *,
@@ -437,15 +508,45 @@ def upload_file(
     endpoint: str = REPORT_UPLOAD_URL,
     timeout: float = DEFAULT_TIMEOUT,
     user_agent: str = "TSUN-Local-Diagnostic",
+    attempts: int = DEFAULT_UPLOAD_ATTEMPTS,
+    retry_delays: Sequence[float] = DEFAULT_RETRY_DELAYS,
+    sleep: Callable[[float], None] = time.sleep,
+    on_retry: Callable[[int, int, float], None] | None = None,
 ) -> dict[str, Any]:
-    """Load, privacy-check and upload one local JSON diagnostic."""
-    diagnostic = load_diagnostic(path)
-    return upload_diagnostic(
-        diagnostic,
-        consent=consent,
-        tester_name=tester_name,
-        declared_devices=declared_devices,
-        endpoint=endpoint,
-        timeout=timeout,
-        user_agent=user_agent,
-    )
+    """Load once, then retry only safe transient HTTPS failures.
+
+    Permanent local validation/client errors are never retried.  The report file
+    is never deleted or rewritten by this function, so a final network failure
+    always leaves a local fallback available.
+    """
+    if attempts < 1:
+        raise ValueError("attempts must be at least 1")
+
+    local_path = Path(path)
+    diagnostic = load_diagnostic(local_path)
+
+    for attempt in range(1, attempts + 1):
+        try:
+            return upload_diagnostic(
+                diagnostic,
+                consent=consent,
+                tester_name=tester_name,
+                declared_devices=declared_devices,
+                endpoint=endpoint,
+                timeout=timeout,
+                user_agent=user_agent,
+            )
+        except ReportUploadError as exc:
+            if not _is_retryable(exc):
+                raise
+            if attempt >= attempts:
+                raise ReportUploadError(
+                    _final_transient_message(exc, path=local_path, attempts=attempts)
+                ) from exc
+            delay = _retry_delay(exc, attempt=attempt, retry_delays=retry_delays)
+            if on_retry is not None:
+                on_retry(attempt, attempts, delay)
+            if delay > 0:
+                sleep(delay)
+
+    raise AssertionError("unreachable")
