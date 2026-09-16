@@ -2866,21 +2866,30 @@ def _build_catalog_payload(probe: dict[str, Any]) -> bytes:
 
 
 def _summarize_v5_frame(frame: bytes) -> dict[str, Any]:
-    """Summarize a V5 envelope without retaining logger identity bytes."""
+    """Summarize any V5 envelope without retaining logger identity bytes."""
     try:
-        _validate_ap_frame(frame)
+        if len(frame) < 13 or frame[0] != 0xA5 or frame[-1] != 0x15:
+            raise TsunProtocolError("Invalid V5 frame markers or minimum length")
+        expected = int.from_bytes(frame[1:3], "little") + 13
+        if len(frame) != expected:
+            raise TsunProtocolError("Invalid V5 frame length")
+        if checksum_ap(frame[1:-2]) != frame[-2]:
+            raise TsunProtocolError("Invalid V5 checksum")
     except Exception as err:
         return {"valid": False, "error": safe_error_details(err)}
     control = int.from_bytes(frame[3:5], "little")
     sequence = int.from_bytes(frame[5:7], "little")
+    is_command_response = control in V5_COMMAND_RESPONSE_CONTROLS
     return {
         "valid": True,
         "control": f"0x{control:04X}",
-        "control_is_command_response": control in V5_COMMAND_RESPONSE_CONTROLS,
+        "control_is_command_response": is_command_response,
         "sequence": sequence,
+        "sequence_low": sequence & 0xFF,
         "frame_type": frame[11] if len(frame) > 11 else None,
         "status": frame[12] if len(frame) > 12 else None,
-        "payload_bytes": max(0, len(frame) - 27),
+        "envelope_payload_bytes": int.from_bytes(frame[1:3], "little"),
+        "embedded_payload_bytes": max(0, len(frame) - 27) if is_command_response else None,
         "logger_identity_stored": False,
     }
 
@@ -3010,6 +3019,29 @@ def _run_v4_read_probe(
     return result
 
 
+def _read_research_v5_command_response(
+    sock: socket.socket,
+    timeout: float,
+    sequence: _V5SequenceState,
+) -> tuple[bytes, list[dict[str, Any]]]:
+    """Read through bounded unsolicited/heartbeat V5 frames to a command reply."""
+    deadline = time.monotonic() + timeout
+    interleaved: list[dict[str, Any]] = []
+    while len(interleaved) < 8:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        sock.settimeout(remaining)
+        frame = read_ap_frame(sock)
+        summary = _summarize_v5_frame(frame)
+        if summary.get("valid") and isinstance(summary.get("sequence"), int):
+            sequence.observe(int(summary["sequence"]))
+        if summary.get("control_is_command_response"):
+            return frame, interleaved
+        interleaved.append(summary)
+    raise socket.timeout("No Solarman V5 command response before timeout")
+
+
 def run_research_probe_catalog(
     host: str,
     port: int,
@@ -3098,7 +3130,11 @@ def run_research_probe_catalog(
                 try:
                     sock.settimeout(probe_timeout)
                     sock.sendall(request)
-                    frame = read_ap_frame(sock)
+                    frame, interleaved = _read_research_v5_command_response(
+                        sock, probe_timeout, sequence
+                    )
+                    if interleaved:
+                        attempt["interleaved_frames"] = interleaved
                 except (socket.timeout, TimeoutError):
                     attempt["result"] = "timeout"
                     attempt["latency_ms"] = round(
@@ -3123,6 +3159,9 @@ def run_research_probe_catalog(
                 attempt["frame"] = summary
                 if summary.get("valid") and isinstance(summary.get("sequence"), int):
                     sequence.observe(int(summary["sequence"]))
+                    summary["sequence_low_echo_matches"] = (
+                        int(summary["sequence"]) & 0xFF
+                    ) == (sequence_value & 0xFF)
                 if summary.get("control_is_command_response"):
                     result["v5_transport_detected"] = True
                 try:
@@ -3144,7 +3183,15 @@ def run_research_probe_catalog(
                 if response_payload in SHORT_LOGGER_MARKERS:
                     try:
                         sock.settimeout(min(probe_timeout, CHARACTERIZATION_MARKER_WAIT))
-                        followup_frame = read_ap_frame(sock)
+                        followup_frame, followup_interleaved = (
+                            _read_research_v5_command_response(
+                                sock,
+                                min(probe_timeout, CHARACTERIZATION_MARKER_WAIT),
+                                sequence,
+                            )
+                        )
+                        if followup_interleaved:
+                            attempt["followup_interleaved_frames"] = followup_interleaved
                         followup_summary = _summarize_v5_frame(followup_frame)
                         attempt["followup_frame"] = followup_summary
                         if (

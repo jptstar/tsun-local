@@ -504,6 +504,23 @@ class TsunDumpToolTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             TOOL.build_modbus_read_request(0x0000, 0x0000, function=0x06)
 
+    def test_v5_summary_accepts_short_heartbeat_envelope(self) -> None:
+        serial = 123456789
+        payload = bytes(10)
+        scope = (
+            len(payload).to_bytes(2, "little")
+            + b"\x10\x47"
+            + b"\x01\x00"
+            + serial.to_bytes(4, "little")
+            + payload
+        )
+        frame = b"\xA5" + scope + bytes((TOOL.checksum_ap(scope), 0x15))
+        summary = TOOL._summarize_v5_frame(frame)
+        self.assertTrue(summary["valid"])
+        self.assertEqual(summary["control"], "0x4710")
+        self.assertFalse(summary["control_is_command_response"])
+        self.assertEqual(summary["sequence_low"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
