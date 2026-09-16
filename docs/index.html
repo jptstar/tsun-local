@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — TSUN Microinverter Home Assistant Integration</title>
-  <meta name="description" content="TSUN Local is an open-source, local and read-only Home Assistant integration for TSUN microinverters, including TSOL-MP3000, TSOL-MS300, TSOL-MX500, TSOL-MS800, TSOL-MS2000 and Sunology PLAY2 GEN4. Install with HACS; no cloud or proxy.">
-  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, HACS, TSOL-MP3000, TSOL-MS300, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, Sunology PLAY2 GEN4, 1511, 02B0, 1097, local solar monitoring">
+  <meta name="description" content="TSUN Local is an open-source, local and read-only Home Assistant integration for TSUN microinverters, including TSOL-MP3000, TSOL-MS300, TSOL-MX500, TSOL-MS800, TSOL-MS2000 and Sunology PLAY2 GEN4, with automatic discovery and clear-text alarms.">
+  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, HACS, TSOL-MP3000, TSOL-MS300, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, Sunology Play 2, Sunology PLAY2 GEN4, 1511, 02B0, 1097, local solar monitoring">
   <meta name="author" content="Jean-Philippe TESTART (jptstar)">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
@@ -46,7 +46,7 @@
         "runtimePlatform": "Home Assistant",
         "programmingLanguage": "Python",
         "description": "Home Assistant integration validated on TSOL-MP3000, TSOL-MS300, TSOL-MX500, TSOL-MS800, TSOL-MS2000 and Sunology PLAY2, including Sunology PLAY2 GEN4 / protocol 1097.",
-        "keywords": ["TSUN microinverter","Home Assistant","HACS","TSOL-MP3000","TSOL-MS300","TSOL-MX500","TSOL-MS800","TSOL-MS2000","Sunology PLAY2","Sunology PLAY2 GEN4","1511","02B0","1097"]
+        "keywords": ["TSUN microinverter","Home Assistant","HACS","TSOL-MP3000","TSOL-MS300","TSOL-MX500","TSOL-MS800","TSOL-MS2000","Sunology PLAY2","Sunology Play 2","Sunology PLAY2 GEN4","1511","02B0","1097"]
       }
     ]
   }
@@ -89,7 +89,7 @@
         </div>
       </div>
       <aside class="hero-card" aria-label="TSUN Local compatibility overview">
-        <span class="eyebrow">TSUN LOCAL 1.6.2</span>
+        <span class="eyebrow">NEW IN 1.6.2</span>
         <strong>Three local protocol families</strong>
         <p>Validated paths cover TITAN / 1511, GEN3 / 02B0 and GEN4 / 1097, including Sunology PLAY2 on two hardware generations.</p>
         <div class="hero-tags"><span class="hero-tag">1511</span><span class="hero-tag">02B0</span><span class="hero-tag">1097</span><span class="hero-tag">Read-only</span></div>
@@ -168,7 +168,7 @@ Stable code preserved for diagnosis</div></div>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="entities.html"><strong>Entity reference →</strong><span class="muted">Visual guide to Home Assistant entities, protocol-specific diagnostics and alarm fields.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#windows"><strong>Windows diagnostic →</strong><span class="muted">Guided Windows EXE. No Python installation required.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#python"><strong>Python diagnostic →</strong><span class="muted">Full supported Python package for Windows, macOS and Linux.</span></a>
-      <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#python"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">Use the full Python package; no separate official native Mac or Linux binary is published.</span></a>
+      <a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter.html#mac-linux"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">Use the full Python package; no separate official native Mac or Linux binary is published.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="sunology-play2.html"><strong>Sunology PLAY2 →</strong><span class="muted">Validated 02B0 and GEN4 / 1097 hardware paths, field evidence and compatibility details.</span></a>
       <a class="card" style="display:block;color:inherit;text-decoration:none" href="https://github.com/jptstar/tsun-local"><strong>README &amp; source →</strong><span class="muted">Installation, compatibility policy, diagnostics and source code on GitHub.</span></a>
     </div>
