@@ -1,0 +1,100 @@
+name: Clean remaining diagnostic SEO copy
+
+on:
+  push:
+    branches:
+      - docs/readme-seo-refresh
+    paths:
+      - ".github/workflows/zz-seo-cleanup.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/readme-seo-refresh
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Make stale Mac/Linux copy cleanup permanent
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/sync_diagnostic_docs.py')
+          text = path.read_text(encoding='utf-8')
+          needle = '''text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')
+write(path, text)'''
+          replacement = '''text = text.replace('Windows, macOS, Linux and Python', 'Windows and full Python')
+text = text.replace(
+    'Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux. The hardware communication engine is strictly read-only and creates an anonymized JSON report.',
+    'Run the Windows executable or the full Python package. Both use the same strictly read-only hardware communication engine and create an anonymized JSON report.',
+)
+text = text.replace(
+    '<p class="lead"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app, use Python on any platform, or choose the packaged Mac/Linux app.</p>',
+    '<p class="lead"><strong>Not listed yet, or communication unstable?</strong> Use the Windows app or the full Python package. Both run the same strictly read-only diagnostic engine.</p>',
+)
+text = text.replace(
+    '<p class="hero-note">Windows · Python 3.10+ · macOS &amp; Linux · Strictly read-only</p>',
+    '<p class="hero-note">Windows x86_64 · Full Python 3.10+ · Strictly read-only</p>',
+)
+text = re.sub(r'\\s*<section id="mac-linux">.*?</section>', '', text, count=1, flags=re.DOTALL)
+text = text.replace(
+    '<div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use Windows, Python, Mac or Linux. Discovery and evidence capture remain read-only.</p></div>',
+    '<div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use the Windows executable or the full Python package. Discovery and evidence capture remain read-only.</p></div>',
+)
+text = text.replace(
+    '<div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Recommended in the desktop app. Add an optional tester name and micro-inverter models, review the consent, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>',
+    '<div class="step"><span class="n">3</span><strong>Direct upload</strong><p>Available through the supported diagnostic flow after explicit consent. Add an optional tester name and micro-inverter models, then upload. You receive a TSL receipt and a link to view exactly what was sent.</p></div>',
+)
+write(path, text)'''
+          if needle not in text:
+              raise SystemExit('Expected diagnostic cleanup anchor not found')
+          path.write_text(text.replace(needle, replacement), encoding='utf-8')
+          PY
+          python -m py_compile scripts/sync_diagnostic_docs.py
+          python scripts/sync_diagnostic_docs.py
+          python scripts/sync_diagnostic_docs.py
+
+      - name: Verify no stale public Mac/Linux binary copy remains
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text = Path('docs/test-your-inverter.html').read_text(encoding='utf-8')
+          stale = (
+              'TSUN-Local-Diagnostic-macOS-',
+              'TSUN-Local-Diagnostic-Linux-',
+              'id="mac-linux"',
+              'packaged Mac/Linux app',
+              'Windows, Python, Mac or Linux',
+              'Windows, macOS or Linux',
+          )
+          found = [item for item in stale if item in text]
+          if found:
+              raise SystemExit('Stale diagnostic copy remains: ' + ', '.join(found))
+          for required in (
+              'Windows x86_64 · Full Python 3.10+ · Strictly read-only',
+              'Full Python diagnostic — Linux and advanced users',
+              'TSUN-Local-Diagnostic-Python.zip',
+          ):
+              if required not in text:
+                  raise SystemExit('Missing expected current copy: ' + required)
+          print('Public diagnostic copy is Windows/Python only.')
+          PY
+
+      - name: Commit cleanup without workflow mutation
+        shell: bash
+        run: |
+          git checkout HEAD -- .github/workflows
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/sync_diagnostic_docs.py README.md tools/README.md docs
+          git commit -m "docs: remove stale Mac and Linux diagnostic copy"
+          git push origin HEAD:docs/readme-seo-refresh
