@@ -41,7 +41,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.6"
+TOOL_VERSION = "2.9.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -108,6 +108,148 @@ SHORT_LOGGER_MARKERS = (b"\x05\x00", b"\x06\x00")
 VALIDATED_PROTOCOLS = ("1511", "02b0", "1097")
 EXPERIMENTAL_PROTOCOLS = ("3026",)
 SUPPORTED_PROTOCOLS = (*VALIDATED_PROTOCOLS, *EXPERIMENTAL_PROTOCOLS)
+
+# Probe catalogs are deliberately capability-based.  Public diagnostics expose
+# protocol/framing names only, never the names of third-party implementations.
+RESEARCH_PROBE_TIMEOUT_CAP = 2.0
+RESEARCH_PROBE_DELAY = 0.12
+RESEARCH_PASSIVE_WAIT = 0.25
+V5_COMMAND_RESPONSE_CONTROLS = (0x1510, 0x0510)
+LOCAL_PROBE_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "id": "local_1511_min",
+        "maturity": "validated",
+        "protocol": "1511",
+        "envelope": "solarman_v5",
+        "kind": "native_1511",
+        "sensor_list": 0x0000,
+        "address_tag": 0xA1,
+        "native_function": 0x01,
+        "start": 0x0BB8,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+    {
+        "id": "local_02b0_min",
+        "maturity": "validated",
+        "protocol": "02b0",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x02B0,
+        "start": 0x3000,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+    {
+        "id": "local_1097_min",
+        "maturity": "validated",
+        "protocol": "1097",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x1097,
+        "start": 0x1100,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+    {
+        "id": "local_3026_min",
+        "maturity": "experimental",
+        "protocol": "3026",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x3026,
+        "start": 0x0000,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+)
+
+# Broader read-only fingerprints are attempted only after the validated/local
+# path failed.  They intentionally reproduce known protocol transactions rather
+# than associating a probe with a product, project or integration name.
+RESEARCH_PROBE_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "id": "v5_02b0_full",
+        "maturity": "research",
+        "protocol": "02b0",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x02B0,
+        "start": 0x3000,
+        "count": 48,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_1097_identity",
+        "maturity": "research",
+        "protocol": "1097",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x1097,
+        "start": 0x1000,
+        "count": 16,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_3026_full",
+        "maturity": "research",
+        "protocol": "3026",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x3026,
+        "start": 0x0000,
+        "count": 45,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_1511_full",
+        "maturity": "research",
+        "protocol": "1511",
+        "envelope": "solarman_v5",
+        "kind": "native_1511",
+        "sensor_list": 0x1511,
+        "address_tag": 0xA1,
+        "native_function": 0x01,
+        "start": 0x0BB8,
+        "count": 32,
+        "sequence_mode": "adaptive",
+    },
+)
+
+# Extra probes are useful for difficult full captures but are not part of the
+# automatic minimal fallback.  Only Modbus read functions are allowed.
+RESEARCH_EXTENDED_PROBE_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "id": "v5_02b0_fc04_min",
+        "maturity": "research",
+        "protocol": "02b0",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x04,
+        "sensor_list": 0x02B0,
+        "start": 0x3000,
+        "count": 1,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_1097_fc04_min",
+        "maturity": "research",
+        "protocol": "1097",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x04,
+        "sensor_list": 0x1097,
+        "start": 0x1100,
+        "count": 1,
+        "sequence_mode": "adaptive",
+    },
+)
 
 TSUN_INVERTER_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("GEN3 · 1 in 1", ("TSOL-MS300", "TSOL-MS350", "TSOL-MS400", "TSOL-MX400", "TSOL-MX450", "TSOL-MX500")),
@@ -525,15 +667,24 @@ def checksum_ap(data: bytes) -> int:
     return sum(data) & 0xFF
 
 
-def build_ap_frame(logger_sn: int, payload: bytes, sensor_list: int = 0) -> bytes:
+def build_ap_frame(
+    logger_sn: int,
+    payload: bytes,
+    sensor_list: int = 0,
+    *,
+    sequence: int = 0,
+) -> bytes:
     if logger_sn != 0 and not _valid_monitor_sn(logger_sn):
         raise ValueError("Monitor SN must fit the four-byte logger field")
     if not 0 <= sensor_list <= 0xFFFF:
         raise ValueError("sensor_list must fit the two-byte AP field")
+    if not 0 <= sequence <= 0xFFFF:
+        raise ValueError("sequence must fit the two-byte AP field")
     data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
     scope = (
         len(data).to_bytes(2, "little")
-        + b"\x10\x45\x00\x00"
+        + b"\x10\x45"
+        + sequence.to_bytes(2, "little")
         + logger_sn.to_bytes(4, "little")
         + data
     )
@@ -611,6 +762,22 @@ def build_modbus_request(start: int, end: int) -> bytes:
     """Build an FC03 Modbus RTU read request."""
     count = end - start + 1
     body = b"\x01\x03" + start.to_bytes(2, "big") + count.to_bytes(2, "big")
+    return body + crc16_modbus(body)
+
+
+def build_modbus_read_request(
+    start: int, end: int, *, function: int = 0x03
+) -> bytes:
+    """Build a strictly read-only Modbus RTU FC03/FC04 request."""
+    if function not in (0x03, 0x04):
+        raise ValueError("Only read-only Modbus functions 0x03 and 0x04 are allowed")
+    if not 0 <= start <= end <= 0xFFFF:
+        raise ValueError("Invalid Modbus register range")
+    count = end - start + 1
+    if not 1 <= count <= 125:
+        raise ValueError("Modbus read count must be between 1 and 125 registers")
+    body = b"\x01" + bytes((function,)) + start.to_bytes(2, "big")
+    body += count.to_bytes(2, "big")
     return body + crc16_modbus(body)
 
 
@@ -2619,6 +2786,413 @@ def detect_protocol(
     ) from last_error
 
 
+@dataclass(slots=True)
+class _V5SequenceState:
+    """Sequence state used by a direct Solarman V5 client session."""
+
+    receive_index: int = 0
+    send_index: int = 0
+
+    def next_send(self) -> int:
+        self.send_index = (self.send_index + 1) & 0xFF
+        return (self.receive_index << 8) | self.send_index
+
+    def observe(self, value: int) -> None:
+        self.receive_index = (value >> 8) & 0xFF
+        self.send_index = value & 0xFF
+
+
+def _probe_descriptor(probe: dict[str, Any]) -> dict[str, Any]:
+    """Return a stable, privacy-safe catalog descriptor for reports/tests."""
+    result: dict[str, Any] = {
+        "id": str(probe["id"]),
+        "maturity": str(probe["maturity"]),
+        "protocol": str(probe["protocol"]),
+        "envelope": str(probe["envelope"]),
+        "kind": str(probe["kind"]),
+        "sequence_mode": str(probe.get("sequence_mode", "n/a")),
+        "read_only": True,
+    }
+    if "sensor_list" in probe:
+        result["sensor_list"] = f"0x{int(probe['sensor_list']):04X}"
+    if "function" in probe:
+        result["function"] = f"0x{int(probe['function']):02X}"
+    if "start" in probe:
+        result["start"] = f"0x{int(probe['start']):04X}"
+    if "count" in probe:
+        result["count"] = int(probe["count"])
+    return result
+
+
+def diagnostic_probe_catalogs(*, full: bool) -> dict[str, list[dict[str, Any]]]:
+    """Expose the capability catalogs without implementation provenance names."""
+    research = [*RESEARCH_PROBE_CATALOG]
+    if full:
+        research.extend(RESEARCH_EXTENDED_PROBE_CATALOG)
+    return {
+        "local": [_probe_descriptor(item) for item in LOCAL_PROBE_CATALOG],
+        "research": [_probe_descriptor(item) for item in research],
+    }
+
+
+def _order_research_probes(
+    requested: str, hint: str | None, *, full: bool
+) -> list[dict[str, Any]]:
+    probes = [dict(item) for item in RESEARCH_PROBE_CATALOG]
+    if full:
+        probes.extend(dict(item) for item in RESEARCH_EXTENDED_PROBE_CATALOG)
+    if requested != "auto":
+        probes = [item for item in probes if item["protocol"] == requested]
+    elif hint in SUPPORTED_PROTOCOLS:
+        probes.sort(key=lambda item: item["protocol"] != hint)
+    return probes
+
+
+def _build_catalog_payload(probe: dict[str, Any]) -> bytes:
+    start = int(probe["start"])
+    end = start + int(probe["count"]) - 1
+    if probe["kind"] == "modbus_rtu":
+        return build_modbus_read_request(
+            start, end, function=int(probe.get("function", 0x03))
+        )
+    if probe["kind"] == "native_1511":
+        return build_1511_request(
+            int(probe.get("address_tag", 0xA1)),
+            int(probe.get("native_function", 0x01)),
+            start,
+            end,
+        )
+    raise ValueError(f"Unsupported read-only probe kind: {probe['kind']}")
+
+
+def _summarize_v5_frame(frame: bytes) -> dict[str, Any]:
+    """Summarize a V5 envelope without retaining logger identity bytes."""
+    try:
+        _validate_ap_frame(frame)
+    except Exception as err:
+        return {"valid": False, "error": safe_error_details(err)}
+    control = int.from_bytes(frame[3:5], "little")
+    sequence = int.from_bytes(frame[5:7], "little")
+    return {
+        "valid": True,
+        "control": f"0x{control:04X}",
+        "control_is_command_response": control in V5_COMMAND_RESPONSE_CONTROLS,
+        "sequence": sequence,
+        "frame_type": frame[11] if len(frame) > 11 else None,
+        "status": frame[12] if len(frame) > 12 else None,
+        "payload_bytes": max(0, len(frame) - 27),
+        "logger_identity_stored": False,
+    }
+
+
+def _classify_catalog_payload(
+    probe: dict[str, Any], response_payload: bytes
+) -> dict[str, Any]:
+    """Classify one embedded response while keeping unknown payloads raw-free."""
+    if response_payload in SHORT_LOGGER_MARKERS:
+        return {
+            "result": "short_marker_only",
+            "marker": response_payload.hex(" ").upper(),
+            "valid_data": False,
+        }
+    start = int(probe["start"])
+    count = int(probe["count"])
+    end = start + count - 1
+    if probe["kind"] == "modbus_rtu":
+        function = int(probe.get("function", 0x03))
+        if len(response_payload) < 5 or response_payload[0] != 0x01:
+            return {"result": "non_modbus_payload", "valid_data": False}
+        if crc16_modbus(response_payload[:-2]) != response_payload[-2:]:
+            return {"result": "invalid_modbus_crc", "valid_data": False}
+        response_function = response_payload[1]
+        if response_function == (function | 0x80):
+            return {
+                "result": "modbus_exception",
+                "function": f"0x{response_function:02X}",
+                "exception_code": response_payload[2],
+                "valid_data": False,
+                "transport_valid": True,
+            }
+        if response_function != function:
+            return {
+                "result": "unexpected_modbus_function",
+                "function": f"0x{response_function:02X}",
+                "valid_data": False,
+            }
+        data_length = response_payload[2]
+        expected = count * 2
+        valid_length = (
+            data_length == expected
+            and len(response_payload) == 3 + data_length + 2
+        )
+        return {
+            "result": "valid_read_response" if valid_length else "unexpected_modbus_length",
+            "function": f"0x{response_function:02X}",
+            "register_count": count if valid_length else None,
+            "valid_data": valid_length,
+            "transport_valid": True,
+        }
+    if probe["kind"] == "native_1511":
+        try:
+            registers = parse_1511_response(
+                response_payload,
+                int(probe.get("address_tag", 0xA1)),
+                int(probe.get("native_function", 0x01)),
+                start,
+                end,
+            )
+        except Exception as err:
+            return {
+                "result": "invalid_native_response",
+                "error": safe_error_details(err),
+                "valid_data": False,
+            }
+        return {
+            "result": "valid_read_response",
+            "register_count": len(registers),
+            "valid_data": True,
+            "transport_valid": True,
+        }
+    return {"result": "unsupported_probe_kind", "valid_data": False}
+
+
+def _build_solarman_v4_read_request(logger_sn: int) -> bytes:
+    """Build the historical V4 command 0x0001 (read inverter data)."""
+    if not _valid_monitor_sn(logger_sn):
+        raise ValueError("Monitor SN must fit the four-byte logger field")
+    serial = logger_sn.to_bytes(4, "little")
+    body = b"\x02\x41\xB1" + serial + serial + b"\x01\x00"
+    return b"\x68" + body + bytes((sum(body) & 0xFF, 0x16))
+
+
+def _recv_v4_bounded(sock: socket.socket, timeout: float) -> bytes:
+    data = bytearray()
+    deadline = time.monotonic() + timeout
+    while len(data) < 8192 and (remaining := deadline - time.monotonic()) > 0:
+        sock.settimeout(min(remaining, 0.35 if data else remaining))
+        try:
+            chunk = sock.recv(min(2048, 8192 - len(data)))
+        except socket.timeout:
+            break
+        if not chunk:
+            break
+        data.extend(chunk)
+    return bytes(data)
+
+
+def _run_v4_read_probe(
+    host: str, port: int, sn: int, timeout: float
+) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "attempted": True,
+        "id": "v4_read_inverter_data",
+        "envelope": "solarman_v4",
+        "command": "0x0001",
+        "read_only": True,
+    }
+    try:
+        request = _build_solarman_v4_read_request(sn)
+        with socket.create_connection((host, port), timeout=timeout) as sock:
+            sock.settimeout(timeout)
+            sock.sendall(request)
+            response = _recv_v4_bounded(sock, timeout)
+    except Exception as err:
+        result["result"] = "transport_error"
+        result["error"] = safe_error_details(err)
+        return result
+    result["response_bytes"] = len(response)
+    if not response:
+        result["result"] = "no_response"
+        return result
+    result["looks_like_v4"] = response[:1] == b"\x68" and response[-1:] == b"\x16"
+    result["result"] = "v4_response" if result["looks_like_v4"] else "unknown_response"
+    result["raw_response_stored"] = False
+    return result
+
+
+def run_research_probe_catalog(
+    host: str,
+    port: int,
+    sn: int,
+    timeout: float,
+    *,
+    requested: str = "auto",
+    hint: str | None = None,
+    full: bool = False,
+) -> dict[str, Any]:
+    """Run the additive read-only fallback after the local catalog failed.
+
+    The existing zero-sequence detection path is deliberately untouched.  This
+    fallback uses a single V5 session, adaptive sequence state and known bounded
+    read transactions, stopping as soon as a strong candidate is found.
+    """
+    probes = _order_research_probes(requested, hint, full=full)
+    probe_timeout = min(timeout, RESEARCH_PROBE_TIMEOUT_CAP)
+    result: dict[str, Any] = {
+        "attempted": bool(probes),
+        "read_only": True,
+        "strategy": "adaptive_v5_after_local_failure",
+        "catalogs": diagnostic_probe_catalogs(full=full),
+        "attempts": [],
+        "passive_observation": {"attempted": False},
+        "v5_transport_detected": False,
+        "candidate_protocol": None,
+        "matched_probe": None,
+        "confidence": "none",
+        "safety": {
+            "configuration_write_performed": False,
+            "inverter_write_performed": False,
+            "cloud_access_performed": False,
+            "allowed_modbus_functions": ["0x03", "0x04"],
+            "same_connection": True,
+            "stops_on_valid_read": True,
+        },
+    }
+    if not probes:
+        result["reason"] = "no research probe matches the requested protocol"
+        return result
+
+    sequence = _V5SequenceState()
+    try:
+        with socket.create_connection((host, port), timeout=probe_timeout) as sock:
+            sock.settimeout(probe_timeout)
+            result["passive_observation"] = {
+                "attempted": True,
+                "wait_seconds": RESEARCH_PASSIVE_WAIT,
+                "received": False,
+            }
+            ready, _, _ = select.select([sock], [], [], RESEARCH_PASSIVE_WAIT)
+            if ready:
+                try:
+                    passive_frame = read_ap_frame(sock)
+                    summary = _summarize_v5_frame(passive_frame)
+                    result["passive_observation"].update(
+                        {"received": True, "frame": summary}
+                    )
+                    if summary.get("valid") and isinstance(summary.get("sequence"), int):
+                        sequence.observe(int(summary["sequence"]))
+                    if summary.get("control_is_command_response"):
+                        result["v5_transport_detected"] = True
+                except Exception as err:
+                    result["passive_observation"].update(
+                        {"received": True, "error": safe_error_details(err)}
+                    )
+
+            for probe in probes:
+                payload = _build_catalog_payload(probe)
+                sequence_value = sequence.next_send()
+                request = build_ap_frame(
+                    sn,
+                    payload,
+                    sensor_list=int(probe.get("sensor_list", 0)),
+                    sequence=sequence_value,
+                )
+                attempt: dict[str, Any] = {
+                    **_probe_descriptor(probe),
+                    "sequence_sent": sequence_value,
+                    "result": "pending",
+                }
+                if full:
+                    attempt["request_payload"] = payload.hex(" ").upper()
+                started = time.monotonic()
+                try:
+                    sock.settimeout(probe_timeout)
+                    sock.sendall(request)
+                    frame = read_ap_frame(sock)
+                except (socket.timeout, TimeoutError):
+                    attempt["result"] = "timeout"
+                    attempt["latency_ms"] = round(
+                        (time.monotonic() - started) * 1000, 1
+                    )
+                    result["attempts"].append(attempt)
+                    time.sleep(RESEARCH_PROBE_DELAY)
+                    continue
+                except Exception as err:
+                    attempt["result"] = "transport_error"
+                    attempt["error"] = safe_error_details(err)
+                    attempt["latency_ms"] = round(
+                        (time.monotonic() - started) * 1000, 1
+                    )
+                    result["attempts"].append(attempt)
+                    break
+
+                attempt["latency_ms"] = round(
+                    (time.monotonic() - started) * 1000, 1
+                )
+                summary = _summarize_v5_frame(frame)
+                attempt["frame"] = summary
+                if summary.get("valid") and isinstance(summary.get("sequence"), int):
+                    sequence.observe(int(summary["sequence"]))
+                if summary.get("control_is_command_response"):
+                    result["v5_transport_detected"] = True
+                try:
+                    response_payload = parse_ap_frame(frame)
+                except Exception as err:
+                    attempt["result"] = "invalid_v5_response"
+                    attempt["error"] = safe_error_details(err)
+                    result["attempts"].append(attempt)
+                    time.sleep(RESEARCH_PROBE_DELAY)
+                    continue
+
+                classification = _classify_catalog_payload(probe, response_payload)
+                attempt["classification"] = classification
+                attempt["result"] = str(classification["result"])
+
+                # Some loggers first return a two-byte marker and then the real
+                # read response on the same connection.  Keep that behavior
+                # bounded and read-only rather than declaring a false failure.
+                if response_payload in SHORT_LOGGER_MARKERS:
+                    try:
+                        sock.settimeout(min(probe_timeout, CHARACTERIZATION_MARKER_WAIT))
+                        followup_frame = read_ap_frame(sock)
+                        followup_summary = _summarize_v5_frame(followup_frame)
+                        attempt["followup_frame"] = followup_summary
+                        if (
+                            followup_summary.get("valid")
+                            and isinstance(followup_summary.get("sequence"), int)
+                        ):
+                            sequence.observe(int(followup_summary["sequence"]))
+                        followup_payload = parse_ap_frame(followup_frame)
+                        followup = _classify_catalog_payload(probe, followup_payload)
+                        attempt["followup_classification"] = followup
+                        if followup.get("valid_data"):
+                            classification = followup
+                            attempt["result"] = "valid_read_response_after_short_marker"
+                    except (socket.timeout, TimeoutError):
+                        attempt["followup"] = "none_before_timeout"
+                    except Exception as err:
+                        attempt["followup"] = "invalid"
+                        attempt["followup_error"] = safe_error_details(err)
+
+                result["attempts"].append(attempt)
+                if classification.get("valid_data"):
+                    result["candidate_protocol"] = str(probe["protocol"])
+                    result["matched_probe"] = str(probe["id"])
+                    result["confidence"] = "valid_read_response"
+                    break
+                time.sleep(RESEARCH_PROBE_DELAY)
+    except Exception as err:
+        result["session_error"] = safe_error_details(err)
+
+    if result["candidate_protocol"] is None and result["v5_transport_detected"]:
+        result["confidence"] = "v5_transport_only"
+
+    # The historical V4 read is deliberately a full-capture fallback only, and
+    # is skipped as soon as V5 transport has been established.
+    result["v4_read_probe"] = (
+        _run_v4_read_probe(host, port, sn, probe_timeout)
+        if full
+        and result["candidate_protocol"] is None
+        and not result["v5_transport_detected"]
+        else {
+            "attempted": False,
+            "read_only": True,
+            "reason": "not needed" if full else "requires --full",
+        }
+    )
+    return result
+
+
 def register_key(protocol: str, block: tuple, address: int) -> str:
     if protocol == "1511":
         tag, function, _start, _end = block
@@ -3174,6 +3748,15 @@ def capture_protocol_detection_failure(
         else []
     )
 
+    research_detection = run_research_probe_catalog(
+        host,
+        args.port,
+        sn,
+        args.timeout,
+        requested=args.protocol,
+        hint=discovery.get("protocol_hint"),
+        full=full,
+    )
     try:
         logger_web = capture_logger_web_pages(host, args.http_page_timeout)
     except Exception as err:
@@ -3250,6 +3833,7 @@ def capture_protocol_detection_failure(
             "attempted": False,
             "reason": "no supported protocol selected",
         },
+        "research_detection": research_detection,
         "discovery": discovery,
         "protocol_detection": {
             "requested": args.protocol,

@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.8.6")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.9.0")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -438,6 +438,71 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertFalse(document["protocol_failure_characterization"]["attempted"])
         self.assertEqual(document["protocol_detection"]["attempts"], error.attempts)
         self.assertIs(TOOL.validate_diagnostic_for_upload(document), document)
+
+
+    def test_ap_frame_default_sequence_remains_legacy_zero(self) -> None:
+        frame = TOOL.build_ap_frame(123456789, b"\x01\x03\x00\x00", sensor_list=0x02B0)
+        self.assertEqual(frame[5:7], b"\x00\x00")
+
+    def test_ap_frame_supports_explicit_v5_sequence(self) -> None:
+        frame = TOOL.build_ap_frame(
+            123456789,
+            b"\x01\x03\x00\x00",
+            sensor_list=0x3026,
+            sequence=1,
+        )
+        self.assertEqual(frame[5:7], b"\x01\x00")
+
+    def test_v5_sequence_state_starts_at_one_and_tracks_peer(self) -> None:
+        sequence = TOOL._V5SequenceState()
+        self.assertEqual(sequence.next_send(), 0x0001)
+        sequence.observe(0x0101)
+        self.assertEqual(sequence.next_send(), 0x0102)
+
+    def test_local_probe_catalog_preserves_existing_detection_transactions(self) -> None:
+        probes = {item["protocol"]: item for item in TOOL.LOCAL_PROBE_CATALOG}
+        self.assertEqual(probes["1511"]["sequence_mode"], "legacy_zero")
+        self.assertEqual((probes["02b0"]["start"], probes["02b0"]["count"]), (0x3000, 1))
+        self.assertEqual((probes["1097"]["start"], probes["1097"]["count"]), (0x1100, 1))
+        self.assertEqual((probes["3026"]["start"], probes["3026"]["count"]), (0x0000, 1))
+
+    def test_research_catalog_contains_exact_bounded_v5_fingerprints(self) -> None:
+        probes = {item["id"]: item for item in TOOL.RESEARCH_PROBE_CATALOG}
+        self.assertEqual(
+            (probes["v5_02b0_full"]["sensor_list"], probes["v5_02b0_full"]["start"], probes["v5_02b0_full"]["count"]),
+            (0x02B0, 0x3000, 48),
+        )
+        self.assertEqual(
+            (probes["v5_1097_identity"]["sensor_list"], probes["v5_1097_identity"]["start"], probes["v5_1097_identity"]["count"]),
+            (0x1097, 0x1000, 16),
+        )
+        self.assertEqual(
+            (probes["v5_3026_full"]["sensor_list"], probes["v5_3026_full"]["start"], probes["v5_3026_full"]["count"]),
+            (0x3026, 0x0000, 45),
+        )
+
+    def test_every_catalog_probe_is_strictly_read_only(self) -> None:
+        for probe in (
+            *TOOL.LOCAL_PROBE_CATALOG,
+            *TOOL.RESEARCH_PROBE_CATALOG,
+            *TOOL.RESEARCH_EXTENDED_PROBE_CATALOG,
+        ):
+            if probe["kind"] == "modbus_rtu":
+                self.assertIn(probe["function"], (0x03, 0x04))
+            else:
+                self.assertEqual(probe["kind"], "native_1511")
+        manifest = TOOL.diagnostic_probe_catalogs(full=True)
+        self.assertTrue(all(item["read_only"] for group in manifest.values() for item in group))
+
+    def test_user_facing_probe_catalog_has_no_implementation_names(self) -> None:
+        rendered = repr(TOOL.diagnostic_probe_catalogs(full=True)).lower()
+        self.assertNotIn("proxy", rendered)
+        self.assertNotIn("hacs", rendered)
+        self.assertIn("solarman_v5", rendered)
+
+    def test_modbus_research_builder_rejects_write_functions(self) -> None:
+        with self.assertRaises(ValueError):
+            TOOL.build_modbus_read_request(0x0000, 0x0000, function=0x06)
 
 
 if __name__ == "__main__":
