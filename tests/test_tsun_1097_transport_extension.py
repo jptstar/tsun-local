@@ -97,6 +97,95 @@ class Transport1097ExtensionTests(unittest.TestCase):
         called_ports = [call.args[2] for call in fake_dump.detect_protocol.call_args_list]
         self.assertEqual(called_ports, [502, 5000, 9000])
 
+    def test_status_parser_extracts_measurements_without_serial_number(self) -> None:
+        parsed = ext.parse_status_measurements(
+            b'''<script>
+var webdata_sn = "Y001234567";
+var webdata_msvn = "MAIN_1";
+var webdata_ssvn = "SLAVE_1";
+var webdata_pv_type = "MX500";
+var webdata_rate_p = "500";
+var webdata_now_p = "123";
+var webdata_today_e = "2.4";
+var webdata_total_e = "321.6";
+var webdata_alarm = "";
+var webdata_utime = "4";
+var status_a = "1";
+</script>'''
+        )
+        self.assertEqual(parsed["values"]["current_power_w"], 123)
+        self.assertEqual(parsed["values"]["yield_today_kwh"], 2.4)
+        self.assertEqual(parsed["values"]["inverter_model"], "MX500")
+        self.assertNotIn("webdata_sn", parsed["variables_found"])
+        self.assertNotIn("Y001234567", json.dumps(parsed))
+        self.assertFalse(parsed["serial_number_stored"])
+        self.assertFalse(parsed["raw_html_stored"])
+
+    def test_http_sampling_validates_changing_live_measurements(self) -> None:
+        bodies = []
+        for power in (100, 120, 130):
+            bodies.append(
+                (
+                    'var webdata_rate_p="500"; '
+                    f'var webdata_now_p="{power}"; '
+                    'var webdata_today_e="1.2"; '
+                    'var webdata_total_e="42.0"; '
+                    'var webdata_utime="1";'
+                ).encode()
+            )
+        rows = [
+            {
+                "status": 200,
+                "content_type": "text/html",
+                "body_length": len(body),
+                "body_sha256_12": "abc",
+                "body": body,
+            }
+            for body in bodies
+        ]
+        with (
+            mock.patch.object(ext, "_http_fetch", side_effect=rows),
+            mock.patch.object(ext, "HTTP_SAMPLE_STANDARD_COUNT", 3),
+        ):
+            result = ext.sample_http_measurements(
+                "192.0.2.10",
+                0.2,
+                full=False,
+                sleep_fn=lambda _seconds: None,
+            )
+        self.assertEqual(result["conclusion"], "live_http_measurements_validated")
+        self.assertTrue(result["http_live_measurements_validated"])
+        self.assertIn("current_power_w", result["changing_fields"])
+        self.assertFalse(result["privacy"]["raw_html_stored"])
+        self.assertFalse(result["safety"]["http_post_performed"])
+
+    def test_http_sampling_zero_values_remain_a_candidate(self) -> None:
+        body = (
+            b'var webdata_rate_p=""; var webdata_now_p="0"; '
+            b'var webdata_today_e="0.0"; var webdata_total_e="0.0"; '
+            b'var webdata_utime="0";'
+        )
+        row = {
+            "status": 200,
+            "content_type": "text/html",
+            "body_length": len(body),
+            "body_sha256_12": "abc",
+            "body": body,
+        }
+        with (
+            mock.patch.object(ext, "_http_fetch", return_value=row),
+            mock.patch.object(ext, "HTTP_SAMPLE_STANDARD_COUNT", 2),
+        ):
+            result = ext.sample_http_measurements(
+                "192.0.2.10",
+                0.2,
+                full=False,
+                sleep_fn=lambda _seconds: None,
+            )
+        self.assertEqual(result["conclusion"], "http_measurements_zero_during_sampling")
+        self.assertTrue(result["http_measurements_candidate"])
+        self.assertFalse(result["http_live_measurements_validated"])
+
     def test_normal_capture_is_not_extended(self) -> None:
         expected = {"metadata": {"detected_protocol": "1097"}}
         fake = types.SimpleNamespace(capture=mock.Mock(return_value=expected))
@@ -123,26 +212,82 @@ class Transport1097ExtensionTests(unittest.TestCase):
         fake_dump = types.SimpleNamespace(
             build_modbus_read_request=mock.Mock(return_value=b"read"),
             build_ap_frame=mock.Mock(return_value=b"frame"),
-            _summarize_v5_frame=mock.Mock(return_value={"valid": True, "control": "0x1510", "control_name": "RESPONSE"}),
+            _summarize_v5_frame=mock.Mock(
+                return_value={
+                    "valid": True,
+                    "control": "0x1510",
+                    "control_name": "RESPONSE",
+                }
+            ),
             detect_protocol=mock.Mock(side_effect=RuntimeError("no")),
         )
-        lifecycle = {"attempted": True, "port": 8899, "attempt_count": 1, "open_count": 0, "results": []}
+        lifecycle = {
+            "attempted": True,
+            "port": 8899,
+            "attempt_count": 1,
+            "open_count": 0,
+            "results": [],
+        }
+        sampling = {
+            "http_measurements_candidate": True,
+            "http_live_measurements_validated": True,
+            "measurement_fields_seen": ["current_power_w"],
+            "conclusion": "live_http_measurements_validated",
+        }
         with (
             mock.patch.object(ext, "tcp_lifecycle", return_value=lifecycle),
+            mock.patch.object(ext, "sample_http_measurements", return_value=sampling),
             mock.patch.object(ext, "_http_get", return_value={"status": 200, "method": "GET"}),
-            mock.patch.object(ext, "query_at_getters", return_value={"attempted": True, "queries": [], "assignment_sent": False}),
-            mock.patch.object(ext, "udp_1097_read", return_value={"attempted": True, "function": "0x03", "attempts": [], "write_function_sent": False}),
-            mock.patch.object(ext, "extra_tcp_inventory", return_value={"attempted": True, "open_ports": [80], "ports_tested": 10, "full_65535_scan_performed": False}),
+            mock.patch.object(
+                ext,
+                "query_at_getters",
+                return_value={"attempted": True, "queries": [], "assignment_sent": False},
+            ),
+            mock.patch.object(
+                ext,
+                "udp_1097_read",
+                return_value={
+                    "attempted": True,
+                    "function": "0x03",
+                    "attempts": [],
+                    "write_function_sent": False,
+                },
+            ),
+            mock.patch.object(
+                ext,
+                "extra_tcp_inventory",
+                return_value={
+                    "attempted": True,
+                    "open_ports": [80],
+                    "ports_tested": 10,
+                    "full_65535_scan_performed": False,
+                },
+            ),
             mock.patch.object(ext, "alternate_1097", return_value=[]),
         ):
-            result = ext.extend_document(fake_dump, self._args(), "192.0.2.10", 1234, document)
+            result = ext.extend_document(
+                fake_dump,
+                self._args(),
+                "192.0.2.10",
+                1234,
+                document,
+            )
         evidence = result["transport_research"]["extended_1097"]
+        self.assertEqual(evidence["version"], 2)
+        self.assertEqual(evidence["phase_order"][2], "http_measurement_sampling")
         self.assertTrue(evidence["summary"]["logger_reports_tcp_server_8899"])
+        self.assertTrue(evidence["summary"]["http_live_measurements_validated"])
+        self.assertEqual(evidence["summary"]["recommended_transport"], "http_status_page")
+        self.assertEqual(
+            evidence["summary"]["next_step"],
+            "implement_and_validate_1097_http_transport",
+        )
         self.assertEqual(evidence["udp_1097_fc03_probe"]["function"], "0x03")
         self.assertEqual(evidence["safety"]["modbus_functions_sent"], ["0x03"])
         self.assertFalse(evidence["safety"]["modbus_write_sent"])
         self.assertFalse(evidence["safety"]["http_post_performed"])
         self.assertFalse(evidence["safety"]["full_65535_tcp_scan_performed"])
+        self.assertFalse(evidence["safety"]["raw_http_body_stored"])
 
 
 if __name__ == "__main__":
