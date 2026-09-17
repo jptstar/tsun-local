@@ -1,0 +1,577 @@
+name: Remove obsolete Mac and Linux diagnostic documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/remove-mac-linux-diagnostics.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.event.head_commit.message == 'chore: remove mac/linux diagnostic docs'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Remove Mac and Linux diagnostic references
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          ROOT = Path('.')
+          WINDOWS_URL = 'https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe'
+          WINDOWS_SHA = WINDOWS_URL + '.sha256'
+          RELEASE_URL = 'https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest'
+          DUMP_URL = 'https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py'
+          DUMP_SHA = DUMP_URL + '.sha256'
+
+          sections = {
+              'README.md': f'''## 🔬 Validate another TSUN model
+
+          TSUN Local provides a privacy-safe, **strictly read-only** desktop diagnostic for unlisted models and communication issues.
+
+          ### Desktop app — Windows
+
+          | Platform | Download | SHA-256 |
+          |---|---|---|
+          | **Windows x86_64** | **[TSUN-Local-Diagnostic.exe]({WINDOWS_URL})** | [checksum]({WINDOWS_SHA}) |
+
+          **Current public diagnostic versions:** desktop GUI **1.5.12** · dump engine **2.8.3**.
+
+          > [!IMPORTANT]
+          > The rolling tag and historical Windows asset name are deliberately preserved. The existing `.../diagnostic-latest/TSUN-Local-Diagnostic.exe` link used in older posts continues to point to the latest Windows diagnostic.
+
+          The Windows desktop interface uses the same **1 → 2 → 3 → 4** flow:
+
+          1. **Disable TSUN Local** for the affected logger.
+          2. **Run the diagnostic**.
+          3. **Direct report upload** — recommended; explicit consent is mandatory.
+          4. **Manual e-mail report** — optional fallback only.
+
+          The direct-upload dialog can remember the tester name/pseudonym and up to 10 searchable micro-inverter model/quantity rows across application updates. The consent checkbox is never remembered. After a successful upload, the application shows the `TSL-...` receipt plus a private-token **Open report** link so the tester can see exactly the anonymized JSON that was submitted.
+
+          For an upload-only test away from the installation, the dedicated synthetic mode uses `89:89:89:89` as logger IP and `89898989` as Monitor SN. This mode explicitly records that no logger or micro-inverter communication was attempted.
+
+          **📦 [Open the rolling diagnostic release]({RELEASE_URL})** · 📚 **[Hardware Validation Dump Tool guide](docs/HARDWARE_DUMP.md)** · 📋 **[Desktop/direct-upload validation protocol](docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 🌐 **[Public test page](https://jptstar.github.io/tsun-local/test-your-inverter.html)**
+
+          ### Python / command-line alternative
+
+          **⬇️ [Download `tsun_dump.py`]({DUMP_URL})** — Python 3.10+.  
+          **🔐 [SHA-256 checksum]({DUMP_SHA})**
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+
+          The standalone dumper checks the same `diagnostic-latest` channel, verifies SHA-256 before replacement and keeps `--check-update` / `--no-update` controls.
+''',
+              'docs/README_FR.md': f'''## 🔬 Valider un autre modèle TSUN
+
+          TSUN Local propose un diagnostic matériel respectueux de la confidentialité et **strictement en lecture seule** pour les modèles non listés et les problèmes de communication.
+
+          ### Application de bureau — Windows
+
+          | Plateforme | Téléchargement | Contrôle |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Versions actuelles : interface **1.5.12** · moteur de dump **2.8.3**.
+
+          Le lien Windows historique reste volontairement inchangé afin que les anciens messages et tutoriels continuent de fonctionner.
+
+          Le parcours Windows suit quatre étapes :
+
+          1. **Désactiver TSUN Local** pour le logger concerné.
+          2. **Lancer le diagnostic**.
+          3. **Envoi direct du rapport** — recommandé, avec consentement explicite obligatoire.
+          4. **Envoi manuel par e-mail** — optionnel, uniquement en secours.
+
+          Le nom/pseudonyme et jusqu’à 10 modèles de micro-onduleurs avec leurs quantités peuvent être mémorisés localement. Le consentement n’est jamais mémorisé. Après un envoi réussi, l’application affiche l’identifiant `TSL-...` et un lien sécurisé permettant de voir exactement le rapport anonymisé envoyé.
+
+          Test hors domicile : utilisez exactement `89:89:89:89` comme IP logger et `89898989` comme Monitor SN. Ce mode est explicitement synthétique et ne contacte aucun appareil.
+
+          **[Release diagnostic stable]({RELEASE_URL})** · 📋 **[Protocole de validation](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)**
+
+          ### Alternative Python / ligne de commande
+
+          [`tsun_dump.py`]({DUMP_URL}) reste disponible pour Python 3.10+ et les utilisateurs avancés :
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+              'docs/README_DE.md': f'''## 🔬 Ein weiteres TSUN-Modell validieren
+
+          TSUN Local bietet für nicht aufgeführte Modelle und Kommunikationsprobleme eine datenschutzfreundliche, **streng schreibgeschützte** Desktop-Diagnose.
+
+          ### Desktop-Anwendung — Windows
+
+          | Plattform | Download | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Aktuelle Versionen: Oberfläche **1.5.12** · Dump-Engine **2.8.3**.
+
+          Die historische Windows-Download-Adresse bleibt absichtlich unverändert.
+
+          Der Windows-Ablauf besteht aus vier Schritten:
+
+          1. **TSUN Local deaktivieren** für den betroffenen Logger.
+          2. **Diagnose starten**.
+          3. **Direkter Bericht-Upload** — empfohlen, ausdrückliche Zustimmung erforderlich.
+          4. **Manueller E-Mail-Bericht** — nur als optionaler Rückfallweg.
+
+          Testername/Pseudonym und bis zu 10 Mikro-Wechselrichtermodelle mit Mengen können lokal gespeichert werden. Die Zustimmung wird nie gespeichert. Nach erfolgreichem Upload zeigt die Anwendung die `TSL-...`-Kennung und einen geschützten Link zum exakt übertragenen anonymisierten Bericht.
+
+          Für einen reinen Upload-Test außerhalb der Anlage verwenden Sie `89:89:89:89` als Logger-IP und `89898989` als Monitor-SN. Dabei wird kein Gerät kontaktiert.
+
+          **[Stabile Diagnose-Release]({RELEASE_URL})** · 📋 **[Validierungsprotokoll](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Hardware-Diagnosehandbuch](HARDWARE_DUMP.md)**
+
+          ### Python-/Kommandozeilen-Alternative
+
+          [`tsun_dump.py`]({DUMP_URL}) bleibt für Python 3.10+ verfügbar:
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+              'docs/README_ES.md': f'''## 🔬 Validar otro modelo TSUN
+
+          TSUN Local ofrece un diagnóstico de escritorio respetuoso con la privacidad y **estrictamente de solo lectura** para modelos no listados y problemas de comunicación.
+
+          ### Aplicación de escritorio — Windows
+
+          | Plataforma | Descarga | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Versiones actuales: interfaz **1.5.12** · motor de volcado **2.8.3**.
+
+          La URL histórica de Windows se mantiene sin cambios para conservar los enlaces existentes.
+
+          El flujo de Windows utiliza cuatro pasos:
+
+          1. **Desactivar TSUN Local** para el logger afectado.
+          2. **Ejecutar el diagnóstico**.
+          3. **Envío directo del informe** — recomendado y con consentimiento explícito obligatorio.
+          4. **Envío manual por correo** — alternativa opcional.
+
+          El nombre o seudónimo y hasta 10 modelos de microinversor con cantidades pueden guardarse localmente. El consentimiento nunca se recuerda. Tras un envío correcto, la aplicación muestra el recibo `TSL-...` y un enlace privado al informe anonimizado enviado.
+
+          Para probar solo la subida fuera de la instalación, use `89:89:89:89` como IP del logger y `89898989` como Monitor SN. No se contacta ningún dispositivo.
+
+          **[Release estable del diagnóstico]({RELEASE_URL})** · 📋 **[Protocolo de validación](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guía de diagnóstico](HARDWARE_DUMP.md)**
+
+          ### Alternativa Python / línea de comandos
+
+          [`tsun_dump.py`]({DUMP_URL}) sigue disponible con Python 3.10+:
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+              'docs/README_IT.md': f'''## 🔬 Validare un altro modello TSUN
+
+          TSUN Local offre una diagnostica desktop rispettosa della privacy e **rigorosamente in sola lettura** per modelli non elencati e problemi di comunicazione.
+
+          ### App desktop — Windows
+
+          | Piattaforma | Download | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Versioni attuali: interfaccia **1.5.12** · motore dump **2.8.3**.
+
+          L’URL storico di Windows resta invariato per mantenere validi i collegamenti esistenti.
+
+          Il flusso Windows usa quattro passaggi:
+
+          1. **Disattivare TSUN Local** per il logger interessato.
+          2. **Eseguire la diagnostica**.
+          3. **Invio diretto del report** — consigliato, con consenso esplicito obbligatorio.
+          4. **Invio manuale via e-mail** — alternativa opzionale.
+
+          Nome/pseudonimo e fino a 10 modelli di microinverter con quantità possono essere salvati localmente. Il consenso non viene mai memorizzato. Dopo l’invio, l’app mostra la ricevuta `TSL-...` e un link privato al report anonimizzato inviato.
+
+          Per un test del solo upload lontano dall’impianto, usare `89:89:89:89` come IP logger e `89898989` come Monitor SN. Nessun dispositivo viene contattato.
+
+          **[Release diagnostica stabile]({RELEASE_URL})** · 📋 **[Protocollo di validazione](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guida diagnostica](HARDWARE_DUMP.md)**
+
+          ### Alternativa Python / riga di comando
+
+          [`tsun_dump.py`]({DUMP_URL}) resta disponibile con Python 3.10+:
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+              'docs/README_NL.md': f'''## 🔬 Een ander TSUN-model valideren
+
+          TSUN Local biedt een privacyvriendelijke, **strikt alleen-lezen** desktopdiagnose voor niet-vermelde modellen en communicatieproblemen.
+
+          ### Desktop-app — Windows
+
+          | Platform | Download | Controle |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Huidige versies: interface **1.5.12** · dump-engine **2.8.3**.
+
+          De historische Windows-downloadlink blijft bewust ongewijzigd.
+
+          De Windows-workflow bestaat uit vier stappen:
+
+          1. **TSUN Local uitschakelen** voor de betrokken logger.
+          2. **De diagnose uitvoeren**.
+          3. **Rapport direct uploaden** — aanbevolen, met verplichte expliciete toestemming.
+          4. **Rapport handmatig per e-mail versturen** — alleen als terugvaloptie.
+
+          Testernaam/pseudoniem en maximaal 10 micro-omvormermodellen met aantallen kunnen lokaal worden opgeslagen. Toestemming wordt nooit onthouden. Na een geslaagde upload toont de app het `TSL-...`-bewijs en een privélink naar het exact verzonden geanonimiseerde rapport.
+
+          Voor een uploadtest buiten de installatie gebruikt u `89:89:89:89` als logger-IP en `89898989` als Monitor SN. Er wordt geen apparaat benaderd.
+
+          **[Stabiele diagnostic-release]({RELEASE_URL})** · 📋 **[Validatieprotocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Diagnosehandleiding](HARDWARE_DUMP.md)**
+
+          ### Python-/opdrachtregelalternatief
+
+          [`tsun_dump.py`]({DUMP_URL}) blijft beschikbaar voor Python 3.10+:
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+              'docs/README_PL.md': f'''## 🔬 Walidacja kolejnego modelu TSUN
+
+          TSUN Local udostępnia bezpieczną dla prywatności, **ściśle tylko do odczytu** diagnostykę desktopową dla modeli spoza listy i problemów z komunikacją.
+
+          ### Aplikacja desktopowa — Windows
+
+          | Platforma | Pobieranie | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Aktualne wersje: interfejs **1.5.12** · silnik zrzutu **2.8.3**.
+
+          Historyczny adres pobierania dla Windows pozostaje bez zmian.
+
+          Proces Windows obejmuje cztery kroki:
+
+          1. **Wyłącz TSUN Local** dla danego loggera.
+          2. **Uruchom diagnostykę**.
+          3. **Bezpośrednio wyślij raport** — zalecane, wymagana jest wyraźna zgoda.
+          4. **Wyślij raport ręcznie e-mailem** — opcjonalna metoda awaryjna.
+
+          Nazwa/pseudonim testera oraz do 10 modeli mikrofalowników z ilościami mogą być zapisane lokalnie. Zgoda nigdy nie jest zapamiętywana. Po udanym wysłaniu aplikacja pokazuje identyfikator `TSL-...` i prywatny link do dokładnie przesłanego zanonimizowanego raportu.
+
+          Do testu samego wysyłania poza instalacją użyj `89:89:89:89` jako IP loggera i `89898989` jako Monitor SN. Żadne urządzenie nie jest kontaktowane.
+
+          **[Stabilne wydanie diagnostyki]({RELEASE_URL})** · 📋 **[Protokół walidacji](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Przewodnik diagnostyczny](HARDWARE_DUMP.md)**
+
+          ### Alternatywa Python / wiersz poleceń
+
+          [`tsun_dump.py`]({DUMP_URL}) pozostaje dostępny dla Python 3.10+:
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+              'docs/README_ZH.md': f'''## 🔬 验证其他 TSUN 型号
+
+          TSUN Local 为未列出的型号和通信问题提供注重隐私、**严格只读**的桌面诊断工具。
+
+          ### 桌面应用 — Windows
+
+          | 平台 | 下载 | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          当前版本：界面 **1.5.12** · 转储引擎 **2.8.3**。
+
+          历史 Windows 下载地址保持不变，以保证旧链接继续有效。
+
+          Windows 诊断流程包含四个步骤：
+
+          1. 为相关记录器**停用 TSUN Local**。
+          2. **运行诊断**。
+          3. **直接上传报告** — 推荐使用，必须明确同意。
+          4. **手动通过电子邮件发送报告** — 仅作为备用方式。
+
+          测试者名称/昵称以及最多 10 个微型逆变器型号和数量可以保存在本地；上传同意状态绝不会被记住。上传成功后，应用会显示 `TSL-...` 回执以及用于查看已提交匿名报告的私有链接。
+
+          如需在安装现场之外仅测试上传，请将记录器 IP 设为 `89:89:89:89`，Monitor SN 设为 `89898989`。此模式不会联系任何设备。
+
+          **[稳定诊断版本]({RELEASE_URL})** · 📋 **[验证协议](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[硬件诊断指南](HARDWARE_DUMP.md)**
+
+          ### Python / 命令行替代方案
+
+          [`tsun_dump.py`]({DUMP_URL}) 仍可用于 Python 3.10+：
+
+          ```powershell
+          py tsun_dump.py --full
+          ```
+''',
+          }
+
+          for rel, replacement in sections.items():
+              path = ROOT / rel
+              text = path.read_text(encoding='utf-8')
+              updated, count = re.subn(
+                  r'## 🔬[^\n]*\n.*?(?=\n### Sunology PLAY2\n)',
+                  replacement.strip() + '\n',
+                  text,
+                  count=1,
+                  flags=re.S,
+              )
+              if count != 1:
+                  raise SystemExit(f'Could not replace diagnostic section in {rel}: {count}')
+              path.write_text(updated, encoding='utf-8')
+
+          # Tools README: keep the desktop documentation Windows-only.
+          path = ROOT / 'tools/README.md'
+          text = path.read_text(encoding='utf-8')
+          replacement = f'''## Desktop diagnostic — Windows
+
+          For users who prefer a guided interface, TSUN Local provides the Windows desktop diagnostic. It uses the shared [`tsun_diagnostic.py`](tsun_diagnostic.py) entry point and the same privacy-safe, **strictly read-only** `tsun_dump.py` engine.
+
+          The application is published independently from Home Assistant integration releases under the stable rolling **`diagnostic-latest`** release. The historical Windows URL is deliberately unchanged so links in older posts continue to work.
+
+          | Platform | Download | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [checksum]({WINDOWS_SHA}) |
+
+          ### Updates
+
+          The Windows package keeps the existing verified in-place self-update flow and download URL. The Python dumper keeps its verified self-update behavior. Tester profile data is stored outside the executable so an application update does not remove the saved tester name or micro-inverter list.
+
+          📋 [Desktop/direct-upload validation protocol](../docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
+'''
+          text, count = re.subn(
+              r'## Desktop diagnostic[^\n]*\n.*?(?=\n## Hardware validation dump\n)',
+              replacement.strip() + '\n',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit('Could not rewrite tools/README.md desktop section')
+          path.write_text(text, encoding='utf-8')
+
+          # Hardware dump guide: Windows desktop route + generic Python fallback.
+          path = ROOT / 'docs/HARDWARE_DUMP.md'
+          text = path.read_text(encoding='utf-8')
+          replacement = f'''## ⬇️ Choose the easiest diagnostic
+
+          ### Desktop application — Windows (recommended)
+
+          The Windows **TSUN Local Diagnostic** uses the same privacy-safe, **strictly read-only** `tsun_dump.py` hardware engine; direct report upload is a separate HTTPS action performed only after explicit consent.
+
+          | Platform | Download | SHA-256 |
+          |---|---|---|
+          | Windows x86_64 | [TSUN-Local-Diagnostic.exe]({WINDOWS_URL}) | [SHA-256]({WINDOWS_SHA}) |
+
+          Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.3**.
+
+          The historical Windows URL and filename are intentionally unchanged so old forum posts, issue comments and documentation links stay valid.
+
+          1. reproduce the problem and **do not reload TSUN Local first**;
+          2. download the Home Assistant diagnostic when possible;
+          3. **disable the affected TSUN Local config entry** so it does not compete for the logger connection;
+          4. launch the Windows desktop diagnostic and run the capture;
+          5. use **step 3 direct upload** after reviewing the explicit consent, or **step 4 manual e-mail** only as fallback;
+          6. re-enable TSUN Local when the capture is finished.
+
+          The direct-upload UI can remember the tester name/pseudonym and up to 10 selected micro-inverter models/quantities across application updates. The consent checkbox is never persisted. A successful upload returns a `TSL-...` receipt plus a private-token Worker link that lets the tester see exactly the anonymized report sent.
+
+          For an upload-only test away from the installation, enter exactly:
+
+          ```text
+          Logger IP : 89:89:89:89
+          Monitor SN: 89898989
+          ```
+
+          This dedicated synthetic mode explicitly records `test_mode: true` and `communication_attempted: false`; no logger or micro-inverter is contacted.
+
+          📋 **[Desktop/direct-upload validation protocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)**
+'''
+          text, count = re.subn(
+              r'## ⬇️ Choose the easiest diagnostic\n.*?(?=\n### Firmware-resilient logger web capture\n)',
+              replacement.strip() + '\n',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          if count != 1:
+              raise SystemExit('Could not rewrite HARDWARE_DUMP desktop section')
+          text = text.replace('### Python / command-line alternative — all platforms', '### Python / command-line alternative')
+          text = re.sub(
+              r'\nmacOS / Linux:\n\n```bash\npython3 tsun_dump\.py --full\n```\n',
+              '\n',
+              text,
+              count=1,
+          )
+          path.write_text(text, encoding='utf-8')
+
+          # Validation protocol: Windows desktop package only.
+          path = ROOT / 'docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md'
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('# TSUN Local Diagnostic — cross-platform validation protocol', '# TSUN Local Diagnostic — Windows validation protocol')
+          scope = '''## Scope
+
+          The shared Tk desktop interface is published for:
+
+          - Windows x86_64 — `TSUN-Local-Diagnostic.exe`
+
+          The desktop application uses the read-only diagnostic engine and the same user flow:
+
+          1. **Disable TSUN Local** for the logger being tested.
+          2. **Run the diagnostic**.
+          3. **Direct report upload** — recommended, explicit consent required.
+          4. **Manual e-mail report** — optional fallback only.
+
+          The Python `tsun_dump.py` tool remains available for advanced/terminal use and must keep the same read-only behavior.
+'''
+          text, count = re.subn(r'## Scope\n.*?(?=\n## Stable download channel\n)', scope.strip() + '\n', text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('Could not rewrite validation protocol scope')
+          text = text.replace('All desktop packages and the Python dumper are published under the rolling `diagnostic-latest` release:', 'The Windows desktop package and the Python dumper are published under the rolling `diagnostic-latest` release:')
+          text = re.sub(r'^- \[ \] macOS.*\n', '', text, flags=re.M)
+          text = re.sub(r'^- \[ \] Linux.*\n', '', text, flags=re.M)
+          text = text.replace('- [ ] `update.json` contains the `dump`, `windows_gui`, `macos_arm64_gui`, `macos_x86_64_gui`, `linux_x86_64_gui` and `linux_arm64_gui` components.', '- [ ] `update.json` contains the `dump` and `windows_gui` components required by the public diagnostic.')
+          text = text.replace('Run these checks on each desktop platform when practical:', 'Run these checks on the Windows desktop application:')
+          text = text.replace('the native file manager (Explorer / Finder / Linux desktop file manager)', 'the native file manager (Explorer)')
+          text = re.sub(r'^- macOS:.*\n', '', text, flags=re.M)
+          text = re.sub(r'^- Linux:.*\n', '', text, flags=re.M)
+          platform = '''## Windows release checks
+
+          - [ ] Existing `TSUN-Local-Diagnostic.exe` download URL remains unchanged.
+          - [ ] Verified in-place update replaces only the executable after SHA-256 validation.
+          - [ ] Persisted tester configuration is not removed by an update.
+'''
+          text, count = re.subn(r'## Platform-specific release checks\n.*?(?=\n## Regression rule\n)', platform.strip() + '\n', text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('Could not rewrite platform-specific validation checks')
+          text = text.replace('on all supported desktop platforms', 'in the Windows desktop application')
+          path.write_text(text, encoding='utf-8')
+
+          # Public homepage: remove the packaged Mac/Linux card and make Python wording platform-neutral.
+          path = ROOT / 'docs/index.html'
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('One script for Windows, macOS and Linux, with clear terminal commands.', 'One script with clear terminal commands and the same read-only capture engine.')
+          text, count = re.subn(
+              r'\n\s*<a class="card" style="display:block;color:inherit;text-decoration:none" href="test-your-inverter\.html#mac-linux"><strong>Mac &amp; Linux diagnostic →</strong><span class="muted">.*?</span></a>',
+              '',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit('Could not remove Mac/Linux card from docs/index.html')
+          path.write_text(text, encoding='utf-8')
+
+          # Public diagnostic page: Windows desktop + Python, with all packaged Mac/Linux material removed.
+          path = ROOT / 'docs/test-your-inverter.html'
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              'content="Test whether your TSUN microinverter works locally with Home Assistant using the same TSUN Local Diagnostic interface on Windows, macOS, Linux or directly with Python."': 'content="Test whether your TSUN microinverter works locally with Home Assistant using the read-only TSUN Local Diagnostic for Windows or the Python diagnostic."',
+              'content="Use the read-only TSUN Local Diagnostic on Windows, macOS, Linux or directly with Python and optionally upload an anonymized hardware report after explicit consent."': 'content="Use the read-only TSUN Local Diagnostic on Windows or the Python diagnostic and optionally upload an anonymized hardware report after explicit consent."',
+              'content="Read-only TSUN Local Diagnostic for Windows, macOS, Linux and Python."': 'content="Read-only TSUN Local Diagnostic for Windows and Python."',
+              'Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows, macOS or Linux.': 'Run tsun_dump.py with Python 3.10+ or launch the TSUN Local Diagnostic desktop package for Windows.',
+              '<p class="lead"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app, use Python on any platform, or choose the packaged Mac/Linux app.</p>': '<p class="lead"><strong>Not listed yet, or communication unstable?</strong> Start with the Windows app or use the Python alternative.</p>',
+              '<p class="hero-note">Windows · Python 3.10+ · macOS &amp; Linux · Strictly read-only</p>': '<p class="hero-note">Windows · Python 3.10+ · Strictly read-only</p>',
+              '<h2>Python diagnostic — all platforms</h2>': '<h2>Python diagnostic</h2>',
+              '<p class="intro">Prefer the terminal? Download <code>tsun_dump.py</code> and run it with Python 3.10+ on Windows, macOS or Linux.</p>': '<p class="intro">Prefer the terminal? Download <code>tsun_dump.py</code> and run it with Python 3.10+.</p>',
+              '<div class="command-card"><strong>macOS / Linux</strong><pre><code>python3 tsun_dump.py --full</code></pre></div>': '',
+              '<p>On Windows, replace <code>python3</code> with <code>py</code> in the commands above.</p>': '<p>On Windows, <code>py</code> is the recommended command prefix.</p>',
+              '<div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use Windows, Python, Mac or Linux. Discovery and evidence capture remain read-only.</p></div>': '<div class="step"><span class="n">2</span><strong>Run the diagnostic</strong><p>Use the Windows app or the Python alternative. Discovery and evidence capture remain read-only.</p></div>',
+              '"dateModified":"2026-09-08"': '"dateModified":"2026-09-17"',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'Missing expected diagnostic-page text: {old[:80]}')
+              text = text.replace(old, new, 1)
+          text, count = re.subn(r'\n\s*<section id="mac-linux">.*?</section>\n', '\n', text, count=1, flags=re.S)
+          if count != 1:
+              raise SystemExit('Could not remove Mac/Linux section from diagnostic page')
+          text = re.sub(r'\n\s*\.mac-warning\{[^\n]*\}\n\s*\.mac-warning strong\{[^\n]*\}\n?', '\n', text, count=1)
+          path.write_text(text, encoding='utf-8')
+
+          # Tests must enforce that the public site no longer exposes those options.
+          path = ROOT / 'tests/test_metadata.py'
+          text = path.read_text(encoding='utf-8')
+          old = "        self.assertIn('Mac &amp; Linux diagnostic →', index)"
+          new = "        self.assertNotIn('Mac &amp; Linux diagnostic →', index)\n        self.assertNotIn('test-your-inverter.html#mac-linux', index)"
+          if old not in text:
+              raise SystemExit('Expected metadata assertion not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          path = ROOT / 'tests/test_release_154_web.py'
+          text = path.read_text(encoding='utf-8')
+          old = '        self.assertIn("test-your-inverter.html#mac-linux", text)'
+          new = '        self.assertNotIn("test-your-inverter.html#mac-linux", text)'
+          if old not in text:
+              raise SystemExit('Expected web assertion not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          # Obsolete documentation-generation helpers would reintroduce the removed material.
+          for rel in (
+              'docs/MACOS_SIGNING.md',
+              'scripts/clarify_macos_diagnostic_docs.py',
+              'scripts/publish_macos_first_launch_docs.py',
+              'scripts/sync_diagnostic_docs.py',
+          ):
+              p = ROOT / rel
+              if p.exists():
+                  p.unlink()
+
+          # Guard the exact public surfaces requested by the project maintainer.
+          public_paths = [
+              ROOT / 'README.md',
+              *sorted((ROOT / 'docs').glob('README_*.md')),
+              ROOT / 'tools/README.md',
+              ROOT / 'docs/HARDWARE_DUMP.md',
+              ROOT / 'docs/DIRECT_DIAGNOSTIC_UPLOAD_TEST.md',
+              ROOT / 'docs/index.html',
+              ROOT / 'docs/test-your-inverter.html',
+          ]
+          forbidden = (
+              'TSUN-Local-Diagnostic-macOS',
+              'TSUN-Local-Diagnostic-Linux',
+              'Mac &amp; Linux diagnostic',
+              'test-your-inverter.html#mac-linux',
+              'macOS',
+              'Linux x86_64',
+              'Linux arm64',
+          )
+          for p in public_paths:
+              value = p.read_text(encoding='utf-8')
+              for token in forbidden:
+                  if token in value:
+                      raise SystemExit(f'{p}: forbidden public diagnostic reference remains: {token}')
+          PY
+
+      - name: Run documentation regression tests
+        run: |
+          python -m unittest tests.test_metadata tests.test_release_154_web -v
+
+      - name: Commit cleanup
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/remove-mac-linux-diagnostics.yml
+          git add README.md docs tools/README.md tests/test_metadata.py tests/test_release_154_web.py
+          git commit -m "docs: keep public diagnostics Windows-only"
+          git push
