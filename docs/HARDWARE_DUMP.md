@@ -9,63 +9,23 @@
 
 ## ⬇️ Choose the easiest diagnostic
 
-### Desktop application — Windows, macOS and Linux (recommended)
-
-The **same TSUN Local Diagnostic interface** is packaged for all supported desktop platforms. Every package uses the same privacy-safe, **strictly read-only** `tsun_dump.py` hardware engine; direct report upload is a separate HTTPS action performed only after explicit consent.
+### Desktop application — Windows (recommended)
 
 | Platform | Download | SHA-256 |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Which Mac should I download?**  
-> • **Apple chip M1, M2, M3, M4 or newer** → **Apple Silicon**.  
-> • **About This Mac says Intel** → **Mac Intel**.
+The Windows application uses the same privacy-safe, **strictly read-only** `tsun_dump.py` hardware engine. Direct report upload is a separate HTTPS action performed only after explicit consent.
 
-> ### 🟠 macOS — read this before the first launch
-> **TSUN Local Diagnostic is not yet notarized by Apple.** macOS may block the first launch.  
-> **Do not disable Gatekeeper or Mac security globally.**  
-> 1. Download and unzip the package for your Mac.  
-> 2. Try to open **TSUN Local Diagnostic.app** once.  
-> 3. If macOS blocks it, click **Done**.  
-> 4. Open **Apple menu → System Settings → Privacy & Security**.  
-> 5. In **Security**, click **Open Anyway** for TSUN Local Diagnostic.  
-> 6. Authenticate, then confirm **Open**.  
-> 🟢 Once the app opens, the exception applies only to TSUN Local Diagnostic; normal macOS protections remain enabled.
+### Python / command-line alternative
 
-Current standalone diagnostic versions: **desktop GUI 1.5.12** · **dump engine 2.8.3**.
-
-All assets remain on the rolling **`diagnostic-latest`** release. The historical Windows URL and filename are intentionally unchanged so old forum posts, issue comments and documentation links stay valid.
-
-The standard desktop flow is the same everywhere: **1 → 2 → 3 → 4**.
-
-1. reproduce the problem and **do not reload TSUN Local first**;
-2. download the Home Assistant diagnostic when possible;
-3. **disable the affected TSUN Local config entry** so it does not compete for the logger connection;
-4. launch the desktop diagnostic for the current operating system and run the capture;
-5. use **step 3 direct upload** after reviewing the explicit consent, or **step 4 manual e-mail** only as fallback;
-6. re-enable TSUN Local when the capture is finished.
-
-The direct-upload UI can remember the tester name/pseudonym and up to 10 selected micro-inverter models/quantities across application updates. The consent checkbox is never persisted. A successful upload returns a `TSL-...` receipt plus a private-token Worker link that lets the tester see exactly the anonymized report sent without exposing the private reports repository.
-
-For an upload-only test away from the installation, enter exactly:
+**[Download `tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py)** — Python 3.10+.
 
 ```text
-Logger IP : 89:89:89:89
-Monitor SN: 89898989
+python tsun_dump.py --full
 ```
 
-This dedicated synthetic mode explicitly records `test_mode: true` and `communication_attempted: false`; no logger or micro-inverter is contacted.
-
-Update behavior is platform-specific only at package-replacement level: Windows keeps verified in-place self-update; macOS/Linux check their own architecture-specific package in the same manifest and report when a replacement is available. Saved tester profiles live outside the executable/app bundle and survive replacement.
-
-macOS packages are currently ad-hoc signed but not Apple-notarized. If Gatekeeper blocks first launch, use Finder → right-click **TSUN Local Diagnostic** → **Open**. Linux downloads are portable executables and may need `chmod +x` once after download.
-
-📋 **[Cross-platform desktop/direct-upload validation protocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)**
-
+The standard flow remains: disable the affected TSUN Local entry, run the capture, review the result, upload only after explicit consent, then re-enable TSUN Local.
 ### Firmware-resilient logger web capture
 
 Firmware revisions do not always expose logger metadata on the same HTML page or under the same variable name. The 2.5.1 dump engine therefore:
