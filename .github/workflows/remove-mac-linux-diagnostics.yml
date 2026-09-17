@@ -26,11 +26,11 @@ jobs:
         run: sed -i 's/[[:space:]]\+$//' docs/test-your-inverter.html
       - name: Run documentation regression tests
         run: python -m unittest tests.test_metadata tests.test_release_154_web -v
-      - name: Commit cleanup
+      - name: Commit cleanup to PR branch
         run: |
           git config user.name "JP"
           git config user.email "dev@jptstar.com"
           git add -A
           git diff --cached --check
           git commit -m "docs: remove Mac and Linux diagnostic references"
-          git push
+          git push --force origin HEAD:refs/heads/docs/remove-mac-linux-diagnostics
