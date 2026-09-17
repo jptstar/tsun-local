@@ -1,4 +1,4 @@
-# TSUN Local Diagnostic — cross-platform validation protocol
+# TSUN Local Diagnostic — Windows validation protocol
 
 This document is the canonical validation protocol for the standalone **TSUN Local Diagnostic** desktop application and its optional direct-report upload.
 
@@ -6,26 +6,19 @@ The document path is intentionally kept stable so links published in older forum
 
 ## Scope
 
-The same shared Tk desktop interface is packaged for:
+The guided desktop diagnostic is published for Windows x86_64 as `TSUN-Local-Diagnostic.exe`.
 
-- Windows x86_64 — `TSUN-Local-Diagnostic.exe`
-- macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) — `TSUN-Local-Diagnostic-macOS-arm64.zip`
-- macOS — Mac Intel (older Macs) — `TSUN-Local-Diagnostic-macOS-x86_64.zip`
-- Linux x86_64 — `TSUN-Local-Diagnostic-Linux-x86_64`
-- Linux arm64 — `TSUN-Local-Diagnostic-Linux-arm64`
-
-All packages must use the same read-only diagnostic engine and the same user flow:
+The user flow remains:
 
 1. **Disable TSUN Local** for the logger being tested.
 2. **Run the diagnostic**.
 3. **Direct report upload** — recommended, explicit consent required.
 4. **Manual e-mail report** — optional fallback only.
 
-The Python `tsun_dump.py` tool remains available for advanced/terminal use and must keep the same read-only behavior.
-
+The Python `tsun_dump.py` tool remains available for advanced/terminal use and keeps the same read-only behavior.
 ## Stable download channel
 
-All desktop packages and the Python dumper are published under the rolling `diagnostic-latest` release:
+The Windows desktop package and the Python dumper are published under the rolling `diagnostic-latest` release:
 
 `https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest`
 
@@ -46,28 +39,19 @@ Before a desktop diagnostic update is considered published:
 - [ ] Hassfest validation passes.
 - [ ] Windows PyInstaller build succeeds.
 - [ ] Windows GUI remains running during the startup smoke test.
-- [ ] macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) application build succeeds.
-- [ ] macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) GUI remains running during the startup smoke test.
-- [ ] macOS — Mac Intel (older Macs) application build succeeds.
-- [ ] macOS — Mac Intel (older Macs) GUI remains running during the startup smoke test.
-- [ ] Linux x86_64 portable build succeeds.
-- [ ] Linux x86_64 GUI remains running under the virtual-display smoke test.
-- [ ] Linux arm64 portable build succeeds.
-- [ ] Linux arm64 GUI remains running under the virtual-display smoke test.
 - [ ] Every release asset has a matching `.sha256` file.
 - [ ] `update.json` contains the `dump`, `windows_gui`, `macos_arm64_gui`, `macos_x86_64_gui`, `linux_x86_64_gui` and `linux_arm64_gui` components.
 - [ ] The existing Windows URL still resolves after publication.
 
 ## Functional UI validation
 
-Run these checks on each desktop platform when practical:
+Run these checks on Windows when practical:
 
 - [ ] The same **1 → 2 → 3 → 4** layout is displayed.
 - [ ] The read-only status is visible.
 - [ ] The application-up-to-date indicator becomes green only after a successful update check.
 - [ ] The diagnostic cannot start until the user confirms that the affected TSUN Local entry is disabled.
 - [ ] Advanced logger IP / Monitor SN fields remain optional.
-- [ ] The output folder can be changed and opened with the native file manager (Explorer / Finder / Linux desktop file manager).
 - [ ] Step 3 remains the recommended direct-report path.
 - [ ] Step 4 remains clearly marked as optional / fallback.
 - [ ] `© 2026 @jptstar · GitHub` is visible and opens the public TSUN Local repository.
@@ -87,8 +71,6 @@ Run these checks on each desktop platform when practical:
 Expected profile locations:
 
 - Windows: user `LOCALAPPDATA` / `APPDATA` under `TSUN Local Diagnostic`.
-- macOS: `~/Library/Application Support/TSUN Local Diagnostic/` (with migration support for the older `~/.config` location).
-- Linux: `$XDG_CONFIG_HOME/TSUN Local Diagnostic/` or `~/.config/TSUN Local Diagnostic/`.
 
 ## Off-site synthetic test mode
 
@@ -148,19 +130,6 @@ After a real upload:
 - [ ] Existing `TSUN-Local-Diagnostic.exe` download URL remains unchanged.
 - [ ] Verified in-place update replaces only the executable after SHA-256 validation.
 - [ ] Persisted tester configuration is not removed by an update.
-
-### macOS
-
-- [ ] Both Apple Silicon and Intel archives contain `TSUN Local Diagnostic.app`.
-- [ ] The application launches with the same interface and functionality as Windows.
-- [ ] Until Apple notarization is configured, documentation explains the first-launch Gatekeeper procedure instead of claiming the package is notarized.
-- [ ] Update check uses the correct architecture-specific package and never installs the wrong architecture.
-
-### Linux
-
-- [ ] x86_64 and arm64 assets are separate and correctly identified.
-- [ ] Documentation explains that the downloaded file may need `chmod +x` before first launch.
-- [ ] Update check uses the matching architecture-specific package.
 
 ## Regression rule
 

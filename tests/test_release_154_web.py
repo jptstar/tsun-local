@@ -85,7 +85,7 @@ class Release160WebTests(unittest.TestCase):
         self.assertIn("NEW IN 1.6.2", text)
         self.assertIn("test-your-inverter.html#windows", text)
         self.assertIn("test-your-inverter.html#python", text)
-        self.assertIn("test-your-inverter.html#mac-linux", text)
+        self.assertNotIn("test-your-inverter.html#mac-linux", text)
         self.assertIn("entities.html", text)
         self.assertIn("product_compliance_type_raw", (DOCS / "entities.html").read_text(encoding="utf-8"))
 
