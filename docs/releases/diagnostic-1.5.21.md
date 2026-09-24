@@ -38,4 +38,4 @@ New tests cover:
 - nxenara-style TSUN + unrelated Tuya model assignment;
 - compatibility of the former retry/model-assignment import paths.
 
-See [`DIAGNOSTIC_ARCHITECTURE.md`](../DIAGNOSTIC_ARCHITECTURE.md) for the maintained execution model and rules for future diagnostic extensions.
+See [`DIAGNOSTIC_ARCHITECTURE.md`](../technical/DIAGNOSTIC_ARCHITECTURE.md) for the maintained execution model and rules for future diagnostic extensions.
