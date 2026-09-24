@@ -104,14 +104,6 @@ UPDATE_COMPONENT_WINDOWS = "windows_gui"
 ASSET_WINDOWS = "TSUN-Local-Diagnostic.exe"
 
 
-def _normalized_machine(value: str | None = None) -> str:
-    machine = (value or platform.machine() or "").strip().lower()
-    if machine in {"amd64", "x64", "x86-64"}:
-        return "x86_64"
-    if machine in {"aarch64", "arm64"}:
-        return "arm64"
-    return machine
-
 
 def platform_update_component(
     *, system: str | None = None, machine: str | None = None
