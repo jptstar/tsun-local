@@ -52,7 +52,7 @@
 
 </details>
 
-📚 **[MP3000 / TITAN Validierung](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 / TITAN Validierung](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -110,7 +110,7 @@ Aktivierung:
 
 Experimentelle semantische Zuordnungen bleiben bis zur unabhängigen Validierung ausdrücklich gekennzeichnet. Es sind keine Konfigurationsschreibzugriffe auf den Wechselrichter implementiert.
 
-📚 **[MP3000 Feldvalidierungsnachweise](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 Feldvalidierungsnachweise](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Vollständige Entitätsreferenz](ENTITIES.md)**
 
 
@@ -187,7 +187,7 @@ python tsun_dump.py --full
 - Lokal und schreibgeschützt: keine Cloud und keine Konfigurationsschreibvorgänge zum Wechselrichter.
 - Die genaue MX400/MX450/MX500-Hardwarevariante bleibt bewusst offen; maßgeblich ist das erkannte **02B0**-Protokoll.
 
-📚 **[PLAY2-Forschungsdetails](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionaler schreibgeschützter PLAY2-Test](../tools/tsun_play2_probe.py)**
+📚 **[PLAY2-Forschungsdetails](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionaler schreibgeschützter PLAY2-Test](../tools/tsun_play2_probe.py)**
 
 ---
 
