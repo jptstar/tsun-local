@@ -10,7 +10,7 @@ The files kept directly in `docs/` are intentionally stable because they are lin
 - [Hardware validation dump guide](HARDWARE_DUMP.md)
 - [Desktop diagnostic validation protocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 - Localized project documentation: `README_FR.md`, `README_DE.md`, `README_ES.md`, `README_IT.md`, `README_NL.md`, `README_PL.md`, `README_ZH.md`
-- GitHub Pages / SEO pages: `*.html`, sitemap and related web assets
+- GitHub Pages: `index.html`, `sitemap.xml`, `robots.txt` and shared assets stay at the `docs/` root. SEO page sources live in `pages/` and use explicit permalinks so their public URLs remain unchanged.
 
 ## Guides
 
@@ -51,4 +51,4 @@ Release notes and diagnostic-tool release notes are stored under [releases/](rel
 
 ---
 
-When adding new documentation, keep public/stable URLs at the root only when they are intended to be linked externally. New research, technical notes and generated statistics should go into their corresponding subdirectory.
+When adding new documentation, keep public entry points and site-control files at the root. Put new SEO page sources in `pages/` with an explicit stable permalink; put research, technical notes and generated statistics in their corresponding subdirectory.
