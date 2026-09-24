@@ -5,9 +5,9 @@
 """Full Python entry point for TSUN Local Diagnostic.
 
 This launcher deliberately uses the same read-only extension runtime and the same
-canonical upload/retry/privacy policy as the packaged Windows/macOS/Linux GUI.
+canonical upload/retry/privacy policy as the packaged Windows GUI.
 The legacy single-file ``tsun_dump.py`` remains available as a minimal standard-
-library fallback, but this file is the feature-parity Python diagnostic.
+library fallback, but this file is the supported feature-parity Python diagnostic.
 """
 
 from __future__ import annotations

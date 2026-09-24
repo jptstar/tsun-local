@@ -17,7 +17,6 @@ from pathlib import Path
 import platform
 import subprocess
 import sys
-import threading
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
@@ -212,66 +211,7 @@ class CleanDiagnosticApp(ui.CleanDiagnosticApp):
         except (OSError, FileNotFoundError) as exc:
             messagebox.showinfo(APP_NAME, f"{folder}\n\n{exc}")
 
-    def _start_update_check(self) -> None:
-        """Use the GUI package component on macOS/Linux; keep Windows auto-update."""
-        if os.name == "nt":
-            super()._start_update_check()
-            return
-
-        if "--no-update" in sys.argv:
-            self.update_busy = False
-            self.update_status.set(self.t["update_disabled"])
-            try:
-                self.update_label.configure(fg=previous.legacy.base._MUTED)
-            except tk.TclError:
-                pass
-            return
-
-        component = platform_update_component()
-        if component is None:
-            # Unsupported packaging architecture: retain the safe legacy dumper
-            # update check rather than pretending the GUI itself can be updated.
-            super()._start_update_check()
-            return
-
-        self.update_busy = True
-        self.update_status.set(self.t["update_checking"])
-        worker = threading.Thread(
-            target=self._cross_platform_update_worker,
-            args=(component,),
-            name="tsun-diagnostic-update-check",
-            daemon=True,
-        )
-        worker.start()
-
-    def _cross_platform_update_worker(self, component: str) -> None:
-        try:
-            manifest = tsun_dump.fetch_update_manifest()
-            gui_update = tsun_dump.select_update_component(
-                manifest, component, APP_VERSION
-            )
-            dump_update = tsun_dump.select_update_component(
-                manifest,
-                tsun_dump.UPDATE_COMPONENT_DUMP,
-                tsun_dump.TOOL_VERSION,
-            )
-            if gui_update is None and dump_update is not None:
-                # Each packaged GUI embeds tsun_dump.py. If only the engine became
-                # newer, a fresh package is still required for macOS/Linux.
-                gui_update = tsun_dump.select_update_component(
-                    manifest, component, "0.0.0"
-                )
-            if gui_update is None:
-                self.events.put(("update_current",))
-            else:
-                self.events.put(("update_available_manual", gui_update["version"]))
-        except Exception:
-            self.events.put(("update_failed",))
-
-
 def main() -> int:
-    # Windows keeps the existing verified self-replacement helper. macOS/Linux
-    # packages intentionally use manual package replacement for now.
     internal_result = previous.legacy.base._internal_update_mode()
     if internal_result is not None:
         return internal_result
