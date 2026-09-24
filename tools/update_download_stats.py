@@ -397,3 +397,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# Triggered automatically when the statistics collector itself changes.
