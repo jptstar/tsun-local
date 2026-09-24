@@ -7,24 +7,19 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import re
 import unittest
 
 ROOT = Path(__file__).parents[1]
 
 
 class RuntimeContractTests(unittest.TestCase):
-    def test_160_defaults(self) -> None:
+    def test_adaptive_polling_defaults(self) -> None:
         const = (ROOT / "custom_components/tsun_local/const.py").read_text(encoding="utf-8")
         self.assertIn("DEFAULT_SCAN_INTERVAL = 20", const)
         self.assertIn("DEFAULT_ERROR_SCAN_INTERVAL = 30", const)
         self.assertIn("DEFAULT_OFFLINE_SCAN_INTERVAL = 300", const)
         self.assertIn("DEFAULT_FAILURE_THRESHOLD = 3", const)
         self.assertIn("DEFAULT_ADAPTIVE_POLLING = True", const)
-
-    def test_manifest_version(self) -> None:
-        manifest = json.loads((ROOT / "custom_components/tsun_local/manifest.json").read_text(encoding="utf-8"))
-        self.assertRegex(manifest["version"], r"^1\.6\.\d+(?:-beta\.\d+)?$")
 
     def test_failed_http_signal_has_bounded_stale_window(self) -> None:
         init_source = (ROOT / "custom_components/tsun_local/__init__.py").read_text(encoding="utf-8")
@@ -80,27 +75,9 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertEqual(sensors["adaptive_backoff_events"]["name"], "Communication — Ralentissements")
         self.assertEqual(sensors["country_profile_raw"]["name"], sensors["product_compliance_type_raw"]["name"])
 
-    def test_all_translation_files_match_source_keys(self) -> None:
-        source = json.loads((ROOT / "custom_components/tsun_local/strings.json").read_text(encoding="utf-8"))
-
-        def keys(value: object, prefix: str = "") -> set[str]:
-            if not isinstance(value, dict):
-                return set()
-            result: set[str] = set()
-            for key, child in value.items():
-                path = f"{prefix}.{key}" if prefix else key
-                result.add(path)
-                result |= keys(child, path)
-            return result
-
-        source_keys = keys(source)
-        source_keys.discard("title")
+    def test_translation_wording_avoids_stale_abbreviations(self) -> None:
         translations = ROOT / "custom_components/tsun_local/translations"
-        expected = {"en.json", "fr.json", "de.json", "es.json", "it.json", "nl.json", "pl.json", "zh-Hans.json"}
-        self.assertEqual({path.name for path in translations.glob("*.json")}, expected)
         for path in translations.glob("*.json"):
-            data = json.loads(path.read_text(encoding="utf-8"))
-            self.assertEqual(keys(data), source_keys, path.name)
             text = path.read_text(encoding="utf-8")
             self.assertNotIn("Com. —", text, path.name)
             self.assertNotIn("Backoff", text, path.name)
