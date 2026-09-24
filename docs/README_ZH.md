@@ -52,7 +52,7 @@
 
 </details>
 
-📚 **[MP3000 / TITAN 验证](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 / TITAN 验证](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -110,7 +110,7 @@ Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数
 
 实验性语义映射在独立验证前会继续明确标注。未实现任何向逆变器写入配置的功能。
 
-📚 **[MP3000 现场验证证据](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 现场验证证据](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[完整实体列表](ENTITIES.md)**
 
 
@@ -187,7 +187,7 @@ python tsun_dump.py --full
 - 完全本地、只读：不依赖云端，也不会向逆变器写入配置。
 - 具体 MX400/MX450/MX500 硬件变体仍有意不作推断；以检测到的 **02B0** 协议为准。
 
-📚 **[PLAY2 研究详情](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[可选的只读 PLAY2 探测工具](../tools/tsun_play2_probe.py)**
+📚 **[PLAY2 研究详情](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[可选的只读 PLAY2 探测工具](../tools/tsun_play2_probe.py)**
 
 ---
 
