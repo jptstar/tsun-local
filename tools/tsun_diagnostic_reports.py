@@ -9,9 +9,9 @@ import tkinter as tk
 import webbrowser
 
 import tsun_diagnostic_profile as previous
+from tsun_diagnostic_version import APP_VERSION
 
 APP_NAME = previous.APP_NAME
-APP_VERSION = "1.5.10"
 MAX_DEVICE_ROWS = previous.MAX_DEVICE_ROWS
 PROJECT_URL = previous.legacy.PROJECT_URL
 COPYRIGHT_TEXT = previous.legacy.COPYRIGHT_TEXT
