@@ -222,7 +222,7 @@ Additional 1511 advanced diagnostics also include:
 | `inverter_temperature` | Inverter temperature | °C |
 | `ambient_temperature` | Inverter ambient temperature | °C |
 
-See [MP3000 / TITAN 1511 field-validation diagnostics](MP3000_FIELD_VALIDATION.md) for the evidence details.
+See [MP3000 / TITAN 1511 field-validation diagnostics](research/MP3000_FIELD_VALIDATION.md) for the evidence details.
 
 ---
 
