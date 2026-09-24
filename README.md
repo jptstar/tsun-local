@@ -53,7 +53,7 @@
 
 </details>
 
-📚 **[MP3000 / TITAN validation](docs/MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 / TITAN validation](docs/research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -105,7 +105,7 @@ Experimental semantic mappings remain explicitly marked until independently vali
 
 Communication logs and exported diagnostics can include only the first three alphanumeric characters of the micro-inverter serial number (for example `Y47`) to distinguish devices while keeping the complete serial number redacted.
 
-📚 **[MP3000 field-validation evidence](docs/MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 field-validation evidence](docs/research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
 ---
@@ -191,7 +191,7 @@ python tsun_dump.py --full
 - Local and read-only: no cloud or inverter configuration writes.
 - The commercial PLAY2 name spans more than one local hardware generation; the detected **02B0** or **1097** protocol is authoritative.
 
-📚 **[PLAY2 research details](docs/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optional read-only PLAY2 probe](tools/tsun_play2_probe.py)**
+📚 **[PLAY2 research details](docs/research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optional read-only PLAY2 probe](tools/tsun_play2_probe.py)**
 
 ---
 
