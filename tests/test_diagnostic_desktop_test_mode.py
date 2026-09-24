@@ -66,26 +66,22 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         self.assertNotIn("tsun_1097_transport_extension.install(tsun_dump)", source)
         self.assertNotIn("tsun_tuya_probe.install(", source)
 
-    def test_cross_platform_update_components_are_explicit(self) -> None:
+    def test_only_windows_has_a_packaged_desktop_update_component(self) -> None:
         self.assertEqual(
             desktop.platform_update_component(system="Windows", machine="AMD64"),
             "windows_gui",
         )
-        self.assertEqual(
-            desktop.platform_update_component(system="Darwin", machine="arm64"),
-            "macos_arm64_gui",
+        self.assertIsNone(
+            desktop.platform_update_component(system="Darwin", machine="arm64")
         )
-        self.assertEqual(
-            desktop.platform_update_component(system="Darwin", machine="x86_64"),
-            "macos_x86_64_gui",
+        self.assertIsNone(
+            desktop.platform_update_component(system="Darwin", machine="x86_64")
         )
-        self.assertEqual(
-            desktop.platform_update_component(system="Linux", machine="x86_64"),
-            "linux_x86_64_gui",
+        self.assertIsNone(
+            desktop.platform_update_component(system="Linux", machine="x86_64")
         )
-        self.assertEqual(
-            desktop.platform_update_component(system="Linux", machine="aarch64"),
-            "linux_arm64_gui",
+        self.assertIsNone(
+            desktop.platform_update_component(system="Linux", machine="aarch64")
         )
 
 

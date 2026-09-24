@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Stable cross-platform entry point for TSUN Local Diagnostic.
+"""Windows desktop entry point for TSUN Local Diagnostic.
 
-The same Tk interface is packaged for Windows, macOS and Linux. Platform-specific
-code here is intentionally limited to profile storage, opening folders and
-selecting the correct rolling-release update component. The read-only diagnostic
-engine, extension composition and report-upload flow remain shared.
+The supported packaged GUI is the Windows executable. Non-Windows users use the
+full Python diagnostic package. Source-level platform helpers remain limited to
+profile storage and opening folders; the read-only engine, extension composition
+and report-upload flow stay shared.
 """
 
 from __future__ import annotations
@@ -101,25 +101,8 @@ def _configure_diagnostic_runtime() -> tuple[str, ...]:
 
 
 UPDATE_COMPONENT_WINDOWS = "windows_gui"
-UPDATE_COMPONENT_MACOS_ARM64 = "macos_arm64_gui"
-UPDATE_COMPONENT_MACOS_X86_64 = "macos_x86_64_gui"
-UPDATE_COMPONENT_LINUX_X86_64 = "linux_x86_64_gui"
-UPDATE_COMPONENT_LINUX_ARM64 = "linux_arm64_gui"
-
 ASSET_WINDOWS = "TSUN-Local-Diagnostic.exe"
-ASSET_MACOS_ARM64 = "TSUN-Local-Diagnostic-macOS-arm64.zip"
-ASSET_MACOS_X86_64 = "TSUN-Local-Diagnostic-macOS-x86_64.zip"
-ASSET_LINUX_X86_64 = "TSUN-Local-Diagnostic-Linux-x86_64"
-ASSET_LINUX_ARM64 = "TSUN-Local-Diagnostic-Linux-arm64"
 
-
-def _normalized_machine(value: str | None = None) -> str:
-    machine = (value or platform.machine() or "").strip().lower()
-    if machine in {"amd64", "x64", "x86-64"}:
-        return "x86_64"
-    if machine in {"aarch64", "arm64"}:
-        return "arm64"
-    return machine
 
 
 def platform_update_component(
@@ -127,19 +110,8 @@ def platform_update_component(
 ) -> str | None:
     """Return the rolling-release manifest component for this packaged GUI."""
     current_system = (system or platform.system() or "").strip().lower()
-    current_machine = _normalized_machine(machine)
     if current_system == "windows":
         return UPDATE_COMPONENT_WINDOWS
-    if current_system == "darwin":
-        if current_machine == "arm64":
-            return UPDATE_COMPONENT_MACOS_ARM64
-        if current_machine == "x86_64":
-            return UPDATE_COMPONENT_MACOS_X86_64
-    if current_system == "linux":
-        if current_machine == "arm64":
-            return UPDATE_COMPONENT_LINUX_ARM64
-        if current_machine == "x86_64":
-            return UPDATE_COMPONENT_LINUX_X86_64
     return None
 
 
@@ -147,13 +119,7 @@ def platform_release_asset(
     *, system: str | None = None, machine: str | None = None
 ) -> str | None:
     component = platform_update_component(system=system, machine=machine)
-    return {
-        UPDATE_COMPONENT_WINDOWS: ASSET_WINDOWS,
-        UPDATE_COMPONENT_MACOS_ARM64: ASSET_MACOS_ARM64,
-        UPDATE_COMPONENT_MACOS_X86_64: ASSET_MACOS_X86_64,
-        UPDATE_COMPONENT_LINUX_X86_64: ASSET_LINUX_X86_64,
-        UPDATE_COMPONENT_LINUX_ARM64: ASSET_LINUX_ARM64,
-    }.get(component)
+    return ASSET_WINDOWS if component == UPDATE_COMPONENT_WINDOWS else None
 
 
 _original_profile_candidates = previous._profile_candidates
@@ -182,7 +148,7 @@ previous.legacy.save_upload_profile = previous.save_upload_profile
 
 
 class CleanDiagnosticApp(ui.CleanDiagnosticApp):
-    """Same UI on all desktop platforms with minimal OS-specific integration."""
+    """Desktop UI with minimal OS-specific integration."""
 
     def _render_report_links(self, host: tk.Frame, reports: list[tuple[str, str]]) -> None:
         """Render the normal receipt links plus explicit upload-stage confirmation."""

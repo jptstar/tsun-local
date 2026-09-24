@@ -176,26 +176,22 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
         self.assertIn("_main_report_links_host", source)
         self.assertIn('get("view_url")', source)
 
-    def test_platform_assets_keep_windows_link_and_add_mac_linux(self) -> None:
+    def test_platform_asset_is_only_published_for_windows_gui(self) -> None:
         self.assertEqual(
             desktop.platform_release_asset(system="Windows", machine="AMD64"),
             "TSUN-Local-Diagnostic.exe",
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Darwin", machine="arm64"),
-            "TSUN-Local-Diagnostic-macOS-arm64.zip",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Darwin", machine="arm64")
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Darwin", machine="x86_64"),
-            "TSUN-Local-Diagnostic-macOS-x86_64.zip",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Darwin", machine="x86_64")
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Linux", machine="x86_64"),
-            "TSUN-Local-Diagnostic-Linux-x86_64",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Linux", machine="x86_64")
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Linux", machine="aarch64"),
-            "TSUN-Local-Diagnostic-Linux-arm64",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Linux", machine="aarch64")
         )
 
 
