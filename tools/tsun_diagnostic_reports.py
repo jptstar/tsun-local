@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""TSUN Local Diagnostic 1.5.10 public post-upload report links."""
+"""Desktop post-upload report links and PLAY2 catalogue refinements."""
 
 from __future__ import annotations
 
 import tkinter as tk
 import webbrowser
 
-import tsun_diagnostic_desktop_v158 as previous
+import tsun_diagnostic_profile as previous
+from tsun_diagnostic_version import APP_VERSION
 
 APP_NAME = previous.APP_NAME
-APP_VERSION = "1.5.10"
 MAX_DEVICE_ROWS = previous.MAX_DEVICE_ROWS
 PROJECT_URL = previous.legacy.PROJECT_URL
 COPYRIGHT_TEXT = previous.legacy.COPYRIGHT_TEXT
 SUNOLOGY_PLAY2_MODEL = "Sunology PLAY 2"
 
-# Preserve the public helpers introduced in 1.5.8.
+# Preserve the public helpers provided by the profile/persistence layer.
 load_upload_profile = previous.load_upload_profile
 save_upload_profile = previous.save_upload_profile
 filter_microinverter_models = previous.filter_microinverter_models

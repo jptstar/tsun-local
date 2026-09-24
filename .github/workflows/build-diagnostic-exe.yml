@@ -8,8 +8,8 @@ on:
       - "tools/tsun_diagnostic_gui.py"
       - "tools/tsun_diagnostic_app.py"
       - "tools/tsun_diagnostic_desktop.py"
-      - "tools/tsun_diagnostic_desktop_v158.py"
-      - "tools/tsun_diagnostic_desktop_v159.py"
+      - "tools/tsun_diagnostic_profile.py"
+      - "tools/tsun_diagnostic_reports.py"
       - "tools/tsun_diagnostic.py"
       - "tools/tsun_diagnostic_runtime.py"
       - "tools/tsun_diagnostic_version.py"
@@ -28,8 +28,8 @@ on:
       - "tools/tsun_diagnostic_gui.py"
       - "tools/tsun_diagnostic_app.py"
       - "tools/tsun_diagnostic_desktop.py"
-      - "tools/tsun_diagnostic_desktop_v158.py"
-      - "tools/tsun_diagnostic_desktop_v159.py"
+      - "tools/tsun_diagnostic_profile.py"
+      - "tools/tsun_diagnostic_reports.py"
       - "tools/tsun_diagnostic.py"
       - "tools/tsun_diagnostic_runtime.py"
       - "tools/tsun_diagnostic_version.py"
@@ -69,7 +69,7 @@ jobs:
       - name: Validate shared diagnostic sources
         shell: pwsh
         run: |
-          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_report_model_assignment.py tools/tsun_tuya_probe.py tools/tsun_1097_research_probe.py tools/tsun_1097_transport_extension.py tools/tsun_diagnostic_runtime.py tools/tsun_diagnostic_version.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py tools/tsun_diagnostic_desktop_v158.py tools/tsun_diagnostic_desktop_v159.py tools/tsun_diagnostic.py
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_gui.py tools/tsun_report_upload.py tools/tsun_report_model_assignment.py tools/tsun_tuya_probe.py tools/tsun_1097_research_probe.py tools/tsun_1097_transport_extension.py tools/tsun_diagnostic_runtime.py tools/tsun_diagnostic_version.py tools/tsun_diagnostic_app.py tools/tsun_diagnostic_desktop.py tools/tsun_diagnostic_profile.py tools/tsun_diagnostic_reports.py tools/tsun_diagnostic.py
           python -c "import sys; sys.path.insert(0, 'tools'); import tinytuya, tsun_dump, tsun_diagnostic as gui, tsun_diagnostic_runtime as runtime; assert hasattr(tsun_dump, 'main'); assert runtime.pipeline_stage_names() == ('1097-research-fallback','1097-transport-enrichment','tuya-authenticated-status'); print('tsun_dump', tsun_dump.TOOL_VERSION, 'GUI', gui.APP_VERSION, 'TinyTuya', getattr(tinytuya, '__version__', '?'))"
           python -m unittest tests.test_diagnostic_python_parity -v
 

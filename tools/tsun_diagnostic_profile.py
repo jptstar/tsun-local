@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""TSUN Local Diagnostic 1.5.8 UI/persistence refinements."""
+"""Desktop upload-profile persistence and model-selection refinements."""
 
 from __future__ import annotations
 
@@ -12,9 +12,9 @@ import tkinter as tk
 from tkinter import ttk
 
 import tsun_diagnostic_desktop as legacy
+from tsun_diagnostic_version import APP_VERSION
 
 APP_NAME = legacy.APP_NAME
-APP_VERSION = "1.5.8"
 MAX_DEVICE_ROWS = legacy.MAX_DEVICE_ROWS
 PROFILE_DIR_NAME = "TSUN Local Diagnostic"
 PROFILE_FILE_NAME = "upload_profile.json"
