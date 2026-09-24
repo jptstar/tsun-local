@@ -52,7 +52,7 @@
 
 </details>
 
-📚 **[MP3000 / TITAN-validatie](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 / TITAN-validatie](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -110,7 +110,7 @@ Inschakelen:
 
 Experimentele semantische koppelingen blijven expliciet gemarkeerd totdat ze onafhankelijk zijn gevalideerd. Er zijn geen configuratieschrijfbewerkingen naar de omvormer geïmplementeerd.
 
-📚 **[MP3000 veldvalidatiebewijs](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 veldvalidatiebewijs](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
 
@@ -187,7 +187,7 @@ python tsun_dump.py --full
 - Lokaal en alleen-lezen: geen cloud en geen configuratieschrijfacties naar de omvormer.
 - De exacte MX400/MX450/MX500-hardwarevariant blijft bewust ongespecificeerd; het gedetecteerde **02B0**-protocol is leidend.
 
-📚 **[PLAY2-onderzoeksdetails](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionele alleen-lezen PLAY2-probe](../tools/tsun_play2_probe.py)**
+📚 **[PLAY2-onderzoeksdetails](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionele alleen-lezen PLAY2-probe](../tools/tsun_play2_probe.py)**
 
 ---
 
