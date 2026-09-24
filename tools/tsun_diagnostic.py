@@ -24,6 +24,7 @@ from tkinter import messagebox, simpledialog
 import tsun_diagnostic_runtime as runtime
 import tsun_dump
 import tsun_diagnostic_reports as ui
+from tsun_diagnostic_version import APP_VERSION
 
 # Keep the public compatibility shape used by existing tests and helper code:
 # `previous` remains the profile/persistence layer while `ui` is the
@@ -31,7 +32,6 @@ import tsun_diagnostic_reports as ui
 previous = ui.previous
 
 APP_NAME = ui.APP_NAME
-APP_VERSION = "1.5.21"
 MAX_DEVICE_ROWS = ui.MAX_DEVICE_ROWS
 PROJECT_URL = ui.PROJECT_URL
 COPYRIGHT_TEXT = ui.COPYRIGHT_TEXT
