@@ -41,7 +41,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add             docs/download-stats.csv             docs/download-stats-summary.svg             docs/download-stats-history.svg             docs/download-stats-daily.svg
+          git add \
+            docs/stats/download-stats.csv \
+            docs/stats/download-stats-summary.svg \
+            docs/stats/download-stats-history.svg \
+            docs/stats/download-stats-daily.svg
 
           if git diff --cached --quiet; then
             echo "No statistics change to commit."
