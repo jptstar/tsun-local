@@ -14,11 +14,11 @@ from urllib.request import Request, urlopen
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "jptstar/tsun-local")
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ROOT / "docs"
-CSV_PATH = DOCS / "download-stats.csv"
-SUMMARY_SVG = DOCS / "download-stats-summary.svg"
-HISTORY_SVG = DOCS / "download-stats-history.svg"
-DAILY_SVG = DOCS / "download-stats-daily.svg"
+STATS_DIR = ROOT / "docs" / "stats"
+CSV_PATH = STATS_DIR / "download-stats.csv"
+SUMMARY_SVG = STATS_DIR / "download-stats-summary.svg"
+HISTORY_SVG = STATS_DIR / "download-stats-history.svg"
+DAILY_SVG = STATS_DIR / "download-stats-daily.svg"
 ASSET_NAME = "tsun-local.zip"
 MAX_RELEASES = 8
 
