@@ -40,7 +40,7 @@ Before a desktop diagnostic update is considered published:
 - [ ] Windows PyInstaller build succeeds.
 - [ ] Windows GUI remains running during the startup smoke test.
 - [ ] Every release asset has a matching `.sha256` file.
-- [ ] `update.json` contains the `dump`, `windows_gui`, `macos_arm64_gui`, `macos_x86_64_gui`, `linux_x86_64_gui` and `linux_arm64_gui` components.
+- [ ] After both publication workflows complete, `update.json` contains the supported `dump`, `windows_gui` and `python_full` components, with no retired macOS/Linux GUI components.
 - [ ] The existing Windows URL still resolves after publication.
 
 ## Functional UI validation
