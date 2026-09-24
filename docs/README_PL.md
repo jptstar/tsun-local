@@ -52,7 +52,7 @@
 
 </details>
 
-📚 **[Walidacja MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
+📚 **[Walidacja MP3000 / TITAN](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -110,7 +110,7 @@ Aby je włączyć:
 
 Eksperymentalne mapowania semantyczne pozostają wyraźnie oznaczone do czasu niezależnej walidacji. Nie zaimplementowano żadnych zapisów konfiguracji do falownika.
 
-📚 **[Dowody walidacji MP3000](MP3000_FIELD_VALIDATION.md)**
+📚 **[Dowody walidacji MP3000](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Pełna lista encji](ENTITIES.md)**
 
 
@@ -187,7 +187,7 @@ python tsun_dump.py --full
 - Lokalnie i tylko do odczytu: bez chmury i bez zapisu konfiguracji falownika.
 - Dokładny wariant sprzętowy MX400/MX450/MX500 pozostaje celowo nieokreślony; rozstrzygający jest wykryty protokół **02B0**.
 
-📚 **[Szczegóły badań PLAY2](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Opcjonalny test PLAY2 tylko do odczytu](../tools/tsun_play2_probe.py)**
+📚 **[Szczegóły badań PLAY2](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Opcjonalny test PLAY2 tylko do odczytu](../tools/tsun_play2_probe.py)**
 
 ---
 
