@@ -4,7 +4,7 @@ import unittest
 ROOT = Path(__file__).parents[1]
 
 
-class Play2BetaCommunicationTests(unittest.TestCase):
+class Play2CommunicationTests(unittest.TestCase):
     def test_02b0_declares_clear_text_alarm_entities(self) -> None:
         source = (ROOT / "custom_components/tsun_local/protocols/protocol_02b0.py").read_text(encoding="utf-8")
         self.assertIn('"alarm_active_count"', source)

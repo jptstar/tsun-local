@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Regression tests for the field-validation corrections in stable 1.4.0."""
+"""Regression tests for alarm and field-validation semantics."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def _alarm_registers(global_1: int = 0, inverter_status: int = 0) -> dict[int, i
     return registers
 
 
-class Release140FieldCorrectionTests(unittest.TestCase):
+class AlarmRegressionTests(unittest.TestCase):
     def test_low_solar_position_is_preserved_and_counted(self) -> None:
         data = decode_alarms(_alarm_registers(0x2000), 1)
         self.assertEqual(data["alarm_global_1_raw"], 8192)

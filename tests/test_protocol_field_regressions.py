@@ -24,7 +24,7 @@ from tsun_local_release_141_protocol_tests.protocol_1097 import decode_advanced_
 from tsun_local_release_141_protocol_tests.protocol_1511 import decode_advanced_diagnostics as decode_1511_advanced, decode_measurements as decode_1511  # noqa: E402,E501
 
 
-class Release141FieldUpdateTests(unittest.TestCase):
+class ProtocolFieldRegressionTests(unittest.TestCase):
     def test_02b0_power_level_scaling(self) -> None:
         self.assertEqual(decode_02b0({0x202C: 1024})["output_coefficient"], 100.0)
         self.assertEqual(decode_02b0({0x202C: 512})["output_coefficient"], 50.0)

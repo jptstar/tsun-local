@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Release-contract tests for TSUN Local 1.6.0."""
+"""Runtime contract tests for TSUN Local."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import unittest
 ROOT = Path(__file__).parents[1]
 
 
-class Release160ContractTests(unittest.TestCase):
+class RuntimeContractTests(unittest.TestCase):
     def test_160_defaults(self) -> None:
         const = (ROOT / "custom_components/tsun_local/const.py").read_text(encoding="utf-8")
         self.assertIn("DEFAULT_SCAN_INTERVAL = 20", const)

@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Regression tests for conservative 1.6.2 protocol detection."""
+"""Regression tests for conservative protocol detection."""
 
 from __future__ import annotations
 

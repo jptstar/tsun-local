@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Release 1.6.2 energy-unit regression audit across every runtime protocol."""
+"""Energy-unit regression audit across every runtime protocol."""
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ from tsun_local_release_162_energy_tests.protocol_1511 import (  # noqa: E402
 )
 
 
-class Release162EnergyUnitTests(unittest.TestCase):
+class EnergyUnitTests(unittest.TestCase):
     """Prove that every decoder feeds the shared HA layer in native kWh."""
 
     def test_1511_ac_and_pv_energy_are_kwh(self) -> None:

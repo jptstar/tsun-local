@@ -18,7 +18,7 @@ def _page_path(filename: str) -> Path:
     return DOCS / "index.html" if filename == "index.html" else PAGES_DIR / filename
 
 
-class Release160WebTests(unittest.TestCase):
+class PublicWebTests(unittest.TestCase):
     def test_public_site_stays_on_stable_release_during_beta(self) -> None:
         manifest = json.loads((ROOT / "custom_components" / "tsun_local" / "manifest.json").read_text(encoding="utf-8"))
         self.assertRegex(

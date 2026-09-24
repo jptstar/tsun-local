@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Coverage tests for the 1.6.2 protocol-family and diagnostic alignment work."""
+"""Protocol-family and diagnostic coverage tests."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ from tsun_local_protocol_coverage_tests.protocol_1097 import (  # noqa: E402
 )
 
 
-class ProtocolCoverage162Tests(unittest.TestCase):
+class ProtocolCoverageTests(unittest.TestCase):
     """Protect the intended family coverage without enabling writes."""
 
     def test_02b0_reads_full_remaining_signature_ranges(self) -> None:

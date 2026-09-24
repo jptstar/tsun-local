@@ -24,7 +24,7 @@ from tsun_local_beta8_protocol_tests.protocol_02b0 import DIAGNOSTIC_BLOCKS as B
 from tsun_local_beta8_protocol_tests.protocol_1097 import DIAGNOSTIC_BLOCKS as BLOCKS_1097_DIAGNOSTIC, decode_advanced_diagnostics as decode_1097_advanced  # noqa: E402,E501
 
 
-class Beta8AdvancedDiagnosticsTests(unittest.TestCase):
+class AdvancedDiagnosticsTests(unittest.TestCase):
     def test_1511_daily_energy_uses_base_plus_five(self) -> None:
         registers = {
             0x0BB8: 1, 0x0BC4: 2300, 0x0BC5: 100, 0x0BC7: 5000,

@@ -2,7 +2,7 @@ from pathlib import Path
 import unittest
 
 
-class Beta8SensorMetadataTests(unittest.TestCase):
+class AdvancedSensorMetadataTests(unittest.TestCase):
     def test_advanced_timing_entities_are_durations_in_seconds(self) -> None:
         source = Path("custom_components/tsun_local/sensor.py").read_text(encoding="utf-8")
         keys = (

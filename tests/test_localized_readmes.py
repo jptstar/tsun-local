@@ -26,7 +26,7 @@ VERSION_PATTERN = re.compile(
 )
 
 
-class Stable160LocalizedReadmeTests(unittest.TestCase):
+class LocalizedReadmeTests(unittest.TestCase):
     def test_all_localized_readmes_follow_compact_current_structure(self) -> None:
         for filename in FILES:
             text = (ROOT / "docs" / filename).read_text(encoding="utf-8")
