@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # Copyright (C) 2026 Jean-Philippe TESTART (jptstar)
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Stable cross-platform entry point for TSUN Local Diagnostic.
+"""Windows desktop entry point for TSUN Local Diagnostic.
 
-The same Tk interface is packaged for Windows, macOS and Linux. Platform-specific
-code here is intentionally limited to profile storage, opening folders and
-selecting the correct rolling-release update component. The read-only diagnostic
-engine, extension composition and report-upload flow remain shared.
+The supported packaged GUI is the Windows executable. Non-Windows users use the
+full Python diagnostic package. Source-level platform helpers remain limited to
+profile storage and opening folders; the read-only engine, extension composition
+and report-upload flow stay shared.
 """
 
 from __future__ import annotations
@@ -148,7 +148,7 @@ previous.legacy.save_upload_profile = previous.save_upload_profile
 
 
 class CleanDiagnosticApp(ui.CleanDiagnosticApp):
-    """Same UI on all desktop platforms with minimal OS-specific integration."""
+    """Desktop UI with minimal OS-specific integration."""
 
     def _render_report_links(self, host: tk.Frame, reports: list[tuple[str, str]]) -> None:
         """Render the normal receipt links plus explicit upload-stage confirmation."""
