@@ -32,6 +32,14 @@ class Release160WebTests(unittest.TestCase):
         else:
             self.assertIn(manifest["version"], index)
 
+    def test_moved_seo_pages_keep_stable_public_permalinks(self) -> None:
+        for filename in PAGES:
+            if filename == "index.html":
+                continue
+            text = _page_path(filename).read_text(encoding="utf-8")
+            self.assertTrue(text.startswith("---\n"), filename)
+            self.assertIn(f"permalink: /{filename}", text, filename)
+
     def test_public_pages_have_unique_h1_and_seo(self) -> None:
         seen = set()
         for filename in PAGES:
