@@ -14,11 +14,20 @@ The research path is bounded and non-destructive:
 - a bounded TCP-connect inventory of common/1097-adjacent ports;
 - GET-only HTTP summaries on likely alternate web ports;
 - TLS handshake-only metadata on likely TLS ports;
-- passive banner receives (no application request) on other open ports.
+- passive banner receives (no application request) on other open ports;
+- a privacy-safe structured snapshot of the local transport settings already
+  exposed by the logger web UI;
+- a bounded connection-only availability watch of the configured local TCP
+  server port (normally 8899), without sending application data;
+- one GET-only runtime snapshot of ``/status.html`` to retain AP/STA mode,
+  remote-status flags and only boolean inverter-data availability;
+- when the logger advertises a private AP address, bounded connection-only
+  checks of HTTP 80 and the configured local server port on that AP interface.
 
 No smart_config/config_ack, AT+UPURL assignment, POST, configuration, reboot,
-OTA or inverter write is implemented here. Raw network payloads, IP addresses
-and device identifiers are never stored in the generated report.
+OTA or inverter write is implemented here. Raw network payloads, IP addresses,
+cloud server hostnames and device identifiers are never added to the new
+structured transport snapshot.
 """
 
 from __future__ import annotations
@@ -27,6 +36,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import hashlib
 import http.client
+import ipaddress
 import json
 import re
 import socket
@@ -36,6 +46,7 @@ from typing import Any, Iterable
 from urllib.parse import urlsplit, urlunsplit
 
 
+PROBE_REVISION = 3
 SMARTLINKFIND_PAYLOAD = b"smartlinkfind"
 SMARTLINKFIND_PORT = 48899
 SMARTLINKFIND_MAX_REPLY = 4096
@@ -103,6 +114,43 @@ SAFE_UDP_MARKERS = (
     "wifikit",
     "hf-a11",
     "1097",
+)
+_WEB_TRANSPORT_VARIABLES = (
+    "yz_tmode",
+    "server_a",
+    "server_b",
+    "uart_setting_baud",
+    "uart_setting_data",
+    "uart_setting_parity",
+    "uart_setting_stop",
+    "uart_setting_fc",
+    "net_setting_pro",
+    "net_setting_cs",
+    "net_setting_port",
+    "net_setting_ip",
+    "net_setting_to",
+    "inv_set",
+    "apsta_mode",
+    "inv_tp",
+    "inv_tp_seld",
+)
+_WEB_TRANSPORT_PATHS = frozenset({"/hide_set_edit.html", "/remote.html"})
+_STATUS_VARIABLES = (
+    "cover_wmode",
+    "cover_ap_ip",
+    "status_a",
+    "status_b",
+    "status_c",
+    "webdata_sn",
+    "webdata_msvn",
+    "webdata_ssvn",
+    "webdata_pv_type",
+    "webdata_rate_p",
+    "webdata_now_p",
+    "webdata_today_e",
+    "webdata_total_e",
+    "webdata_alarm",
+    "webdata_utime",
 )
 
 
@@ -517,6 +565,431 @@ def _passive_banner_probe(
     return item
 
 
+def _parse_int(value: str | None, *, minimum: int = 0, maximum: int = 65535) -> int | None:
+    try:
+        parsed = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return parsed if minimum <= parsed <= maximum else None
+
+
+def _parse_float(value: str | None) -> float | None:
+    try:
+        return float(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_named_js_variables(document: str, names: Iterable[str]) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for name in names:
+        match = re.search(
+            rf"\bvar\s+{re.escape(name)}\s*=\s*\"([^\"]*)\"\s*;",
+            document,
+        )
+        if match:
+            result[name] = match.group(1)[:256]
+    return result
+
+
+def _extract_js_variables(document: str) -> dict[str, str]:
+    """Extract only the bounded transport/profile variables we explicitly need."""
+    return _extract_named_js_variables(document, _WEB_TRANSPORT_VARIABLES)
+
+
+def _endpoint_kind(value: str) -> str:
+    value = value.strip()
+    if not value:
+        return "empty"
+    if value.startswith("<") and value.endswith(">"):
+        return "redacted"
+    try:
+        socket.inet_pton(socket.AF_INET, value)
+    except OSError:
+        try:
+            socket.inet_pton(socket.AF_INET6, value)
+        except OSError:
+            return "hostname"
+        return "ip"
+    return "ip"
+
+
+def _safe_server_endpoint(value: str | None) -> dict[str, Any]:
+    """Parse server settings while deliberately dropping the hostname/address."""
+    raw = str(value or "")
+    parts = raw.split(",")
+    if len(parts) < 4:
+        return {
+            "configured": bool(raw.strip()),
+            "endpoint_kind": "unknown" if raw.strip() else "empty",
+            "port": None,
+            "protocol": None,
+            "endpoint_value_stored": False,
+        }
+    if len(parts) == 4:
+        endpoint = parts[0] or parts[1]
+        port_raw = parts[2]
+        protocol = parts[3]
+    else:
+        endpoint, port_raw, protocol = parts[-3], parts[-2], parts[-1]
+    return {
+        "configured": bool(endpoint or port_raw or protocol),
+        "endpoint_kind": _endpoint_kind(endpoint),
+        "port": _parse_int(port_raw, minimum=1),
+        "protocol": protocol[:16] or None,
+        "endpoint_value_stored": False,
+    }
+
+
+def _extract_logger_web_transport_settings(logger_web: dict[str, Any]) -> dict[str, Any]:
+    """Create a privacy-safe structured snapshot from already captured web pages."""
+    variables: dict[str, str] = {}
+    source_paths: set[str] = set()
+    for item in logger_web.get("pages") or []:
+        if not isinstance(item, dict):
+            continue
+        path = str(item.get("path") or "")
+        if path not in _WEB_TRANSPORT_PATHS:
+            continue
+        content = item.get("content")
+        if not isinstance(content, str):
+            continue
+        extracted = _extract_js_variables(content)
+        if not extracted:
+            continue
+        source_paths.add(path)
+        for key, value in extracted.items():
+            variables.setdefault(key, value)
+
+    net_port = _parse_int(variables.get("net_setting_port"), minimum=1)
+    net_timeout = _parse_int(variables.get("net_setting_to"), minimum=0, maximum=600)
+    address_value = str(variables.get("net_setting_ip") or "")
+    inv_type = str(variables.get("inv_tp") or "")
+    inv_set = str(variables.get("inv_set") or "")
+    profile_id: str | None = None
+    profile_name: str | None = None
+    if ":" in inv_type:
+        profile_id, profile_name = inv_type.split(":", 1)
+        profile_id = profile_id[:32] or None
+        profile_name = profile_name[:96] or None
+
+    return {
+        "attempted": True,
+        "found": bool(variables),
+        "source_paths": sorted(source_paths),
+        "transport_mode": variables.get("yz_tmode"),
+        "local_network": {
+            "protocol": variables.get("net_setting_pro"),
+            "role": variables.get("net_setting_cs"),
+            "port": net_port,
+            "timeout_seconds": net_timeout,
+            "address_kind": _endpoint_kind(address_value),
+            "address_value_stored": False,
+        },
+        "uart": {
+            "baud": _parse_int(variables.get("uart_setting_baud"), maximum=1_000_000),
+            "data_bits": variables.get("uart_setting_data"),
+            "parity": variables.get("uart_setting_parity"),
+            "stop_bits": variables.get("uart_setting_stop"),
+            "flow_control": variables.get("uart_setting_fc"),
+        },
+        "cloud_server_a": _safe_server_endpoint(variables.get("server_a")),
+        "cloud_server_b": _safe_server_endpoint(variables.get("server_b")),
+        "inverter_profile": {
+            "id": profile_id,
+            "name": profile_name,
+            "selection_raw": inv_set[:64] or None,
+        },
+        "apsta_mode": variables.get("apsta_mode"),
+        "privacy": {
+            "cloud_server_endpoint_value_stored": False,
+            "local_network_address_value_stored": False,
+            "raw_variable_block_stored": False,
+        },
+    }
+
+
+def _private_ipv4(value: str | None) -> str | None:
+    raw = str(value or "").strip()
+    try:
+        parsed = ipaddress.ip_address(raw)
+    except ValueError:
+        return None
+    if parsed.version != 4 or not parsed.is_private:
+        return None
+    return raw
+
+
+def _extract_status_runtime_snapshot(document: str) -> tuple[dict[str, Any], str | None]:
+    """Extract AP/STA and coarse telemetry facts without retaining identifiers."""
+    variables = _extract_named_js_variables(document, _STATUS_VARIABLES)
+    ap_ip = _private_ipv4(variables.get("cover_ap_ip"))
+    identity_presence = {
+        "serial_present": bool(str(variables.get("webdata_sn") or "").strip()),
+        "main_software_version_present": bool(str(variables.get("webdata_msvn") or "").strip()),
+        "slave_software_version_present": bool(str(variables.get("webdata_ssvn") or "").strip()),
+        "pv_type_present": bool(str(variables.get("webdata_pv_type") or "").strip()),
+        "rated_power_present": bool(str(variables.get("webdata_rate_p") or "").strip()),
+        "alarm_present": bool(str(variables.get("webdata_alarm") or "").strip()),
+        "uptime_present": bool(str(variables.get("webdata_utime") or "").strip()),
+    }
+    numeric = {
+        "power_nonzero": bool((_parse_float(variables.get("webdata_now_p")) or 0.0) != 0.0),
+        "today_energy_nonzero": bool((_parse_float(variables.get("webdata_today_e")) or 0.0) != 0.0),
+        "total_energy_nonzero": bool((_parse_float(variables.get("webdata_total_e")) or 0.0) != 0.0),
+    }
+    safe = {
+        "found": bool(variables),
+        "wireless_mode": variables.get("cover_wmode"),
+        "ap_address_present": bool(str(variables.get("cover_ap_ip") or "").strip()),
+        "ap_address_private_ipv4": ap_ip is not None,
+        "ap_address_value_stored": False,
+        "remote_status_flags": {
+            "a": _parse_int(variables.get("status_a"), maximum=9),
+            "b": _parse_int(variables.get("status_b"), maximum=9),
+            "c": _parse_int(variables.get("status_c"), maximum=9),
+            "semantics_assumed": False,
+        },
+        "inverter_webdata_presence": {**identity_presence, **numeric},
+        "raw_status_html_stored": False,
+    }
+    return safe, ap_ip
+
+
+def _capture_logger_status_runtime(
+    host: str,
+    timeout: float,
+    user_agent: str,
+) -> tuple[dict[str, Any], str | None]:
+    """GET /status.html once and keep only privacy-safe derived evidence."""
+    connection = http.client.HTTPConnection(
+        host, port=80, timeout=min(max(float(timeout), 0.2), 2.0)
+    )
+    try:
+        connection.request(
+            "GET",
+            "/status.html",
+            headers={"User-Agent": user_agent, "Accept": "text/html,*/*;q=0.1"},
+        )
+        response = connection.getresponse()
+        body = response.read(64 * 1024)
+        text = body.decode("utf-8", errors="replace")
+        snapshot, ap_ip = _extract_status_runtime_snapshot(text)
+        snapshot.update(
+            {
+                "attempted": True,
+                "method": "GET",
+                "path": "/status.html",
+                "http_status": int(response.status),
+                "response_body_stored": False,
+                "configuration_write_performed": False,
+            }
+        )
+        return snapshot, ap_ip
+    except (OSError, http.client.HTTPException) as exc:
+        return (
+            {
+                "attempted": True,
+                "method": "GET",
+                "path": "/status.html",
+                "error": type(exc).__name__,
+                "found": False,
+                "ap_address_value_stored": False,
+                "response_body_stored": False,
+                "configuration_write_performed": False,
+            },
+            None,
+        )
+    finally:
+        connection.close()
+
+
+def _watch_tcp_service(
+    host: str,
+    port: int,
+    *,
+    full: bool,
+    timeout: float,
+) -> dict[str, Any]:
+    """Repeatedly connect to one port without sending application data."""
+    bounded_port = int(port) if 1 <= int(port) <= 65535 else 8899
+    interval = 1.0
+    duration = 20.0 if full else 5.0
+    attempts = int(duration / interval) + 1
+    connect_timeout = min(max(float(timeout), 0.03), 0.15)
+    observations: list[dict[str, Any]] = []
+    successful = 0
+    first_open_offset: float | None = None
+    transitions = 0
+    previous: bool | None = None
+
+    for index in range(attempts):
+        if index:
+            time.sleep(interval)
+        is_open = _one_tcp_open(host, bounded_port, connect_timeout) is not None
+        offset = round(index * interval, 3)
+        observations.append({"offset_seconds": offset, "open": is_open})
+        if is_open:
+            successful += 1
+            if first_open_offset is None:
+                first_open_offset = offset
+        if previous is not None and previous != is_open:
+            transitions += 1
+        previous = is_open
+
+    return {
+        "attempted": True,
+        "port": bounded_port,
+        "duration_seconds": duration,
+        "interval_seconds": interval,
+        "connect_timeout_seconds": connect_timeout,
+        "attempts": attempts,
+        "successful_connections": successful,
+        "observed_open": successful > 0,
+        "first_open_offset_seconds": first_open_offset,
+        "state_transitions": transitions,
+        "observations": observations,
+        "connection_only": True,
+        "application_data_sent": False,
+        "configuration_write_performed": False,
+    }
+
+
+def _probe_ap_interface(
+    ap_ip: str | None,
+    configured_port: int,
+    *,
+    wireless_mode: str | None,
+    timeout: float,
+) -> dict[str, Any]:
+    """Passively compare the advertised AP interface without exposing its address."""
+    mode = str(wireless_mode or "").upper()
+    if mode not in {"AP", "APSTA"}:
+        return {
+            "attempted": False,
+            "reason": "logger_ap_not_advertised",
+            "wireless_mode": wireless_mode,
+            "ap_address_value_stored": False,
+            "connection_only": True,
+            "application_data_sent": False,
+        }
+    if ap_ip is None:
+        return {
+            "attempted": False,
+            "reason": "advertised_ap_address_unavailable_or_not_private_ipv4",
+            "wireless_mode": wireless_mode,
+            "ap_address_value_stored": False,
+            "connection_only": True,
+            "application_data_sent": False,
+        }
+
+    port = int(configured_port) if 1 <= int(configured_port) <= 65535 else 8899
+    connect_timeout = min(max(float(timeout), 0.05), 0.25)
+    http_open = _one_tcp_open(ap_ip, 80, connect_timeout) is not None
+    service_results: list[bool] = []
+    for index in range(3):
+        if index:
+            time.sleep(0.2)
+        service_results.append(_one_tcp_open(ap_ip, port, connect_timeout) is not None)
+    service_open = any(service_results)
+    reachability_confirmed = http_open or service_open
+
+    if service_open:
+        outcome = "configured_service_observed_on_ap_interface"
+    elif http_open:
+        outcome = "ap_interface_reachable_but_configured_service_not_observed"
+    else:
+        outcome = "ap_interface_not_reachable_from_current_network_or_services_closed"
+
+    return {
+        "attempted": True,
+        "wireless_mode": wireless_mode,
+        "ap_address_private_ipv4": True,
+        "ap_address_value_stored": False,
+        "http_port_80_open": http_open,
+        "reachability_confirmed": reachability_confirmed,
+        "configured_port": port,
+        "configured_port_attempts": len(service_results),
+        "configured_port_successes": sum(service_results),
+        "configured_port_open": service_open,
+        "outcome": outcome,
+        "connection_only": True,
+        "application_data_sent": False,
+        "configuration_write_performed": False,
+    }
+
+
+def _compare_configured_service(
+    settings: dict[str, Any],
+    tcp_inventory: dict[str, Any],
+    service_watch: dict[str, Any],
+) -> dict[str, Any]:
+    local = settings.get("local_network") if isinstance(settings, dict) else None
+    local = local if isinstance(local, dict) else {}
+    protocol = str(local.get("protocol") or "").upper()
+    role = str(local.get("role") or "").upper()
+    port = local.get("port") if isinstance(local.get("port"), int) else None
+    configured_server = protocol == "TCP" and role == "SERVER" and port is not None
+    inventory_open_ports = {
+        int(item)
+        for item in (tcp_inventory.get("open_ports") or [])
+        if isinstance(item, int)
+    }
+    inventory_observed = bool(port is not None and port in inventory_open_ports)
+    watch_observed = bool(service_watch.get("observed_open"))
+    mismatch = configured_server and not inventory_observed and not watch_observed
+
+    if not configured_server:
+        status = "not_configured_as_tcp_server"
+    elif mismatch:
+        status = "configured_but_not_observed"
+    else:
+        status = "configured_and_observed"
+
+    return {
+        "configured_as_tcp_server": configured_server,
+        "configured_port": port,
+        "inventory_observed_open": inventory_observed,
+        "watch_observed_open": watch_observed,
+        "configuration_runtime_mismatch": mismatch,
+        "status": status,
+    }
+
+
+def _classify_local_access(
+    configuration_vs_runtime: dict[str, Any],
+    ap_probe: dict[str, Any],
+) -> dict[str, Any]:
+    sta_open = bool(
+        configuration_vs_runtime.get("inventory_observed_open")
+        or configuration_vs_runtime.get("watch_observed_open")
+    )
+    ap_attempted = bool(ap_probe.get("attempted"))
+    ap_open = ap_probe.get("configured_port_open") is True
+    ap_reachable = ap_probe.get("reachability_confirmed") is True
+
+    if sta_open and ap_open:
+        status = "configured_service_observed_on_sta_and_ap"
+    elif sta_open:
+        status = "configured_service_observed_on_sta"
+    elif ap_open:
+        status = "configured_service_observed_on_ap_only_candidate"
+    elif ap_attempted and ap_reachable:
+        status = "configured_service_not_observed_on_sta_or_reachable_ap"
+    elif ap_attempted:
+        status = "ap_follow_up_requires_direct_ap_connection"
+    else:
+        status = "sta_service_not_observed_ap_not_testable"
+
+    return {
+        "status": status,
+        "sta_service_observed": sta_open,
+        "ap_probe_attempted": ap_attempted,
+        "ap_reachability_confirmed": ap_reachable,
+        "ap_service_observed": ap_open,
+    }
+
+
 def capture_research(
     tsun_dump_module: Any,
     args: Any,
@@ -530,6 +1003,7 @@ def capture_research(
     timeout = float(getattr(args, "timeout", 2.0))
     tcp_timeout = float(getattr(args, "tcp_scan_timeout", 0.1))
     http_timeout = float(getattr(args, "http_page_timeout", 1.0))
+    user_agent = f"TSUN-Local-Diagnostic/{getattr(tsun_dump_module, 'TOOL_VERSION', 'unknown')}"
 
     smartlink = _smartlinkfind_probe(host, min(timeout, 2.5))
     update_url = _query_upurl_read_only(host, min(timeout, 2.5))
@@ -541,7 +1015,7 @@ def capture_research(
             host,
             port,
             http_timeout,
-            f"TSUN-Local-Diagnostic/{getattr(tsun_dump_module, 'TOOL_VERSION', 'unknown')}",
+            user_agent,
         )
         for port in open_ports
         if port in HTTP_CANDIDATE_PORTS
@@ -568,6 +1042,34 @@ def capture_research(
             "error": type(exc).__name__,
             "privacy": {"raw_html_stored": False, "host_ip_stored": False},
         }
+
+    web_settings = _extract_logger_web_transport_settings(logger_web)
+    local_network = web_settings.get("local_network") or {}
+    configured_port = local_network.get("port")
+    watch_port = configured_port if isinstance(configured_port, int) else 8899
+    service_watch = _watch_tcp_service(
+        host,
+        watch_port,
+        full=full,
+        timeout=tcp_timeout,
+    )
+    config_observation = _compare_configured_service(
+        web_settings,
+        tcp_inventory,
+        service_watch,
+    )
+    status_runtime, ap_ip = _capture_logger_status_runtime(
+        host,
+        http_timeout,
+        user_agent,
+    )
+    ap_interface_probe = _probe_ap_interface(
+        ap_ip,
+        watch_port,
+        wireless_mode=status_runtime.get("wireless_mode"),
+        timeout=tcp_timeout,
+    )
+    local_access = _classify_local_access(config_observation, ap_interface_probe)
 
     safe_reason = "normal TSUN protocol detection failed after bounded retries"
     firmware = str(discovery.get("firmware_version") or "") or None
@@ -605,11 +1107,15 @@ def capture_research(
                 "ota_url_credentials_in_output": False,
                 "ota_url_query_in_output": False,
                 "ota_url_fragment_in_output": False,
+                "structured_cloud_server_endpoint_in_output": False,
+                "structured_local_network_address_in_output": False,
+                "ap_interface_address_in_output": False,
             },
         },
         "discovery": _safe_discovery(discovery),
         "logger_web": logger_web,
         "transport_research": {
+            "probe_revision": PROBE_REVISION,
             "trigger": {
                 "firmware_version": firmware,
                 "protocol_hint": discovery.get("protocol_hint"),
@@ -623,6 +1129,12 @@ def capture_research(
             "http_get_probes": http_probes,
             "tls_handshake_probes": tls_probes,
             "passive_banner_probes": banner_probes,
+            "logger_transport_settings": web_settings,
+            "configured_tcp_service_watch": service_watch,
+            "configuration_vs_runtime": config_observation,
+            "logger_status_runtime": status_runtime,
+            "ap_interface_probe": ap_interface_probe,
+            "local_access_assessment": local_access,
             "safety": {
                 "read_only": True,
                 "smartlinkfind_only_udp_request": True,
@@ -638,6 +1150,11 @@ def capture_research(
                 "firmware_update_performed": False,
                 "ota_performed": False,
                 "full_65535_tcp_scan_performed": False,
+                "service_watch_connection_only": True,
+                "service_watch_application_data_sent": False,
+                "status_snapshot_get_only": True,
+                "ap_interface_probe_connection_only": True,
+                "ap_interface_probe_application_data_sent": False,
             },
         },
         "protocol_detection": {
