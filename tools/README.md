@@ -1,94 +1,79 @@
 # TSUN Local tools
 
-Diagnostic and validation utilities for TSUN Local.
+This directory contains the supported diagnostic entry points plus focused field and research utilities used to validate TSUN hardware safely.
 
-## Desktop diagnostic — Windows
+All inverter/protocol probes in this directory are designed for **read-only diagnostics** unless a tool explicitly documents a different action.
 
-For users who prefer a guided interface, TSUN Local provides the Windows desktop diagnostic. It uses the same privacy-safe, **strictly read-only** `tsun_dump.py` engine.
+## Supported diagnostic entry points
 
-| Platform | Download | SHA-256 |
-|---|---|---|
-| Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
+### Windows desktop diagnostic
 
-The historical Windows URL remains unchanged so links in older posts continue to work.
+The supported packaged GUI is built from [`tsun_diagnostic.py`](tsun_diagnostic.py) and published as:
 
-### Python / command-line version
+- [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)
+- [SHA-256 checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256)
 
-[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) requires Python 3.10+:
+The historical Windows release URL remains stable for links already published in issues, forum posts and documentation.
 
-```text
-python tsun_dump.py --full
+### Full Python diagnostic
+
+[`tsun_diagnostic_cli.py`](tsun_diagnostic_cli.py) is the supported non-Windows/full-Python entry point. The rolling release contains the complete source bundle and its pinned dependency list.
+
+Run from the source bundle with Python 3.10+:
+
+```bash
+python tsun_diagnostic_cli.py --full
 ```
-## Hardware validation dump
 
-[`tsun_dump.py`](tsun_dump.py) is the single-file, standalone, privacy-safe and **strictly read-only** hardware dumper for protocols **1511**, **02B0** and **1097**.
+The full Python package uses the same read-only engine, runtime extension order, privacy validation and report uploader as the Windows diagnostic.
 
-### Desktop diagnostic
+### Single-file compatibility diagnostic
 
-The desktop packages above are the recommended route for end users. They use the same read-only dump engine and create the same anonymized JSON evidence, with direct report upload added as a separate HTTPS action only after explicit consent.
-
-### Python / command-line version
-
-Direct rolling-release download:
-
-[`https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py)
-
-Checksum:
-
-[`https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py.sha256)
-
-Run with Python 3.10+:
+[`tsun_dump.py`](tsun_dump.py) remains available as the standalone standard-library fallback and compatibility path:
 
 ```bash
 python3 tsun_dump.py --full
 ```
 
-The standalone Python file checks the same `diagnostic-latest` manifest on startup, downloads a newer `tsun_dump.py` when available, verifies SHA-256, atomically replaces the current script and restarts. `--no-update` disables the check for one run and `--check-update` only reports availability. If the script location is not writable, the diagnostic continues with the local version and never requests `sudo`.
+It performs local discovery first, requests an IP address or Monitor SN only when needed, and excludes those values from the shareable diagnostic JSON.
 
-Dump engine **2.7.4** preserves the strictly read-only logger/protocol research path, including the bounded passive logger-web capture and the getter-only `AT+WSDNS` capability probe. The actual DNS server address is deliberately excluded from the shareable JSON.
+For capture ranges, privacy rules and evidence handling, see the [Hardware Validation Dump Tool guide](../docs/HARDWARE_DUMP.md).
 
-The tool tries local discovery first. IP address and Monitor SN are requested only when automatic discovery cannot resolve them, and neither is stored in the output JSON. `--monitor-sn` and the legacy `--serial` option are equivalent.
+## Field and research utilities
 
-For capture ranges, safety, privacy, snapshots and before/after comparison, see [Hardware Validation Dump Tool](../docs/HARDWARE_DUMP.md).
+These tools are intentionally more focused than the normal diagnostic and are used when a specific protocol, logger or hardware family needs additional evidence.
 
-## Sunology PLAY2 super-probe
+- [`tsun_observe_02b0.py`](tsun_observe_02b0.py) — long-running 02B0 stability observer used to distinguish TCP reachability from incomplete/invalid Modbus replies.
+- [`tsun_play2_probe.py`](tsun_play2_probe.py) — standalone PLAY2/MX investigation tool combining local discovery and bounded read-only protocol hypotheses.
+- [`tsun_1097_research_probe.py`](tsun_1097_research_probe.py) — targeted GEN4/1097 research fallback.
+- [`tsun_1097_transport_extension.py`](tsun_1097_transport_extension.py) — transport-enrichment stage shared by the full diagnostic runtime.
+- [`tsun_tuya_probe.py`](tsun_tuya_probe.py) — authenticated read-only Tuya LAN diagnostic path when a Local Key is supplied locally.
+- [`tsun_ota_probe.py`](tsun_ota_probe.py) — passive OTA/network capture helper for research.
+- [`dc1000_3026_readonly_probe.py`](dc1000_3026_readonly_probe.py) — focused read-only 3026/DC1000 investigation.
 
-[`tsun_play2_probe.py`](tsun_play2_probe.py) is a standalone, privacy-safe, **strictly read-only** all-in-one diagnostic for PLAY2 / MX variants that do not answer normal TSUN Local protocol detection.
+The [long-running 02B0 observation guide](../docs/guides/02B0_OBSERVATION.md) documents the observer workflow.
 
-Version **1.2.1** combines the main evidence-driven hypotheses in one run:
+## Focused diagnostics
 
-- Sunology/iGEN discovery across UDP **48899** and **49999** in both directions, using `smartlinkfind` and the known legacy discovery messages;
-- detailed `smart_config` / `##` parsing and correlation of discovered hosts with the supplied Monitor SN;
-- DNS-SD/mDNS discovery of `_solarhome._tcp.local` used by Sunology CONNECT;
-- passive WebSocket handshake/listen on the mDNS-resolved `ws://<host>:<port>/ws`, including detection of `solarEvent`, `pvP`, battery/grid events and product information;
-- HTTP/HTTPS local identity checks on supplied and discovered candidate hosts;
-- the same bounded, read-only TCP diagnostic matrix on **8899**, **48899** and **49999**, including AP/Solarman sequence variants, sensor-lists **1511**, **02B0**, **1097**, **3026**, direct Modbus-RTU-over-TCP and Modbus-TCP read hypotheses.
+Small standalone helpers remain available for narrow troubleshooting tasks:
 
-UDP **48899/49999** only receive known discovery strings; binary AP/Modbus probes are never sent to the UDP configuration services. The additional protocol matrix is performed only over TCP when the corresponding TCP port accepts a connection.
+- [`diagnose_device.py`](diagnose_device.py) — one anonymized TSUN Local protocol poll.
+- [`diagnose_02b0.py`](diagnose_02b0.py) — focused 02B0 diagnostics.
+- [`diagnose_logger_web.py`](diagnose_logger_web.py) — logger web-interface diagnostics.
+- [`diagnose_udp_discovery.py`](diagnose_udp_discovery.py) — privacy-safe UDP discovery test.
+- [`replay_diagnostic.py`](replay_diagnostic.py) — replay previously captured diagnostic data without talking to live hardware.
 
-The `ws://127.0.0.1:20199` address found in Sunology STREAM 3.2.2 is a **development/local mock only**. The production application resolves the CONNECT endpoint through mDNS, so the probe does not scan port 20199 on the PLAY2.
+## Internal diagnostic modules
 
-Run it with Python 3.10+ on Windows:
+The remaining `tsun_diagnostic_*.py` and `tsun_report_*.py` files are implementation modules used by the supported entry points. They are **not separate user-facing diagnostic programs**.
 
-```powershell
-py tsun_play2_probe.py --host 192.168.1.50 --monitor-sn 1234567890
-```
+In particular:
 
-One run produces two files:
+- `tsun_diagnostic_runtime.py` owns the ordered optional diagnostic extensions;
+- `tsun_diagnostic_version.py` owns the shared diagnostic version;
+- `tsun_report_upload.py` owns the canonical privacy-safe uploader;
+- `tsun_report_upload_retry.py` and `tsun_report_model_assignment.py` are compatibility shims for older imports.
 
-- `tsun_play2_superprobe_....json` — rich machine-readable diagnostic;
-- `tsun_play2_superprobe_....log` — detailed human-readable execution log.
+## Repository maintenance
 
-The report aliases local IP addresses and redacts Monitor SN and MAC addresses while retaining packet lengths, hashes, redacted hex/ASCII structure and protocol behaviour useful for reverse engineering.
-
-The probe performs **no cloud request, no BLE/Wi-Fi provisioning, no configuration write and no Modbus write**.
-
-On Windows, Python may need permission through Windows Defender Firewall on the **Private** network so local UDP/mDNS replies can be received. No router port forwarding or Internet-facing port opening is required.
-
-## Existing focused diagnostics
-
-- `diagnose_device.py` — one anonymized TSUN Local protocol poll;
-- `diagnose_02b0.py` — focused 02B0 diagnostics;
-- `diagnose_logger_web.py` — logger web-interface diagnostics;
-- `diagnose_udp_discovery.py` — privacy-safe UDP discovery test;
-- `replay_diagnostic.py` — replay diagnostic captures.
+[`update_download_stats.py`](update_download_stats.py) updates the generated GitHub Release download statistics under `docs/stats/`. It is repository maintenance code, not an inverter diagnostic.
