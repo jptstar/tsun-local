@@ -12,9 +12,9 @@ import tkinter as tk
 from tkinter import ttk
 
 import tsun_diagnostic_desktop as legacy
+from tsun_diagnostic_version import APP_VERSION
 
 APP_NAME = legacy.APP_NAME
-APP_VERSION = "1.5.8"
 MAX_DEVICE_ROWS = legacy.MAX_DEVICE_ROWS
 PROFILE_DIR_NAME = "TSUN Local Diagnostic"
 PROFILE_FILE_NAME = "upload_profile.json"
