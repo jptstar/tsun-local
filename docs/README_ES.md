@@ -52,7 +52,7 @@
 
 </details>
 
-📚 **[Validación MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
+📚 **[Validación MP3000 / TITAN](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -110,7 +110,7 @@ Para activarlas:
 
 Las asociaciones semánticas experimentales permanecen claramente marcadas hasta su validación independiente. No se implementan escrituras de configuración hacia el inversor.
 
-📚 **[Evidencias de validación MP3000](MP3000_FIELD_VALIDATION.md)**
+📚 **[Evidencias de validación MP3000](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Referencia completa de entidades](ENTITIES.md)**
 
 
@@ -187,7 +187,7 @@ python tsun_dump.py --full
 - Local y de solo lectura: sin nube y sin escrituras de configuración al inversor.
 - La variante exacta MX400/MX450/MX500 se deja intencionadamente sin especificar; el protocolo **02B0** detectado es la referencia.
 
-📚 **[Detalles de investigación PLAY2](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Sonda PLAY2 opcional de solo lectura](../tools/tsun_play2_probe.py)**
+📚 **[Detalles de investigación PLAY2](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Sonda PLAY2 opcional de solo lectura](../tools/tsun_play2_probe.py)**
 
 ---
 
