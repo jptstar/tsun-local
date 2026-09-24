@@ -17,7 +17,6 @@ The files kept directly in `docs/` are intentionally stable because they are lin
 Focused operational and troubleshooting documentation:
 
 - [Long-running 02B0 observation](guides/02B0_OBSERVATION.md)
-- [macOS first launch](guides/MACOS_FIRST_LAUNCH.md)
 
 ## Technical documentation
 
@@ -50,10 +49,6 @@ These counters come from GitHub Release assets only. They are not TSUN Local tel
 
 Release notes and diagnostic-tool release notes are stored under [releases/](releases/).
 
-## Archive
-
-Superseded development notes that remain useful for historical reference are stored under [archive/](archive/).
-
 ---
 
-When adding new documentation, keep public/stable URLs at the root only when they are intended to be linked externally. New research, technical notes, generated statistics and historical material should go into their corresponding subdirectory.
+When adding new documentation, keep public/stable URLs at the root only when they are intended to be linked externally. New research, technical notes and generated statistics should go into their corresponding subdirectory.
