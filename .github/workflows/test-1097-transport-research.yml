@@ -1,0 +1,46 @@
+name: Test 1097 transport research
+
+on:
+  pull_request:
+    paths:
+      - "tools/tsun_1097_research_probe.py"
+      - "tools/tsun_1097_transport_extension.py"
+      - "tests/test_tsun_1097_research_probe.py"
+      - "tests/test_tsun_1097_transport_extension.py"
+      - ".github/workflows/test-1097-transport-research.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/tsun_1097_research_probe.py"
+      - "tools/tsun_1097_transport_extension.py"
+      - "tests/test_tsun_1097_research_probe.py"
+      - "tests/test_tsun_1097_transport_extension.py"
+      - ".github/workflows/test-1097-transport-research.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile guarded research modules
+        run: |
+          python -m py_compile \
+            tools/tsun_1097_research_probe.py \
+            tools/tsun_1097_transport_extension.py
+
+      - name: Run 1097 transport research tests
+        run: |
+          python -m unittest \
+            tests.test_tsun_1097_research_probe \
+            tests.test_tsun_1097_transport_extension

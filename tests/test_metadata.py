@@ -13,6 +13,7 @@ import unittest
 
 ROOT = Path(__file__).parents[1]
 INTEGRATION = ROOT / "custom_components" / "tsun_local"
+PAGES_DIR = ROOT / "docs" / "pages"
 
 
 def _load_json(path: Path) -> dict:
@@ -151,9 +152,9 @@ class MetadataTests(unittest.TestCase):
 
     def test_public_site_links_visual_entity_reference(self) -> None:
         index = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
-        entities = (ROOT / "docs" / "entities.html").read_text(encoding="utf-8")
-        play2 = (ROOT / "docs" / "sunology-play2.html").read_text(encoding="utf-8")
-        ms2000 = (ROOT / "docs" / "tsol-ms2000-home-assistant.html").read_text(encoding="utf-8")
+        entities = (PAGES_DIR / "entities.html").read_text(encoding="utf-8")
+        play2 = (PAGES_DIR / "sunology-play2.html").read_text(encoding="utf-8")
+        ms2000 = (PAGES_DIR / "tsol-ms2000-home-assistant.html").read_text(encoding="utf-8")
         sitemap = (ROOT / "docs" / "sitemap.xml").read_text(encoding="utf-8")
         robots = (ROOT / "docs" / "robots.txt").read_text(encoding="utf-8")
 
@@ -161,7 +162,8 @@ class MetadataTests(unittest.TestCase):
         self.assertIn('entities.html', index)
         self.assertIn('Windows diagnostic →', index)
         self.assertIn('Python diagnostic →', index)
-        self.assertIn('Mac &amp; Linux diagnostic →', index)
+        self.assertNotIn('Mac &amp; Linux diagnostic →', index)
+        self.assertNotIn('test-your-inverter.html#mac-linux', index)
         self.assertIn("Your inverter. Your network. Your data.", index)
         self.assertIn("Sunology PLAY2", index)
         self.assertIn("Automatic discovery", index)
@@ -203,6 +205,7 @@ class MetadataTests(unittest.TestCase):
             "https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html",
+            "https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html",
             "https://jptstar.github.io/tsun-local/test-your-inverter.html",
             "https://jptstar.github.io/tsun-local/contributors.html",
         )

@@ -15,7 +15,7 @@ import tsun_diagnostic as desktop  # noqa: E402
 
 class DiagnosticUploadGuiTests(unittest.TestCase):
     def test_direct_upload_desktop_version_is_current(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.12")
+        self.assertEqual(desktop.APP_VERSION, "1.5.21")
         self.assertEqual(app.APP_VERSION, desktop.APP_VERSION)
         self.assertEqual(app.base.APP_VERSION, desktop.APP_VERSION)
 
@@ -126,6 +126,17 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
         self.assertIn("fermer", app._TEXT["fr"]["complete_close"].lower())
         self.assertIn("close", app._TEXT["en"]["complete_close"].lower())
 
+    def test_success_ui_exposes_each_confirmed_upload_stage(self) -> None:
+        self.assertIn("joignable", app._TEXT["fr"]["upload_service_ok"].lower())
+        self.assertIn("enregistr", app._TEXT["fr"]["upload_storage_ok"].lower())
+        self.assertIn("report id", app._TEXT["fr"]["upload_report_id"].lower())
+        self.assertIn("reachable", app._TEXT["en"]["upload_service_ok"].lower())
+        self.assertIn("stored", app._TEXT["en"]["upload_storage_ok"].lower())
+        source = Path(desktop.__file__).read_text(encoding="utf-8")
+        self.assertIn("upload_service_ok", source)
+        self.assertIn("upload_storage_ok", source)
+        self.assertIn("upload_report_id", source)
+
     def test_footer_exposes_jptstar_and_github_project_link(self) -> None:
         self.assertIn("@jptstar", desktop.COPYRIGHT_TEXT)
         self.assertIn("GitHub", desktop.COPYRIGHT_TEXT)
@@ -165,26 +176,22 @@ class DiagnosticUploadGuiTests(unittest.TestCase):
         self.assertIn("_main_report_links_host", source)
         self.assertIn('get("view_url")', source)
 
-    def test_platform_assets_keep_windows_link_and_add_mac_linux(self) -> None:
+    def test_platform_asset_is_only_published_for_windows_gui(self) -> None:
         self.assertEqual(
             desktop.platform_release_asset(system="Windows", machine="AMD64"),
             "TSUN-Local-Diagnostic.exe",
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Darwin", machine="arm64"),
-            "TSUN-Local-Diagnostic-macOS-arm64.zip",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Darwin", machine="arm64")
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Darwin", machine="x86_64"),
-            "TSUN-Local-Diagnostic-macOS-x86_64.zip",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Darwin", machine="x86_64")
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Linux", machine="x86_64"),
-            "TSUN-Local-Diagnostic-Linux-x86_64",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Linux", machine="x86_64")
         )
-        self.assertEqual(
-            desktop.platform_release_asset(system="Linux", machine="aarch64"),
-            "TSUN-Local-Diagnostic-Linux-arm64",
+        self.assertIsNone(
+            desktop.platform_release_asset(system="Linux", machine="aarch64")
         )
 
 

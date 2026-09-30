@@ -1,0 +1,233 @@
+name: Build full Python diagnostic package
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/tsun_dump.py"
+      - "tools/tsun_diagnostic_cli.py"
+      - "tools/tsun_diagnostic_runtime.py"
+      - "tools/tsun_diagnostic_version.py"
+      - "tools/tsun_1097_research_probe.py"
+      - "tools/tsun_1097_transport_extension.py"
+      - "tools/tsun_tuya_probe.py"
+      - "tools/tsun_report_upload.py"
+      - "tests/test_diagnostic_python_parity.py"
+      - ".github/workflows/build-diagnostic-python.yml"
+  workflow_run:
+    workflows:
+      - "Build desktop diagnostic packages"
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: full-python-diagnostic-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Python parity ${{ matrix.id }}
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: windows-x86_64
+            os: windows-latest
+          - id: linux-x86_64
+            os: ubuntu-24.04
+          - id: linux-arm64
+            os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out matching diagnostic sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the same Tuya backend as Windows
+        run: python -m pip install --disable-pip-version-check tinytuya==1.20.0
+
+      - name: Compile full Python diagnostic sources
+        run: |
+          python -m py_compile tools/tsun_dump.py tools/tsun_diagnostic_cli.py tools/tsun_diagnostic_runtime.py tools/tsun_diagnostic_version.py tools/tsun_1097_research_probe.py tools/tsun_1097_transport_extension.py tools/tsun_tuya_probe.py tools/tsun_report_upload.py
+
+      - name: Smoke-test full Python entry point
+        run: python tools/tsun_diagnostic_cli.py --help
+
+  bundle:
+    name: Build and verify Python parity bundle
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out matching diagnostic sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the same Tuya backend as Windows
+        run: python -m pip install --disable-pip-version-check tinytuya==1.20.0
+
+      - name: Verify Windows/Python parity contract
+        run: python -m unittest tests.test_diagnostic_python_parity -v
+
+      - name: Build portable source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle="$RUNNER_TEMP/TSUN-Local-Diagnostic-Python"
+          rm -rf "$bundle"
+          mkdir -p "$bundle" release
+          cp \
+            tools/tsun_dump.py \
+            tools/tsun_diagnostic_cli.py \
+            tools/tsun_diagnostic_runtime.py \
+            tools/tsun_diagnostic_version.py \
+            tools/tsun_1097_research_probe.py \
+            tools/tsun_1097_transport_extension.py \
+            tools/tsun_tuya_probe.py \
+            tools/tsun_report_upload.py \
+            "$bundle/"
+          printf 'tinytuya==1.20.0\n' > "$bundle/requirements.txt"
+          cat > "$bundle/README.txt" <<'EOF'
+          TSUN Local Diagnostic - full Python package
+          ===========================================
+
+          This is the supported non-Windows distribution of TSUN Local Diagnostic.
+          It uses the same read-only engine, ordered 1097/Tuya runtime, privacy gate,
+          model association and retrying uploader as the Windows executable.
+
+          Requirements: Python 3.10+
+
+          Install the pinned backend:
+              python -m pip install -r requirements.txt
+
+          Run the complete diagnostic:
+              python tsun_diagnostic_cli.py --full
+
+          Linux users should use this Python package. There is no separate Linux
+          executable. Dedicated macOS packages are not published.
+
+          The Tuya Local Key prompt is masked. Credentials are kept in memory only
+          and are never saved or uploaded. All protocol diagnostics remain read-only.
+
+          The historical single-file tsun_dump.py is included only for compatibility;
+          tsun_diagnostic_cli.py is the full feature-parity entry point.
+          EOF
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import zipfile
+
+          source = Path(os.environ["RUNNER_TEMP"]) / "TSUN-Local-Diagnostic-Python"
+          target = Path("release/TSUN-Local-Diagnostic-Python.zip")
+          with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+              for path in sorted(source.iterdir()):
+                  archive.write(path, arcname=path.name)
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          asset = Path("release/TSUN-Local-Diagnostic-Python.zip")
+          digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+          Path(str(asset) + ".sha256").write_text(
+              f"{digest}  {asset.name}\n", encoding="ascii"
+          )
+          PY
+
+      - name: Upload Python parity artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-python-full
+          path: |
+            release/TSUN-Local-Diagnostic-Python.zip
+            release/TSUN-Local-Diagnostic-Python.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish rolling full Python diagnostic
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.conclusion == 'success') }}
+    needs:
+      - smoke
+      - bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out matching diagnostic sources
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download Python bundle artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: diagnostic-python-full
+          path: release
+
+      - name: Publish full Python package to rolling diagnostic release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="diagnostic-latest"
+          gh release view "$tag" --repo "${{ github.repository }}" >/dev/null
+          gh release download "$tag" --repo "${{ github.repository }}" -p update.json -D release --clobber
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import sys
+
+          sys.path.insert(0, "tools")
+          from tsun_diagnostic_version import APP_VERSION
+
+          release = Path("release")
+          asset = release / "TSUN-Local-Diagnostic-Python.zip"
+          digest = hashlib.sha256(asset.read_bytes()).hexdigest()
+          manifest_path = release / "update.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          components = manifest.setdefault("components", {})
+          components["python_full"] = {
+              "version": APP_VERSION,
+              "asset": asset.name,
+              "sha256": digest,
+          }
+          for retired in (
+              "macos_arm64_gui",
+              "macos_x86_64_gui",
+              "linux_x86_64_gui",
+              "linux_arm64_gui",
+          ):
+              components.pop(retired, None)
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(manifest, indent=2))
+          PY
+          gh release upload "$tag" \
+            release/TSUN-Local-Diagnostic-Python.zip \
+            release/TSUN-Local-Diagnostic-Python.zip.sha256 \
+            release/update.json \
+            --clobber \
+            --repo "${{ github.repository }}"
+          echo "Published full Python diagnostic at feature parity with Windows."

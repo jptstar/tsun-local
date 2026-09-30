@@ -21,8 +21,11 @@
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="Version GitHub" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="https://github.com/jptstar/tsun-local"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jptstar/tsun-local?style=flat&logo=github&label=Stars"></a>
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
+
+<p align="center">⭐ <strong>Vous utilisez TSUN Local ?</strong> S’il vous est utile, <a href="https://github.com/jptstar/tsun-local">mettez une étoile au projet sur GitHub</a> — cela aide d’autres utilisateurs TSUN à le découvrir.</p>
 
 
 ---
@@ -49,7 +52,7 @@
 
 </details>
 
-📚 **[Validation MP3000 / TITAN](MP3000_FIELD_VALIDATION.md)**
+📚 **[Validation MP3000 / TITAN](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -107,7 +110,7 @@ Pour en activer une :
 
 Les correspondances sémantiques expérimentales restent explicitement signalées jusqu’à validation indépendante. Aucune écriture de configuration vers l’onduleur n’est implémentée.
 
-📚 **[Preuves de validation terrain MP3000](MP3000_FIELD_VALIDATION.md)**
+📚 **[Preuves de validation terrain MP3000](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Liste complète des entités](ENTITIES.md)**
 
 
@@ -157,64 +160,25 @@ Interrogation locale directe uniquement.
 
 ## 🔬 Valider un autre modèle TSUN
 
-TSUN Local propose un diagnostic matériel respectueux de la confidentialité et **strictement en lecture seule** pour les modèles non listés et les problèmes de communication.
+TSUN Local propose un diagnostic **strictement en lecture seule** pour les modèles non listés et les problèmes de communication.
 
-### Application de bureau — Windows, macOS et Linux
-
-La **même interface TSUN Local Diagnostic** est maintenant disponible sur Windows, macOS et Linux. Tous les paquets utilisent le même moteur matériel **strictement en lecture seule**.
+### Application de bureau — Windows
 
 | Plateforme | Téléchargement | Contrôle |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-> **Quel Mac choisir ?**  
-> • **Mac avec une puce Apple M1, M2, M3, M4 ou plus récente** → **Apple Silicon**.  
-> • **Mac dont  → À propos de ce Mac indique Intel** → **Mac Intel**.
-
-> ### 🟠 Mac — à lire avant le premier lancement
-> **TSUN Local Diagnostic n’est pas encore notarifié par Apple.** macOS peut donc bloquer le premier lancement.  
-> **Il n’est pas nécessaire de désactiver la sécurité du Mac ni Gatekeeper.**  
-> 1. Téléchargez et décompressez le ZIP correspondant à votre Mac.  
-> 2. Essayez d’ouvrir **TSUN Local Diagnostic.app** une première fois.  
-> 3. Si macOS bloque l’application, cliquez sur **Terminé**.  
-> 4. Ouvrez ** → Réglages Système → Confidentialité et sécurité**.  
-> 5. Dans **Sécurité**, cliquez sur **Ouvrir quand même** pour TSUN Local Diagnostic.  
-> 6. Authentifiez-vous puis confirmez **Ouvrir**.  
-> 🟢 Une fois l’application ouverte, c’est terminé : l’exception concerne uniquement TSUN Local Diagnostic et les protections générales de macOS restent actives.
-
-Versions actuelles : interface **1.5.12** · moteur de dump **2.8.2**.
-
-Le lien Windows historique reste volontairement inchangé afin que les anciens messages et tutoriels continuent de fonctionner.
-
-Le parcours est identique sur les trois systèmes : **1 → 2 → 3 → 4**.
-
-1. **Désactiver TSUN Local** pour le logger concerné.
-2. **Lancer le diagnostic**.
-3. **Envoi direct du rapport** — recommandé, avec consentement explicite obligatoire.
-4. **Envoi manuel par e-mail** — optionnel, uniquement en secours.
-
-Le nom/pseudonyme et jusqu’à 10 modèles de micro-onduleurs avec leurs quantités peuvent être mémorisés localement et restent modifiables. Le consentement n’est jamais mémorisé. Après un envoi réussi, l’application affiche l’identifiant `TSL-...` et un lien sécurisé permettant au testeur de voir exactement le rapport anonymisé envoyé, sans accès au dépôt privé.
-
-Test hors domicile : utilisez exactement `89:89:89:89` comme IP logger et `89898989` comme Monitor SN. Ce mode est explicitement synthétique et ne contacte aucun appareil.
-
-Sous macOS, les paquets publics sont disponibles pour Apple Silicon et Intel. Le premier lancement peut nécessiter l’autorisation **Ouvrir quand même** décrite ci-dessus. Ne désactivez jamais Gatekeeper globalement. Sous Linux, le fichier téléchargé peut nécessiter `chmod +x` une fois.
-
-**[Release diagnostic stable](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · 📋 **[Protocole de validation](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)**
+Le parcours Windows suit quatre étapes : désactiver TSUN Local, lancer le diagnostic, envoyer directement le rapport après consentement, ou utiliser l’e-mail uniquement en secours.
 
 ### Alternative Python / ligne de commande
 
-[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) reste disponible pour Python 3.10+ et les utilisateurs avancés :
+[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) reste disponible avec Python 3.10+ :
 
-```bash
-python3 tsun_dump.py --full
+```text
+python tsun_dump.py --full
 ```
 
-Sous Windows, `py tsun_dump.py --full` reste également pris en charge.
-
+**[Release diagnostic stable](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · 📋 **[Protocole de validation](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · 📚 **[Guide du diagnostic matériel](HARDWARE_DUMP.md)**
 ### Sunology PLAY2
 
 **Sunology PLAY2 est validé sur du matériel Home Assistant réel** via le chemin local 02B0 / Solarman V5.
@@ -223,7 +187,7 @@ Sous Windows, `py tsun_dump.py --full` reste également pris en charge.
 - Local et en lecture seule : aucun cloud et aucune écriture de configuration vers l’onduleur.
 - La variante matérielle exacte MX400/MX450/MX500 reste volontairement non spécifiée ; le protocole **02B0** détecté fait foi.
 
-📚 **[Détails de la recherche PLAY2](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Sonde PLAY2 optionnelle en lecture seule](../tools/tsun_play2_probe.py)**
+📚 **[Détails de la recherche PLAY2](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Sonde PLAY2 optionnelle en lecture seule](../tools/tsun_play2_probe.py)**
 
 ---
 

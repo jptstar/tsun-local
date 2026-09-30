@@ -21,8 +21,11 @@
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="https://github.com/jptstar/tsun-local"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jptstar/tsun-local?style=flat&logo=github&label=Stars"></a>
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
+
+<p align="center">⭐ <strong>正在使用 TSUN Local？</strong> 如果它对你有帮助，请<a href="https://github.com/jptstar/tsun-local">在 GitHub 上为项目点个 Star</a> — 这能帮助更多 TSUN 用户发现它。</p>
 
 
 ---
@@ -49,7 +52,7 @@
 
 </details>
 
-📚 **[MP3000 / TITAN 验证](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 / TITAN 验证](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -107,7 +110,7 @@ Home Assistant 提供一个 **逆变器告警** 状态、**活动告警** 计数
 
 实验性语义映射在独立验证前会继续明确标注。未实现任何向逆变器写入配置的功能。
 
-📚 **[MP3000 现场验证证据](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 现场验证证据](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[完整实体列表](ENTITIES.md)**
 
 
@@ -157,47 +160,25 @@ Home Assistant
 
 ## 🔬 验证其他 TSUN 型号
 
-TSUN Local 为未列出的型号和通信问题提供注重隐私且 **严格只读** 的硬件诊断工具。
+TSUN Local 为未列出的型号和通信问题提供隐私安全、**严格只读**的诊断工具。
 
-### 桌面应用 — Windows、macOS 和 Linux
-
-现在 Windows、macOS 和 Linux 都提供**同一套 TSUN Local Diagnostic 界面**。所有安装包都使用同一个**严格只读**的硬件诊断引擎。
+### 桌面应用 — Windows
 
 | 平台 | 下载 | SHA-256 |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-当前版本：桌面 GUI **1.5.12** · dump 引擎 **2.8.2**。
+Windows 流程分为四步：禁用对应的 TSUN Local 配置、运行诊断、在明确同意后直接上传报告，或仅在需要时使用电子邮件备用方式。
 
-历史 Windows 下载链接刻意保持不变，因此旧论坛帖子和教程中的链接仍然有效。
+### Python / 命令行替代方案
 
-所有平台都使用相同的 **1 → 2 → 3 → 4** 流程：
+[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) 仍可用于 Python 3.10+：
 
-1. 为目标 logger **禁用 TSUN Local**。
-2. **运行诊断**。
-3. **直接上传报告** — 推荐，仅在明确同意后执行。
-4. **手动邮件发送** — 仅作为可选备用方式。
-
-用户名/昵称以及最多 10 种微型逆变器型号和数量可以保存在本机并随时修改；上传同意状态**永远不会保存**。上传成功后，应用会显示 `TSL-...` ID 和一个安全链接，让测试者查看自己实际发送的匿名报告，而不会获得私有报告仓库的访问权限。
-
-离线地点测试：logger IP 使用 `89:89:89:89`，Monitor SN 使用 `89898989`。该模式会明确标记为合成测试，并且不会连接任何真实设备。
-
-macOS 应用目前采用 ad-hoc 签名但尚未经过 Apple notarization；首次启动时可能需要 Finder → 右键 → **打开**。Linux 下载后可能需要执行一次 `chmod +x`。
-
-**[稳定诊断发行版](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[验证协议](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[硬件诊断指南](HARDWARE_DUMP.md)**
-
-### Python / 命令行备用方式
-
-[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) 仍可供 Python 3.10+ 和高级用户使用：
-
-```bash
-python3 tsun_dump.py --full
+```text
+python tsun_dump.py --full
 ```
 
+**[稳定诊断版本](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[验证协议](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[诊断指南](HARDWARE_DUMP.md)**
 ### Sunology PLAY2
 
 **Sunology PLAY2 已在真实 Home Assistant 硬件上完成验证**，使用本地 02B0 / Solarman V5 路径。
@@ -206,7 +187,7 @@ python3 tsun_dump.py --full
 - 完全本地、只读：不依赖云端，也不会向逆变器写入配置。
 - 具体 MX400/MX450/MX500 硬件变体仍有意不作推断；以检测到的 **02B0** 协议为准。
 
-📚 **[PLAY2 研究详情](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[可选的只读 PLAY2 探测工具](../tools/tsun_play2_probe.py)**
+📚 **[PLAY2 研究详情](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[可选的只读 PLAY2 探测工具](../tools/tsun_play2_probe.py)**
 
 ---
 

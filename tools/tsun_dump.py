@@ -9,8 +9,9 @@ protocol families currently researched by TSUN Local: 1511, 02B0, 1097 and exper
 
 Discovery deliberately uses several independent read-only paths because TSUN
 logger generations do not all answer the same discovery service reliably:
-UDP 48899, bounded TCP 8899 scanning, local HTTP identity pages and an AP
-identity probe with logger SN=0. No inverter configuration write operation is
+UDP 48899, bounded TCP 8899 scanning, local HTTP identity pages, an AP identity
+probe with logger SN=0, and passive Tuya/ThingClips LAN detection on UDP
+6666/6667/7000 plus TCP 6668. No inverter configuration write operation is
 implemented anywhere in this file.
 """
 
@@ -30,6 +31,7 @@ import math
 import os
 from pathlib import Path
 import re
+import select
 import socket
 import sys
 import time
@@ -39,7 +41,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.8.2"
+TOOL_VERSION = "2.9.0"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -79,6 +81,10 @@ UPDATE_COMPONENT_WINDOWS_GUI = "windows_gui"
 
 DEFAULT_PORT = 8899
 DEFAULT_DISCOVERY_PORT = 48899
+TUYA_TCP_PORT = 6668
+TUYA_UDP_PORTS = (6666, 6667, 7000)
+TUYA_DISCOVERY_MAX_PACKET = 65535
+TUYA_DISCOVERY_TIMEOUT_CAP = 3.0
 DEFAULT_DISCOVERY_TIMEOUT = 4.0
 DEFAULT_TCP_SCAN_TIMEOUT = 0.45
 DEFAULT_HTTP_SCAN_TIMEOUT = 0.35
@@ -102,6 +108,165 @@ SHORT_LOGGER_MARKERS = (b"\x05\x00", b"\x06\x00")
 VALIDATED_PROTOCOLS = ("1511", "02b0", "1097")
 EXPERIMENTAL_PROTOCOLS = ("3026",)
 SUPPORTED_PROTOCOLS = (*VALIDATED_PROTOCOLS, *EXPERIMENTAL_PROTOCOLS)
+
+# Probe catalogs are deliberately capability-based.  Public diagnostics expose
+# protocol/framing names only, never the names of third-party implementations.
+RESEARCH_PROBE_TIMEOUT_CAP = 2.0
+RESEARCH_PROBE_DELAY = 0.12
+RESEARCH_PASSIVE_WAIT = 0.25
+V5_COMMAND_RESPONSE_CONTROLS = (0x1510, 0x0510)
+LOCAL_PROBE_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "id": "local_1511_min",
+        "maturity": "validated",
+        "protocol": "1511",
+        "envelope": "solarman_v5",
+        "kind": "native_1511",
+        "sensor_list": 0x0000,
+        "address_tag": 0xA1,
+        "native_function": 0x01,
+        "start": 0x0BB8,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+    {
+        "id": "local_02b0_min",
+        "maturity": "validated",
+        "protocol": "02b0",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x02B0,
+        "start": 0x3000,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+    {
+        "id": "local_1097_min",
+        "maturity": "validated",
+        "protocol": "1097",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x1097,
+        "start": 0x1100,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+    {
+        "id": "local_3026_min",
+        "maturity": "experimental",
+        "protocol": "3026",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x3026,
+        "start": 0x0000,
+        "count": 1,
+        "sequence_mode": "legacy_zero",
+    },
+)
+
+# Broader read-only fingerprints are attempted only after the validated/local
+# path failed.  They intentionally reproduce known protocol transactions rather
+# than associating a probe with a product, project or integration name.
+RESEARCH_PROBE_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "id": "v5_02b0_full",
+        "maturity": "research",
+        "protocol": "02b0",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x02B0,
+        "start": 0x3000,
+        "count": 48,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_1097_identity",
+        "maturity": "research",
+        "protocol": "1097",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x1097,
+        "start": 0x1000,
+        "count": 16,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_3026_full",
+        "maturity": "research",
+        "protocol": "3026",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x03,
+        "sensor_list": 0x3026,
+        "start": 0x0000,
+        "count": 45,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_1511_full",
+        "maturity": "research",
+        "protocol": "1511",
+        "envelope": "solarman_v5",
+        "kind": "native_1511",
+        "sensor_list": 0x1511,
+        "address_tag": 0xA1,
+        "native_function": 0x01,
+        "start": 0x0BB8,
+        "count": 32,
+        "sequence_mode": "adaptive",
+    },
+)
+
+# Extra probes are useful for difficult full captures but are not part of the
+# automatic minimal fallback.  Only Modbus read functions are allowed.
+RESEARCH_EXTENDED_PROBE_CATALOG: tuple[dict[str, Any], ...] = (
+    {
+        "id": "v5_02b0_fc04_min",
+        "maturity": "research",
+        "protocol": "02b0",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x04,
+        "sensor_list": 0x02B0,
+        "start": 0x3000,
+        "count": 1,
+        "sequence_mode": "adaptive",
+    },
+    {
+        "id": "v5_1097_fc04_min",
+        "maturity": "research",
+        "protocol": "1097",
+        "envelope": "solarman_v5",
+        "kind": "modbus_rtu",
+        "function": 0x04,
+        "sensor_list": 0x1097,
+        "start": 0x1100,
+        "count": 1,
+        "sequence_mode": "adaptive",
+    },
+)
+
+TSUN_INVERTER_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("GEN3 · 1 in 1", ("TSOL-MS300", "TSOL-MS350", "TSOL-MS400", "TSOL-MX400", "TSOL-MX450", "TSOL-MX500")),
+    ("GEN3 · 2 in 1", ("TSOL-MS600", "TSOL-MS700", "TSOL-MS800", "TSOL-MX800", "TSOL-MX900", "TSOL-MX1000", "TSOL-MX800Elite", "TSOL-MX800Lite")),
+    ("GEN3 · 4 in 1", ("TSOL-MS1600", "TSOL-MS1800", "TSOL-MS2000", "TSOL-MX2250")),
+    ("GEN3 · 6 in 1 · single phase", ("TSOL-MX2400D", "TSOL-MX2500D", "TSOL-MX2700D", "TSOL-MX3000D", "TSOL-MX3300D")),
+    ("GEN3 · 6 in 1 · three phase", ("TSOL-MX2400D-T", "TSOL-MX2500D-T", "TSOL-MX2700D-T", "TSOL-MX3000D-T", "TSOL-MX3300D-T")),
+    ("TITAN", ("TSOL-MS3000", "TSOL-MP2250", "TSOL-MP3000", "TSOL-MP3680", "TSOL-MP3750", "TSOL-MP4000", "TSOL-MP4600", "TSOL-MP5000", "TSOL-MP6000")),
+    ("MG · high-power PV", ("TSOL-MG700", "TSOL-MG750", "TSOL-MG800", "TSOL-MG1400", "TSOL-MG1500", "TSOL-MG1600", "TSOL-MG2800", "TSOL-MG3000", "TSOL-MG3200")),
+    ("ML · AC module", ("TSOL-ML500",)),
+    ("Partner hardware", ("Sunology PLAY 2",)),
+)
+TSUN_INVERTER_MODELS: tuple[str, ...] = tuple(
+    model for _group, models in TSUN_INVERTER_GROUPS for model in models
+)
+PROFILE_DIR_NAME = "TSUN Local Diagnostic"
+PROFILE_FILE_NAME = "upload_profile.json"
 
 DISCOVERY_MESSAGES = (
     b"WIFIKIT-214028-READ",
@@ -294,6 +459,14 @@ class TsunProtocolError(Exception):
     """Raised when a TSUN protocol frame is invalid."""
 
 
+class ProtocolDetectionError(RuntimeError):
+    """Raised after every bounded supported-protocol probe has failed."""
+
+    def __init__(self, message: str, attempts: list[dict[str, Any]]) -> None:
+        super().__init__(message)
+        self.attempts = attempts
+
+
 class TsunUpdateError(Exception):
     """Raised when a diagnostic self-update cannot be validated safely."""
 
@@ -466,6 +639,10 @@ class DiscoveryDevice:
     protocol_hint: str | None = None
     tcp_8899_open: bool = False
     http_open: bool = False
+    tuya_6668_open: bool = False
+    tuya_udp_seen: bool = False
+    tuya_udp_ports: set[int] = field(default_factory=set)
+    tuya_framing: set[str] = field(default_factory=set)
 
 
 def safe_error_details(error: Exception) -> dict[str, str]:
@@ -490,15 +667,24 @@ def checksum_ap(data: bytes) -> int:
     return sum(data) & 0xFF
 
 
-def build_ap_frame(logger_sn: int, payload: bytes, sensor_list: int = 0) -> bytes:
+def build_ap_frame(
+    logger_sn: int,
+    payload: bytes,
+    sensor_list: int = 0,
+    *,
+    sequence: int = 0,
+) -> bytes:
     if logger_sn != 0 and not _valid_monitor_sn(logger_sn):
         raise ValueError("Monitor SN must fit the four-byte logger field")
     if not 0 <= sensor_list <= 0xFFFF:
         raise ValueError("sensor_list must fit the two-byte AP field")
+    if not 0 <= sequence <= 0xFFFF:
+        raise ValueError("sequence must fit the two-byte AP field")
     data = b"\x02" + sensor_list.to_bytes(2, "little") + bytes(12) + payload
     scope = (
         len(data).to_bytes(2, "little")
-        + b"\x10\x45\x00\x00"
+        + b"\x10\x45"
+        + sequence.to_bytes(2, "little")
         + logger_sn.to_bytes(4, "little")
         + data
     )
@@ -576,6 +762,22 @@ def build_modbus_request(start: int, end: int) -> bytes:
     """Build an FC03 Modbus RTU read request."""
     count = end - start + 1
     body = b"\x01\x03" + start.to_bytes(2, "big") + count.to_bytes(2, "big")
+    return body + crc16_modbus(body)
+
+
+def build_modbus_read_request(
+    start: int, end: int, *, function: int = 0x03
+) -> bytes:
+    """Build a strictly read-only Modbus RTU FC03/FC04 request."""
+    if function not in (0x03, 0x04):
+        raise ValueError("Only read-only Modbus functions 0x03 and 0x04 are allowed")
+    if not 0 <= start <= end <= 0xFFFF:
+        raise ValueError("Invalid Modbus register range")
+    count = end - start + 1
+    if not 1 <= count <= 125:
+        raise ValueError("Modbus read count must be between 1 and 125 registers")
+    body = b"\x01" + bytes((function,)) + start.to_bytes(2, "big")
+    body += count.to_bytes(2, "big")
     return body + crc16_modbus(body)
 
 
@@ -998,6 +1200,10 @@ def _merge_device(target: DiscoveryDevice, incoming: DiscoveryDevice) -> None:
     target.sources.update(incoming.sources)
     target.tcp_8899_open = target.tcp_8899_open or incoming.tcp_8899_open
     target.http_open = target.http_open or incoming.http_open
+    target.tuya_6668_open = target.tuya_6668_open or incoming.tuya_6668_open
+    target.tuya_udp_seen = target.tuya_udp_seen or incoming.tuya_udp_seen
+    target.tuya_udp_ports.update(incoming.tuya_udp_ports)
+    target.tuya_framing.update(incoming.tuya_framing)
     target.firmware_version = target.firmware_version or incoming.firmware_version
     target.protocol_hint = target.protocol_hint or incoming.protocol_hint
 
@@ -1244,6 +1450,111 @@ def scan_tcp_network(
             except OSError:
                 pass
     return sorted(found, key=_host_sort_key)
+
+
+def _tuya_framing(payload: bytes, listen_port: int) -> str:
+    '''Return a non-secret framing classification for one passive UDP packet.'''
+    if payload.startswith(b"\x00\x00\x55\xaa"):
+        return "tuya-55aa"
+    if payload.startswith(b"\x00\x00\x66\x99"):
+        return "tuya-6699"
+    stripped = payload.lstrip()
+    if stripped.startswith(b"{"):
+        return "json/plaintext"
+    if listen_port == 6667:
+        return "tuya-encrypted/6667"
+    if listen_port == 7000:
+        return "tuya-app/7000"
+    return "unknown"
+
+
+def discover_tuya_udp(timeout: float) -> list[DiscoveryDevice]:
+    '''Passively observe Tuya/ThingClips LAN announcements without sending data.'''
+    if timeout <= 0:
+        return []
+
+    sockets: list[socket.socket] = []
+    devices: dict[str, DiscoveryDevice] = {}
+    for port in TUYA_UDP_PORTS:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind(("", port))
+        except OSError:
+            sock.close()
+            continue
+        sock.setblocking(False)
+        sockets.append(sock)
+
+    deadline = time.monotonic() + min(timeout, TUYA_DISCOVERY_TIMEOUT_CAP)
+    try:
+        while sockets:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            try:
+                readable, _, _ = select.select(sockets, [], [], min(0.5, remaining))
+            except (OSError, ValueError):
+                break
+            for sock in readable:
+                try:
+                    payload, (source, _source_port) = sock.recvfrom(
+                        TUYA_DISCOVERY_MAX_PACKET
+                    )
+                except OSError:
+                    continue
+                try:
+                    IPv4Address(source)
+                except ValueError:
+                    continue
+                listen_port = int(sock.getsockname()[1])
+                device = devices.setdefault(source, DiscoveryDevice(host=source))
+                device.replies += 1
+                device.sources.add(f"tuya_udp{listen_port}")
+                device.tuya_udp_seen = True
+                device.tuya_udp_ports.add(listen_port)
+                device.tuya_framing.add(_tuya_framing(payload, listen_port))
+    finally:
+        for sock in sockets:
+            sock.close()
+
+    return sorted(devices.values(), key=lambda item: _host_sort_key(item.host))
+
+
+def _tuya_candidate_metadata(device: DiscoveryDevice) -> dict[str, Any]:
+    '''Return privacy-safe Tuya evidence for a discovery report.'''
+    return {
+        "transport_kind": "tuya_oem_candidate",
+        "tuya_tcp_6668": device.tuya_6668_open,
+        "tuya_udp_seen": device.tuya_udp_seen,
+        "tuya_udp_ports": sorted(device.tuya_udp_ports),
+        "tuya_framing": sorted(device.tuya_framing),
+    }
+
+
+def _is_tuya_candidate(device: DiscoveryDevice) -> bool:
+    return bool(device.tuya_6668_open or device.tuya_udp_seen)
+
+
+def _tuya_tcp_reachability(host: str, timeout: float) -> dict[str, Any]:
+    '''Open TCP 6668 without sending application data and report reachability.'''
+    started = time.monotonic()
+    try:
+        with socket.create_connection(
+            (host, TUYA_TCP_PORT), timeout=min(max(timeout, 0.05), 3.0)
+        ):
+            latency_ms = round((time.monotonic() - started) * 1000, 1)
+            return {
+                "reachable": True,
+                "connect_latency_ms": latency_ms,
+                "application_payload_sent": False,
+            }
+    except OSError as err:
+        return {
+            "reachable": False,
+            "error": safe_error_details(err),
+            "application_payload_sent": False,
+        }
 
 
 def _http_document(
@@ -2038,22 +2349,30 @@ def discover_candidates(
     udp_targets = {"255.255.255.255"}
     udp_targets.update(str(network.broadcast_address) for network in networks)
     initial_udp = discover_udp_targets(udp_targets, timeout=args.discovery_timeout)
+    tuya_udp = discover_tuya_udp(args.discovery_timeout)
 
     devices: dict[str, DiscoveryDevice] = {}
-    for incoming in initial_udp:
+    for incoming in (*initial_udp, *tuya_udp):
         current = devices.setdefault(incoming.host, DiscoveryDevice(host=incoming.host))
         _merge_device(current, incoming)
         networks.add(_network_around_host(incoming.host))
 
     tcp_hosts: set[str] = set()
     http_hosts: set[str] = set()
+    tuya_hosts: set[str] = set()
     for network in sorted(networks, key=lambda item: (int(item.network_address), item.prefixlen)):
-        print(f"Network discovery: scanning {network} on TCP {args.port} and HTTP 80...")
+        print(
+            f"Network discovery: scanning {network} on TCP {args.port}, "
+            f"HTTP 80 and Tuya TCP {TUYA_TCP_PORT}..."
+        )
         tcp_hosts.update(
             scan_tcp_network(network, args.port, timeout=args.tcp_scan_timeout)
         )
         http_hosts.update(
             scan_tcp_network(network, 80, timeout=args.http_scan_timeout)
+        )
+        tuya_hosts.update(
+            scan_tcp_network(network, TUYA_TCP_PORT, timeout=args.tcp_scan_timeout)
         )
 
     candidate_hosts = sorted(tcp_hosts | http_hosts, key=_host_sort_key)
@@ -2096,13 +2415,19 @@ def discover_candidates(
     for host in http_hosts:
         if host in devices:
             devices[host].http_open = True
+    for host in tuya_hosts:
+        current = devices.setdefault(host, DiscoveryDevice(host=host))
+        current.tuya_6668_open = True
+        current.sources.add("tuya_tcp6668")
 
     return (
         sorted(devices.values(), key=lambda item: _host_sort_key(item.host)),
         {
             "udp_devices": len(initial_udp),
+            "tuya_udp_devices": len(tuya_udp),
             "tcp_candidates": len(tcp_hosts),
             "http_candidates": len(http_hosts),
+            "tuya_tcp_candidates": len(tuya_hosts),
             "identified_candidates": len(devices),
             "networks_scanned": len(networks),
         },
@@ -2129,6 +2454,12 @@ def resolve_single_host_identity(args: argparse.Namespace, host: str) -> Discove
         if logger_sn is not None:
             device.serial_candidates.add(logger_sn)
             device.sources.add("ap_identity")
+    if _tcp_port_open(host, TUYA_TCP_PORT, args.tcp_scan_timeout):
+        device.tuya_6668_open = True
+        device.sources.add("tuya_tcp6668")
+    for incoming in discover_tuya_udp(min(args.discovery_timeout, 1.5)):
+        if incoming.host == host:
+            _merge_device(device, incoming)
     return device
 
 
@@ -2170,9 +2501,13 @@ def resolve_targets(
         if monitor_sn is None and len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
-        if monitor_sn is None:
+        tuya_candidate = monitor_sn is None and _is_tuya_candidate(device)
+        if monitor_sn is None and not tuya_candidate:
             print("Monitor SN could not be resolved automatically.")
             monitor_sn = _prompt_monitor_sn()
+        if tuya_candidate:
+            monitor_sn = 0
+            print("Tuya/ThingClips LAN candidate detected; no TSUN Monitor SN required.")
         assert monitor_sn is not None
         summary["devices_found"] = 1
         summary["targets_resolved"] = 1
@@ -2186,16 +2521,22 @@ def resolve_targets(
             "sources": sorted(device.sources),
             "firmware_version": device.firmware_version,
             "protocol_hint": device.protocol_hint,
+            **(_tuya_candidate_metadata(device) if tuya_candidate else {}),
         }
         return [(host, monitor_sn, report)], summary
 
-    print("Searching for TSUN loggers (UDP + TCP 8899 + HTTP + AP identity)...")
+    print(
+        "Searching for TSUN and Tuya/ThingClips devices "
+        "(UDP + TCP 8899 + HTTP + AP identity + Tuya TCP 6668)..."
+    )
     devices, stats = discover_candidates(args)
     summary["devices_found"] = len(devices)
     print(
         "Discovery results: "
         f"UDP={stats['udp_devices']}, TCP8899={stats['tcp_candidates']}, "
-        f"HTTP={stats['http_candidates']}, identified={stats['identified_candidates']}, "
+        f"HTTP={stats['http_candidates']}, TuyaUDP={stats['tuya_udp_devices']}, "
+        f"TuyaTCP6668={stats['tuya_tcp_candidates']}, "
+        f"identified={stats['identified_candidates']}, "
         f"networks={stats['networks_scanned']}"
     )
 
@@ -2209,9 +2550,13 @@ def resolve_targets(
         if monitor_sn is None and len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
-        if monitor_sn is None:
+        tuya_candidate = monitor_sn is None and _is_tuya_candidate(device)
+        if monitor_sn is None and not tuya_candidate:
             print("Monitor SN could not be resolved automatically.")
             monitor_sn = _prompt_monitor_sn()
+        if tuya_candidate:
+            monitor_sn = 0
+            print("Tuya/ThingClips LAN candidate detected; no TSUN Monitor SN required.")
         assert monitor_sn is not None
         summary["devices_found"] = 1
         summary["targets_resolved"] = 1
@@ -2225,6 +2570,7 @@ def resolve_targets(
             "sources": sorted(device.sources),
             "firmware_version": device.firmware_version,
             "protocol_hint": device.protocol_hint,
+            **(_tuya_candidate_metadata(device) if tuya_candidate else {}),
         }
         return [(host, monitor_sn, report)], summary
 
@@ -2244,11 +2590,16 @@ def resolve_targets(
 
         monitor_sn: int | None = None
         discovered_sn = False
+        tuya_candidate = False
         if args.serial is not None and len(devices) == 1:
             monitor_sn = args.serial
         elif len(device.serial_candidates) == 1:
             monitor_sn = next(iter(device.serial_candidates))
             discovered_sn = True
+        elif not device.serial_candidates and _is_tuya_candidate(device):
+            monitor_sn = 0
+            tuya_candidate = True
+            print("  Tuya/ThingClips LAN candidate; no TSUN Monitor SN required.")
         else:
             state = "ambiguous" if device.serial_candidates else "missing"
             print(f"  Monitor SN {state}.")
@@ -2272,6 +2623,7 @@ def resolve_targets(
             "sources": sorted(device.sources),
             "firmware_version": device.firmware_version,
             "protocol_hint": device.protocol_hint,
+            **(_tuya_candidate_metadata(device) if tuya_candidate else {}),
         }
         targets.append((device.host, monitor_sn, report))
 
@@ -2427,10 +2779,465 @@ def detect_protocol(
             {"protocol": protocol, "result": "failure", "attempts": failures}
         )
 
-    raise RuntimeError(
+    raise ProtocolDetectionError(
         "No supported TSUN local protocol detected after "
-        f"{PROTOCOL_PROBE_RETRIES} attempts per protocol"
+        f"{PROTOCOL_PROBE_RETRIES} attempts per protocol",
+        attempts,
     ) from last_error
+
+
+@dataclass(slots=True)
+class _V5SequenceState:
+    """Sequence state used by a direct Solarman V5 client session."""
+
+    receive_index: int = 0
+    send_index: int = 0
+
+    def next_send(self) -> int:
+        self.send_index = (self.send_index + 1) & 0xFF
+        return (self.receive_index << 8) | self.send_index
+
+    def observe(self, value: int) -> None:
+        self.receive_index = (value >> 8) & 0xFF
+        self.send_index = value & 0xFF
+
+
+def _probe_descriptor(probe: dict[str, Any]) -> dict[str, Any]:
+    """Return a stable, privacy-safe catalog descriptor for reports/tests."""
+    result: dict[str, Any] = {
+        "id": str(probe["id"]),
+        "maturity": str(probe["maturity"]),
+        "protocol": str(probe["protocol"]),
+        "envelope": str(probe["envelope"]),
+        "kind": str(probe["kind"]),
+        "sequence_mode": str(probe.get("sequence_mode", "n/a")),
+        "read_only": True,
+    }
+    if "sensor_list" in probe:
+        result["sensor_list"] = f"0x{int(probe['sensor_list']):04X}"
+    if "function" in probe:
+        result["function"] = f"0x{int(probe['function']):02X}"
+    if "start" in probe:
+        result["start"] = f"0x{int(probe['start']):04X}"
+    if "count" in probe:
+        result["count"] = int(probe["count"])
+    return result
+
+
+def diagnostic_probe_catalogs(*, full: bool) -> dict[str, list[dict[str, Any]]]:
+    """Expose the capability catalogs without implementation provenance names."""
+    research = [*RESEARCH_PROBE_CATALOG]
+    if full:
+        research.extend(RESEARCH_EXTENDED_PROBE_CATALOG)
+    return {
+        "local": [_probe_descriptor(item) for item in LOCAL_PROBE_CATALOG],
+        "research": [_probe_descriptor(item) for item in research],
+    }
+
+
+def _order_research_probes(
+    requested: str, hint: str | None, *, full: bool
+) -> list[dict[str, Any]]:
+    probes = [dict(item) for item in RESEARCH_PROBE_CATALOG]
+    if full:
+        probes.extend(dict(item) for item in RESEARCH_EXTENDED_PROBE_CATALOG)
+    if requested != "auto":
+        probes = [item for item in probes if item["protocol"] == requested]
+    elif hint in SUPPORTED_PROTOCOLS:
+        probes.sort(key=lambda item: item["protocol"] != hint)
+    return probes
+
+
+def _build_catalog_payload(probe: dict[str, Any]) -> bytes:
+    start = int(probe["start"])
+    end = start + int(probe["count"]) - 1
+    if probe["kind"] == "modbus_rtu":
+        return build_modbus_read_request(
+            start, end, function=int(probe.get("function", 0x03))
+        )
+    if probe["kind"] == "native_1511":
+        return build_1511_request(
+            int(probe.get("address_tag", 0xA1)),
+            int(probe.get("native_function", 0x01)),
+            start,
+            end,
+        )
+    raise ValueError(f"Unsupported read-only probe kind: {probe['kind']}")
+
+
+def _summarize_v5_frame(frame: bytes) -> dict[str, Any]:
+    """Summarize any V5 envelope without retaining logger identity bytes."""
+    try:
+        if len(frame) < 13 or frame[0] != 0xA5 or frame[-1] != 0x15:
+            raise TsunProtocolError("Invalid V5 frame markers or minimum length")
+        expected = int.from_bytes(frame[1:3], "little") + 13
+        if len(frame) != expected:
+            raise TsunProtocolError("Invalid V5 frame length")
+        if checksum_ap(frame[1:-2]) != frame[-2]:
+            raise TsunProtocolError("Invalid V5 checksum")
+    except Exception as err:
+        return {"valid": False, "error": safe_error_details(err)}
+    control = int.from_bytes(frame[3:5], "little")
+    sequence = int.from_bytes(frame[5:7], "little")
+    is_command_response = control in V5_COMMAND_RESPONSE_CONTROLS
+    return {
+        "valid": True,
+        "control": f"0x{control:04X}",
+        "control_is_command_response": is_command_response,
+        "sequence": sequence,
+        "sequence_low": sequence & 0xFF,
+        "frame_type": frame[11] if len(frame) > 11 else None,
+        "status": frame[12] if len(frame) > 12 else None,
+        "envelope_payload_bytes": int.from_bytes(frame[1:3], "little"),
+        "embedded_payload_bytes": max(0, len(frame) - 27) if is_command_response else None,
+        "logger_identity_stored": False,
+    }
+
+
+def _classify_catalog_payload(
+    probe: dict[str, Any], response_payload: bytes
+) -> dict[str, Any]:
+    """Classify one embedded response while keeping unknown payloads raw-free."""
+    if response_payload in SHORT_LOGGER_MARKERS:
+        return {
+            "result": "short_marker_only",
+            "marker": response_payload.hex(" ").upper(),
+            "valid_data": False,
+        }
+    start = int(probe["start"])
+    count = int(probe["count"])
+    end = start + count - 1
+    if probe["kind"] == "modbus_rtu":
+        function = int(probe.get("function", 0x03))
+        if len(response_payload) < 5 or response_payload[0] != 0x01:
+            return {"result": "non_modbus_payload", "valid_data": False}
+        if crc16_modbus(response_payload[:-2]) != response_payload[-2:]:
+            return {"result": "invalid_modbus_crc", "valid_data": False}
+        response_function = response_payload[1]
+        if response_function == (function | 0x80):
+            return {
+                "result": "modbus_exception",
+                "function": f"0x{response_function:02X}",
+                "exception_code": response_payload[2],
+                "valid_data": False,
+                "transport_valid": True,
+            }
+        if response_function != function:
+            return {
+                "result": "unexpected_modbus_function",
+                "function": f"0x{response_function:02X}",
+                "valid_data": False,
+            }
+        data_length = response_payload[2]
+        expected = count * 2
+        valid_length = (
+            data_length == expected
+            and len(response_payload) == 3 + data_length + 2
+        )
+        return {
+            "result": "valid_read_response" if valid_length else "unexpected_modbus_length",
+            "function": f"0x{response_function:02X}",
+            "register_count": count if valid_length else None,
+            "valid_data": valid_length,
+            "transport_valid": True,
+        }
+    if probe["kind"] == "native_1511":
+        try:
+            registers = parse_1511_response(
+                response_payload,
+                int(probe.get("address_tag", 0xA1)),
+                int(probe.get("native_function", 0x01)),
+                start,
+                end,
+            )
+        except Exception as err:
+            return {
+                "result": "invalid_native_response",
+                "error": safe_error_details(err),
+                "valid_data": False,
+            }
+        return {
+            "result": "valid_read_response",
+            "register_count": len(registers),
+            "valid_data": True,
+            "transport_valid": True,
+        }
+    return {"result": "unsupported_probe_kind", "valid_data": False}
+
+
+def _build_solarman_v4_read_request(logger_sn: int) -> bytes:
+    """Build the historical V4 command 0x0001 (read inverter data)."""
+    if not _valid_monitor_sn(logger_sn):
+        raise ValueError("Monitor SN must fit the four-byte logger field")
+    serial = logger_sn.to_bytes(4, "little")
+    body = b"\x02\x41\xB1" + serial + serial + b"\x01\x00"
+    return b"\x68" + body + bytes((sum(body) & 0xFF, 0x16))
+
+
+def _recv_v4_bounded(sock: socket.socket, timeout: float) -> bytes:
+    data = bytearray()
+    deadline = time.monotonic() + timeout
+    while len(data) < 8192 and (remaining := deadline - time.monotonic()) > 0:
+        sock.settimeout(min(remaining, 0.35 if data else remaining))
+        try:
+            chunk = sock.recv(min(2048, 8192 - len(data)))
+        except socket.timeout:
+            break
+        if not chunk:
+            break
+        data.extend(chunk)
+    return bytes(data)
+
+
+def _run_v4_read_probe(
+    host: str, port: int, sn: int, timeout: float
+) -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "attempted": True,
+        "id": "v4_read_inverter_data",
+        "envelope": "solarman_v4",
+        "command": "0x0001",
+        "read_only": True,
+    }
+    try:
+        request = _build_solarman_v4_read_request(sn)
+        with socket.create_connection((host, port), timeout=timeout) as sock:
+            sock.settimeout(timeout)
+            sock.sendall(request)
+            response = _recv_v4_bounded(sock, timeout)
+    except Exception as err:
+        result["result"] = "transport_error"
+        result["error"] = safe_error_details(err)
+        return result
+    result["response_bytes"] = len(response)
+    if not response:
+        result["result"] = "no_response"
+        return result
+    result["looks_like_v4"] = response[:1] == b"\x68" and response[-1:] == b"\x16"
+    result["result"] = "v4_response" if result["looks_like_v4"] else "unknown_response"
+    result["raw_response_stored"] = False
+    return result
+
+
+def _read_research_v5_command_response(
+    sock: socket.socket,
+    timeout: float,
+    sequence: _V5SequenceState,
+) -> tuple[bytes, list[dict[str, Any]]]:
+    """Read through bounded unsolicited/heartbeat V5 frames to a command reply."""
+    deadline = time.monotonic() + timeout
+    interleaved: list[dict[str, Any]] = []
+    while len(interleaved) < 8:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        sock.settimeout(remaining)
+        frame = read_ap_frame(sock)
+        summary = _summarize_v5_frame(frame)
+        if summary.get("valid") and isinstance(summary.get("sequence"), int):
+            sequence.observe(int(summary["sequence"]))
+        if summary.get("control_is_command_response"):
+            return frame, interleaved
+        interleaved.append(summary)
+    raise socket.timeout("No Solarman V5 command response before timeout")
+
+
+def run_research_probe_catalog(
+    host: str,
+    port: int,
+    sn: int,
+    timeout: float,
+    *,
+    requested: str = "auto",
+    hint: str | None = None,
+    full: bool = False,
+) -> dict[str, Any]:
+    """Run the additive read-only fallback after the local catalog failed.
+
+    The existing zero-sequence detection path is deliberately untouched.  This
+    fallback uses a single V5 session, adaptive sequence state and known bounded
+    read transactions, stopping as soon as a strong candidate is found.
+    """
+    probes = _order_research_probes(requested, hint, full=full)
+    probe_timeout = min(timeout, RESEARCH_PROBE_TIMEOUT_CAP)
+    result: dict[str, Any] = {
+        "attempted": bool(probes),
+        "read_only": True,
+        "strategy": "adaptive_v5_after_local_failure",
+        "catalogs": diagnostic_probe_catalogs(full=full),
+        "attempts": [],
+        "passive_observation": {"attempted": False},
+        "v5_transport_detected": False,
+        "candidate_protocol": None,
+        "matched_probe": None,
+        "confidence": "none",
+        "safety": {
+            "configuration_write_performed": False,
+            "inverter_write_performed": False,
+            "cloud_access_performed": False,
+            "allowed_modbus_functions": ["0x03", "0x04"],
+            "same_connection": True,
+            "stops_on_valid_read": True,
+        },
+    }
+    if not probes:
+        result["reason"] = "no research probe matches the requested protocol"
+        return result
+
+    sequence = _V5SequenceState()
+    try:
+        with socket.create_connection((host, port), timeout=probe_timeout) as sock:
+            sock.settimeout(probe_timeout)
+            result["passive_observation"] = {
+                "attempted": True,
+                "wait_seconds": RESEARCH_PASSIVE_WAIT,
+                "received": False,
+            }
+            ready, _, _ = select.select([sock], [], [], RESEARCH_PASSIVE_WAIT)
+            if ready:
+                try:
+                    passive_frame = read_ap_frame(sock)
+                    summary = _summarize_v5_frame(passive_frame)
+                    result["passive_observation"].update(
+                        {"received": True, "frame": summary}
+                    )
+                    if summary.get("valid") and isinstance(summary.get("sequence"), int):
+                        sequence.observe(int(summary["sequence"]))
+                    if summary.get("control_is_command_response"):
+                        result["v5_transport_detected"] = True
+                except Exception as err:
+                    result["passive_observation"].update(
+                        {"received": True, "error": safe_error_details(err)}
+                    )
+
+            for probe in probes:
+                payload = _build_catalog_payload(probe)
+                sequence_value = sequence.next_send()
+                request = build_ap_frame(
+                    sn,
+                    payload,
+                    sensor_list=int(probe.get("sensor_list", 0)),
+                    sequence=sequence_value,
+                )
+                attempt: dict[str, Any] = {
+                    **_probe_descriptor(probe),
+                    "sequence_sent": sequence_value,
+                    "result": "pending",
+                }
+                if full:
+                    attempt["request_payload"] = payload.hex(" ").upper()
+                started = time.monotonic()
+                try:
+                    sock.settimeout(probe_timeout)
+                    sock.sendall(request)
+                    frame, interleaved = _read_research_v5_command_response(
+                        sock, probe_timeout, sequence
+                    )
+                    if interleaved:
+                        attempt["interleaved_frames"] = interleaved
+                except (socket.timeout, TimeoutError):
+                    attempt["result"] = "timeout"
+                    attempt["latency_ms"] = round(
+                        (time.monotonic() - started) * 1000, 1
+                    )
+                    result["attempts"].append(attempt)
+                    time.sleep(RESEARCH_PROBE_DELAY)
+                    continue
+                except Exception as err:
+                    attempt["result"] = "transport_error"
+                    attempt["error"] = safe_error_details(err)
+                    attempt["latency_ms"] = round(
+                        (time.monotonic() - started) * 1000, 1
+                    )
+                    result["attempts"].append(attempt)
+                    break
+
+                attempt["latency_ms"] = round(
+                    (time.monotonic() - started) * 1000, 1
+                )
+                summary = _summarize_v5_frame(frame)
+                attempt["frame"] = summary
+                if summary.get("valid") and isinstance(summary.get("sequence"), int):
+                    sequence.observe(int(summary["sequence"]))
+                    summary["sequence_low_echo_matches"] = (
+                        int(summary["sequence"]) & 0xFF
+                    ) == (sequence_value & 0xFF)
+                if summary.get("control_is_command_response"):
+                    result["v5_transport_detected"] = True
+                try:
+                    response_payload = parse_ap_frame(frame)
+                except Exception as err:
+                    attempt["result"] = "invalid_v5_response"
+                    attempt["error"] = safe_error_details(err)
+                    result["attempts"].append(attempt)
+                    time.sleep(RESEARCH_PROBE_DELAY)
+                    continue
+
+                classification = _classify_catalog_payload(probe, response_payload)
+                attempt["classification"] = classification
+                attempt["result"] = str(classification["result"])
+
+                # Some loggers first return a two-byte marker and then the real
+                # read response on the same connection.  Keep that behavior
+                # bounded and read-only rather than declaring a false failure.
+                if response_payload in SHORT_LOGGER_MARKERS:
+                    try:
+                        sock.settimeout(min(probe_timeout, CHARACTERIZATION_MARKER_WAIT))
+                        followup_frame, followup_interleaved = (
+                            _read_research_v5_command_response(
+                                sock,
+                                min(probe_timeout, CHARACTERIZATION_MARKER_WAIT),
+                                sequence,
+                            )
+                        )
+                        if followup_interleaved:
+                            attempt["followup_interleaved_frames"] = followup_interleaved
+                        followup_summary = _summarize_v5_frame(followup_frame)
+                        attempt["followup_frame"] = followup_summary
+                        if (
+                            followup_summary.get("valid")
+                            and isinstance(followup_summary.get("sequence"), int)
+                        ):
+                            sequence.observe(int(followup_summary["sequence"]))
+                        followup_payload = parse_ap_frame(followup_frame)
+                        followup = _classify_catalog_payload(probe, followup_payload)
+                        attempt["followup_classification"] = followup
+                        if followup.get("valid_data"):
+                            classification = followup
+                            attempt["result"] = "valid_read_response_after_short_marker"
+                    except (socket.timeout, TimeoutError):
+                        attempt["followup"] = "none_before_timeout"
+                    except Exception as err:
+                        attempt["followup"] = "invalid"
+                        attempt["followup_error"] = safe_error_details(err)
+
+                result["attempts"].append(attempt)
+                if classification.get("valid_data"):
+                    result["candidate_protocol"] = str(probe["protocol"])
+                    result["matched_probe"] = str(probe["id"])
+                    result["confidence"] = "valid_read_response"
+                    break
+                time.sleep(RESEARCH_PROBE_DELAY)
+    except Exception as err:
+        result["session_error"] = safe_error_details(err)
+
+    if result["candidate_protocol"] is None and result["v5_transport_detected"]:
+        result["confidence"] = "v5_transport_only"
+
+    # The historical V4 read is deliberately a full-capture fallback only, and
+    # is skipped as soon as V5 transport has been established.
+    result["v4_read_probe"] = (
+        _run_v4_read_probe(host, port, sn, probe_timeout)
+        if full
+        and result["candidate_protocol"] is None
+        and not result["v5_transport_detected"]
+        else {
+            "attempted": False,
+            "read_only": True,
+            "reason": "not needed" if full else "requires --full",
+        }
+    )
+    return result
 
 
 def register_key(protocol: str, block: tuple, address: int) -> str:
@@ -2826,6 +3633,307 @@ def _flatten_raw_registers(registers: dict[str, int]) -> list[dict[str, Any]]:
     ]
 
 
+def capture_tuya_candidate(
+    args: argparse.Namespace,
+    host: str,
+    discovery: dict[str, Any],
+) -> dict[str, Any]:
+    '''Capture privacy-safe evidence for a Tuya/ThingClips OEM LAN candidate.'''
+    created_at = datetime.now(timezone.utc)
+    tcp = _tuya_tcp_reachability(host, args.tcp_scan_timeout)
+    udp_seen = bool(discovery.get("tuya_udp_seen"))
+    framing = list(discovery.get("tuya_framing") or [])
+    ports = list(discovery.get("tuya_udp_ports") or [])
+    confirmed = bool(tcp.get("reachable") or udp_seen)
+
+    return {
+        "format": DUMP_FORMAT,
+        "schema_version": SCHEMA_VERSION,
+        "metadata": {
+            "timestamp_utc": created_at.isoformat(),
+            "tool": "TSUN Local Hardware Validation Dump Tool",
+            "tool_version": TOOL_VERSION,
+            "tool_sha256": _script_sha256(),
+            "tool_source": SOURCE_URL,
+            "standalone": True,
+            "python_required": ">=3.10",
+            "read_only": True,
+            "capture_mode": "full" if args.full else "standard",
+            "capture_status": (
+                "partial_success" if confirmed else "transport_unconfirmed"
+            ),
+            "detected_protocol": "tuya-lan",
+            "protocol_validation_status": (
+                "transport_detected" if confirmed else "transport_unconfirmed"
+            ),
+            "capture_limitation": "encrypted_status_requires_local_key",
+            "measurements_available": False,
+            "device_reachable": confirmed,
+            "requires_local_key_for_status": True,
+            "model_family": "Tuya / ThingClips OEM candidate",
+            "model_supplied_by_user": args.model,
+            "pv_count": None,
+            "port": TUYA_TCP_PORT,
+            "privacy": {
+                "host_in_output": False,
+                "logger_sn_in_output": False,
+                "inverter_serial_in_output": False,
+                "ap_envelope_in_output": False,
+                "udp_discovery_payload_in_output": False,
+                "tuya_device_id_in_output": False,
+                "tuya_local_key_in_output": False,
+            },
+        },
+        "discovery": discovery,
+        "tuya_lan": {
+            "candidate_confirmed": confirmed,
+            "transport_detected": confirmed,
+            "tcp_6668": tcp,
+            "udp_seen": udp_seen,
+            "udp_ports": sorted(int(port) for port in ports),
+            "udp_framing": sorted(str(item) for item in framing),
+            "status_read_attempted": False,
+            "status_read_blocked_by": "missing_local_key",
+            "status_read_reason": (
+                "Tuya LAN status is encrypted and requires the device-specific "
+                "local key; the diagnostic does not request or store that secret."
+            ),
+            "device_id_requested": False,
+            "local_key_requested": False,
+            "local_key_stored": False,
+            "configuration_write_performed": False,
+            "application_payload_sent": False,
+        },
+        "protocol_detection": {
+            "requested": args.protocol,
+            "selected": "tuya-lan",
+            "confidence": (
+                "Tuya TCP 6668 reachable and/or Tuya UDP LAN framing observed"
+            ),
+            "attempts": [],
+        },
+        "decoded_known_measurements": {},
+        "capture_summary": {
+            "snapshots": 0,
+            "snapshot_interval_seconds": args.interval,
+            "coherent_snapshots": 0,
+            "decoded_snapshot_index": None,
+            "successful_block_reads": 0,
+            "failed_block_reads": 0,
+            "unique_raw_registers": 0,
+        },
+        "raw_registers": [],
+        "snapshots": [],
+        "analysis": analyze_snapshots([]),
+        "blocks": [],
+        "protocol_trace": [],
+        "logger_dns_probe": {
+            "attempted": False,
+            "read_only": True,
+            "reason": "not a TSUN logger transport",
+        },
+    }
+
+
+
+def _capture_failed_protocol_observations(
+    host: str,
+    port: int,
+    sn: int,
+    timeout: float,
+) -> list[dict[str, Any]]:
+    """Keep one bounded raw observation for each Modbus candidate family."""
+    cases = (
+        ("02b0", 0x02B0, 0x3000),
+        ("1097", 0x1097, 0x1100),
+        ("3026", 0x3026, 0x0000),
+    )
+    observations: list[dict[str, Any]] = []
+    probe_timeout = min(timeout, CHARACTERIZATION_TIMEOUT_CAP)
+    for protocol, sensor_list, start in cases:
+        try:
+            observation = _observe_02b0_read(
+                host,
+                port,
+                sn,
+                start,
+                start,
+                sensor_list=sensor_list,
+                timeout=probe_timeout,
+            )
+        except Exception as err:
+            observation = {
+                "result": "transport_error",
+                "error": safe_error_details(err),
+            }
+        observation.update(
+            {
+                "protocol_candidate": protocol,
+                "sensor_list": f"0x{sensor_list:04X}",
+                "start": f"0x{start:04X}",
+                "end": f"0x{start:04X}",
+                "attempt": 1,
+            }
+        )
+        observations.append(observation)
+    return observations
+
+
+def capture_protocol_detection_failure(
+    args: argparse.Namespace,
+    host: str,
+    sn: int,
+    discovery: dict[str, Any],
+    error: ProtocolDetectionError,
+) -> dict[str, Any]:
+    """Create a privacy-safe JSON report even when no protocol is recognized."""
+    created_at = datetime.now(timezone.utc)
+    full = bool(args.full)
+    raw_observations = (
+        _capture_failed_protocol_observations(host, args.port, sn, args.timeout)
+        if full
+        else []
+    )
+
+    research_detection = run_research_probe_catalog(
+        host,
+        args.port,
+        sn,
+        args.timeout,
+        requested=args.protocol,
+        hint=discovery.get("protocol_hint"),
+        full=full,
+    )
+    try:
+        logger_web = capture_logger_web_pages(host, args.http_page_timeout)
+    except Exception as err:
+        logger_web = {
+            "attempted": True,
+            "pages_found": 0,
+            "error": safe_error_details(err),
+            "privacy": {
+                "raw_html_stored": False,
+                "host_ip_stored": False,
+            },
+        }
+
+    if full:
+        try:
+            logger_dns_probe = probe_logger_dns_read_only(
+                host, min(args.timeout, 2.5)
+            )
+        except Exception as err:
+            logger_dns_probe = {
+                "attempted": True,
+                "read_only": True,
+                "supported": False,
+                "error": safe_error_details(err),
+                "dns_server_address_stored": False,
+            }
+    else:
+        logger_dns_probe = {
+            "attempted": False,
+            "read_only": True,
+            "reason": "requires a full capture",
+            "dns_server_address_stored": False,
+        }
+
+    return {
+        "format": DUMP_FORMAT,
+        "schema_version": SCHEMA_VERSION,
+        "metadata": {
+            "timestamp_utc": created_at.isoformat(),
+            "tool": "TSUN Local Hardware Validation Dump Tool",
+            "tool_version": TOOL_VERSION,
+            "tool_sha256": _script_sha256(),
+            "tool_source": SOURCE_URL,
+            "standalone": True,
+            "python_required": ">=3.10",
+            "read_only": True,
+            "capture_mode": "full" if full else "standard",
+            "capture_status": "protocol_detection_failed",
+            "detected_protocol": None,
+            "protocol_validation_status": "undetected",
+            "capture_limitation": "no_supported_local_protocol_detected",
+            "measurements_available": False,
+            "device_reachable": True,
+            "model_family": "unknown / unsupported local protocol",
+            "model_supplied_by_user": args.model,
+            "pv_count": None,
+            "port": args.port,
+            "privacy": {
+                "host_in_output": False,
+                "logger_sn_in_output": False,
+                "inverter_serial_in_output": False,
+                "ap_envelope_in_output": False,
+                "udp_discovery_payload_in_output": False,
+                "logger_web_raw_html_in_output": False,
+                "logger_web_anonymized_html_in_output": True,
+                "logger_dns_address_in_output": False,
+                "raw_protocol_probe_payloads_in_output": full,
+                "inverter_serial_prefix_characters": 3,
+            },
+        },
+        "logger_web": logger_web,
+        "logger_dns_probe": logger_dns_probe,
+        "protocol_characterization": {
+            "attempted": False,
+            "reason": "no supported protocol selected",
+        },
+        "research_detection": research_detection,
+        "discovery": discovery,
+        "protocol_detection": {
+            "requested": args.protocol,
+            "selected": None,
+            "confidence": "no supported protocol probe succeeded",
+            "error": {
+                "type": type(error).__name__,
+                "message": str(error),
+            },
+            "attempts": error.attempts,
+        },
+        "protocol_failure_characterization": {
+            "attempted": full,
+            "read_only": True,
+            "reason": (
+                "bounded raw Modbus candidate observations collected"
+                if full
+                else "requires --full for raw candidate observations"
+            ),
+            "modbus_candidate_observations": raw_observations,
+            "legacy_1511_raw_observation": {
+                "attempted": False,
+                "reason": (
+                    "1511 uses different framing; normal bounded detection "
+                    "attempts are retained in protocol_detection"
+                ),
+            },
+            "safety": {
+                "configuration_write_performed": False,
+                "inverter_write_performed": False,
+                "cloud_access_performed": False,
+                "modbus_function": "0x03",
+                "registers_per_candidate": 1,
+            },
+        },
+        "decoded_known_measurements": {},
+        "capture_summary": {
+            "snapshots": 0,
+            "snapshot_interval_seconds": args.interval,
+            "coherent_snapshots": 0,
+            "decoded_snapshot_index": None,
+            "successful_block_reads": 0,
+            "failed_block_reads": 0,
+            "unique_raw_registers": 0,
+        },
+        "raw_registers": [],
+        "snapshots": [],
+        "analysis": analyze_snapshots([]),
+        "blocks": [],
+        "protocol_trace": [],
+    }
+
+
 def capture(
     args: argparse.Namespace,
     host: str,
@@ -3033,6 +4141,222 @@ class ReportUploadError(RuntimeError):
     """Raised when a generated diagnostic cannot be safely submitted."""
 
 
+def _clean_profile_text(value: str, label: str, max_length: int = 80) -> str:
+    """Validate one human-entered report-profile field."""
+    cleaned = value.strip()
+    if len(cleaned) > max_length:
+        raise ReportUploadError(f"{label} is too long")
+    return cleaned
+
+
+def _normalize_declared_devices(
+    declared_devices: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Validate and merge the inverter inventory sent with a report."""
+    merged: dict[str, dict[str, Any]] = {}
+    for item in declared_devices:
+        model = _clean_profile_text(str(item.get("model", "")), "device model")
+        if not model:
+            raise ReportUploadError("device model cannot be empty")
+        quantity = int(item.get("quantity", 1))
+        if not 1 <= quantity <= 99:
+            raise ReportUploadError("device quantity must be between 1 and 99")
+        key = model.casefold()
+        if key in merged:
+            quantity += int(merged[key]["quantity"])
+            if quantity > 99:
+                raise ReportUploadError(f"device quantity exceeds 99 for {model}")
+            merged[key]["quantity"] = quantity
+        else:
+            merged[key] = {"model": model, "quantity": quantity}
+    return list(merged.values())
+
+
+def _declared_device_arg(value: str) -> dict[str, Any]:
+    """Parse --device MODEL[:QTY], with quantity defaulting to one."""
+    text = value.strip()
+    if not text:
+        raise argparse.ArgumentTypeError("device model cannot be empty")
+    model, quantity = text, 1
+    if ":" in text:
+        candidate_model, candidate_quantity = text.rsplit(":", 1)
+        if candidate_quantity.strip().isdigit():
+            model = candidate_model.strip()
+            quantity = int(candidate_quantity.strip())
+    if not model or not 1 <= quantity <= 99:
+        raise argparse.ArgumentTypeError("invalid device model or quantity")
+    return {"model": model, "quantity": quantity}
+
+
+def upload_profile_path() -> Path:
+    """Return the same local profile path used by the desktop diagnostic."""
+    appdata = os.environ.get("APPDATA")
+    if appdata:
+        root = Path(appdata)
+    else:
+        xdg = os.environ.get("XDG_CONFIG_HOME")
+        root = Path(xdg) if xdg else Path.home() / ".config"
+    return root / PROFILE_DIR_NAME / PROFILE_FILE_NAME
+
+
+def load_upload_profile(path: Path | None = None) -> dict[str, Any]:
+    """Load only remembered tester identity and inverter inventory."""
+    target = path or upload_profile_path()
+    try:
+        raw = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {"tester_name": "", "declared_devices": []}
+    if not isinstance(raw, dict):
+        return {"tester_name": "", "declared_devices": []}
+    name = raw.get("tester_name", "")
+    if not isinstance(name, str):
+        name = ""
+    devices: list[dict[str, Any]] = []
+    source = raw.get("declared_devices", [])
+    if isinstance(source, list):
+        for item in source:
+            if not isinstance(item, dict):
+                continue
+            model = str(item.get("model", "")).strip()[:80]
+            if not model:
+                continue
+            try:
+                quantity = int(item.get("quantity", 1))
+            except (TypeError, ValueError):
+                continue
+            if 1 <= quantity <= 99:
+                devices.append({"model": model, "quantity": quantity})
+    return {"tester_name": name.strip()[:80], "declared_devices": devices}
+
+
+def save_upload_profile(
+    tester_name: str,
+    devices: list[dict[str, Any]],
+    path: Path | None = None,
+) -> None:
+    """Remember profile only; consent and diagnostics are never stored here."""
+    target = path or upload_profile_path()
+    payload = {
+        "tester_name": tester_name.strip()[:80],
+        "declared_devices": devices,
+    }
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temporary = target.with_suffix(".tmp")
+        temporary.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        temporary.replace(target)
+    except OSError:
+        pass
+
+
+def _expanded_profile_models(profile: dict[str, Any]) -> list[str]:
+    result: list[str] = []
+    for item in profile.get("declared_devices", []):
+        if not isinstance(item, dict):
+            continue
+        model = str(item.get("model", "")).strip()
+        try:
+            quantity = int(item.get("quantity", 1))
+        except (TypeError, ValueError):
+            continue
+        result.extend([model] * max(0, min(quantity, 50 - len(result))))
+        if len(result) >= 50:
+            break
+    return result
+
+
+def _print_inverter_catalogue() -> None:
+    print("\n=== Known inverter models ===")
+    number = 1
+    for group, models in TSUN_INVERTER_GROUPS:
+        print(f"{group}:")
+        for model in models:
+            print(f"  {number:>2}) {model}")
+            number += 1
+    print("   0) Other / unknown model")
+    print("Type ? at any model prompt to show this list again.")
+
+
+def _select_inverter_model(index: int, total: int, default: str = "") -> str:
+    while True:
+        suffix = f" [{default}]" if default else ""
+        choice = input(
+            f"Inverter model {index}/{total} (number, 0=Other/unknown){suffix}: "
+        ).strip()
+        if not choice and default:
+            return default
+        if choice == "?":
+            _print_inverter_catalogue()
+            continue
+        try:
+            number = int(choice)
+        except ValueError:
+            print("Please select a model number from the list, or 0 for Other / unknown.")
+            continue
+        if number == 0:
+            while True:
+                custom = _clean_profile_text(
+                    input("Exact model / label text: "), "device model"
+                )
+                if custom:
+                    return custom
+                print("Please enter the model or the text shown on the inverter label.")
+        if 1 <= number <= len(TSUN_INVERTER_MODELS):
+            return TSUN_INVERTER_MODELS[number - 1]
+        print("Unknown selection. Type ? to show the model list again.")
+
+
+def _prompt_upload_profile() -> tuple[str, list[dict[str, Any]]]:
+    """Collect required identity and exactly one model choice per inverter."""
+    profile = load_upload_profile()
+    saved_name = str(profile.get("tester_name", "")).strip()
+    saved_models = _expanded_profile_models(profile)
+
+    print("\n=== Tester / inverter information ===")
+    while True:
+        name_suffix = f" [{saved_name}]" if saved_name else ""
+        entered = _clean_profile_text(
+            input(f"Name or pseudonym (required){name_suffix}: "), "tester name"
+        )
+        tester_name = entered or saved_name
+        if tester_name:
+            break
+        print("A name or pseudonym is required so the report can be linked to the correct tester.")
+
+    while True:
+        count_suffix = f" [{len(saved_models)}]" if saved_models else ""
+        raw_count = input(f"Number of inverters{count_suffix}: ").strip()
+        if not raw_count and saved_models:
+            inverter_count = len(saved_models)
+        else:
+            try:
+                inverter_count = int(raw_count)
+            except ValueError:
+                print("Please enter a whole number.")
+                continue
+        if not 1 <= inverter_count <= 50:
+            print("Number of inverters must be between 1 and 50.")
+            continue
+        print(f"You entered {inverter_count} inverter(s).")
+        confirm = input("Confirm inverter count? [Y/n]: ").strip().lower()
+        if confirm in ("", "y", "yes"):
+            break
+
+    _print_inverter_catalogue()
+    devices: list[dict[str, Any]] = []
+    for index in range(1, inverter_count + 1):
+        default = saved_models[index - 1] if index <= len(saved_models) else ""
+        model = _select_inverter_model(index, inverter_count, default)
+        devices.append({"model": model, "quantity": 1})
+
+    normalized = _normalize_declared_devices(devices)
+    save_upload_profile(tester_name, normalized)
+    return tester_name, normalized
+
+
 def _find_forbidden_upload_key(
     value: Any, path: str = "$", depth: int = 0
 ) -> str | None:
@@ -3107,6 +4431,8 @@ def upload_diagnostic_report(
     diagnostic: dict[str, Any],
     *,
     consent: bool,
+    tester_name: str = "",
+    declared_devices: Iterable[dict[str, Any]] = (),
     endpoint: str = REPORT_UPLOAD_URL,
     timeout: float = REPORT_UPLOAD_TIMEOUT,
 ) -> dict[str, Any]:
@@ -3114,10 +4440,19 @@ def upload_diagnostic_report(
     if consent is not True:
         raise ReportUploadError("explicit consent is required")
     diagnostic = validate_diagnostic_for_upload(diagnostic)
+    name = _clean_profile_text(tester_name, "tester name")
+    devices = _normalize_declared_devices(declared_devices)
+    if not name:
+        raise ReportUploadError("tester name or pseudonym is required")
+    if not devices:
+        raise ReportUploadError("at least one inverter model is required")
     payload = {
         "schema_version": 1,
         "consent": True,
-        "tester_profile": {"name": "", "declared_devices": []},
+        "tester_profile": {
+            "name": name,
+            "declared_devices": devices,
+        },
         "diagnostic": diagnostic,
     }
     body = json.dumps(
@@ -3160,12 +4495,22 @@ def upload_diagnostic_report(
     return result
 
 
-def _submit_completed_reports(paths: list[Path]) -> None:
+def _submit_completed_reports(
+    paths: list[Path],
+    *,
+    tester_name: str = "",
+    declared_devices: Iterable[dict[str, Any]] = (),
+) -> None:
     """Validate every report first, then transmit them one by one."""
     validated = [(path, load_diagnostic_for_upload(path)) for path in paths]
     print("\nSending anonymized report(s) securely to TSUN Local...")
     for path, diagnostic in validated:
-        result = upload_diagnostic_report(diagnostic, consent=True)
+        result = upload_diagnostic_report(
+            diagnostic,
+            consent=True,
+            tester_name=tester_name,
+            declared_devices=declared_devices,
+        )
         report_id = result["report_id"]
         print(f"  {path.name}: sent successfully · report ID {report_id}")
         view_url = result.get("view_url")
@@ -3185,6 +4530,9 @@ def _print_email_report_instructions(paths: list[Path]) -> None:
 
 def _handle_report_delivery(paths: list[Path], args: argparse.Namespace) -> int:
     """Offer secure upload, email fallback or local-only retention."""
+    profile_args_available = hasattr(args, "tester_name") or hasattr(args, "device")
+    tester_name = getattr(args, "tester_name", "")
+    declared_devices = getattr(args, "device", [])
     if args.submit:
         choice = "1"
     elif args.no_submit:
@@ -3206,8 +4554,34 @@ def _handle_report_delivery(paths: list[Path], args: argparse.Namespace) -> int:
             return 0
 
     if choice == "1":
+        if args.submit and profile_args_available:
+            if not tester_name.strip():
+                print(
+                    "Secure upload requires --tester-name NAME_OR_PSEUDONYM.",
+                    file=sys.stderr,
+                )
+                return 2
+            if not declared_devices:
+                print(
+                    "Secure upload requires at least one --device MODEL[:QTY].",
+                    file=sys.stderr,
+                )
+                return 2
+        elif not args.submit:
+            try:
+                tester_name, declared_devices = _prompt_upload_profile()
+            except (EOFError, KeyboardInterrupt):
+                print("\nNo report was transmitted.")
+                return 0
         try:
-            _submit_completed_reports(paths)
+            if profile_args_available or not args.submit:
+                _submit_completed_reports(
+                    paths,
+                    tester_name=tester_name,
+                    declared_devices=declared_devices,
+                )
+            else:
+                _submit_completed_reports(paths)
         except ReportUploadError as exc:
             print(f"Secure upload failed: {exc}", file=sys.stderr)
             _print_email_report_instructions(paths)
@@ -3269,7 +4643,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Standalone, privacy-safe, strictly read-only TSUN hardware dump for "
-            "1511, 02B0, 1097 and experimental 3026. Discovery combines UDP, TCP 8899, HTTP and AP identity."
+            "1511, 02B0, 1097 and experimental 3026, with experimental "
+            "Tuya/ThingClips OEM LAN detection. Discovery combines UDP, TCP 8899, "
+            "HTTP, AP identity and Tuya TCP 6668."
         )
     )
     parser.add_argument(
@@ -3376,6 +4752,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="keep generated report(s) local and skip the end-of-run sharing prompt",
     )
+    parser.add_argument(
+        "--tester-name",
+        default="",
+        help="tester name or pseudonym; required with --submit",
+    )
+    parser.add_argument(
+        "--device",
+        action="append",
+        type=_declared_device_arg,
+        default=[],
+        metavar="MODEL[:QTY]",
+        help="declare an inverter model for --submit; may be repeated",
+    )
     return parser
 
 
@@ -3383,7 +4772,14 @@ def _print_dump_summary(document: dict[str, Any], output: Path) -> None:
     summary = document["capture_summary"]
     privacy = document["metadata"]["privacy"]
     print("Dump completed.")
-    print(f"Protocol : {document['metadata']['detected_protocol']}")
+    print(f"Protocol : {document['metadata'].get('detected_protocol') or 'undetected'}")
+    capture_status = document["metadata"].get("capture_status")
+    if capture_status:
+        print(f"Status   : {capture_status}")
+    if document["metadata"].get("detected_protocol") == "tuya-lan":
+        print("Measures : unavailable (encrypted status requires local key)")
+    elif not document["metadata"].get("detected_protocol"):
+        print("Measures : unavailable (no supported local protocol detected)")
     print(
         f"Blocks   : {summary['successful_block_reads']} successful / "
         f"{summary['failed_block_reads']} failed"
@@ -3498,10 +4894,32 @@ def main() -> int:
         if discovery.get("firmware_version"):
             print(f"Firmware : {discovery['firmware_version']}")
         try:
-            document = capture(args, host, sn, discovery)
+            if discovery.get("transport_kind") == "tuya_oem_candidate":
+                document = capture_tuya_candidate(args, host, discovery)
+                print("Protocol detected: tuya-lan (experimental OEM transport)")
+            else:
+                document = capture(args, host, sn, discovery)
         except (KeyboardInterrupt, EOFError):
             print("\nCancelled.")
             return 130
+        except ProtocolDetectionError as err:
+            print(
+                "No supported local protocol detected; generating a bounded "
+                "read-only failure report.",
+                file=sys.stderr,
+            )
+            try:
+                document = capture_protocol_detection_failure(
+                    args, host, sn, discovery, err
+                )
+            except Exception as report_err:
+                failed += 1
+                print(
+                    f"ERROR: device {sequence}/{total}: failure report could not "
+                    f"be created: {type(report_err).__name__}: {report_err}",
+                    file=sys.stderr,
+                )
+                continue
         except Exception as err:
             failed += 1
             print(
@@ -3514,7 +4932,7 @@ def main() -> int:
         output = output_path_for_target(
             args.output,
             args.model,
-            document["metadata"]["detected_protocol"],
+            document["metadata"].get("detected_protocol") or "undetected",
             timestamp,
             device_index=discovered_index,
             total_targets=total,

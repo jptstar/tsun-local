@@ -21,8 +21,11 @@
 <p align="center">
   <a href="https://github.com/jptstar/tsun-local/releases"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/jptstar/tsun-local"></a>
   <a href="https://github.com/hacs/integration"><img alt="HACS" src="https://img.shields.io/badge/HACS-Custom-41BDF5"></a>
+  <a href="https://github.com/jptstar/tsun-local"><img alt="GitHub stars" src="https://img.shields.io/github/stars/jptstar/tsun-local?style=flat&logo=github&label=Stars"></a>
   <a href="../LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue"></a>
 </p>
+
+<p align="center">⭐ <strong>Gebruik je TSUN Local?</strong> Helpt het je, <a href="https://github.com/jptstar/tsun-local">geef het project dan een ster op GitHub</a> — zo kunnen andere TSUN-gebruikers het makkelijker vinden.</p>
 
 
 ---
@@ -49,7 +52,7 @@
 
 </details>
 
-📚 **[MP3000 / TITAN-validatie](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 / TITAN-validatie](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 
@@ -107,7 +110,7 @@ Inschakelen:
 
 Experimentele semantische koppelingen blijven expliciet gemarkeerd totdat ze onafhankelijk zijn gevalideerd. Er zijn geen configuratieschrijfbewerkingen naar de omvormer geïmplementeerd.
 
-📚 **[MP3000 veldvalidatiebewijs](MP3000_FIELD_VALIDATION.md)**
+📚 **[MP3000 veldvalidatiebewijs](research/MP3000_FIELD_VALIDATION.md)**
 📚 **[Volledige entiteitenreferentie](ENTITIES.md)**
 
 
@@ -157,47 +160,25 @@ Alleen directe lokale polling.
 
 ## 🔬 Een ander TSUN-model valideren
 
-TSUN Local biedt een privacyvriendelijke en **strikt alleen-lezen** hardwarediagnose voor niet-vermelde modellen en communicatieproblemen.
+TSUN Local biedt een privacyvriendelijke, **strikt alleen-lezen** diagnose voor niet-vermelde modellen en communicatieproblemen.
 
-### Desktop-app — Windows, macOS en Linux
-
-De **zelfde TSUN Local Diagnostic-interface** is nu beschikbaar voor Windows, macOS en Linux. Alle pakketten gebruiken dezelfde **strikt alleen-lezen** hardware-engine.
+### Desktop-app — Windows
 
 | Platform | Download | Controle |
 |---|---|---|
 | Windows x86_64 | [TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
-| macOS — Mac M1 / M2 / M3 / M4… (Apple Silicon) | [TSUN-Local-Diagnostic-macOS-arm64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-arm64.zip.sha256) |
-| macOS — Mac Intel (older Macs) | [TSUN-Local-Diagnostic-macOS-x86_64.zip](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-macOS-x86_64.zip.sha256) |
-| Linux x86_64 | [TSUN-Local-Diagnostic-Linux-x86_64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-x86_64.sha256) |
-| Linux arm64 | [TSUN-Local-Diagnostic-Linux-arm64](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64) | [SHA-256](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic-Linux-arm64.sha256) |
 
-Huidige versies: GUI **1.5.12** · dump-engine **2.8.2**.
+De Windows-workflow heeft vier stappen: TSUN Local uitschakelen, de diagnose uitvoeren, het rapport na toestemming direct uploaden of e-mail alleen als terugvaloptie gebruiken.
 
-De bestaande Windows-link blijft bewust ongewijzigd zodat oudere forum- en documentatielinks blijven werken.
+### Python-/opdrachtregelalternatief
 
-De workflow is overal hetzelfde: **1 → 2 → 3 → 4**.
+[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) blijft beschikbaar voor Python 3.10+:
 
-1. De betreffende **TSUN Local-configuratie uitschakelen**.
-2. **Diagnose uitvoeren**.
-3. **Rapport direct uploaden** — aanbevolen, alleen na expliciete toestemming.
-4. **Handmatig per e-mail** — optionele fallback.
-
-Naam/pseudoniem en maximaal 10 micro-omvormermodellen met aantallen kunnen lokaal worden bewaard en later gewijzigd. Toestemming wordt nooit opgeslagen. Na upload toont de app de `TSL-...`-ID en een beveiligde link waarmee de tester exact het verzonden geanonimiseerde rapport kan bekijken zonder toegang tot de private repository.
-
-Test buiten de installatie: logger-IP `89:89:89:89` en Monitor SN `89898989`. Deze modus is expliciet synthetisch en benadert geen hardware.
-
-macOS is momenteel ad-hoc ondertekend maar nog niet door Apple genotariseerd; bij de eerste start kan Finder → rechtsklik → **Open** nodig zijn. Linux kan eenmalig `chmod +x` vereisen.
-
-**[Stabiele diagnostic-release](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[Validatieprotocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[Hardwarediagnose](HARDWARE_DUMP.md)**
-
-### Python / commandoregel
-
-[`tsun_dump.py`](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/tsun_dump.py) blijft beschikbaar voor Python 3.10+ en gevorderde gebruikers:
-
-```bash
-python3 tsun_dump.py --full
+```text
+python tsun_dump.py --full
 ```
 
+**[Stabiele diagnostic-release](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[Validatieprotocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[Diagnosehandleiding](HARDWARE_DUMP.md)**
 ### Sunology PLAY2
 
 **Sunology PLAY2 is gevalideerd op echte Home Assistant-hardware** via het lokale 02B0 / Solarman V5-pad.
@@ -206,7 +187,7 @@ python3 tsun_dump.py --full
 - Lokaal en alleen-lezen: geen cloud en geen configuratieschrijfacties naar de omvormer.
 - De exacte MX400/MX450/MX500-hardwarevariant blijft bewust ongespecificeerd; het gedetecteerde **02B0**-protocol is leidend.
 
-📚 **[PLAY2-onderzoeksdetails](PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionele alleen-lezen PLAY2-probe](../tools/tsun_play2_probe.py)**
+📚 **[PLAY2-onderzoeksdetails](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Optionele alleen-lezen PLAY2-probe](../tools/tsun_play2_probe.py)**
 
 ---
 
