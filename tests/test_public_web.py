@@ -19,6 +19,13 @@ def _page_path(filename: str) -> Path:
 
 
 class PublicWebTests(unittest.TestCase):
+    def test_google_search_console_verification_file_is_deployed(self) -> None:
+        # A GitHub Pages project needs the file under its own URL prefix.
+        filename = "google5799b3c2a42eb9ab.html"
+        actual = (DOCS / filename).read_text(encoding="utf-8")
+        self.assertEqual(actual, f"google-site-verification: {filename}\n")
+        self.assertNotIn(filename, (DOCS / "sitemap.xml").read_text(encoding="utf-8"))
+
     def test_public_site_stays_on_stable_release_during_beta(self) -> None:
         manifest = json.loads((ROOT / "custom_components" / "tsun_local" / "manifest.json").read_text(encoding="utf-8"))
         self.assertRegex(
