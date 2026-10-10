@@ -91,7 +91,7 @@ _TEXT = {
         "network_probe_hint": "Test facultatif d’une IP locale, sans Monitor SN. Aucun paquet applicatif envoyé.",
         "network_probe_ip_required": "Renseignez l’adresse IPv4 locale de l’onduleur dans les options avancées.",
         "network_probe_running": "Test TCP ciblé en cours…",
-        "network_probe_done": "Rapport réseau créé — envoyez le JSON manuellement.",
+        "network_probe_done": "Rapport réseau prêt — envoi direct ou e-mail possible.",
         "network_probe_failed": "Le test réseau n’a pas pu être terminé.",
         "close": "Fermer",
         "input_title": "Information nécessaire",
@@ -150,7 +150,7 @@ _TEXT = {
         "network_probe_hint": "Optional local-IP test; no Monitor SN or application payload required.",
         "network_probe_ip_required": "Enter the inverter’s private LAN IPv4 address in advanced options.",
         "network_probe_running": "Targeted TCP test running…",
-        "network_probe_done": "Network report saved — share the JSON manually.",
+        "network_probe_done": "Network report ready — direct upload or e-mail available.",
         "network_probe_failed": "The network probe could not finish.",
         "close": "Close",
         "input_title": "Information required",
@@ -706,7 +706,7 @@ class DiagnosticApp:
         except (OSError, ValueError) as err:
             messagebox.showerror(APP_NAME, str(err))
             return
-        # Network-only reports are manual attachments, not uploadable TSUN dumps.
+        # Keep the new report separate from any previous protocol-dump selection.
         if hasattr(self, "latest_reports"):
             self.latest_reports = []
             self.uploaded_reports.clear()
@@ -720,7 +720,7 @@ class DiagnosticApp:
         self.worker.start()
 
     def _run_network_probe(self, folder: Path, host: str) -> None:
-        """Write a separate anonymized JSON; never add it to automatic uploads."""
+        """Write an anonymized JSON, ready for explicit-consent upload or e-mail."""
         try:
             path, report = tsun_dump.write_local_network_probe_report(
                 host, folder / (
@@ -733,6 +733,7 @@ class DiagnosticApp:
             self.events.put(("log", f"Open ports: {open_ports}\n"))
             self.events.put(("log", f"Manual JSON report: {path.name}\n"))
             self.events.put(("log", report["assessment"]["note"] + "\n"))
+            self.events.put(("network_probe_report", path.resolve()))
             self.events.put(("status", self.t["network_probe_done"], True))
         except (OSError, ValueError) as err:
             self.events.put(("log", f"Network probe error: {err}\n"))
@@ -1054,6 +1055,12 @@ class DiagnosticApp:
                 kind = event[0]
                 if kind == "log":
                     self._append_log(str(event[1]))
+                elif kind == "network_probe_report":
+                    # Acknowledged reports become selectable, but never upload silently.
+                    report_path = Path(event[1])
+                    if hasattr(self, "latest_reports") and report_path.exists():
+                        self.latest_reports = [report_path]
+                        self.uploaded_reports.discard(report_path)
                 elif kind == "update_current":
                     self.update_busy = False
                     self.update_status.set(self.t["update_current"])
