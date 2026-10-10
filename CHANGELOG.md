@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The project follows [Se
 
 ### Documentation
 
+- Present each tested microinverter on its own line in GitHub/HACS and localized README protocol tables, sorted by model name and natural model number; keep MX3000D validated and MX450 marked observed.
 - Publish dedicated TSOL-MX450 / GEN3 02B0 and TSOL-MX3000D / GEN4 1097 hardware pages using the exact visual system of the existing TSOL-MS300 page.
 - Update homepage compatibility cards, sitemap, HACS-visible GitHub README, and all seven localized README files; recognize TSOL-MS300 under verified 02B0 hardware instead of the speculative GEN4 list.
 - Thank real-device contributors on the homepage, individual device pages and contributor directory, without publishing private contact addresses.

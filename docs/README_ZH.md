@@ -37,8 +37,8 @@
 | 协议 | 系列 | 已验证硬件 | 状态 |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **已验证** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** | ✅ **已验证** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500** | ✅ **已验证** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **已验证** |
 
 > [!TIP]
 > **未列出的型号并不代表不兼容。** TSUN Local 主要依据检测到的本地协议判断兼容性，而不是只看商业型号名称。
