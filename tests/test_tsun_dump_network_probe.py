@@ -188,6 +188,7 @@ class NetworkProbeTests(TestCase):
                 root=mock.Mock(),
                 _append_log=mock.Mock(),
                 _sync_run_button=mock.Mock(),
+                _poll_events=mock.Mock(),
                 t={},
             )
             gui.DiagnosticApp._poll_events(receiver)
