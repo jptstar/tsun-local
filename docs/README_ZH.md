@@ -37,8 +37,8 @@
 | 协议 | 系列 | 已验证硬件 | 状态 |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **已验证** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **已验证** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **已验证** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** (observed) | ✅ **已验证** |
 
 > [!TIP]
 > **未列出的型号并不代表不兼容。** TSUN Local 主要依据检测到的本地协议判断兼容性，而不是只看商业型号名称。
@@ -47,14 +47,17 @@
 <summary><strong>按协议分类的可能兼容型号</strong></summary>
 
 - **1511 — 可能兼容:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — 可能兼容:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · 对应的 `-D` 变体
-- **1097 — 可能兼容:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
+- **02B0 — 可能兼容:** `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · 对应的 `-D` 变体
+- **1097 — 可能兼容:** `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000`
 
 </details>
 
 📚 **[MP3000 / TITAN 验证](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
+📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
+
+**实测信息：**TSOL-MX450 可通过 02B0 响应，但曾出现间歇性 Modbus 错误。两份 TSOL-MX3000D 的 GEN4/1097 报告确认六路光伏输入。成功本地读取不代表所有固件版本均可长期稳定运行。
 
 **1.6.0 新增：** **自适应采集**默认启用，并在通信失败时自动调整采集间隔：正常 20 秒、出错后 30 秒、离线/夜间 300 秒。
 
@@ -223,6 +226,10 @@ TSUN Local 受益于公开协议研究和独立真实硬件验证。以下致谢
 - **TheSmartGerman** — 真实设备测试揭示了额外的 1097 协议系列。
 - **dca31** — 通过 TSUN Local 的标准 Home Assistant 流程独立验证 Sunology PLAY2。
 - **Kmotr** — 使用 TSUN Local 和匿名化 Home Assistant 诊断文件对 TSOL-MS800 进行了独立实机验证。
+- **nxenara** — TSOL-MS300 / 02B0 real-hardware validation.
+- **phklrz (Philippe K.)** — TSOL-MX450 / 02B0 communication diagnostics.
+- **Valentin Fleuret** — two TSOL-MX3000D / 1097 hardware captures.
+- **Hugo Tinot** — MP3000 research diagnostics, identity investigation.
 - **paloindici** — 使用 TSUN Local 对 TSOL-MS2000 进行了独立实机验证，提供了 TSOL-MS2000 和 TSOL-MP3000 的匿名 Home Assistant 诊断，以及确认 02B0 / 4 路 PV 路径的硬件转储。
 
 📚 **[完整贡献者与致谢](contributors.html)**

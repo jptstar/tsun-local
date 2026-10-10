@@ -37,8 +37,8 @@
 | Protocol | Familie | Gevalideerde hardware | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Gevalideerd** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Gevalideerd** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** | ✅ **Gevalideerd** |
+| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Gevalideerd** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** (observed) | ✅ **Gevalideerd** |
 
 > [!TIP]
 > **Niet vermeld betekent niet automatisch incompatibel.** TSUN Local baseert compatibiliteit vooral op het gedetecteerde lokale protocol en niet alleen op de commerciële modelnaam.
@@ -47,14 +47,17 @@
 <summary><strong>Waarschijnlijk compatibele modellen per protocol</strong></summary>
 
 - **1511 — Waarschijnlijk compatibel:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
-- **02B0 — Waarschijnlijk compatibel:** `TSOL-MX450` · `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · overeenkomstige `-D`-varianten
-- **1097 — Waarschijnlijk compatibel:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000` · `TSOL-MX3000D`
+- **02B0 — Waarschijnlijk compatibel:** `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · overeenkomstige `-D`-varianten
+- **1097 — Waarschijnlijk compatibel:** `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000`
 
 </details>
 
 📚 **[MP3000 / TITAN-validatie](research/MP3000_FIELD_VALIDATION.md)**
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
+📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
+
+**Praktijkgegevens:** TSOL-MX450 reageert via 02B0 maar vertoont soms Modbus-fouten. Twee GEN4/1097-dumps van TSOL-MX3000D bevestigen zes PV-ingangen. Lokale uitlezing garandeert geen langdurig stabiele Home Assistant-werking.
 
 **Nieuw in 1.6.0:** **Adaptief uitlezen** staat standaard aan en past het uitleesinterval automatisch aan bij communicatiefouten: 20 s normaal, 30 s na een fout en 300 s offline/nacht.
 
@@ -223,6 +226,10 @@ TSUN Local profiteert van openbaar protocolonderzoek en onafhankelijke hardwarev
 - **TheSmartGerman** — real-hardwaretest waardoor de extra 1097-protocolfamilie werd ontdekt.
 - **dca31** — onafhankelijke Sunology PLAY2-validatie via de normale TSUN Local Home Assistant-flow.
 - **Kmotr** — onafhankelijke TSOL-MS800-validatie met TSUN Local en een geanonimiseerde Home Assistant-diagnose.
+- **nxenara** — TSOL-MS300 / 02B0 real-hardware validation.
+- **phklrz (Philippe K.)** — TSOL-MX450 / 02B0 communication diagnostics.
+- **Valentin Fleuret** — two TSOL-MX3000D / 1097 hardware captures.
+- **Hugo Tinot** — MP3000 research diagnostics, identity investigation.
 - **paloindici** — onafhankelijke validatie van de TSOL-MS2000 met TSUN Local, inclusief geanonimiseerde Home Assistant-diagnostiek voor TSOL-MS2000 en TSOL-MP3000 en een hardwaredump die het 02B0-/vier-PV-pad bevestigde.
 
 📚 **[Alle bijdragers en credits](contributors.html)**

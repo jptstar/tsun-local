@@ -10,7 +10,7 @@ DOCS = ROOT / "docs"
 PAGES_DIR = DOCS / "pages"
 # Keep one shared, minimal footer contract across every public HTML page.
 FOOTER = 'TSUN Local · by <a href="https://github.com/jptstar">jptstar</a> · <a href="https://github.com/jptstar/tsun-local">GitHub</a> · Home Assistant · Read-only by design'
-PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
+PAGES = ("index.html", "entities.html", "sunology-play2.html", "tsol-mp3000-home-assistant.html", "tsol-ms300-home-assistant.html", "tsol-mx450-home-assistant.html", "tsol-mx3000d-home-assistant.html", "tsol-mx500-home-assistant.html", "tsol-ms800-home-assistant.html", "tsol-ms2000-home-assistant.html", "contributors.html", "test-your-inverter.html")
 
 
 def _page_path(filename: str) -> Path:
@@ -77,6 +77,8 @@ class PublicWebTests(unittest.TestCase):
         for filename in (
             "tsol-mp3000-home-assistant.html",
             "tsol-ms300-home-assistant.html",
+            "tsol-mx450-home-assistant.html",
+            "tsol-mx3000d-home-assistant.html",
             "tsol-mx500-home-assistant.html",
             "tsol-ms800-home-assistant.html",
             "tsol-ms2000-home-assistant.html",
@@ -92,6 +94,8 @@ class PublicWebTests(unittest.TestCase):
         self.assertIn("test-your-inverter.html", text)
         self.assertIn("contributors.html", text)
         self.assertIn("tsol-ms300-home-assistant.html", text)
+        self.assertIn("tsol-mx450-home-assistant.html", text)
+        self.assertIn("tsol-mx3000d-home-assistant.html", text)
         self.assertIn("tsol-mx500-home-assistant.html", text)
         self.assertIn("tsol-ms800-home-assistant.html", text)
         self.assertIn("tsol-ms2000-home-assistant.html", text)
@@ -109,6 +113,8 @@ class PublicWebTests(unittest.TestCase):
             "sunology-play2.html",
             "tsol-mp3000-home-assistant.html",
             "tsol-ms300-home-assistant.html",
+            "tsol-mx450-home-assistant.html",
+            "tsol-mx3000d-home-assistant.html",
             "tsol-mx500-home-assistant.html",
             "tsol-ms800-home-assistant.html",
             "tsol-ms2000-home-assistant.html",
@@ -116,6 +122,27 @@ class PublicWebTests(unittest.TestCase):
             text = _page_path(filename).read_text(encoding="utf-8")
             self.assertIn("https://my.home-assistant.io/badges/hacs_repository.svg", text, filename)
             self.assertNotRegex(text, r">(?:Add TSUN Local to HACS|Add to HACS)</a>", filename)
+
+    def test_new_hardware_pages_use_existing_layout_and_correct_protocols(self) -> None:
+        for name, protocol in (
+            ("mx450", "02B0"),
+            ("mx3000d", "1097"),
+        ):
+            page = _page_path(f"tsol-{name}-home-assistant.html").read_text(encoding="utf-8")
+            reference = _page_path("tsol-ms300-home-assistant.html").read_text(encoding="utf-8")
+            self.assertIn('class="grid"', page)
+            self.assertIn('class="hacs-badge"', page)
+            self.assertIn("contributors.html", page)
+            self.assertIn("Validation evidence &amp; contributor thanks", page)
+            self.assertIn(f"→ protocol {protocol}", page)
+            self.assertEqual(
+                re.search(r'<style>(.*?)</style>', page, flags=re.S).group(1),
+                re.search(r'<style>(.*?)</style>', reference, flags=re.S).group(1),
+            )
+        homepage = (DOCS / "index.html").read_text(encoding="utf-8")
+        self.assertIn('href="tsol-mx450-home-assistant.html"', homepage)
+        self.assertIn('href="tsol-mx3000d-home-assistant.html"', homepage)
+        self.assertNotIn("02B2", homepage)
 
     def test_hardware_test_page_promotes_current_diagnostic(self) -> None:
         text = _page_path("test-your-inverter.html").read_text(encoding="utf-8")
