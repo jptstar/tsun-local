@@ -228,7 +228,7 @@ TSUN Local benefits from public protocol research and independent hardware testi
 - **Kmotr** — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.
 - **nxenara** — repeated TSOL-MS300 / 02B0 hardware captures, plus multi-device communication testing.
 - **phklrz (Philippe K.)** — TSOL-MX450 / 02B0 hardware dump and Home Assistant diagnostic exposing intermittent Modbus frames.
-- **Valentin Fleuret** — two TSOL-MX3000D GEN4 / 1097 read-only captures confirming six PV inputs.
+- **Valentin Fleuret** — two complete TSOL-MX3000D / 1097 diagnostics; the device owner also confirmed TSUN Local works in Home Assistant with all values reporting.
 - **Hugo Tinot** — research logs that helped distinguish MP3000 candidates from unrelated LAN devices.
 - **paloindici** — independent TSOL-MS2000 validation with TSUN Local, including anonymized Home Assistant diagnostics for both TSOL-MS2000 and TSOL-MP3000 plus the hardware dump that confirmed the 02B0 / four-PV path.
 
