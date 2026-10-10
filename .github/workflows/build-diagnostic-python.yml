@@ -84,7 +84,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check tinytuya==1.20.0
 
       - name: Verify Windows/Python parity contract
-        run: python -m unittest tests.test_diagnostic_python_parity -v
+        run: python -m unittest tests.test_diagnostic_python_parity tests.test_diagnostic_model_assignment_extra tests.test_diagnostic_report_upload tests.test_tsun_dump_tool -v
 
       - name: Build portable source bundle
         shell: bash
