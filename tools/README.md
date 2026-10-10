@@ -55,9 +55,14 @@ py tools/tsun_dump.py --no-update --network-probe 192.168.1.50
 ```
 
 The `tsun_network_probe_*.json` report deliberately excludes the IP address
-and device credentials. It is **not uploaded automatically**; share it manually
-after review. A successful TCP connection confirms only that a service accepts
-connections, **not** that the device is TSUN or that a protocol is compatible.
+and device credentials. In the Windows application, it becomes available in the
+existing **Send report** step and can be sent to TSUN Local Reports **only after
+explicit consent**, or attached manually to an e-mail to `dev@jptstar.com`.
+There is no background upload. The server accepts this report as **unverified**:
+no inverter identity, protocol support or hardware-model assignment is inferred
+from a TCP port being open. A successful TCP connection confirms only that a
+service accepts connections, **not** that the device is TSUN or that a protocol
+is compatible.
 Conversely, no open incoming port does **not** prove an old GEN3/R17 is offline:
 such equipment may exclusively initiate outbound connections to the TSUN cloud.
 This probe does not intercept, reroute or inspect those outbound connections.
