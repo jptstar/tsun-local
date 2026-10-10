@@ -38,7 +38,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Zweryfikowany** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Zweryfikowany** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** (observed) | ✅ **Zweryfikowany** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** | ✅ **Zweryfikowany** |
 
 > [!TIP]
 > **Brak modelu na liście nie oznacza braku zgodności.** TSUN Local określa kompatybilność głównie na podstawie wykrytego protokołu lokalnego, a nie tylko nazwy handlowej.
@@ -57,7 +57,7 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**Wyniki testów:** TSOL-MX450 odpowiada przez 02B0, lecz zgłaszano sporadyczne błędy Modbus. Dwa zrzuty GEN4/1097 urządzenia TSOL-MX3000D potwierdzają sześć wejść PV. Odczyt lokalny nie gwarantuje ciągłej pracy Home Assistant.
+**MX3000D zweryfikowany:** TSOL-MX3000D działa z TSUN Local w Home Assistant przez GEN4 / 1097. Właściciel potwierdza poprawny odczyt wszystkich wartości; dwa pełne raporty diagnostyczne dokumentują sześć wejść PV. Na jednej wersji firmware MX450 / 02B0 zgłaszano sporadyczne błędy Modbus.
 
 **Nowość w 1.6.0:** **Odczyt adaptacyjny** jest domyślnie włączony i automatycznie dostosowuje interwał przy błędach komunikacji: 20 s normalnie, 30 s po błędzie i 300 s offline/noc.
 
@@ -228,7 +228,7 @@ TSUN Local korzysta z publicznych badań protokołów i niezależnej walidacji s
 - **Kmotr** — niezależna walidacja TSOL-MS800 z TSUN Local i zanonimizowaną diagnostyką Home Assistant.
 - **nxenara** — TSOL-MS300 / 02B0 real-hardware validation.
 - **phklrz (Philippe K.)** — TSOL-MX450 / 02B0 communication diagnostics.
-- **Valentin Fleuret** — two TSOL-MX3000D / 1097 hardware captures.
+- **Valentin Fleuret** — two complete TSOL-MX3000D / 1097 reports and successful Home Assistant operation confirmed by the device owner.
 - **Hugo Tinot** — MP3000 research diagnostics, identity investigation.
 - **paloindici** — niezależna walidacja TSOL-MS2000 z TSUN Local, obejmująca zanonimizowane diagnostyki Home Assistant dla TSOL-MS2000 i TSOL-MP3000 oraz zrzut sprzętowy potwierdzający ścieżkę 02B0 / cztery wejścia PV.
 

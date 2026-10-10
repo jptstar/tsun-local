@@ -10,7 +10,7 @@ All notable changes to this project are documented here. The project follows [Se
 - Publish dedicated TSOL-MX450 / GEN3 02B0 and TSOL-MX3000D / GEN4 1097 hardware pages using the exact visual system of the existing TSOL-MS300 page.
 - Update homepage compatibility cards, sitemap, HACS-visible GitHub README, and all seven localized README files; recognize TSOL-MS300 under verified 02B0 hardware instead of the speculative GEN4 list.
 - Thank real-device contributors on the homepage, individual device pages and contributor directory, without publishing private contact addresses.
-- Distinguish protocol-level evidence from verified sustained Home Assistant operation: MX450 has intermittent 02B0 reports; MX3000D has two coherent GEN4 / 1097 hardware captures with six PV inputs. No production protocol implementation changes are made.
+- Distinguish protocol-level evidence from verified sustained Home Assistant operation: MX450 has intermittent 02B0 reports; MX3000D is confirmed working in Home Assistant with all telemetry values available, as reported by its hardware owner; two complete GEN4 / 1097 diagnostics independently document the six PV inputs. No production protocol implementation changes are made.
 
 
 ### Changed
