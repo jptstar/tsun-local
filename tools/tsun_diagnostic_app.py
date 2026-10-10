@@ -159,6 +159,7 @@ _TEXT = {
         "cancel": "Annuler",
         "progress": "Envoi {current}/{total}…",
         "complete": "Envoi terminé. ID : {ids}",
+        "identity_unverified": "\n{count} appareil(s) du réseau non identifié(s) : aucun modèle attribué automatiquement.",
         "complete_close": "✓ Envoi terminé — Fermer",
         "error": "Envoi interrompu : {error}",
         "none": "Aucun nouveau rapport. Lancez d’abord un diagnostic.",
@@ -186,6 +187,7 @@ _TEXT = {
         "cancel": "Cancel",
         "progress": "Uploading {current}/{total}…",
         "complete": "Upload complete. ID: {ids}",
+        "identity_unverified": "\n{count} network candidate(s) remain unverified; no model was assigned.",
         "complete_close": "✓ Upload completed — Close",
         "error": "Upload stopped: {error}",
         "none": "No new report. Run a diagnostic first.",
@@ -219,6 +221,7 @@ class UploadDiagnosticApp(base.DiagnosticApp):
         self.upload_events: queue.Queue[tuple[Any, ...]] = queue.Queue()
         self.upload_window: tk.Toplevel | None = None
         self._receipts: list[dict[str, Any]] = []
+        self._unverified_count = 0
         self._dialog: dict[str, Any] = {}
         self._device_rows: list[
             tuple[str, tk.BooleanVar, tk.StringVar, tk.Checkbutton, tk.Spinbox]
@@ -531,13 +534,16 @@ class UploadDiagnosticApp(base.DiagnosticApp):
         self._set_dialog_inputs_enabled(False)
         self._dialog["label"].configure(fg=base._ACCENT)
         self._receipts = []
+        self._unverified_count = 0
         self.upload_thread = threading.Thread(target=self._upload_reports,
             args=(pending, tester_name.strip(), parsed), daemon=True)
         self.upload_thread.start()
 
     def _upload_reports(self, paths: list[Path], tester_name: str, devices: list[dict[str, Any]]) -> None:
         try:
-            report_upload.annotate_report_files(paths, devices)
+            assignments = report_upload.annotate_report_files(paths, devices)
+            if devices and len(assignments) < len(paths):
+                self.upload_events.put(("identity_unverified", len(paths) - len(assignments)))
         except report_upload.ReportUploadError as exc:
             self.upload_events.put(("error", str(exc)))
             return
@@ -560,6 +566,8 @@ class UploadDiagnosticApp(base.DiagnosticApp):
                 event = self.upload_events.get_nowait(); kind = event[0]
                 if kind == "progress":
                     self._dialog["status"].set(self.u["progress"].format(current=event[1], total=event[2]))
+                elif kind == "identity_unverified":
+                    self._unverified_count = int(event[1])
                 elif kind == "uploaded":
                     self.uploaded_reports.add(Path(event[1])); self._receipts.append(dict(event[2]))
                 elif kind == "error":
@@ -569,7 +577,12 @@ class UploadDiagnosticApp(base.DiagnosticApp):
                 elif kind == "complete":
                     self.upload_thread = None
                     ids = ", ".join(str(r.get("report_id", "?")) for r in self._receipts)
-                    self._dialog["status"].set(self.u["complete"].format(ids=ids))
+                    status = self.u["complete"].format(ids=ids)
+                    if self._unverified_count:
+                        status += self.u["identity_unverified"].format(
+                            count=self._unverified_count
+                        )
+                    self._dialog["status"].set(status)
                     self._dialog["label"].configure(fg=base._SUCCESS)
                     self._set_dialog_inputs_enabled(False)
                     self._dialog["send"].configure(
