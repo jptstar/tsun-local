@@ -40,7 +40,7 @@ class DiagnosticDesktopTestModeTests(unittest.TestCase):
         )
 
     def test_desktop_version_was_bumped(self) -> None:
-        self.assertEqual(desktop.APP_VERSION, "1.5.21")
+        self.assertEqual(desktop.APP_VERSION, "1.5.22")
         self.assertEqual(desktop.previous.legacy.base.APP_VERSION, "1.5.21")
         self.assertEqual(desktop.previous.legacy.upload_app.APP_VERSION, "1.5.21")
 
