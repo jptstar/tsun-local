@@ -228,7 +228,7 @@ TSUN Local korzysta z publicznych badań protokołów i niezależnej walidacji s
 - **Kmotr** — niezależna walidacja TSOL-MS800 z TSUN Local i zanonimizowaną diagnostyką Home Assistant.
 - **nxenara** — TSOL-MS300 / 02B0 real-hardware validation.
 - **phklrz (Philippe K.)** — TSOL-MX450 / 02B0 communication diagnostics.
-- **Valentin Fleuret** — two TSOL-MX3000D / 1097 hardware captures.
+- **Valentin Fleuret** — two complete TSOL-MX3000D / 1097 reports and successful Home Assistant operation confirmed by the device owner.
 - **Hugo Tinot** — MP3000 research diagnostics, identity investigation.
 - **paloindici** — niezależna walidacja TSOL-MS2000 z TSUN Local, obejmująca zanonimizowane diagnostyki Home Assistant dla TSOL-MS2000 i TSOL-MP3000 oraz zrzut sprzętowy potwierdzający ścieżkę 02B0 / cztery wejścia PV.
 
