@@ -112,6 +112,46 @@ class NetworkProbeTests(TestCase):
             self.assertTrue(dest.exists())
 
 
+
+    def test_cli_requires_opt_in_and_reports_manual_mail_option(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "r17.json"
+            with mock.patch.object(
+                TOOL.socket, "create_connection", side_effect=TimeoutError
+            ), mock.patch.object(
+                sys, "argv", [
+                    "tsun_dump.py", "--no-update", "--network-probe",
+                    "192.168.3.10", "--output", str(output), "--no-submit",
+                ]
+            ), mock.patch.object(TOOL, "_submit_completed_reports") as submit:
+                self.assertEqual(TOOL.main(), 0)
+                submit.assert_not_called()
+            self.assertTrue(output.exists())
+
+    def test_cli_explicit_network_upload_reuses_existing_delivery(self) -> None:
+        with tempfile.TemporaryDirectory() as folder:
+            output = Path(folder) / "r17.json"
+            argv = [
+                "tsun_dump.py", "--no-update", "--network-probe",
+                "192.168.3.10", "--output", str(output), "--submit",
+                "--tester-name", "R17-test",
+                "--device", "TSOL-MP3000",
+            ]
+            with mock.patch.object(
+                TOOL.socket, "create_connection", side_effect=TimeoutError
+            ), mock.patch.object(sys, "argv", argv), mock.patch.object(
+                TOOL, "_submit_completed_reports"
+            ) as submit:
+                self.assertEqual(TOOL.main(), 0)
+            self.assertTrue(output.exists())
+            self.assertEqual(submit.call_count, 1)
+            self.assertEqual(submit.call_args.args[0], [output])
+            self.assertEqual(submit.call_args.kwargs["tester_name"], "R17-test")
+            self.assertEqual(submit.call_args.kwargs["declared_devices"], [
+                {"model": "TSOL-MP3000", "quantity": 1}
+            ])
+
+
     def test_network_probe_report_enters_opt_in_upload_selection(self) -> None:
         import tsun_diagnostic_gui as gui
 
