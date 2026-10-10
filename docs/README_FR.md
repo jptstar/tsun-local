@@ -48,7 +48,7 @@
 
 - **1511 — Probablement compatible:** `TSOL-MP2250` · `TSOL-MS3000` (TITAN)
 - **02B0 — Probablement compatible:** `TSOL-MX800` · `TSOL-MX1000` · `TSOL-MX3000` · `TSOL-MS1600` · `TSOL-MS1800` · variantes `-D` correspondantes
-- **1097 — Probablement compatible:** `TSOL-MS300` · `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000`
+- **1097 — Probablement compatible:** `TSOL-MS350` · `TSOL-MS400` · `TSOL-MS600` · `TSOL-MS700` · `TSOL-MS800` · `TSOL-MS3000`
 
 </details>
 
