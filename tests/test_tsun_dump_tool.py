@@ -29,7 +29,7 @@ class TsunDumpToolTests(unittest.TestCase):
         self.assertNotIn("from tsun_local", source)
         self.assertTrue(TOOL.SOURCE_URL.endswith("/tools/tsun_dump.py"))
         self.assertEqual(TOOL.SCHEMA_VERSION, 3)
-        self.assertEqual(TOOL.TOOL_VERSION, "2.9.0")
+        self.assertEqual(TOOL.TOOL_VERSION, "2.9.1")
         self.assertEqual(TOOL.REPORT_EMAIL, "dev@jptstar.com")
 
     def test_bounded_network_parser_accepts_24(self) -> None:
@@ -435,9 +435,23 @@ class TsunDumpToolTests(unittest.TestCase):
             "protocol_detection_failed",
         )
         self.assertIsNone(document["metadata"]["detected_protocol"])
+        self.assertFalse(document["metadata"]["device_reachable"])
         self.assertFalse(document["protocol_failure_characterization"]["attempted"])
         self.assertEqual(document["protocol_detection"]["attempts"], error.attempts)
         self.assertIs(TOOL.validate_diagnostic_for_upload(document), document)
+
+
+    def test_network_response_requires_actual_discovery_http_or_v5_evidence(self) -> None:
+        helper = TOOL._confirmed_network_response
+        self.assertFalse(helper({}, {"pages_found": 0}, {}))
+        self.assertFalse(
+            helper({"host_discovered": False, "sources": []}, {"pages_found": 0}, {})
+        )
+        self.assertTrue(helper({}, {"pages_found": 1}, {}))
+        self.assertTrue(
+            helper({"host_discovered": True, "sources": ["udp_48899"]}, {}, {})
+        )
+        self.assertTrue(helper({}, {}, {"v5_transport_detected": True}))
 
 
     def test_ap_frame_default_sequence_remains_legacy_zero(self) -> None:

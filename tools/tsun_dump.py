@@ -41,7 +41,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.9.0"
+TOOL_VERSION = "2.9.1"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -3779,6 +3779,24 @@ def _capture_failed_protocol_observations(
     return observations
 
 
+def _confirmed_network_response(
+    discovery: dict[str, Any],
+    logger_web: dict[str, Any],
+    research_detection: dict[str, Any],
+) -> bool:
+    """Distinguish an actual LAN response from a target merely being scanned.
+
+    A DNS resolution failure (gaierror) or a manually entered hostname is not
+    proof of reachability. Keep failed scans for diagnostics without claiming
+    the inverter or logger was online.
+    """
+    sources = discovery.get("sources")
+    discovered = bool(discovery.get("host_discovered") and sources)
+    http_replied = bool(logger_web.get("pages_found", 0))
+    v5_replied = bool(research_detection.get("v5_transport_detected"))
+    return discovered or http_replied or v5_replied
+
+
 def capture_protocol_detection_failure(
     args: argparse.Namespace,
     host: str,
@@ -3856,7 +3874,9 @@ def capture_protocol_detection_failure(
             "protocol_validation_status": "undetected",
             "capture_limitation": "no_supported_local_protocol_detected",
             "measurements_available": False,
-            "device_reachable": True,
+            "device_reachable": _confirmed_network_response(
+                discovery, logger_web, research_detection
+            ),
             "model_family": "unknown / unsupported local protocol",
             "model_supplied_by_user": args.model,
             "pv_count": None,
@@ -4885,7 +4905,15 @@ def main() -> int:
     completed: list[Path] = []
     failed = 0
     if total > 1 and args.model:
-        print("Note: --model is applied to every captured logger in this scan.")
+        print(
+            "Warning: --model is not applied to all devices in a multi-device "
+            "scan; network discovery does not establish model identity."
+        )
+    capture_args = (
+        argparse.Namespace(**{**vars(args), "model": None})
+        if total > 1 and args.model
+        else args
+    )
 
     for sequence, (host, sn, discovery) in enumerate(targets, 1):
         discovered_index = int(discovery.get("target_index", sequence))
@@ -4895,10 +4923,10 @@ def main() -> int:
             print(f"Firmware : {discovery['firmware_version']}")
         try:
             if discovery.get("transport_kind") == "tuya_oem_candidate":
-                document = capture_tuya_candidate(args, host, discovery)
+                document = capture_tuya_candidate(capture_args, host, discovery)
                 print("Protocol detected: tuya-lan (experimental OEM transport)")
             else:
-                document = capture(args, host, sn, discovery)
+                document = capture(capture_args, host, sn, discovery)
         except (KeyboardInterrupt, EOFError):
             print("\nCancelled.")
             return 130
@@ -4910,7 +4938,7 @@ def main() -> int:
             )
             try:
                 document = capture_protocol_detection_failure(
-                    args, host, sn, discovery, err
+                    capture_args, host, sn, discovery, err
                 )
             except Exception as report_err:
                 failed += 1
@@ -4931,7 +4959,7 @@ def main() -> int:
         timestamp = datetime.fromisoformat(document["metadata"]["timestamp_utc"])
         output = output_path_for_target(
             args.output,
-            args.model,
+            capture_args.model,
             document["metadata"].get("detected_protocol") or "undetected",
             timestamp,
             device_index=discovered_index,

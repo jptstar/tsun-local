@@ -39,6 +39,26 @@ It performs local discovery first, requests an IP address or Monitor SN only whe
 
 For capture ranges, privacy rules and evidence handling, see the [Hardware Validation Dump Tool guide](../docs/HARDWARE_DUMP.md).
 
+## Hardware identity and multi-device scans
+
+The full Windows and Python diagnostics can discover additional LAN devices
+beside the TSUN microinverter (for example Deye or Tuya equipment). A successful
+TCP connection or an open Tuya port does **not** prove that the device is the
+declared microinverter.
+
+- Automatic model association requires a validated TSUN protocol (1511, 02B0
+  or 1097), successfully captured registers and a matching rated-power value.
+- Unverified devices remain **unidentified**, even if only one model was entered.
+  Their reports can still be submitted for research; the GUI and CLI display a
+  warning when they could not be associated with the declared inventory.
+- A manual `--model` value is not copied to every target in a multi-device
+  scan. To label a specific device explicitly, target it individually.
+- An unresolved hostname or failed connection is not reported as proof of
+  reachability.
+
+The reports remain privacy-filtered and **read-only**. These safeguards affect
+report interpretation, not the TSUN/1097/Tuya communication probes.
+
 ## Field and research utilities
 
 These tools are intentionally more focused than the normal diagnostic and are used when a specific protocol, logger or hardware family needs additional evidence.
