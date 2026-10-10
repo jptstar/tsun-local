@@ -5010,8 +5010,10 @@ def main() -> int:
         print("Single-IP read-only TCP connectivity test; no application payload sent.")
         print("Open TCP ports:", report["assessment"]["open_ports"])
         print("No open port does not prove that an outbound-only GEN3/R17 is offline.")
-        print(f"Anonymized JSON: {path} (manual sharing only; not uploaded)")
-        return 0
+        print(f"Anonymized JSON: {path}")
+        print("You can submit this unverified report with explicit consent,")
+        print("send the JSON by email, or keep it local.")
+        return _handle_report_delivery([path], args)
 
     print("TSUN Local Hardware Validation Dump Tool")
     print(f"Standalone v{TOOL_VERSION} · READ-ONLY · Python standard library only")
