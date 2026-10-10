@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The project follows [Se
 
 ## [Unreleased]
 
+
+### Documentation
+
+- Publish dedicated TSOL-MX450 / GEN3 02B0 and TSOL-MX3000D / GEN4 1097 hardware pages using the exact visual system of the existing TSOL-MS300 page.
+- Update homepage compatibility cards, sitemap, HACS-visible GitHub README, and all seven localized README files; recognize TSOL-MS300 under verified 02B0 hardware instead of the speculative GEN4 list.
+- Thank real-device contributors on the homepage, individual device pages and contributor directory, without publishing private contact addresses.
+- Distinguish protocol-level evidence from verified sustained Home Assistant operation: MX450 has intermittent 02B0 reports; MX3000D has two coherent GEN4 / 1097 hardware captures with six PV inputs. No production protocol implementation changes are made.
+
+
 ### Changed
 
 - Improve standalone `tsun_dump.py` report identification: require a tester name/pseudonym and inverter inventory for secure uploads, offer a numbered known-model catalogue with an `Other / unknown` fallback, and remember the tester/inverter profile locally using the same profile file as the desktop diagnostic.
