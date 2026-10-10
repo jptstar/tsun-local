@@ -23,6 +23,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import hashlib
+import errno
 import http.client
 from html.parser import HTMLParser
 from ipaddress import IPv4Address, IPv4Network, ip_network
@@ -41,7 +42,7 @@ import urllib.error
 import urllib.request
 
 
-TOOL_VERSION = "2.9.1"
+TOOL_VERSION = "2.9.2"
 DUMP_FORMAT = "tsun-local-hardware-dump"
 SCHEMA_VERSION = 3
 SOURCE_URL = "https://raw.githubusercontent.com/jptstar/tsun-local/main/tools/tsun_dump.py"
@@ -83,6 +84,9 @@ DEFAULT_PORT = 8899
 DEFAULT_DISCOVERY_PORT = 48899
 TUYA_TCP_PORT = 6668
 TUYA_UDP_PORTS = (6666, 6667, 7000)
+# Optional single-host R17/GEN3 investigation: TCP connects only, never a LAN sweep.
+NETWORK_PROBE_PORTS = (80, 443, 5005, 6668, 8080, 8899, 10000)
+NETWORK_PROBE_TIMEOUT = 0.45
 TUYA_DISCOVERY_MAX_PACKET = 65535
 TUYA_DISCOVERY_TIMEOUT_CAP = 3.0
 DEFAULT_DISCOVERY_TIMEOUT = 4.0
@@ -1418,6 +1422,111 @@ def local_ipv4_networks() -> set[IPv4Network]:
             continue
         networks.add(_network_around_host(str(address)))
     return networks
+
+
+
+# ---------------------------------------------------------------------------
+# Optional single-device TCP connectivity diagnostic (GEN3 / R17 research)
+# ---------------------------------------------------------------------------
+
+def _private_lan_ipv4(value: str) -> str:
+    """Reject DNS names, public IPs and special addresses before any connection."""
+    address = IPv4Address(value.strip())
+    allowed = (
+        IPv4Network("10.0.0.0/8"),
+        IPv4Network("172.16.0.0/12"),
+        IPv4Network("192.168.0.0/16"),
+    )
+    if not any(address in network for network in allowed):
+        raise ValueError("Network diagnostic requires one private LAN IPv4 address")
+    return str(address)
+
+
+def capture_local_network_probe(
+    host: str, *,
+    ports: Iterable[int] = NETWORK_PROBE_PORTS,
+    timeout: float = NETWORK_PROBE_TIMEOUT,
+) -> dict[str, Any]:
+    """Observe TCP connect responses to one opted-in host; send zero application bytes.
+
+    This is not a port sweep and never captures LAN traffic, credentials, full
+    IP addresses or host identities. Closed inbound ports do NOT disprove an
+    outbound-only GEN3 connection to the TSUN cloud.
+    """
+    host = _private_lan_ipv4(host)
+    if not math.isfinite(timeout) or not 0.05 <= timeout <= 1.0:
+        raise ValueError("Network diagnostic timeout must be within 0.05–1 seconds")
+    checked_ports = tuple(dict.fromkeys(ports))
+    if not checked_ports or len(checked_ports) > len(NETWORK_PROBE_PORTS):
+        raise ValueError("Network diagnostic has an invalid number of ports")
+    if any(type(port) is not int or port not in NETWORK_PROBE_PORTS for port in checked_ports):
+        raise ValueError("Network diagnostic accepts only predefined safe TCP ports")
+    results: list[dict[str, Any]] = []
+    for port in checked_ports:
+        start = time.monotonic()
+        status = "open"
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                pass  # TCP handshake only; no protocol request or payload.
+        except (socket.timeout, TimeoutError):
+            status = "timeout"
+        except ConnectionRefusedError:
+            status = "refused"
+        except OSError as err:
+            if err.errno in (errno.ECONNREFUSED, 10061):
+                status = "refused"
+            elif err.errno in (errno.ETIMEDOUT, 10060):
+                status = "timeout"
+            elif err.errno in (errno.ENETUNREACH, errno.EHOSTUNREACH, 10051, 10065):
+                status = "unreachable"
+            else:
+                status = "transport_error"
+        results.append({
+            "port": port,
+            "status": status,
+            "duration_ms": round((time.monotonic() - start) * 1000),
+        })
+    return {
+        "format": "tsun-local-network-probe",
+        "schema_version": 1,
+        "metadata": {
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "tool": "TSUN Local Hardware Validation Dump Tool",
+            "tool_version": TOOL_VERSION,
+            "mode": "optional_single_host_tcp",
+            "read_only": True,
+            "target_ip_stored": False,
+            "monitor_sn_required": False,
+            "cloud_traffic_intercepted": False,
+            "application_payload_sent": False,
+        },
+        "tcp_connect_tests": results,
+        "assessment": {
+            "open_ports": [item["port"] for item in results if item["status"] == "open"],
+            "inverter_identity_confirmed": False,
+            "tsun_protocol_confirmed": False,
+            "note": (
+                "A TCP connect scan cannot identify the inverter or observe its outbound "
+                "cloud traffic. No open port does not imply the device is offline or "
+                "incompatible; older R17/GEN3 hardware may initiate outbound TCP only."
+            ),
+        },
+    }
+
+
+def write_local_network_probe_report(
+    host: str, output: Path | None = None,
+) -> tuple[Path, dict[str, Any]]:
+    """Store a privacy-safe report separately from protocol dump/upload files."""
+    report = capture_local_network_probe(host)
+    timestamp = datetime.fromisoformat(report["metadata"]["timestamp_utc"])
+    filename = f"tsun_network_probe_{timestamp.strftime('%Y%m%dT%H%M%SZ')}.json"
+    destination = output if output is not None else Path.cwd() / filename
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return destination, report
 
 
 def _tcp_port_open(host: str, port: int, timeout: float) -> bool:
@@ -4673,6 +4782,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="logger IP address; when omitted, every discovered logger is captured",
     )
     parser.add_argument(
+        "--network-probe",
+        metavar="PRIVATE_LAN_IP",
+        help="optional single-IP TCP connectivity test; no Monitor SN or TSUN protocol required",
+    )
+    parser.add_argument(
         "--serial",
         "--monitor-sn",
         dest="serial",
@@ -4885,6 +4999,18 @@ def main() -> int:
             print(f"  {item['key']}: {item['before']} -> {item['after']}")
         if args.output:
             print(f"Comparison JSON: {args.output}")
+        return 0
+
+    if args.network_probe is not None:
+        try:
+            path, report = write_local_network_probe_report(args.network_probe, args.output)
+        except (ValueError, OSError) as err:
+            print(f"ERROR: local network probe failed: {err}", file=sys.stderr)
+            return 2
+        print("Single-IP read-only TCP connectivity test; no application payload sent.")
+        print("Open TCP ports:", report["assessment"]["open_ports"])
+        print("No open port does not prove that an outbound-only GEN3/R17 is offline.")
+        print(f"Anonymized JSON: {path} (manual sharing only; not uploaded)")
         return 0
 
     print("TSUN Local Hardware Validation Dump Tool")
