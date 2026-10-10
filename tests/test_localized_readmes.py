@@ -35,8 +35,8 @@ class LocalizedReadmeTests(unittest.TestCase):
             self.assertEqual(text.count("| **02B0** | GEN3 / GEN3 PLUS |"), 1, filename)
             self.assertEqual(text.count("| **1097** | GEN4 |"), 1, filename)
             self.assertIn("Sunology PLAY2", text, filename)
-            self.assertIn("**TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2**", text, filename)
-            self.assertIn("**Sunology PLAY2 (GEN4)** · **TSOL-MX3000D**", text, filename)
+            self.assertIn("**Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500**", text, filename)
+            self.assertIn("**Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D**", text, filename)
             self.assertIn("tsol-mx500-home-assistant.html", text, filename)
             self.assertIn("tsol-ms300-home-assistant.html", text, filename)
             self.assertIn("tsol-mx450-home-assistant.html", text, filename)
@@ -58,6 +58,31 @@ class LocalizedReadmeTests(unittest.TestCase):
             self.assertIn("ha-solarman", text, filename)
             self.assertIn("dca31", text, filename)
             self.assertIn("paloindici", text, filename)
+
+
+    def test_github_and_hacs_readme_compatibility_lists_are_vertical_and_sorted(self) -> None:
+        # HACS displays the repository README, so validate it alongside every translation.
+        expected = {
+            "1511": ["**TSOL-MP3000**"],
+            "02B0": [
+                "**Sunology PLAY2**",
+                "**TSOL-MS300**",
+                "**TSOL-MS800**",
+                "**TSOL-MS2000**",
+                "**TSOL-MX450** (observed)",
+                "**TSOL-MX500**",
+            ],
+            "1097": ["**Sunology PLAY2 (GEN4)**", "**TSOL-MX3000D**"],
+        }
+        for path in (ROOT / "README.md", *(ROOT / "docs" / filename for filename in FILES)):
+            content = path.read_text(encoding="utf-8")
+            for protocol, models in expected.items():
+                matching = [line for line in content.splitlines() if line.startswith(f"| **{protocol}** |")]
+                self.assertEqual(len(matching), 1, (path.name, protocol))
+                columns = [part.strip() for part in matching[0].split("|")]
+                self.assertEqual(len(columns), 6, (path.name, protocol))
+                self.assertEqual(columns[3].split("<br>"), models, (path.name, protocol))
+                self.assertTrue(columns[4].startswith("✅"), (path.name, protocol))
 
     def test_verbose_play2_transport_details_live_outside_readmes(self) -> None:
         for filename in FILES:
