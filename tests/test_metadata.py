@@ -206,6 +206,8 @@ class MetadataTests(unittest.TestCase):
             "https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html",
+            "https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html",
+            "https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html",
             "https://jptstar.github.io/tsun-local/test-your-inverter.html",
             "https://jptstar.github.io/tsun-local/contributors.html",
         )
