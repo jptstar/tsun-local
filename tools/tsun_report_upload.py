@@ -168,7 +168,43 @@ def _model_nominal_power(model: str) -> int | None:
     return int(match.group("power")) if match else None
 
 
+def _verified_tsun_capture(diagnostic: dict[str, Any]) -> bool:
+    """Trust inventory matching only after a real, complete TSUN protocol exchange.
+
+    A Tuya LAN discovery, an unresolved host or a read of another vendor's
+    logger is not evidence that it is the user's declared TSUN microinverter.
+    This check intentionally does not affect raw capture or read-only probes.
+    """
+    metadata = diagnostic.get("metadata")
+    summary = diagnostic.get("capture_summary")
+    if not isinstance(metadata, dict) or not isinstance(summary, dict):
+        return False
+    if str(metadata.get("detected_protocol") or "").lower() not in {
+        "1511", "02b0", "1097"
+    }:
+        return False
+    if metadata.get("protocol_validation_status") != "validated":
+        return False
+    if not (
+        isinstance(summary.get("successful_block_reads"), int)
+        and summary["successful_block_reads"] > 0
+        and isinstance(summary.get("unique_raw_registers"), int)
+        and summary["unique_raw_registers"] > 0
+    ):
+        return False
+    logger_web = diagnostic.get("logger_web")
+    if isinstance(logger_web, dict):
+        web_summary = logger_web.get("summary")
+        if isinstance(web_summary, dict):
+            raw_profile = str(web_summary.get("logger_raw_profile") or "").lower()
+            if "deye" in raw_profile:
+                return False
+    return True
+
+
 def _diagnostic_rated_power(diagnostic: dict[str, Any]) -> int | None:
+    if not _verified_tsun_capture(diagnostic):
+        return None
     measurements = diagnostic.get("decoded_known_measurements")
     if not isinstance(measurements, dict):
         return None
@@ -231,10 +267,14 @@ def associate_declared_models(
 ) -> dict[int, str]:
     """Associate inventory only when the evidence is unambiguous.
 
-    Extra LAN diagnostics are allowed.  This is important when discovery finds
-    unrelated Tuya/ThingClips devices alongside the declared TSUN inverters.  If
-    fewer diagnostics than declared inverter units are present, assignment is
-    disabled because evidence is incomplete.
+    Extra LAN diagnostics are allowed, but discovery order and matching device
+    counts are *never* used as identity proof.  Only validated TSUN reads with
+    a matching nominal rated power can inherit an inventory model.  Untested
+    Tuya, offline, Deye and ambiguous devices remain unassigned, even when they
+    are the only discovered network device.
+
+    If fewer diagnostics than declared units are present, assignment is disabled
+    because evidence is incomplete.
     """
     remaining = _expanded_declared_models(declared_devices)
     if not diagnostics or not remaining or len(remaining) > len(diagnostics):
@@ -276,21 +316,6 @@ def associate_declared_models(
             unresolved.remove(index)
             assignments[index] = model
             progress = True
-
-    # Historical fallback is safe only when every unresolved diagnostic is
-    # required to consume every remaining declared unit.  Extra LAN candidates
-    # therefore cannot accidentally inherit an inverter model.
-    if unresolved and remaining and len(remaining) == len(unresolved):
-        distinct = {model.casefold(): model for model in remaining}
-        if len(distinct) == 1:
-            model = next(iter(distinct.values()))
-            for index in sorted(unresolved):
-                _annotate_model(
-                    diagnostics[index], model, "remaining_declared_inventory"
-                )
-                assignments[index] = model
-            remaining.clear()
-            unresolved.clear()
 
     return assignments
 
