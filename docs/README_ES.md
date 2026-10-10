@@ -38,7 +38,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validado** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validado** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** (observed) | ✅ **Validado** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** | ✅ **Validado** |
 
 > [!TIP]
 > **Que un modelo no aparezca no significa que sea incompatible.** TSUN Local se basa principalmente en el protocolo local detectado, no solo en el nombre comercial.
@@ -57,7 +57,7 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**Evidencia real:** TSOL-MX450 responde por 02B0, pero se notificaron errores Modbus intermitentes. Dos volcados GEN4/1097 del TSOL-MX3000D confirman seis entradas FV. Esto demuestra lecturas locales, no un funcionamiento continuo garantizado en Home Assistant.
+**MX3000D validado:** El TSOL-MX3000D funciona con TSUN Local en Home Assistant mediante GEN4 / 1097. El propietario confirma que todos los valores se reciben correctamente; dos diagnósticos completos documentan seis entradas FV. En una variante de firmware del MX450 / 02B0 se notificaron errores Modbus intermitentes.
 
 **Nuevo en 1.6.0:** La **lectura adaptativa** está activada de forma predeterminada y ajusta automáticamente el intervalo ante fallos de comunicación: 20 s normal, 30 s tras un error y 300 s sin conexión/noche.
 
