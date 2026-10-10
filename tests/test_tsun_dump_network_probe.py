@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import queue
+from types import SimpleNamespace
 from pathlib import Path
 import sys
 import tempfile
@@ -108,6 +110,106 @@ class NetworkProbeTests(TestCase):
             ):
                 self.assertEqual(TOOL.main(), 0)
             self.assertTrue(dest.exists())
+
+
+    def test_network_probe_report_enters_opt_in_upload_selection(self) -> None:
+        import tsun_diagnostic_gui as gui
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "tsun_network_probe_demo.json"
+            path.write_text('{"format":"tsun-local-network-probe"}', encoding="utf-8")
+            events = queue.Queue()
+            fake = SimpleNamespace(
+                events=events,
+                t={"network_probe_done": "ready", "network_probe_failed": "failed"},
+            )
+            with mock.patch.object(
+                gui.tsun_dump, "write_local_network_probe_report",
+                return_value=(path, {"assessment": {
+                    "open_ports": [5005], "note": "Transport only."
+                }}),
+            ):
+                gui.DiagnosticApp._run_network_probe(fake, Path(folder), "192.168.1.88")
+
+            pending = list(events.queue)
+            self.assertEqual([entry[0] for entry in pending], [
+                "log", "log", "log", "network_probe_report", "status"
+            ])
+            self.assertEqual(pending[3][1], path.resolve())
+
+            receiver = SimpleNamespace(
+                events=events,
+                latest_reports=[],
+                uploaded_reports=set(),
+                status=mock.Mock(),
+                progress=mock.Mock(),
+                confirm_check=mock.Mock(),
+                status_label=mock.Mock(),
+                root=mock.Mock(),
+                _append_log=mock.Mock(),
+                _sync_run_button=mock.Mock(),
+                t={},
+            )
+            gui.DiagnosticApp._poll_events(receiver)
+            self.assertEqual(receiver.latest_reports, [path.resolve()])
+            self.assertEqual(receiver.uploaded_reports, set())
+
+    def test_network_probe_can_use_existing_upload_contract_with_consent(self) -> None:
+        import tsun_report_upload as upload
+
+        with mock.patch.object(
+            TOOL.socket, "create_connection", side_effect=TimeoutError
+        ):
+            report = TOOL.capture_local_network_probe("192.168.1.88")
+        self.assertEqual(upload.validate_diagnostic(report), report)
+        devices = [{"model": "TSOL-MP3000", "quantity": 1}]
+        # Never infer TSUN identity from a network-only report.
+        self.assertEqual(upload.associate_declared_models([report], devices), {})
+
+        with mock.patch.object(upload.request, "urlopen") as send:
+            with self.assertRaises(upload.ReportUploadError):
+                upload.upload_diagnostic(
+                    report, consent=False, tester_name="Tester",
+                    declared_devices=devices,
+                )
+            send.assert_not_called()
+
+            response = mock.MagicMock()
+            response.__enter__.return_value.read.return_value = json.dumps({
+                "ok": True, "report_id": "TSL-20261010-12345678",
+                "view_url": "https://example.invalid/view/network",
+            }).encode("utf-8")
+            send.return_value = response
+            receipt = upload.upload_diagnostic(
+                report, consent=True, tester_name="Tester",
+                declared_devices=devices,
+            )
+            self.assertEqual(receipt["report_id"], "TSL-20261010-12345678")
+            self.assertEqual(send.call_count, 1)
+            req = send.call_args.args[0]
+            sent = json.loads(req.data)
+            self.assertEqual(sent["diagnostic"]["format"], "tsun-local-network-probe")
+            self.assertTrue(sent["consent"])
+            self.assertNotIn("192.168.1.88", json.dumps(sent))
+
+    def test_prepare_email_creates_draft_without_attachment_or_sending(self) -> None:
+        import tsun_diagnostic_desktop as desktop
+
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "tsun_network_probe_demo.json"
+            path.write_text("{}", encoding="utf-8")
+            fake = SimpleNamespace(
+                latest_reports=[path], lang="fr", root=mock.Mock()
+            )
+            with mock.patch.object(desktop.webbrowser, "open", return_value=True) as opened:
+                with mock.patch.object(desktop.messagebox, "showinfo") as show:
+                    desktop.CleanDiagnosticApp._prepare_report_email(fake)
+            self.assertEqual(opened.call_count, 1)
+            link = opened.call_args.args[0]
+            self.assertTrue(link.startswith("mailto:dev@jptstar.com?"))
+            self.assertIn("tsun_network_probe_demo.json", link)
+            self.assertIn("joindre manuellement", show.call_args.args[1])
+
 
     def test_windows_entrypoint_has_manual_probe_button(self) -> None:
         gui = (Path(__file__).parents[1] / "tools" / "tsun_diagnostic_gui.py").read_text(
