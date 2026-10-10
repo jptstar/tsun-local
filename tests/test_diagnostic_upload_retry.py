@@ -181,7 +181,7 @@ class DiagnosticUploadRetryTests(unittest.TestCase):
 
         source = Path(desktop.__file__).read_text(encoding="utf-8")
         self.assertNotIn("report_upload.upload_file =", source)
-        self.assertEqual(desktop.APP_VERSION, "1.5.21")
+        self.assertEqual(desktop.APP_VERSION, "1.5.22")
 
 
 if __name__ == "__main__":
