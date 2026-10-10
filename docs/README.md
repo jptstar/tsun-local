@@ -7,6 +7,10 @@ This directory contains the public website, user documentation, technical notes,
 The files kept directly in `docs/` are intentionally stable because they are linked from the project README, GitHub Pages, forum posts or diagnostic workflows.
 
 - [Entity reference](ENTITIES.md)
+- [TSOL-MX450 / GEN3 02B0 compatibility](pages/tsol-mx450-home-assistant.html)
+- [TSOL-MX3000D / GEN4 1097 compatibility](pages/tsol-mx3000d-home-assistant.html)
+- [TSUN Local contributor credits](pages/contributors.html)
+
 - [Hardware validation dump guide](HARDWARE_DUMP.md)
 - [Desktop diagnostic validation protocol](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)
 - Localized project documentation: `README_FR.md`, `README_DE.md`, `README_ES.md`, `README_IT.md`, `README_NL.md`, `README_PL.md`, `README_ZH.md`
