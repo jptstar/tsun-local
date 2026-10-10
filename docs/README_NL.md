@@ -38,7 +38,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Gevalideerd** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Gevalideerd** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** (observed) | ✅ **Gevalideerd** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** | ✅ **Gevalideerd** |
 
 > [!TIP]
 > **Niet vermeld betekent niet automatisch incompatibel.** TSUN Local baseert compatibiliteit vooral op het gedetecteerde lokale protocol en niet alleen op de commerciële modelnaam.
@@ -57,7 +57,7 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**Praktijkgegevens:** TSOL-MX450 reageert via 02B0 maar vertoont soms Modbus-fouten. Twee GEN4/1097-dumps van TSOL-MX3000D bevestigen zes PV-ingangen. Lokale uitlezing garandeert geen langdurig stabiele Home Assistant-werking.
+**MX3000D gevalideerd:** TSOL-MX3000D werkt met TSUN Local in Home Assistant via GEN4 / 1097. De eigenaar bevestigt dat alle waarden correct binnenkomen; twee volledige diagnostische rapporten tonen zes PV-ingangen. Voor één MX450 / 02B0-firmwarevariant zijn af en toe Modbus-fouten gemeld.
 
 **Nieuw in 1.6.0:** **Adaptief uitlezen** staat standaard aan en past het uitleesinterval automatisch aan bij communicatiefouten: 20 s normaal, 30 s na een fout en 300 s offline/nacht.
 
