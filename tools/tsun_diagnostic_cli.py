@@ -50,7 +50,14 @@ def _install_canonical_upload() -> None:
         devices = list(declared_devices)
         try:
             if devices:
-                report_upload.annotate_report_files(local_paths, devices)
+                matched = report_upload.annotate_report_files(local_paths, devices)
+                unmatched = len(local_paths) - len(matched)
+                if unmatched:
+                    print(
+                        f"Note: {unmatched} network candidate(s) could not be matched "
+                        "to the declared inverter models and remain unidentified. "
+                        "Their diagnostic reports will still be uploaded."
+                    )
             print("\nSending anonymized report(s) securely to TSUN Local...")
             for path in local_paths:
                 result = report_upload.upload_file(
