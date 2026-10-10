@@ -706,6 +706,10 @@ class DiagnosticApp:
         except (OSError, ValueError) as err:
             messagebox.showerror(APP_NAME, str(err))
             return
+        # Network-only reports are manual attachments, not uploadable TSUN dumps.
+        if hasattr(self, "latest_reports"):
+            self.latest_reports = []
+            self.uploaded_reports.clear()
         self.status.set(self.t["network_probe_running"])
         self.progress.start(12)
         self.run_button.configure(state="disabled")
