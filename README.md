@@ -39,7 +39,7 @@
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
 | **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validated** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** (observed) | ✅ **Validated** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** | ✅ **Validated** |
 
 > [!TIP]
 > **Not listed does not mean unsupported.** TSUN Local identifies compatibility primarily from the detected local protocol, not only from the commercial model name.
@@ -58,7 +58,7 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**Field evidence:** TSOL-MX450 responds to 02B0 but has reported intermittent Modbus errors; TSOL-MX3000D has two successful GEN4 / 1097 hardware dumps (six PV channels). This confirms local readout, not uninterrupted Home Assistant operation on every firmware.
+**Validated MX3000D support:** TSOL-MX3000D runs with TSUN Local in Home Assistant on GEN4 / 1097. The hardware owner confirms that all values are reported correctly; two complete diagnostic reports also document the six PV inputs. TSOL-MX450 is supported by 02B0 protocol evidence, but intermittent Modbus errors have been reported on one firmware variant.
 
 **New in 1.6.0:** **Adaptive polling** is enabled by default and automatically adjusts the read interval after communication failures: 20 s normal, 30 s after an error and 300 s offline/night.
 
