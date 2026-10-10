@@ -37,8 +37,8 @@
 | Protocolo | Familia | Hardware validado | Estado |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validado** |
-| **02B0** | GEN3 / GEN3 PLUS | **TSOL-MS300** · **TSOL-MX450** (observed) · **TSOL-MX500** · **TSOL-MS800** · **TSOL-MS2000** · **Sunology PLAY2** | ✅ **Validado** |
-| **1097** | GEN4 | **Sunology PLAY2 (GEN4)** · **TSOL-MX3000D** | ✅ **Validado** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500** | ✅ **Validado** |
+| **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validado** |
 
 > [!TIP]
 > **Que un modelo no aparezca no significa que sea incompatible.** TSUN Local se basa principalmente en el protocolo local detectado, no solo en el nombre comercial.
