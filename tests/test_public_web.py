@@ -140,7 +140,7 @@ class PublicWebTests(unittest.TestCase):
             self.assertIn('class="grid"', page)
             self.assertIn('class="hacs-badge"', page)
             self.assertIn("contributors.html", page)
-            self.assertIn("Validation evidence &amp; contributor thanks", page)
+            self.assertIn("Validation &amp; contributor thanks" if name == "mx3000d" else "Validation evidence &amp; contributor thanks", page)
             self.assertIn(f"→ protocol {protocol}", page)
             self.assertEqual(
                 re.search(r'<style>(.*?)</style>', page, flags=re.S).group(1),
@@ -150,6 +150,12 @@ class PublicWebTests(unittest.TestCase):
         self.assertIn('href="tsol-mx450-home-assistant.html"', homepage)
         self.assertIn('href="tsol-mx3000d-home-assistant.html"', homepage)
         self.assertNotIn("02B2", homepage)
+        self.assertIn("TSUN · Home Assistant validated", homepage)
+        self.assertNotIn("TSUN · 1097 captured", homepage)
+        mx3000d = _page_path("tsol-mx3000d-home-assistant.html").read_text(encoding="utf-8")
+        self.assertIn("COMMUNITY VALIDATED ON REAL TSOL-MX3000D HARDWARE", mx3000d)
+        self.assertIn("all expected telemetry values", mx3000d)
+        self.assertNotIn("not an independent long-running Home Assistant certification", mx3000d)
 
     def test_hardware_test_page_promotes_current_diagnostic(self) -> None:
         text = _page_path("test-your-inverter.html").read_text(encoding="utf-8")
