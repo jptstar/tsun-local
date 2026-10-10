@@ -11,29 +11,32 @@ import tsun_report_model_assignment as legacy_assignment  # noqa: E402
 import tsun_report_upload as assignment  # noqa: E402
 
 
+def tsun_capture(power: int, protocol: str = "02b0") -> dict:
+    return {
+        "metadata": {
+            "model_supplied_by_user": None,
+            "detected_protocol": protocol,
+            "protocol_validation_status": "validated",
+        },
+        "capture_summary": {
+            "successful_block_reads": 12,
+            "unique_raw_registers": 48,
+        },
+        "decoded_known_measurements": {"rated_power": power},
+    }
+
+
 class ExtraCandidateModelAssignmentTests(unittest.TestCase):
     def test_nxenara_shape_assigns_four_tsun_reports_and_leaves_extra_tuya(self) -> None:
         diagnostics = [
-            {
-                "metadata": {"model_supplied_by_user": None, "detected_protocol": "02b0"},
-                "decoded_known_measurements": {"rated_power": 450},
-            },
-            {
-                "metadata": {"model_supplied_by_user": None, "detected_protocol": "02b0"},
-                "decoded_known_measurements": {"rated_power": 300},
-            },
-            {
-                "metadata": {"model_supplied_by_user": None, "detected_protocol": "02b0"},
-                "decoded_known_measurements": {"rated_power": 450},
-            },
+            tsun_capture(450),
+            tsun_capture(300),
+            tsun_capture(450),
             {
                 "metadata": {"model_supplied_by_user": None, "detected_protocol": "tuya-lan"},
                 "decoded_known_measurements": {},
             },
-            {
-                "metadata": {"model_supplied_by_user": None, "detected_protocol": "02b0"},
-                "decoded_known_measurements": {"rated_power": 800},
-            },
+            tsun_capture(800),
         ]
         devices = [
             {"model": "TSOL-MX450", "quantity": 2},
@@ -58,28 +61,74 @@ class ExtraCandidateModelAssignmentTests(unittest.TestCase):
             "rated_power_match",
         )
 
-    def test_single_unmeasured_tuya_can_still_take_single_declared_model(self) -> None:
+    def test_single_tuya_cannot_inherit_unrelated_mp3000_inventory(self) -> None:
         diagnostics = [
             {
                 "metadata": {"model_supplied_by_user": None, "detected_protocol": "tuya-lan"},
                 "decoded_known_measurements": {},
             }
         ]
-        devices = [{"model": "TSOL-MX800", "quantity": 1}]
-        assigned = assignment.associate_declared_models(diagnostics, devices)
-        self.assertEqual(assigned, {0: "TSOL-MX800"})
+        devices = [{"model": "TSOL-MP3000", "quantity": 1}]
+        self.assertEqual(assignment.associate_declared_models(diagnostics, devices), {})
+        self.assertIsNone(diagnostics[0]["metadata"]["model_supplied_by_user"])
+
+    def test_unmeasured_02b0_device_cannot_inherit_mp3000_inventory(self) -> None:
+        diagnostic = tsun_capture(0)
+        diagnostic["logger_web"] = {
+            "summary": {
+                "logger_raw_profile": "21510:Deye",
+                "inverter_serial_prefix": "260",
+            }
+        }
         self.assertEqual(
-            diagnostics[0]["metadata"]["model_assignment"]["method"],
-            "remaining_declared_inventory",
+            assignment.associate_declared_models(
+                [diagnostic], [{"model": "TSOL-MP3000", "quantity": 1}]
+            ),
+            {},
+        )
+        self.assertIsNone(diagnostic["metadata"]["model_supplied_by_user"])
+
+    def test_foreign_logger_does_not_match_even_when_power_matches(self) -> None:
+        diagnostic = tsun_capture(3000)
+        diagnostic["logger_web"] = {"summary": {"logger_raw_profile": "21510:Deye"}}
+        self.assertEqual(
+            assignment.associate_declared_models(
+                [diagnostic], [{"model": "TSOL-MP3000", "quantity": 1}]
+            ),
+            {},
+        )
+
+    def test_real_gen4_mx500_variant_is_matched_by_power(self) -> None:
+        diagnostic = tsun_capture(500, "1097")
+        self.assertEqual(
+            assignment.associate_declared_models(
+                [diagnostic], [{"model": "TSOL-MX500", "quantity": 1}]
+            ),
+            {0: "TSOL-MX500"},
+        )
+
+    def test_no_protocol_exchange_cannot_confirm_identity(self) -> None:
+        diagnostic = tsun_capture(500)
+        diagnostic["metadata"]["protocol_validation_status"] = "undetected"
+        self.assertEqual(
+            assignment.associate_declared_models(
+                [diagnostic], [{"model": "TSOL-MX500", "quantity": 1}]
+            ),
+            {},
+        )
+
+    def test_missing_capture_blocks_cannot_confirm_identity(self) -> None:
+        diagnostic = tsun_capture(500)
+        diagnostic["capture_summary"]["successful_block_reads"] = 0
+        self.assertEqual(
+            assignment.associate_declared_models(
+                [diagnostic], [{"model": "TSOL-MX500", "quantity": 1}]
+            ),
+            {},
         )
 
     def test_fewer_diagnostics_than_declared_units_stays_unassigned(self) -> None:
-        diagnostics = [
-            {
-                "metadata": {"model_supplied_by_user": None},
-                "decoded_known_measurements": {"rated_power": 450},
-            }
-        ]
+        diagnostics = [tsun_capture(450)]
         devices = [{"model": "TSOL-MX450", "quantity": 2}]
         self.assertEqual(assignment.associate_declared_models(diagnostics, devices), {})
         self.assertIsNone(diagnostics[0]["metadata"]["model_supplied_by_user"])
