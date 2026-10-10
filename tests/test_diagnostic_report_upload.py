@@ -75,12 +75,29 @@ class DiagnosticReportUploadTests(unittest.TestCase):
             with self.assertRaisesRegex(upload.ReportUploadError, "not valid JSON"):
                 upload.load_diagnostic(path)
 
-    def test_associates_unambiguous_inventory_and_tuya_leftover(self) -> None:
+    def test_associates_only_verified_tsun_reports_and_leaves_tuya_unassigned(self) -> None:
+        def verified(power: int) -> dict:
+            return {
+                "metadata": {
+                    "model_supplied_by_user": None,
+                    "detected_protocol": "02b0",
+                    "protocol_validation_status": "validated",
+                },
+                "capture_summary": {
+                    "successful_block_reads": 14,
+                    "unique_raw_registers": 128,
+                },
+                "decoded_known_measurements": {"rated_power": power},
+            }
+
         diagnostics = [
-            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 450}},
-            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 300}},
-            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {"rated_power": 450}},
-            {"metadata": {"model_supplied_by_user": None}, "decoded_known_measurements": {}},
+            verified(450),
+            verified(300),
+            verified(450),
+            {
+                "metadata": {"model_supplied_by_user": None, "detected_protocol": "tuya-lan"},
+                "decoded_known_measurements": {},
+            },
         ]
         devices = [
             {"model": "TSOL-MX450", "quantity": 2},
@@ -90,17 +107,9 @@ class DiagnosticReportUploadTests(unittest.TestCase):
         assigned = upload.associate_declared_models(diagnostics, devices)
         self.assertEqual(
             assigned,
-            {
-                0: "TSOL-MX450",
-                1: "TSOL-MS300",
-                2: "TSOL-MX450",
-                3: "TSOL-MS800",
-            },
+            {0: "TSOL-MX450", 1: "TSOL-MS300", 2: "TSOL-MX450"},
         )
-        self.assertEqual(
-            diagnostics[3]["metadata"]["model_assignment"]["method"],
-            "remaining_declared_inventory",
-        )
+        self.assertIsNone(diagnostics[3]["metadata"]["model_supplied_by_user"])
 
     def test_same_power_families_remain_unassigned_when_ambiguous(self) -> None:
         diagnostics = [
@@ -129,8 +138,16 @@ class DiagnosticReportUploadTests(unittest.TestCase):
             path.write_text(
                 json.dumps(
                     {
-                        "metadata": {"model_supplied_by_user": None},
-                        "decoded_known_measurements": {},
+                        "metadata": {
+                            "model_supplied_by_user": None,
+                            "detected_protocol": "02b0",
+                            "protocol_validation_status": "validated",
+                        },
+                        "capture_summary": {
+                            "successful_block_reads": 3,
+                            "unique_raw_registers": 48,
+                        },
+                        "decoded_known_measurements": {"rated_power": 800},
                     }
                 ),
                 encoding="utf-8",
