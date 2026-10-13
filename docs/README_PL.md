@@ -37,7 +37,7 @@
 | Protokół | Rodzina | Zweryfikowany sprzęt | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Zweryfikowany** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500** | ✅ **Zweryfikowany** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **Zweryfikowany** |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Zweryfikowany** |
 
 > [!TIP]
@@ -57,7 +57,9 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**MX3000D zweryfikowany:** TSOL-MX3000D działa z TSUN Local w Home Assistant przez GEN4 / 1097. Właściciel potwierdza poprawny odczyt wszystkich wartości; dwa pełne raporty diagnostyczne dokumentują sześć wejść PV. Na jednej wersji firmware MX450 / 02B0 zgłaszano sporadyczne błędy Modbus.
+**MX3000D zweryfikowany:** TSOL-MX3000D działa z TSUN Local w Home Assistant przez GEN4 / 1097. Właściciel potwierdza poprawny odczyt wszystkich wartości; dwa pełne raporty diagnostyczne dokumentują sześć wejść PV. Użytkownik Home Assistant również potwierdził działanie TSOL-MX450 / 02B0; wcześniejsze problemy z połączeniem wynikały z Wi-Fi, a nie z niezgodności protokołu.
+
+**Dodatkowy dowód protokołu MS800 (październik 2026):** osobny raport 02B0 urządzenia 800 W z dwoma wejściami PV wykazał firmware loggera `LSW5_SSL_02B0_1.05`, 144 rejestry i 15 udanych odczytów na 15. Dokładnego modelu handlowego nie podano; nie jest to druga walidacja w Home Assistant.
 
 **Nowość w 1.6.0:** **Odczyt adaptacyjny** jest domyślnie włączony i automatycznie dostosowuje interwał przy błędach komunikacji: 20 s normalnie, 30 s po błędzie i 300 s offline/noc.
 

@@ -7,11 +7,14 @@ All notable changes to this project are documented here. The project follows [Se
 
 ### Documentation
 
-- Present each tested microinverter on its own line in GitHub/HACS and localized README protocol tables, sorted by model name and natural model number; keep MX3000D validated and MX450 marked observed.
+- Present each tested microinverter on its own line in GitHub/HACS and localized README protocol tables, sorted by model name and natural model number; keep MX3000D validated and upgrade MX450 to user-validated 02B0 compatibility.
 - Publish dedicated TSOL-MX450 / GEN3 02B0 and TSOL-MX3000D / GEN4 1097 hardware pages using the exact visual system of the existing TSOL-MS300 page.
 - Update homepage compatibility cards, sitemap, HACS-visible GitHub README, and all seven localized README files; recognize TSOL-MS300 under verified 02B0 hardware instead of the speculative GEN4 list.
+- Publish owner-confirmed MX450 / 02B0 Home Assistant validation and correct the older Wi-Fi-related communication caveat throughout the documentation.
+- Add the October 2026 800 W / two-PV 02B0 diagnostic (firmware `LSW5_SSL_02B0_1.05`, 144 registers, 15/15 block reads) as protocol-only evidence because the exact commercial model was not declared.
+- Publish compatibility documentation only, without changing the HACS ZIP, integration code or version.
 - Thank real-device contributors on the homepage, individual device pages and contributor directory, without publishing private contact addresses.
-- Distinguish protocol-level evidence from verified sustained Home Assistant operation: MX450 has intermittent 02B0 reports; MX3000D is confirmed working in Home Assistant with all telemetry values available, as reported by its hardware owner; two complete GEN4 / 1097 diagnostics independently document the six PV inputs. No production protocol implementation changes are made.
+- Distinguish protocol-level evidence from verified sustained Home Assistant operation: MX450 is user-confirmed working after a Wi-Fi connectivity issue; MX3000D is confirmed working in Home Assistant with all telemetry values available, as reported by its hardware owner; two complete GEN4 / 1097 diagnostics independently document the six PV inputs. No production protocol implementation changes are made.
 
 
 ### Changed

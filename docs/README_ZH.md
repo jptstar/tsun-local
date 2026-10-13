@@ -37,7 +37,7 @@
 | 协议 | 系列 | 已验证硬件 | 状态 |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500** | ✅ **已验证** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **已验证** |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **已验证** |
 
 > [!TIP]
@@ -57,7 +57,9 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**MX3000D 已验证：** TSOL-MX3000D 可通过 GEN4 / 1097 与 TSUN Local 在 Home Assistant 中正常工作。设备所有者确认所有数值均能正确读取；两份完整诊断报告也记录了六路光伏输入。MX450 / 02B0 的部分固件曾报告间歇性 Modbus 错误。
+**MX3000D 已验证：** TSOL-MX3000D 可通过 GEN4 / 1097 与 TSUN Local 在 Home Assistant 中正常工作。设备所有者确认所有数值均能正确读取；两份完整诊断报告也记录了六路光伏输入。TSOL-MX450 / 02B0 也已由 Home Assistant 用户确认可用；之前的连接问题源自 Wi-Fi，并非协议不兼容。
+
+**MS800 额外协议证据（2026 年 10 月）：** 另一份 02B0 诊断报告记录了一台 800 W、双 PV 输入设备，logger 固件为 `LSW5_SSL_02B0_1.05`，读取了 144 个寄存器，15 次块读取全部成功。报告未明确声明商业型号，因此不构成第二次 Home Assistant 验证。
 
 **1.6.0 新增：** **自适应采集**默认启用，并在通信失败时自动调整采集间隔：正常 20 秒、出错后 30 秒、离线/夜间 300 秒。
 

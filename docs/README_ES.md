@@ -37,7 +37,7 @@
 | Protocolo | Familia | Hardware validado | Estado |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validado** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500** | ✅ **Validado** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **Validado** |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validado** |
 
 > [!TIP]
@@ -57,7 +57,9 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**MX3000D validado:** El TSOL-MX3000D funciona con TSUN Local en Home Assistant mediante GEN4 / 1097. El propietario confirma que todos los valores se reciben correctamente; dos diagnósticos completos documentan seis entradas FV. En una variante de firmware del MX450 / 02B0 se notificaron errores Modbus intermitentes.
+**MX3000D validado:** El TSOL-MX3000D funciona con TSUN Local en Home Assistant mediante GEN4 / 1097. El propietario confirma que todos los valores se reciben correctamente; dos diagnósticos completos documentan seis entradas FV. El TSOL-MX450 / 02B0 también fue validado por su usuario de Home Assistant; los problemas de conexión anteriores se debían al Wi-Fi y no a incompatibilidad del protocolo.
+
+**Evidencia adicional del protocolo MS800 (octubre de 2026):** otro diagnóstico 02B0 de un dispositivo de 800 W y dos entradas FV registró el firmware del logger `LSW5_SSL_02B0_1.05`, 144 registros y 15 de 15 lecturas correctas. No se declaró el modelo comercial exacto; no es una segunda validación en Home Assistant.
 
 **Nuevo en 1.6.0:** La **lectura adaptativa** está activada de forma predeterminada y ajusta automáticamente el intervalo ante fallos de comunicación: 20 s normal, 30 s tras un error y 300 s sin conexión/noche.
 

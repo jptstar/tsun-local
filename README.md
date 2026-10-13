@@ -38,7 +38,7 @@
 | Protocol | Family | Tested hardware &amp; field evidence | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500** | ✅ **Validated** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **Validated** |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validated** |
 
 > [!TIP]
@@ -58,7 +58,9 @@
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
 
-**Validated MX3000D support:** TSOL-MX3000D runs with TSUN Local in Home Assistant on GEN4 / 1097. The hardware owner confirms that all values are reported correctly; two complete diagnostic reports also document the six PV inputs. TSOL-MX450 is supported by 02B0 protocol evidence, but intermittent Modbus errors have been reported on one firmware variant.
+**Validated MX3000D support:** TSOL-MX3000D runs with TSUN Local in Home Assistant on GEN4 / 1097. The hardware owner confirms that all values are reported correctly; two complete diagnostic reports also document the six PV inputs. The TSOL-MX450 / 02B0 is also validated by its Home Assistant user; earlier connection problems were traced to Wi-Fi, not protocol incompatibility.
+
+**Additional MS800 protocol evidence (October 2026):** A separate 800 W / two-PV 02B0 diagnostic recorded logger firmware `LSW5_SSL_02B0_1.05`, 144 registers and 15/15 successful block reads. The exact commercial model was not declared, so this is complementary protocol evidence rather than a second Home Assistant validation.
 
 **New in 1.6.0:** **Adaptive polling** is enabled by default and automatically adjusts the read interval after communication failures: 20 s normal, 30 s after an error and 300 s offline/night.
 

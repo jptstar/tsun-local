@@ -188,7 +188,7 @@
 
   <section id="compatibility">
     <h2>Compatibility</h2>
-    <p class="intro">TSUN Local support is organized by inverter family and local protocol. TSOL-MX3000D is validated in Home Assistant on GEN4 / 1097 with all telemetry values confirmed by its owner. TSOL-MX450 has real 02B0 protocol evidence, with an intermittent communication issue still under investigation.</p>
+    <p class="intro">TSUN Local support is organized by inverter family and local protocol. TSOL-MX3000D is validated in Home Assistant on GEN4 / 1097 with all telemetry values confirmed by its owner. TSOL-MX450 is now also validated by its Home Assistant user. Earlier connection interruptions were traced to Wi-Fi rather than protocol incompatibility.</p>
     <div class="compat-callout">
       <strong>✅ Your microinverter may already be compatible — even if it is not listed below.</strong>
       <span>TSUN Local identifies supported devices by their local protocol family, not only by commercial model name.</span>
@@ -219,9 +219,9 @@
         <span class="tested-label">Tested microinverters</span>
         <div class="tested-list">
           <a class="tested-device" href="tsol-ms300-home-assistant.html"><span><strong>TSOL-MS300</strong><span class="tested-brand">TSUN</span></span><span class="tested-link" aria-hidden="true">→</span></a>
-          <a class="tested-device" href="tsol-mx450-home-assistant.html"><span><strong>TSOL-MX450</strong><span class="tested-brand">TSUN · 02B0 observed</span></span><span class="tested-link" aria-hidden="true">→</span></a>
+          <a class="tested-device" href="tsol-mx450-home-assistant.html"><span><strong>TSOL-MX450</strong><span class="tested-brand">TSUN · Home Assistant validated</span></span><span class="tested-link" aria-hidden="true">→</span></a>
           <a class="tested-device" href="tsol-mx500-home-assistant.html"><span><strong>TSOL-MX500</strong><span class="tested-brand">TSUN</span></span><span class="tested-link" aria-hidden="true">→</span></a>
-          <a class="tested-device" href="tsol-ms800-home-assistant.html"><span><strong>TSOL-MS800</strong><span class="tested-brand">TSUN</span></span><span class="tested-link" aria-hidden="true">→</span></a>
+          <a class="tested-device" href="tsol-ms800-home-assistant.html"><span><strong>TSOL-MS800</strong><span class="tested-brand">TSUN · Home Assistant validated</span></span><span class="tested-link" aria-hidden="true">→</span></a>
           <a class="tested-device" href="tsol-ms2000-home-assistant.html"><span><strong>TSOL-MS2000</strong><span class="tested-brand">TSUN</span></span><span class="tested-link" aria-hidden="true">→</span></a>
           <a class="tested-device" href="sunology-play2.html"><span><strong>PLAY2</strong><span class="tested-brand">Sunology</span></span><span class="tested-link" aria-hidden="true">→</span></a>
         </div>
@@ -242,6 +242,7 @@
         </div>
       </div>
     </div>
+    <p class="intro" style="margin-top:18px">October 2026: an additional 800 W / two-PV 02B0 diagnostic captured 144 registers on logger firmware <code>LSW5_SSL_02B0_1.05</code>. Its exact commercial model was not declared, so this is additional protocol evidence, not a separate Home Assistant validation. <a href="tsol-ms800-home-assistant.html">Read the MS800 field evidence →</a></p>
   </section>
 
   <section id="alarms">
@@ -301,7 +302,7 @@ Stable code preserved for diagnosis</div>
       <span><a href="https://github.com/dca31"><strong>@dca31</strong></a> — independent Sunology PLAY2 validation through the normal TSUN Local Home Assistant flow.</span>
       <span><a href="https://github.com/phildeg31"><strong>@phildeg31</strong></a> — real-hardware Sunology PLAY2 GEN4 / 1097 diagnostics and ongoing stability validation.</span>
       <span><strong>@nxenara</strong> — repeated read-only TSOL-MS300 hardware dumps confirming the validated 02B0 / GEN3 path, 300 W rated power and one PV input.</span>
-      <span><strong>phklrz (Philippe K.)</strong> — TSOL-MX450 02B0 hardware captures and Home Assistant diagnostics documenting intermittent Modbus replies.</span>
+      <span><strong>phklrz (Philippe K.)</strong> — TSOL-MX450 / 02B0 diagnostics, subsequently validated in Home Assistant; past connection problems were attributed to Wi-Fi.</span>
       <span><strong>Valentin Fleuret</strong> — two complete TSOL-MX3000D GEN4 / 1097 diagnostics confirming six PV inputs and firmware V3.2.68; the device owner confirms TSUN Local works in Home Assistant with all telemetry available.</span>
       <span><a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a> — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.</span>
       <span><a href="https://github.com/paloindici"><strong>@paloindici</strong></a> — independent TSOL-MS2000 validation with four PV inputs, plus anonymized TSOL-MS2000 / MP3000 diagnostics and a hardware dump that improved the standalone diagnostic tool.</span>
