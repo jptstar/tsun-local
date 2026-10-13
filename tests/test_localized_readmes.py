@@ -35,7 +35,7 @@ class LocalizedReadmeTests(unittest.TestCase):
             self.assertEqual(text.count("| **02B0** | GEN3 / GEN3 PLUS |"), 1, filename)
             self.assertEqual(text.count("| **1097** | GEN4 |"), 1, filename)
             self.assertIn("Sunology PLAY2", text, filename)
-            self.assertIn("**Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450** (observed)<br>**TSOL-MX500**", text, filename)
+            self.assertIn("**Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**", text, filename)
             self.assertIn("**Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D**", text, filename)
             self.assertIn("tsol-mx500-home-assistant.html", text, filename)
             self.assertIn("tsol-ms300-home-assistant.html", text, filename)
@@ -44,6 +44,8 @@ class LocalizedReadmeTests(unittest.TestCase):
             self.assertIn("Valentin Fleuret", text, filename)
             self.assertNotIn("**TSOL-MX3000D** (observed)", text, filename)
             self.assertIn("phklrz", text, filename)
+            self.assertNotIn("**TSOL-MX450** (observed)", text, filename)
+            self.assertIn("LSW5_SSL_02B0_1.05", text, filename)
             self.assertIn("tsol-ms800-home-assistant.html", text, filename)
             self.assertIn("tsol-ms2000-home-assistant.html", text, filename)
             likely_02b0 = next(line for line in text.splitlines() if line.startswith("- **02B0"))
@@ -69,7 +71,7 @@ class LocalizedReadmeTests(unittest.TestCase):
                 "**TSOL-MS300**",
                 "**TSOL-MS800**",
                 "**TSOL-MS2000**",
-                "**TSOL-MX450** (observed)",
+                "**TSOL-MX450**",
                 "**TSOL-MX500**",
             ],
             "1097": ["**Sunology PLAY2 (GEN4)**", "**TSOL-MX3000D**"],
