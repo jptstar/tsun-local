@@ -12,6 +12,7 @@ from pathlib import Path
 import threading
 import tkinter as tk
 from tkinter import messagebox, ttk
+from urllib.parse import quote
 import webbrowser
 
 import tsun_diagnostic_app as upload_app
@@ -350,10 +351,18 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
             font=("Segoe UI", 10, "bold"),
             anchor="w",
         ).pack(fill="x", pady=(2, 7))
+        email_actions = tk.Frame(email_block, bg=base._CARD)
+        email_actions.pack(anchor="w")
         self.copy_button = self._flat_button(
-            email_block, self.t["copy"], self._copy_email, compact=True
+            email_actions, self.t["copy"], self._copy_email, compact=True
         )
-        self.copy_button.pack(anchor="w")
+        self.copy_button.pack(side="left")
+        self._flat_button(
+            email_actions,
+            "Préparer e-mail" if self.lang == "fr" else "Prepare e-mail",
+            self._prepare_report_email,
+            compact=True,
+        ).pack(side="left", padx=(6, 0))
 
         file_block = tk.Frame(inner, bg=base._CARD)
         file_block.grid(row=0, column=2, sticky="nsew")
@@ -385,6 +394,45 @@ class CleanDiagnosticApp(upload_app.UploadDiagnosticApp):
         self._flat_button(
             buttons, self.t["change"], self._choose_folder, compact=True
         ).pack(side="left", padx=(8, 0))
+
+    def _prepare_report_email(self) -> None:
+        """Open a draft in the default mail application; never auto-attach or send."""
+        filenames = [path.name for path in self.latest_reports if path.exists()]
+        if not filenames:
+            messagebox.showinfo(
+                APP_NAME,
+                "Lancez d'abord un diagnostic." if self.lang == "fr"
+                else "Run a diagnostic first.",
+                parent=self.root,
+            )
+            return
+        subject = "TSUN Local - Rapport diagnostic" if self.lang == "fr" else "TSUN Local - Diagnostic report"
+        body = (
+            "Bonjour,\n\nVeuillez trouver ci-joint le ou les rapports JSON anonymisés :\n"
+            if self.lang == "fr"
+            else "Hello,\n\nPlease find attached the anonymized JSON report(s):\n"
+        ) + "\n".join(f"- {name}" for name in filenames) + "\n"
+        url = f"mailto:{base.REPORT_EMAIL}?subject={quote(subject)}&body={quote(body)}"
+        try:
+            opened = webbrowser.open(url)
+        except OSError:
+            opened = False
+        if not opened:
+            messagebox.showinfo(
+                APP_NAME,
+                f"{base.REPORT_EMAIL}\n\n" + "\n".join(filenames),
+                parent=self.root,
+            )
+            return
+        messagebox.showinfo(
+            APP_NAME,
+            (
+                "Brouillon ouvert. Pensez à joindre manuellement le JSON avant l'envoi."
+                if self.lang == "fr"
+                else "E-mail draft opened. Attach the JSON file manually before sending."
+            ),
+            parent=self.root,
+        )
 
     def _is_magic_test_mode(self) -> bool:
         return (

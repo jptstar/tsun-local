@@ -39,6 +39,34 @@ It performs local discovery first, requests an IP address or Monitor SN only whe
 
 For capture ranges, privacy rules and evidence handling, see the [Hardware Validation Dump Tool guide](../docs/HARDWARE_DUMP.md).
 
+## Optional single-IP network diagnostic (GEN3 / R17)
+
+The Windows GUI offers **Advanced options → Test ports on this IP (GEN3 / R17)**.
+Enter the inverter's **private LAN IPv4 address**, not its R17/T17 inverter serial
+number. No Monitor SN is necessary. This is a **separate, opt-in** diagnostic that
+tests TCP connections only to ports `80`, `443`, `5005`, `6668`, `8080`,
+`8899` and `10000`. It sends no application payload, changes no device
+settings and never sweeps a subnet or the full 65,535-port range.
+
+The Python equivalent is:
+
+```powershell
+py tools/tsun_dump.py --no-update --network-probe 192.168.1.50
+```
+
+The `tsun_network_probe_*.json` report deliberately excludes the IP address
+and device credentials. In the Windows application, it becomes available in the
+existing **Send report** step and can be sent to TSUN Local Reports **only after
+explicit consent**, or attached manually to an e-mail to `dev@jptstar.com`.
+There is no background upload. The server accepts this report as **unverified**:
+no inverter identity, protocol support or hardware-model assignment is inferred
+from a TCP port being open. A successful TCP connection confirms only that a
+service accepts connections, **not** that the device is TSUN or that a protocol
+is compatible.
+Conversely, no open incoming port does **not** prove an old GEN3/R17 is offline:
+such equipment may exclusively initiate outbound connections to the TSUN cloud.
+This probe does not intercept, reroute or inspect those outbound connections.
+
 ## Hardware identity and multi-device scans
 
 The full Windows and Python diagnostics can discover additional LAN devices

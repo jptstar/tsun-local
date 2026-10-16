@@ -17,6 +17,7 @@ import io
 import locale
 import os
 from pathlib import Path
+from datetime import datetime, timezone
 import queue
 import shutil
 import subprocess
@@ -86,6 +87,12 @@ _TEXT = {
         "sn_hint": "Optionnel — utilisé pour communiquer, jamais enregistré dans le JSON",
         "folder": "Dossier de sortie",
         "browse": "Parcourir…",
+        "network_probe_run": "Tester les ports de cette IP (GEN3 / R17)",
+        "network_probe_hint": "Test facultatif d’une IP locale, sans Monitor SN. Aucun paquet applicatif envoyé.",
+        "network_probe_ip_required": "Renseignez l’adresse IPv4 locale de l’onduleur dans les options avancées.",
+        "network_probe_running": "Test TCP ciblé en cours…",
+        "network_probe_done": "Rapport réseau prêt — envoi direct ou e-mail possible.",
+        "network_probe_failed": "Le test réseau n’a pas pu être terminé.",
         "close": "Fermer",
         "input_title": "Information nécessaire",
         "folder_error": "Impossible d'utiliser le dossier de sortie sélectionné.",
@@ -139,6 +146,12 @@ _TEXT = {
         "sn_hint": "Optional — used for communication, never stored in the JSON",
         "folder": "Output folder",
         "browse": "Browse…",
+        "network_probe_run": "Test ports on this IP (GEN3 / R17)",
+        "network_probe_hint": "Optional local-IP test; no Monitor SN or application payload required.",
+        "network_probe_ip_required": "Enter the inverter’s private LAN IPv4 address in advanced options.",
+        "network_probe_running": "Targeted TCP test running…",
+        "network_probe_done": "Network report ready — direct upload or e-mail available.",
+        "network_probe_failed": "The network probe could not finish.",
         "close": "Close",
         "input_title": "Information required",
         "folder_error": "The selected output folder cannot be used.",
@@ -619,8 +632,8 @@ class DiagnosticApp:
         win = tk.Toplevel(self.root)
         self.advanced_window = win
         win.title(self.t["advanced_title"])
-        win.geometry("590x355")
-        win.minsize(540, 330)
+        win.geometry("590x435")
+        win.minsize(540, 415)
         win.configure(bg=_BG)
         win.transient(self.root)
 
@@ -661,9 +674,70 @@ class DiagnosticApp:
         self._flat_button(
             folder_row, self.t["browse"], self._choose_folder, compact=True
         ).pack(side="right", padx=(8, 0))
+        self._flat_button(
+            inner, self.t["network_probe_run"], self._start_network_probe, compact=True
+        ).pack(fill="x", pady=(12, 0))
+        tk.Label(
+            inner,
+            text=self.t["network_probe_hint"],
+            bg=_CARD,
+            fg=_MUTED,
+            font=("Segoe UI", 8),
+            wraplength=475,
+            justify="left",
+        ).pack(fill="x", pady=(4, 0))
         self._flat_button(inner, self.t["close"], close, compact=True).pack(
-            anchor="e", pady=(14, 0)
+            anchor="e", pady=(10, 0)
         )
+
+    def _start_network_probe(self) -> None:
+        """Opt-in, single-host TCP probe; separate from protocol capture and uploads."""
+        if self.worker and self.worker.is_alive():
+            return
+        host = self.host.get().strip()
+        if not host:
+            messagebox.showerror(APP_NAME, self.t["network_probe_ip_required"])
+            return
+        try:
+            # Validate before launching the worker; never scan public/DNS hosts.
+            tsun_dump._private_lan_ipv4(host)
+            folder = Path(self.output_dir.get()).expanduser()
+            folder.mkdir(parents=True, exist_ok=True)
+        except (OSError, ValueError) as err:
+            messagebox.showerror(APP_NAME, str(err))
+            return
+        # Keep the new report separate from any previous protocol-dump selection.
+        if hasattr(self, "latest_reports"):
+            self.latest_reports = []
+            self.uploaded_reports.clear()
+        self.status.set(self.t["network_probe_running"])
+        self.progress.start(12)
+        self.run_button.configure(state="disabled")
+        self._append_log("\n=== Optional single-IP network probe ===\n")
+        self.worker = threading.Thread(
+            target=self._run_network_probe, args=(folder, host), daemon=True
+        )
+        self.worker.start()
+
+    def _run_network_probe(self, folder: Path, host: str) -> None:
+        """Write an anonymized JSON, ready for explicit-consent upload or e-mail."""
+        try:
+            path, report = tsun_dump.write_local_network_probe_report(
+                host, folder / (
+                    "tsun_network_probe_"
+                    + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+                    + ".json"
+                )
+            )
+            open_ports = report["assessment"]["open_ports"]
+            self.events.put(("log", f"Open ports: {open_ports}\n"))
+            self.events.put(("log", f"Manual JSON report: {path.name}\n"))
+            self.events.put(("log", report["assessment"]["note"] + "\n"))
+            self.events.put(("network_probe_report", path.resolve()))
+            self.events.put(("status", self.t["network_probe_done"], True))
+        except (OSError, ValueError) as err:
+            self.events.put(("log", f"Network probe error: {err}\n"))
+            self.events.put(("status", self.t["network_probe_failed"], False))
 
     def _show_details(self) -> None:
         if self.details_window and self.details_window.winfo_exists():
@@ -981,6 +1055,12 @@ class DiagnosticApp:
                 kind = event[0]
                 if kind == "log":
                     self._append_log(str(event[1]))
+                elif kind == "network_probe_report":
+                    # Acknowledged reports become selectable, but never upload silently.
+                    report_path = Path(event[1])
+                    if hasattr(self, "latest_reports") and report_path.exists():
+                        self.latest_reports = [report_path]
+                        self.uploaded_reports.discard(report_path)
                 elif kind == "update_current":
                     self.update_busy = False
                     self.update_status.set(self.t["update_current"])
