@@ -9,6 +9,8 @@ The files kept directly in `docs/` are intentionally stable because they are lin
 - [Entity reference](ENTITIES.md)
 - [TSOL-MX450 / GEN3 02B0 compatibility](pages/tsol-mx450-home-assistant.html)
 - [TSOL-MX3000D / GEN4 1097 compatibility](pages/tsol-mx3000d-home-assistant.html)
+- [Sunology GO / 02B0 field evidence](pages/sunology-go-home-assistant.html)
+- [TSOL-MS800 Balcony / 02B0 field evidence](pages/tsol-ms800-balcony-home-assistant.html)
 - [TSUN Local contributor credits](pages/contributors.html)
 
 - [Hardware validation dump guide](HARDWARE_DUMP.md)

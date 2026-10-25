@@ -37,7 +37,7 @@
 | Protocole | Famille | Matériel validé | Statut |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validé** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **Validé** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **Validé** · 🧪 GO / MS800 Balcony: 02B0 field evidence only, HA pending |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validé** |
 
 > [!TIP]
@@ -56,10 +56,13 @@
 
 📚 **[TSOL-MX500 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html)** · **[TSOL-MS800 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html)** · **[TSOL-MS2000 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms2000-home-assistant.html)**
 📚 **[TSOL-MS300 Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms300-home-assistant.html)** · **[TSOL-MX450 Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx450-home-assistant.html)** · **[TSOL-MX3000D Home Assistant](https://jptstar.github.io/tsun-local/tsol-mx3000d-home-assistant.html)**
+📚 **[Sunology GO Home Assistant](https://jptstar.github.io/tsun-local/sunology-go-home-assistant.html)** · **[TSOL-MS800 Balcony Home Assistant](https://jptstar.github.io/tsun-local/tsol-ms800-balcony-home-assistant.html)**
 
 **MX3000D validé :** le TSOL-MX3000D fonctionne avec TSUN Local dans Home Assistant via GEN4 / 1097. Son propriétaire confirme que toutes les valeurs remontent correctement ; deux diagnostics complets documentent les six entrées PV. Le TSOL-MX450 / 02B0 est également validé par son utilisateur Home Assistant ; les interruptions antérieures provenaient du Wi-Fi et non d'une incompatibilité du protocole.
 
 **Preuve complémentaire MS800 (octobre 2026) :** un diagnostic 02B0 distinct d'un appareil de 800 W à deux entrées PV a relevé le firmware logger `LSW5_SSL_02B0_1.05`, 144 registres et 15 lectures de blocs réussies sur 15. Le modèle commercial exact n'étant pas déclaré, il ne s'agit pas d'une seconde validation Home Assistant.
+
+**Nouveaux diagnostics 02B0 (octobre 2026) :** Sunology GO correspond probablement au rapport 300 W / une entrée PV `TSL-20261013-C465E71C` (15/15 lectures, firmware 1.04). Un second rapport documente un MS800 Balcony de 800 W / deux entrées PV `TSL-20261010-CC270E05` (15/15, firmware 1.05). Le protocole observé est **02B0, et non 02B2**. Le fonctionnement prolongé dans Home Assistant reste à confirmer.
 
 **Nouveau dans la 1.6.0 :** la **relève adaptative** est activée par défaut et ajuste automatiquement la cadence de lecture en cas d’échecs de communication : 20 s en fonctionnement normal, 30 s après erreur et 300 s hors ligne/nuit.
 
@@ -231,6 +234,7 @@ TSUN Local bénéficie de recherches protocolaires publiques et de validations i
 - **nxenara** — validation du TSOL-MS300 / 02B0 sur matériel réel.
 - **phklrz (Philippe K.)** — diagnostics TSOL-MX450 / 02B0 et étude des erreurs Modbus intermittentes.
 - **Valentin Fleuret** — deux diagnostics TSOL-MX3000D / 1097 et confirmation du fonctionnement complet dans Home Assistant.
+- **Contributeurs anonymes** — merci pour les diagnostics Sunology GO et MS800 Balcony d’octobre 2026 ; l’identité des auteurs n’est pas confirmée. Essais Y4Z complémentaires par @puppenstube (issue #110).
 - **Hugo Tinot** — rapports de recherche aidant à distinguer les appareils TSUN des autres appareils du réseau.
 - **paloindici** — validation indépendante du TSOL-MS2000 avec TSUN Local, avec diagnostics Home Assistant anonymisés du TSOL-MS2000 et du TSOL-MP3000 ainsi qu’un dump matériel confirmant le chemin 02B0 / 4 entrées PV.
 

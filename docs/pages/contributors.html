@@ -9,7 +9,7 @@ permalink: /contributors.html
 <title>TSUN Local Contributors & Credits — Home Assistant Integration</title>
 <link rel="canonical" href="https://jptstar.github.io/tsun-local/contributors.html">
 <link rel="icon" type="image/png" href="icon.png">
-<meta name="description" content="Credits for TSUN Local, the local Home Assistant integration for TSUN microinverters: protocol research, Sunology PLAY2 02B0 and GEN4 / 1097 validation, TSOL-MP3000 validation, TSOL-MS300 validation, TSOL-MS800 validation, TSOL-MS2000 validation, TSOL-MX450 validation and TSOL-MX3000D / 1097 Home Assistant validation.">
+<meta name="description" content="Credits for TSUN Local, the local Home Assistant integration for TSUN microinverters: protocol research, Sunology PLAY2 02B0 and GEN4 / 1097 validation, TSOL-MP3000 validation, TSOL-MS300 validation, TSOL-MS800 validation, TSOL-MS2000 validation, TSOL-MX450 validation and TSOL-MX3000D / 1097 Home Assistant validation and provisional Sunology GO / MS800 Balcony 02B0 field evidence.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#0a315e">
 <meta property="og:type" content="website">
@@ -29,7 +29,7 @@ permalink: /contributors.html
   "name":"TSUN Local Contributors & Credits",
   "url":"https://jptstar.github.io/tsun-local/contributors.html",
   "description":"Credits for community contributions to the TSUN Local Home Assistant integration.",
-  "dateModified":"2026-10-10",
+  "dateModified":"2026-10-25",
   "isPartOf":{"@type":"WebSite","name":"TSUN Local","url":"https://jptstar.github.io/tsun-local/"}
 }
 </script>
@@ -53,6 +53,8 @@ permalink: /contributors.html
 <div class="card"><span class="role">TSOL-MX3000D GEN4 / 1097 Home Assistant validation</span><strong>Valentin Fleuret</strong><p>Contributed two complete TSOL-MX3000D diagnostics validating the GEN4 / 1097 register path, six PV inputs, 3000 W nominal power and firmware V3.2.68. The device owner subsequently confirmed TSUN Local works in Home Assistant and all telemetry values are available. The TSOL-MX3000D is therefore listed as validated hardware. See the <a href="tsol-mx3000d-home-assistant.html">MX3000D compatibility page</a>.</p></div>
 <div class="card"><span class="role">MP3000 research and LAN diagnostic feedback</span><strong>Hugo Tinot</strong><p>Shared several 2023-generation MP3000 investigation reports. They helped distinguish unrelated Deye/Tuya network candidates from genuine TSUN hardware and improve the diagnostic identity safeguards. These logs are research evidence, not an MP3000 protocol validation.</p></div>
 <div class="card"><span class="role">TSOL-MS2000 &amp; TSOL-MP3000 hardware validation</span><a href="https://github.com/paloindici"><strong>@paloindici</strong></a><p>Validated TSUN Local on a real TSOL-MS2000 with four PV inputs and shared anonymized diagnostics plus hardware dumps from both the MS2000 and MP3000. The MP3000 evidence helped validate the TITAN / 1511 path, six-PV telemetry and firmware/temperature behaviour on independent hardware.</p></div>
+<div class="card"><span class="role">Sunology GO &amp; TSOL-MS800 Balcony / 02B0 field diagnostics</span><strong>Anonymous community contributors</strong><p>Thank you to the unnamed reporters of the October 2026 read-only captures: one labelled Sunology GO with a 300 W / one-PV 02B0 signature, and another labelled TSOL-MS800 Balcony with 800 W / two-PV 02B0 data. Neither individual identity nor normal long-running Home Assistant operation was confirmed. See the <a href="sunology-go-home-assistant.html">Sunology GO</a> and <a href="tsol-ms800-balcony-home-assistant.html">MS800 Balcony</a> evidence pages.</p></div>
+<div class="card"><span class="role">TSOL-MS800 Balcony Y4Z / 02B0 hardware testing</span><a href="https://github.com/puppenstube"><strong>@puppenstube (Marcus)</strong></a><p>Identified a real TSOL-MS800 Balcony Y4Z unit and captured the existing 02B0 protocol. Further Home Assistant troubleshooting is ongoing in <a href="https://github.com/jptstar/tsun-local/issues/110">issue #110</a>, so stable operation is not claimed.</p></div>
 </div></section>
 <section><h2>Testers and issue reporters</h2><p class="intro">Thanks also to everyone who shares diagnostics, firmware information, protocol captures, device variants, bug reports and test results. When a contribution becomes a concrete compatibility validation, protocol finding or documented project input, it can be added here with the contributor credited for that specific work.</p></section>
 <section><h2>Independent project</h2><p class="intro">TSUN Local is unofficial and independent. It is not developed, approved, endorsed or maintained by TSUN, Sunology, or the contributors listed above. Product and project names remain the property of their respective owners.</p></section>

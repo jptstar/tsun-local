@@ -201,6 +201,8 @@ class MetadataTests(unittest.TestCase):
             "https://jptstar.github.io/tsun-local/",
             "https://jptstar.github.io/tsun-local/entities.html",
             "https://jptstar.github.io/tsun-local/sunology-play2.html",
+            "https://jptstar.github.io/tsun-local/sunology-go-home-assistant.html",
+            "https://jptstar.github.io/tsun-local/tsol-ms800-balcony-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-mp3000-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-mx500-home-assistant.html",
             "https://jptstar.github.io/tsun-local/tsol-ms800-home-assistant.html",

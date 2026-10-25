@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TSUN Local — Open-source TSUN Microinverters in Home Assistant</title>
-  <meta name="description" content="Open-source, local and read-only Home Assistant integration for TSUN microinverters including TSOL-MS300, TSOL-MX450, TSOL-MX3000D and Sunology PLAY2 with clear-text alarms. Install with HACS, no cloud or proxy.">
-  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, open source, GitHub, HACS, TSOL-MS300, TSOL-MX450, TSOL-MX3000D, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, Sunology Play 2, local solar monitoring, 1511, 02B0, 1097">
+  <meta name="description" content="Open-source, local and read-only Home Assistant integration for TSUN microinverters including TSOL-MS300, TSOL-MX450, TSOL-MX3000D, Sunology PLAY2 and field-tested Sunology GO / TSOL-MS800 Balcony with clear-text alarms. Install with HACS, no cloud or proxy.">
+  <meta name="keywords" content="TSUN Local, TSUN Home Assistant, TSUN microinverter, Home Assistant TSUN integration, open source, GitHub, HACS, TSOL-MS300, TSOL-MX450, TSOL-MX3000D, TSOL-MP3000, TSOL-MX500, TSOL-MS800, TSOL-MS2000, Sunology PLAY2, Sunology Play 2, Sunology GO, TSOL-MS800 Balcony, local solar monitoring, 1511, 02B0, 1097">
   <meta name="author" content="Jean-Philippe TESTART (jptstar)">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#0a315e">
@@ -146,7 +146,7 @@
         <p class="eyebrow">TSUN microinverter integration · Home Assistant</p>
         <h1>TSUN microinverters in Home Assistant — local monitoring with TSUN Local</h1>
         <p class="slogan">Your inverter. Your network. Your data.</p>
-        <p class="lead">Plug-and-play local monitoring for compatible TSUN microinverters and the <strong>Sunology PLAY2</strong>, directly inside Home Assistant.</p>
+        <p class="lead">Plug-and-play local monitoring for compatible TSUN microinverters, <strong>Sunology PLAY2</strong> and field-tested Sunology GO hardware, directly inside Home Assistant.</p>
         <p class="strap">Automatic discovery · Local · Read-only · No cloud · No proxy</p>
         <div class="actions">
           <a class="hacs-badge" href="https://my.home-assistant.io/redirect/hacs_repository/?owner=jptstar&amp;repository=tsun-local&amp;category=integration"><img alt="Add TSUN Local to HACS" src="https://my.home-assistant.io/badges/hacs_repository.svg"></a>
@@ -223,6 +223,8 @@
           <a class="tested-device" href="tsol-mx500-home-assistant.html"><span><strong>TSOL-MX500</strong><span class="tested-brand">TSUN</span></span><span class="tested-link" aria-hidden="true">→</span></a>
           <a class="tested-device" href="tsol-ms800-home-assistant.html"><span><strong>TSOL-MS800</strong><span class="tested-brand">TSUN · Home Assistant validated</span></span><span class="tested-link" aria-hidden="true">→</span></a>
           <a class="tested-device" href="tsol-ms2000-home-assistant.html"><span><strong>TSOL-MS2000</strong><span class="tested-brand">TSUN</span></span><span class="tested-link" aria-hidden="true">→</span></a>
+          <a class="tested-device" href="sunology-go-home-assistant.html"><span><strong>Sunology GO</strong><span class="tested-brand">02B0 field evidence · HA confirmation pending</span></span><span class="tested-link" aria-hidden="true">→</span></a>
+          <a class="tested-device" href="tsol-ms800-balcony-home-assistant.html"><span><strong>TSOL-MS800 Balcony</strong><span class="tested-brand">02B0 field evidence · HA stability pending</span></span><span class="tested-link" aria-hidden="true">→</span></a>
           <a class="tested-device" href="sunology-play2.html"><span><strong>PLAY2</strong><span class="tested-brand">Sunology</span></span><span class="tested-link" aria-hidden="true">→</span></a>
         </div>
       </div>
@@ -242,6 +244,7 @@
         </div>
       </div>
     </div>
+    <p class="intro" style="margin-top:18px">October 2026: a community report labelled Sunology GO found 300 W, one PV input and 15/15 valid 02B0 reads; another MS800 Balcony report found 800 W, two PV inputs and 15/15 valid 02B0 reads. These are <strong>field observations</strong>, not fully confirmed Home Assistant deployments. Only the standard <strong>02B0</strong> protocol has been observed. <a href="sunology-go-home-assistant.html">Sunology GO evidence →</a> · <a href="tsol-ms800-balcony-home-assistant.html">MS800 Balcony evidence →</a></p>
     <p class="intro" style="margin-top:18px">October 2026: an additional 800 W / two-PV 02B0 diagnostic captured 144 registers on logger firmware <code>LSW5_SSL_02B0_1.05</code>. Its exact commercial model was not declared, so this is additional protocol evidence, not a separate Home Assistant validation. <a href="tsol-ms800-home-assistant.html">Read the MS800 field evidence →</a></p>
   </section>
 
@@ -304,6 +307,7 @@ Stable code preserved for diagnosis</div>
       <span><strong>@nxenara</strong> — repeated read-only TSOL-MS300 hardware dumps confirming the validated 02B0 / GEN3 path, 300 W rated power and one PV input.</span>
       <span><strong>phklrz (Philippe K.)</strong> — TSOL-MX450 / 02B0 diagnostics, subsequently validated in Home Assistant; past connection problems were attributed to Wi-Fi.</span>
       <span><strong>Valentin Fleuret</strong> — two complete TSOL-MX3000D GEN4 / 1097 diagnostics confirming six PV inputs and firmware V3.2.68; the device owner confirms TSUN Local works in Home Assistant with all telemetry available.</span>
+      <span><a href="contributors.html"><strong>Anonymous community contributors</strong></a> — thank you for Sunology GO and MS800 Balcony read-only 02B0 evidence (October 2026); full Home Assistant confirmation is pending.</span>
       <span><a href="https://github.com/Kmotr"><strong>@Kmotr</strong></a> — independent TSOL-MS800 validation with TSUN Local and an anonymized Home Assistant diagnostic.</span>
       <span><a href="https://github.com/paloindici"><strong>@paloindici</strong></a> — independent TSOL-MS2000 validation with four PV inputs, plus anonymized TSOL-MS2000 / MP3000 diagnostics and a hardware dump that improved the standalone diagnostic tool.</span>
       <a href="contributors.html">Full contributors &amp; credits →</a>
