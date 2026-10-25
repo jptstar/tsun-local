@@ -37,8 +37,7 @@
 | Protocole | Famille | Matériel validé | Statut |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validé** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **Validé** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology GO**<br>**TSOL-MS800 Balcony** | 🧪 **Observé sur matériel réel ; confirmation Home Assistant en attente** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **Validé** · 🧪 GO / MS800 Balcony: 02B0 field evidence only, HA pending |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validé** |
 
 > [!TIP]

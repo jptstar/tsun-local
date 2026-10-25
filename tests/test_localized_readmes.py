@@ -41,6 +41,8 @@ class LocalizedReadmeTests(unittest.TestCase):
             self.assertIn("tsol-ms300-home-assistant.html", text, filename)
             self.assertIn("tsol-mx450-home-assistant.html", text, filename)
             self.assertIn("tsol-mx3000d-home-assistant.html", text, filename)
+            self.assertIn("sunology-go-home-assistant.html", text, filename)
+            self.assertIn("tsol-ms800-balcony-home-assistant.html", text, filename)
             self.assertIn("Valentin Fleuret", text, filename)
             self.assertNotIn("**TSOL-MX3000D** (observed)", text, filename)
             self.assertIn("phklrz", text, filename)
@@ -73,6 +75,8 @@ class LocalizedReadmeTests(unittest.TestCase):
                 "**TSOL-MS2000**",
                 "**TSOL-MX450**",
                 "**TSOL-MX500**",
+                "**Sunology GO** 🧪",
+                "**TSOL-MS800 Balcony** 🧪",
             ],
             "1097": ["**Sunology PLAY2 (GEN4)**", "**TSOL-MX3000D**"],
         }

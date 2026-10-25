@@ -37,8 +37,7 @@
 | 协议 | 系列 | 已验证硬件 | 状态 |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500** | ✅ **已验证** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology GO**<br>**TSOL-MS800 Balcony** | 🧪 **现场通信已观察；Home Assistant 运行待确认** |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **已验证** · 🧪 GO / MS800 Balcony: 02B0 field evidence only, HA pending |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **已验证** |
 
 > [!TIP]
