@@ -4,4 +4,4 @@
 
 """Version contract for the full TSUN Local Diagnostic distribution."""
 
-APP_VERSION = "1.5.22"
+APP_VERSION = "1.5.23"
