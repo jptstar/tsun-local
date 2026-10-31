@@ -37,7 +37,7 @@
 | Protocollo | Famiglia | Hardware validato | Stato |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validato** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **Validato** · 🧪 GO / MS800 Balcony: 02B0 field evidence only, HA pending |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **Validato** · 🧪 GO / MS800 Balcony: diagnostica 02B0; funzionamento prolungato in Home Assistant da confermare |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validato** |
 
 > [!TIP]
@@ -189,11 +189,11 @@ python tsun_dump.py --full
 **[Release diagnostica stabile](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest)** · **[Protocollo di validazione](DIRECT_DIAGNOSTIC_UPLOAD_TEST.md)** · **[Guida diagnostica](HARDWARE_DUMP.md)**
 ### Sunology PLAY2
 
-**Sunology PLAY2 è validato su hardware Home Assistant reale** tramite il percorso locale 02B0 / Solarman V5.
+**Sunology PLAY2 è validato su hardware reale con Home Assistant**, tramite due varianti distinte: **02B0 / GEN3 PLUS** e **1097 / GEN4**.
 
 - Rilevamento automatico e normale configurazione TSUN Local confermati in modo indipendente.
 - Locale e in sola lettura: nessun cloud e nessuna scrittura di configurazione sull’inverter.
-- La variante hardware esatta MX400/MX450/MX500 resta volutamente non specificata; fa fede il protocollo **02B0** rilevato.
+- Il nome commerciale PLAY2 comprende più generazioni hardware; fa fede il protocollo rilevato **02B0** o **1097**.
 
 📚 **[Dettagli della ricerca PLAY2](research/PLAY2_LOCAL_RESEARCH.md)** · 🔬 **[Probe PLAY2 opzionale in sola lettura](../tools/tsun_play2_probe.py)**
 
