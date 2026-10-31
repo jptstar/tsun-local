@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The project follows [Se
 
 ### Documentation
 
+- Correct the HACS-visible root README and seven localized READMEs: distinguish current v1.6.2 software from October hardware validation, update PLAY2 dual 02B0/1097 coverage, localize provisional GO/Balcony status, and remove stale rolling-diagnostic version claims.
+
 - Present each tested microinverter on its own line in GitHub/HACS and localized README protocol tables, sorted by model name and natural model number; keep MX3000D validated and upgrade MX450 to user-validated 02B0 compatibility.
 - Publish dedicated TSOL-MX450 / GEN3 02B0 and TSOL-MX3000D / GEN4 1097 hardware pages using the exact visual system of the existing TSOL-MS300 page.
 - Update homepage compatibility cards, sitemap, HACS-visible GitHub README, and all seven localized README files; recognize TSOL-MS300 under verified 02B0 hardware instead of the speculative GEN4 list.
