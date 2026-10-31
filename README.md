@@ -35,10 +35,12 @@
 
 **Home Assistant 2026.3.0 or later.**
 
+**Current stable integration: v1.6.2 (12 September 2026).** Compatibility evidence reviewed 31 October 2026. The compatibility table includes later hardware validation and does not by itself announce a new software release.
+
 | Protocol | Family | Tested hardware &amp; field evidence | Status |
 |:---:|---|---|:---:|
 | **1511** | TITAN | **TSOL-MP3000** | ✅ **Validated** |
-| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **Validated** · 🧪 GO / MS800 Balcony: 02B0 field evidence only, HA pending |
+| **02B0** | GEN3 / GEN3 PLUS | **Sunology PLAY2**<br>**TSOL-MS300**<br>**TSOL-MS800**<br>**TSOL-MS2000**<br>**TSOL-MX450**<br>**TSOL-MX500**<br>**Sunology GO** 🧪<br>**TSOL-MS800 Balcony** 🧪 | ✅ **Validated** · 🧪 GO / MS800 Balcony: 02B0 diagnostic evidence; sustained Home Assistant operation not yet confirmed |
 | **1097** | GEN4 | **Sunology PLAY2 (GEN4)**<br>**TSOL-MX3000D** | ✅ **Validated** |
 
 > [!TIP]
@@ -65,7 +67,7 @@
 
 **Additional 02B0 community evidence (October 2026):** Sunology GO is a probable 300 W / single-PV match for report `TSL-20261013-C465E71C` (15/15 reads, logger 1.04), while TSOL-MS800 Balcony has a separate 800 W / dual-PV capture `TSL-20261010-CC270E05` (15/15 reads, logger 1.05). Both use 02B0, **not a confirmed 02B2**. Full Home Assistant operation is still unconfirmed for these submissions.
 
-**New in 1.6.0:** **Adaptive polling** is enabled by default and automatically adjusts the read interval after communication failures: 20 s normal, 30 s after an error and 300 s offline/night.
+**Included in stable 1.6.2:** Adaptive polling uses 20 s normally, 30 s after a failure and 300 s offline/night; the 1.6.1 communication fixes retry a failed block on a fresh TCP connection; 1.6.2 protects AC/PV daily-energy restoration against Wh/kWh conversion errors.
 
 📚 **[Full entity reference](docs/ENTITIES.md)**
 
@@ -130,6 +132,8 @@ Communication logs and exported diagnostics can include only the first three alp
 
 Or add `https://github.com/jptstar/tsun-local` as **HACS → Custom repositories → Integration**, install **TSUN Local**, then restart Home Assistant.
 
+If the compatibility information displayed in HACS is older than this README, use the repository **⋮ → Update information** action. This refreshes its metadata; it does **not** install or change the integration.
+
 ### Manual
 
 Copy `custom_components/tsun_local` to `/config/custom_components/`, restart Home Assistant, then add **TSUN Local** from **Settings → Devices & services**.
@@ -165,7 +169,7 @@ TSUN Local provides a privacy-safe, **strictly read-only** diagnostic for unlist
 |---|---|---|
 | **Windows x86_64** | **[TSUN-Local-Diagnostic.exe](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe)** | [checksum](https://github.com/jptstar/tsun-local/releases/download/diagnostic-latest/TSUN-Local-Diagnostic.exe.sha256) |
 
-**Current public diagnostic versions:** desktop GUI **1.5.12** · dump engine **2.8.3**.
+**Diagnostic releases are independent of the Home Assistant integration.** Check the [rolling diagnostic release](https://github.com/jptstar/tsun-local/releases/tag/diagnostic-latest) for the latest Windows and Python tools; these may be newer than the HACS integration version.
 
 > [!IMPORTANT]
 > The rolling tag and historical Windows asset name are deliberately preserved. Older Windows diagnostic links continue to point to the current Windows build.
